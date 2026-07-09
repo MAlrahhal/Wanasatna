@@ -1,0 +1,115 @@
+// Prisma schema for Wanasatna — Sprint 1: Core Room System
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum RoomStatus {
+  LOBBY
+  PLAYING
+  CLOSED
+}
+
+enum PlayerStatus {
+  CONNECTED
+  DISCONNECTED
+  LEFT
+}
+
+enum SessionType {
+  SINGLE_GAME
+  MARATHON
+}
+
+enum SessionStatus {
+  WAITING
+  ACTIVE
+  ENDED
+}
+
+enum ChatMessageType {
+  USER
+  SYSTEM
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+model Room {
+  id              String        @id @default(cuid())
+  code            String        @unique
+  hostPlayerId    String        @unique
+  status          RoomStatus    @default(LOBBY)
+  isLocked        Boolean       @default(false)
+  sessionType     SessionType   @default(SINGLE_GAME)
+  activeSessionId String?       @unique
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  hostPlayer      Player        @relation("RoomHost", fields: [hostPlayerId], references: [id], onDelete: Restrict)
+  activeSession   Session?      @relation("RoomActiveSession", fields: [activeSessionId], references: [id], onDelete: SetNull)
+  players         Player[]      @relation("RoomPlayers")
+  sessions        Session[]     @relation("RoomSessions")
+  chatMessages    ChatMessage[]
+
+  @@index([status])
+}
+
+model Player {
+  id           String       @id @default(cuid())
+  roomId       String
+  name         String
+  status       PlayerStatus @default(CONNECTED)
+  isSpectator  Boolean      @default(false)
+  joinedAt     DateTime     @default(now())
+  lastSeenAt   DateTime     @default(now())
+
+  room         Room          @relation("RoomPlayers", fields: [roomId], references: [id], onDelete: Cascade)
+  hostedRoom   Room?         @relation("RoomHost")
+  chatMessages ChatMessage[]
+
+  @@unique([roomId, name])
+  @@index([roomId])
+  @@index([status])
+}
+
+model Session {
+  id            String        @id @default(cuid())
+  roomId        String
+  type          SessionType
+  status        SessionStatus @default(WAITING)
+  currentGame   String?
+  currentRound  Int?
+  startedAt     DateTime?
+  endedAt       DateTime?
+
+  room          Room  @relation("RoomSessions", fields: [roomId], references: [id], onDelete: Cascade)
+  activeForRoom Room? @relation("RoomActiveSession")
+
+  @@index([roomId])
+  @@index([status])
+}
+
+model ChatMessage {
+  id        String          @id @default(cuid())
+  roomId    String
+  playerId  String?
+  type      ChatMessageType
+  message   String
+  createdAt DateTime        @default(now())
+
+  room   Room    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  player Player? @relation(fields: [playerId], references: [id], onDelete: SetNull)
+
+  @@index([roomId, createdAt])
+}
