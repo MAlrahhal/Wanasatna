@@ -6,9 +6,20 @@ import { cn } from '@/lib/utils';
 type LobbyHeaderProps = {
   roomCode: string;
   isLocked: boolean;
+  isHost: boolean;
+  onLockRoom?: () => void;
+  onUnlockRoom?: () => void;
+  onLeaveRoom?: () => void;
 };
 
-export function LobbyHeader({ roomCode, isLocked }: LobbyHeaderProps) {
+export function LobbyHeader({
+  roomCode,
+  isLocked,
+  isHost,
+  onLockRoom,
+  onUnlockRoom,
+  onLeaveRoom,
+}: LobbyHeaderProps) {
   const [copied, setCopied] = useState(false);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
 
@@ -23,7 +34,7 @@ export function LobbyHeader({ roomCode, isLocked }: LobbyHeaderProps) {
   }
 
   async function handleShareRoom() {
-    const shareUrl = `${window.location.origin}/lobby?code=${roomCode}`;
+    const shareUrl = window.location.href;
     const shareData = {
       title: 'Wanasatna',
       text: `انضم إلى غرفتي! الرمز: ${roomCode}`,
@@ -81,6 +92,32 @@ export function LobbyHeader({ roomCode, isLocked }: LobbyHeaderProps) {
             className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
           >
             مشاركة الغرفة
+          </button>
+          {isHost ? (
+            isLocked ? (
+              <button
+                type="button"
+                onClick={onUnlockRoom}
+                className="inline-flex h-10 items-center justify-center rounded-lg border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                فتح الغرفة
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onLockRoom}
+                className="inline-flex h-10 items-center justify-center rounded-lg border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                قفل الغرفة
+              </button>
+            )
+          ) : null}
+          <button
+            type="button"
+            onClick={onLeaveRoom}
+            className="inline-flex h-10 items-center justify-center rounded-lg border border-destructive/30 px-4 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+          >
+            مغادرة الغرفة
           </button>
           {shareMessage ? (
             <span className="text-xs text-muted-foreground">{shareMessage}</span>

@@ -3,9 +3,11 @@ import { PlayerCard } from './player-card';
 
 type PlayersPanelProps = {
   players: LobbyPlayer[];
+  isHost: boolean;
+  onKickPlayer?: (playerId: string) => void;
 };
 
-export function PlayersPanel({ players }: PlayersPanelProps) {
+export function PlayersPanel({ players, isHost, onKickPlayer }: PlayersPanelProps) {
   return (
     <section className="flex h-full flex-col rounded-2xl border border-border bg-card p-4 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
@@ -17,7 +19,12 @@ export function PlayersPanel({ players }: PlayersPanelProps) {
 
       <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
         {players.map((player) => (
-          <PlayerCard key={player.id} player={player} />
+          <PlayerCard
+            key={player.id}
+            player={player}
+            canKick={isHost}
+            onKick={onKickPlayer}
+          />
         ))}
       </div>
     </section>

@@ -4,16 +4,21 @@ import { cn } from '@/lib/utils';
 type GameCardProps = {
   game: LobbyGame;
   selected: boolean;
+  disabled?: boolean;
   onSelect: (gameId: string) => void;
 };
 
-export function GameCard({ game, selected, onSelect }: GameCardProps) {
+export function GameCard({ game, selected, disabled = false, onSelect }: GameCardProps) {
   return (
     <button
       type="button"
+      disabled={disabled}
       onClick={() => onSelect(game.id)}
       className={cn(
-        'flex h-full flex-col rounded-xl border bg-card p-4 text-right transition-all hover:border-primary/40 hover:shadow-sm',
+        'flex h-full flex-col rounded-xl border bg-card p-4 text-right transition-all',
+        disabled
+          ? 'cursor-not-allowed border-border opacity-70'
+          : 'hover:border-primary/40 hover:shadow-sm',
         selected ? 'border-primary ring-2 ring-primary/20' : 'border-border',
       )}
     >

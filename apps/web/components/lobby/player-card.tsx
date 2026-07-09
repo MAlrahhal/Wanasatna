@@ -3,9 +3,11 @@ import { cn } from '@/lib/utils';
 
 type PlayerCardProps = {
   player: LobbyPlayer;
+  canKick?: boolean;
+  onKick?: (playerId: string) => void;
 };
 
-export function PlayerCard({ player }: PlayerCardProps) {
+export function PlayerCard({ player, canKick = false, onKick }: PlayerCardProps) {
   const initial = player.name.charAt(0);
 
   return (
@@ -37,6 +39,16 @@ export function PlayerCard({ player }: PlayerCardProps) {
           ) : null}
         </div>
       </div>
+
+      {canKick && !player.isHost ? (
+        <button
+          type="button"
+          onClick={() => onKick?.(player.id)}
+          className="rounded-lg border border-destructive/30 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10"
+        >
+          طرد
+        </button>
+      ) : null}
     </div>
   );
 }

@@ -1,12 +1,10 @@
 import type { NextConfig } from 'next';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
   turbopack: {
-    root: path.join(__dirname, '../..'),
+    // Monorepo root (apps/web → repo root). Use a plain relative path — import.meta.url
+    // in next.config.ts breaks Next.js config compilation (CJS output loaded as ESM).
+    root: '../..',
   },
 };
 
