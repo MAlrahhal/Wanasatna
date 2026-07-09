@@ -12,7 +12,7 @@ import {
   UNLOCK_ROOM_EVENT,
   type CreateRoomResponse,
   type RoomActionResponse,
-} from './room.types.js';
+} from '@wanasatna/shared';
 import {
   createRoom,
   handlePlayerDisconnect,

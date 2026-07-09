@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { RoomActionResponse, RoomErrorCode } from './room.types.js';
+import type { RoomActionResponse, RoomErrorCode } from '@wanasatna/shared';
 
 const playerNameSchema = z
   .string()

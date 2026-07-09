@@ -1,5 +1,5 @@
 import type { Socket } from 'socket.io';
-import type { RoomActionResponse } from './room.types.js';
+import type { RoomActionResponse } from '@wanasatna/shared';
 import { getPlayerChannel, getRoomChannel } from './room.utils.js';
 import { invalidContextError } from './room.validators.js';
 

@@ -1,6 +1,6 @@
 import { PlayerStatus, Prisma, RoomStatus, SessionType } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
-import type { RoomActionResponse, RoomSessionData } from '../room.types.js';
+import type { RoomActionResponse, RoomSessionData } from '@wanasatna/shared';
 import { validateCreateRoomPayload } from '../room.validators.js';
 import { generateUniqueRoomCode, mapRoomSession } from '../room.utils.js';
 import { serviceError } from './shared-room.service.js';

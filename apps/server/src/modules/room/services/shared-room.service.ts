@@ -1,6 +1,6 @@
 import { PlayerStatus, type Player, type Room, RoomStatus } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
-import type { RoomActionResponse, RoomUpdatedPayload } from '../room.types.js';
+import type { RoomActionResponse, RoomUpdatedPayload } from '@wanasatna/shared';
 import { MAX_ROOM_PLAYERS } from '../room.utils.js';
 
 export type ServiceError = Extract<RoomActionResponse<never>, { success: false }>;

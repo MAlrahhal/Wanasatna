@@ -1,19 +1,13 @@
 import { PlayerStatus } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
-import type { HostChangedPayload, RoomActionResponse, RoomSessionData } from '../room.types.js';
+import type { HostChangedPayload, ReconnectResponse } from '@wanasatna/shared';
 import { validateReconnectPayload } from '../room.validators.js';
 import { isReconnectExpired, mapRoomSession } from '../room.utils.js';
 import { transferHost } from './host.service.js';
 import { cleanupRoomIfEmpty, deleteRoomWithRelations } from './room-cleanup.service.js';
 import { assertRoomNotClosed, serviceError } from './shared-room.service.js';
 
-export async function reconnectPlayer(
-  payload: unknown,
-): Promise<
-  RoomActionResponse<RoomSessionData> & {
-    hostChanged?: HostChangedPayload | null;
-  }
-> {
+export async function reconnectPlayer(payload: unknown): Promise<ReconnectResponse> {
   const validation = validateReconnectPayload(payload);
 
   if (!validation.success) {

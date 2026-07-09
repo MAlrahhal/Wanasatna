@@ -1,4 +1,4 @@
-import type { RoomErrorCode } from './types';
+import type { RoomErrorCode } from '@wanasatna/shared';
 
 const ERROR_MESSAGES: Record<RoomErrorCode, string> = {
   VALIDATION_ERROR: 'يرجى التحقق من البيانات المدخلة.',

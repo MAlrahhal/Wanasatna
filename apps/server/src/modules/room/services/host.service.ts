@@ -1,6 +1,6 @@
 import { PlayerStatus } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
-import type { HostChangedPayload } from '../room.types.js';
+import type { HostChangedPayload } from '@wanasatna/shared';
 
 async function findNextHostPlayer(roomId: string, excludePlayerId?: string) {
   for (const statuses of [

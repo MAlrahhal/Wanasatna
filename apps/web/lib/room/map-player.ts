@@ -1,5 +1,5 @@
 import type { LobbyPlayer } from '@/lib/lobby/types';
-import type { RoomPlayerData } from './types';
+import type { RoomPlayerData } from '@wanasatna/shared';
 
 export function toLobbyPlayer(player: RoomPlayerData): LobbyPlayer {
   return {

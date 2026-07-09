@@ -1,4 +1,5 @@
 import type { Server } from 'socket.io';
+import './room.types.js';
 import {
   registerCreateRoomHandler,
   registerDisconnectHandler,

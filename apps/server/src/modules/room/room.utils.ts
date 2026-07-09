@@ -1,6 +1,6 @@
 import { PlayerStatus, type Player, type Room } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
-import type { RoomData, RoomPlayerData } from './room.types.js';
+import type { RoomData, RoomPlayerData } from '@wanasatna/shared';
 
 export const ROOM_CODE_LENGTH = 6;
 export const MAX_CODE_GENERATION_ATTEMPTS = 10;

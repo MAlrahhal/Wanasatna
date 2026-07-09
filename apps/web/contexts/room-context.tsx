@@ -24,7 +24,16 @@ import {
   RECONNECT_EVENT,
   ROOM_UPDATED_EVENT,
   UNLOCK_ROOM_EVENT,
-} from '@/lib/room/events';
+  type HostChangedPayload,
+  type PlayerKickedPayload,
+  type ReconnectResponse,
+  type RoomActionResponse,
+  type RoomData,
+  type RoomErrorCode,
+  type RoomPlayerData,
+  type RoomSessionData,
+  type RoomUpdatedPayload,
+} from '@wanasatna/shared';
 import { normalizeRoomDates, toLobbyPlayer } from '@/lib/room/map-player';
 import {
   clearRoomSession,
@@ -34,17 +43,6 @@ import {
   writeSelectedGameId,
 } from '@/lib/room/session';
 import { disconnectRoomSocket, getRoomSocket } from '@/lib/room/socket';
-import type {
-  HostChangedPayload,
-  PlayerKickedPayload,
-  ReconnectResponse,
-  RoomActionResponse,
-  RoomData,
-  RoomErrorCode,
-  RoomPlayerData,
-  RoomSessionData,
-  RoomUpdatedPayload,
-} from '@/lib/room/types';
 
 type ConnectionStatus = 'idle' | 'connecting' | 'connected' | 'error';
 

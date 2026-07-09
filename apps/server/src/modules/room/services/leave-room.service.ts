@@ -1,6 +1,6 @@
 import { PlayerStatus } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
-import type { HostChangedPayload, RoomActionResponse } from '../room.types.js';
+import type { HostChangedPayload, RoomActionResponse } from '@wanasatna/shared';
 import { validateKickPlayerPayload } from '../room.validators.js';
 import { transferHost } from './host.service.js';
 import { cleanupRoomIfEmpty } from './room-cleanup.service.js';
