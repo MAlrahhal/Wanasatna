@@ -1,10 +1,12 @@
 import { io, type Socket } from 'socket.io-client';
 
+import { getServerUrl } from '@/lib/config/server-url';
+
 let socket: Socket | null = null;
 
 export function getRoomSocket(): Socket {
   if (!socket) {
-    socket = io(process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:4000', {
+    socket = io(getServerUrl(), {
       autoConnect: false,
     });
   }

@@ -41,6 +41,7 @@ export function registerCreateRoomHandler(socket: Socket): void {
     CREATE_ROOM_EVENT,
     async (payload: unknown, callback?: (response: CreateRoomResponse) => void) => {
       try {
+        console.info('[create-room]', { stage: 'socket-handler-received' });
         const response = await createRoom(payload);
 
         if (response.success) {
@@ -49,10 +50,25 @@ export function registerCreateRoomHandler(socket: Socket): void {
             response.data.room.id,
             response.data.player.id,
           );
+          console.info('[create-room]', {
+            stage: 'socket-handler-complete',
+            callbackErrorCode: 'none',
+          });
+        } else {
+          console.info('[create-room]', {
+            stage: 'socket-handler-complete',
+            callbackErrorCode: response.error.code,
+          });
         }
 
         sendResponse(callback, response);
-      } catch {
+      } catch (error) {
+        console.info('[create-room]', {
+          stage: 'socket-handler-thrown',
+          errorName: error instanceof Error ? error.name : typeof error,
+          errorMessage: error instanceof Error ? error.message : String(error),
+          callbackErrorCode: 'INTERNAL_ERROR',
+        });
         sendInternalError(callback);
       }
     },
