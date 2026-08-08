@@ -8,4 +8,5 @@ export const RECONNECT_EVENT = 'reconnect' as const;
 
 export const HOST_CHANGED_EVENT = 'host-changed' as const;
 export const ROOM_UPDATED_EVENT = 'room-updated' as const;
+export const ROOM_PLAYERS_SNAPSHOT_EVENT = 'room-players-snapshot' as const;
 export const PLAYER_KICKED_EVENT = 'player-kicked' as const;

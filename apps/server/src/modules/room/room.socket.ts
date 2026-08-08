@@ -14,12 +14,12 @@ import {
 export function registerRoomSockets(io: Server): void {
   io.on('connection', (socket) => {
     registerCreateRoomHandler(socket);
-    registerJoinRoomHandler(socket);
+    registerJoinRoomHandler(io, socket);
     registerLeaveRoomHandler(io, socket);
     registerKickPlayerHandler(io, socket);
     registerLockRoomHandler(io, socket);
     registerUnlockRoomHandler(io, socket);
     registerReconnectHandler(io, socket);
-    registerDisconnectHandler(socket);
+    registerDisconnectHandler(io, socket);
   });
 }

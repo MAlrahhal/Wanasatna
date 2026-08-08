@@ -16,6 +16,7 @@ export type LobbyGame = {
   title: string;
   description: string;
   iconLabel: string;
+  emoji: string;
 };
 
 export type LobbyChatMessage = {

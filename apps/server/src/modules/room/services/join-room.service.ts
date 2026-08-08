@@ -1,8 +1,9 @@
-import { PlayerStatus, Prisma, RoomStatus } from '@prisma/client';
+import { PlayerStatus, Prisma } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
 import type { RoomActionResponse, RoomSessionData } from '@wanasatna/shared';
 import { validateJoinRoomPayload } from '../room.validators.js';
-import { mapRoomSession } from '../room.utils.js';
+import { loadActiveRoomPlayers, mapRoomSession } from '../room.utils.js';
+import { generateReconnectToken, hashReconnectToken } from '../reconnect-token.js';
 import {
   assertRoomJoinable,
   findRoomByCode,
@@ -39,10 +40,17 @@ export async function joinRoom(payload: unknown): Promise<RoomActionResponse<Roo
   });
 
   if (existingPlayer) {
-    return serviceError('PLAYER_ALREADY_EXISTS', 'A player with this name already exists in the room.');
+    if (existingPlayer.status === PlayerStatus.LEFT) {
+      await prisma.player.delete({
+        where: { id: existingPlayer.id },
+      });
+    } else {
+      return serviceError('PLAYER_ALREADY_EXISTS', 'A player with this name already exists in the room.');
+    }
   }
 
-  const isSpectator = roomResult.status === RoomStatus.PLAYING;
+  const reconnectToken = generateReconnectToken();
+  const reconnectTokenHash = hashReconnectToken(reconnectToken);
 
   try {
     const player = await prisma.player.create({
@@ -50,13 +58,16 @@ export async function joinRoom(payload: unknown): Promise<RoomActionResponse<Roo
         roomId: roomResult.id,
         name: validation.data.playerName,
         status: PlayerStatus.CONNECTED,
-        isSpectator,
+        isSpectator: false,
+        reconnectTokenHash,
       },
     });
 
+    const players = await loadActiveRoomPlayers(roomResult.id, roomResult.hostPlayerId);
+
     return {
       success: true,
-      data: mapRoomSession(roomResult, player),
+      data: mapRoomSession(roomResult, player, players, reconnectToken),
     };
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {

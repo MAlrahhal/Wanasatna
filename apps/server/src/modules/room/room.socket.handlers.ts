@@ -1,6 +1,7 @@
 import type { Server, Socket } from 'socket.io';
 import {
   CREATE_ROOM_EVENT,
+  GAME_SHELL_STATE_EVENT,
   HOST_CHANGED_EVENT,
   JOIN_ROOM_EVENT,
   KICK_PLAYER_EVENT,
@@ -13,6 +14,9 @@ import {
   type CreateRoomResponse,
   type RoomActionResponse,
 } from '@wanasatna/shared';
+import { getGameShellByRoomId } from '../game/game.service.js';
+import { ensureGameShellLifecycleProgress } from '../game/game.lifecycle.js';
+import { evaluatePlayerRecovery } from '../game/runtime/player-recovery.js';
 import {
   createRoom,
   handlePlayerDisconnect,
@@ -30,7 +34,7 @@ import {
   sendInternalError,
   sendResponse,
 } from './room.socket.utils.js';
-import { getPlayerChannel, getRoomChannel } from './room.utils.js';
+import { broadcastRoomPlayersSnapshot, getPlayerChannel, getRoomChannel } from './room.utils.js';
 
 export function registerCreateRoomHandler(socket: Socket): void {
   socket.on(
@@ -55,7 +59,7 @@ export function registerCreateRoomHandler(socket: Socket): void {
   );
 }
 
-export function registerJoinRoomHandler(socket: Socket): void {
+export function registerJoinRoomHandler(io: Server, socket: Socket): void {
   socket.on(
     JOIN_ROOM_EVENT,
     async (payload: unknown, callback?: (response: RoomActionResponse<unknown>) => void) => {
@@ -69,9 +73,7 @@ export function registerJoinRoomHandler(socket: Socket): void {
             response.data.player.id,
           );
 
-          socket.to(getRoomChannel(response.data.room.id)).emit(JOIN_ROOM_EVENT, {
-            player: response.data.player,
-          });
+          await broadcastRoomPlayersSnapshot(io, response.data.room.id);
         }
 
         sendResponse(callback, response);
@@ -102,11 +104,12 @@ export function registerLeaveRoomHandler(io: Server, socket: Socket): void {
           await clearSocketSession(socket);
 
           if (!response.data.roomDeleted) {
-            socket.to(getRoomChannel(roomId!)).emit(LEAVE_ROOM_EVENT, { playerId });
-
             if (response.data.hostChanged) {
               io.to(getRoomChannel(roomId!)).emit(HOST_CHANGED_EVENT, response.data.hostChanged);
             }
+
+            await broadcastRoomPlayersSnapshot(io, roomId!);
+            await evaluatePlayerRecovery(io, roomId!);
           }
         }
 
@@ -153,9 +156,8 @@ export function registerKickPlayerHandler(io: Server, socket: Socket): void {
           }
 
           if (!response.data.roomDeleted) {
-            socket.to(roomChannel).emit(KICK_PLAYER_EVENT, {
-              playerId: response.data.kickedPlayerId,
-            });
+            await broadcastRoomPlayersSnapshot(io, roomId!);
+            await evaluatePlayerRecovery(io, roomId!);
           }
         }
 
@@ -231,11 +233,31 @@ export function registerReconnectHandler(io: Server, socket: Socket): void {
         const response = await reconnectPlayer(payload);
 
         if (response.success) {
+          const playerChannel = getPlayerChannel(response.data.player.id);
+          const existingSockets = await io.in(playerChannel).fetchSockets();
+
+          for (const existingSocket of existingSockets) {
+            if (existingSocket.id !== socket.id) {
+              existingSocket.disconnect(true);
+            }
+          }
+
           await bindSocketToRoomSession(
             socket,
             response.data.room.id,
             response.data.player.id,
           );
+
+          await broadcastRoomPlayersSnapshot(io, response.data.room.id);
+
+          ensureGameShellLifecycleProgress(io, response.data.room.id);
+          const shell = getGameShellByRoomId(response.data.room.id);
+
+          if (shell) {
+            socket.emit(GAME_SHELL_STATE_EVENT, { state: shell });
+          }
+
+          await evaluatePlayerRecovery(io, response.data.room.id);
         } else if (response.hostChanged) {
           io.to(getRoomChannel(response.hostChanged.roomId)).emit(
             HOST_CHANGED_EVENT,
@@ -251,7 +273,7 @@ export function registerReconnectHandler(io: Server, socket: Socket): void {
   );
 }
 
-export function registerDisconnectHandler(socket: Socket): void {
+export function registerDisconnectHandler(io: Server, socket: Socket): void {
   socket.on('disconnect', async () => {
     const { playerId, roomId } = socket.data;
 
@@ -261,6 +283,8 @@ export function registerDisconnectHandler(socket: Socket): void {
 
     try {
       await handlePlayerDisconnect(playerId, roomId);
+      await broadcastRoomPlayersSnapshot(io, roomId);
+      await evaluatePlayerRecovery(io, roomId);
     } catch {
       // Disconnect cleanup should not crash the server.
     }

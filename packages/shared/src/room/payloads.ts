@@ -1,3 +1,5 @@
+import type { RoomPlayerData } from './player.js';
+
 export type CreateRoomPayload = {
   playerName: string;
 };
@@ -13,6 +15,9 @@ export type KickPlayerPayload = {
 
 export type ReconnectPayload = {
   playerId: string;
+  reconnectToken: string;
+  roomCode?: string;
+  roomId?: string;
 };
 
 export type HostChangedPayload = {
@@ -24,6 +29,10 @@ export type HostChangedPayload = {
 export type RoomUpdatedPayload = {
   roomId: string;
   isLocked: boolean;
+};
+
+export type RoomPlayersSnapshotPayload = {
+  players: RoomPlayerData[];
 };
 
 export type PlayerKickedPayload = {

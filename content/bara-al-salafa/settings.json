@@ -1,0 +1,9 @@
+{
+  "minPlayers": 3,
+  "maxPlayers": 12,
+  "roundTime": 60,
+  "discussionTime": 180,
+  "countdownTime": 3,
+  "rounds": 3,
+  "enabledCategories": []
+}

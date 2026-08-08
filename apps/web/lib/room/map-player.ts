@@ -10,6 +10,10 @@ export function toLobbyPlayer(player: RoomPlayerData): LobbyPlayer {
   };
 }
 
+export function toLobbyPlayers(players: RoomPlayerData[]): LobbyPlayer[] {
+  return players.map(toLobbyPlayer);
+}
+
 export function normalizeRoomDates<T extends { createdAt: string | Date }>(room: T): T & { createdAt: string } {
   return {
     ...room,

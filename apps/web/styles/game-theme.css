@@ -1,0 +1,154 @@
+/**
+ * Live-game visual theme — flat energetic party-game identity.
+ *
+ * Rules:
+ * - Flat Deep Space surfaces with subtle texture
+ * - Cyan is reserved for interaction and focus
+ * - IBM Plex Sans Arabic via .font-game
+ * - All live games must wrap gameplay in GameExperienceShell
+ */
+:root {
+  --wanas-game-page-bg: #0d0d1a;
+  --wanas-game-page-top-overlay: transparent;
+  --wanas-game-structural-bg: #13132a;
+  --wanas-game-panel-bg: #1a1a35;
+  --wanas-game-panel-border: #22224a;
+  --wanas-game-card: #1a1a35;
+  --wanas-game-card-border: #22224a;
+  --wanas-game-accent: #00d4ff;
+  --wanas-game-accent-hover: #00ffea;
+  --wanas-game-accent-soft: #22224a;
+  --wanas-game-secondary: #2a4080;
+  --wanas-game-success: #00d4ff;
+  --wanas-game-warning: #f97316;
+  --wanas-game-danger: #ef4444;
+  --wanas-game-text-primary: #f5f7ff;
+  --wanas-game-text-secondary: #c9d1e8;
+  --wanas-game-text-on-structural: #f5f7ff;
+  --wanas-game-text-on-structural-muted: #8e98b8;
+  --wanas-game-shadow: 0 5px 18px rgb(0 0 0 / 0.24);
+  --wanas-game-shadow-hover: 0 9px 26px rgb(0 0 0 / 0.3);
+  --wanas-game-radius: 1rem;
+  --wanas-game-transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --wanas-game-shell-max: 96rem;
+  --wanas-game-doodle-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cg fill='none' stroke='%23F5F7FF' stroke-width='1.2' opacity='0.018'%3E%3Crect x='20' y='24' width='28' height='20' rx='3'/%3E%3Ccircle cx='130' cy='36' r='10'/%3E%3Cpath d='M48 120h24M60 108v24'/%3E%3Cpath d='M128 118l14 14M142 118l-14 14'/%3E%3Cpath d='M24 148h40M44 128v40'/%3E%3Ccircle cx='100' cy='150' r='8'/%3E%3Cpath d='M150 70l8 8-8 8-8-8z'/%3E%3C/g%3E%3C/svg%3E");
+
+  /* Legacy aliases used by in-phase components */
+  --wanas-game-bg-from: var(--wanas-game-page-bg);
+  --wanas-game-header-bg: var(--wanas-game-structural-bg);
+  --wanas-game-header-border: var(--wanas-game-panel-border);
+  --wanas-game-header-shadow: var(--wanas-game-shadow);
+}
+
+.wanas-game-play-bg {
+  min-height: 100dvh;
+  background-color: var(--wanas-game-page-bg);
+  background-image: var(--wanas-game-doodle-pattern);
+  background-size: 180px 180px;
+  color: var(--wanas-game-text-on-structural);
+}
+
+.font-game {
+  font-family: var(--font-ibm-plex-arabic), var(--font-geist-sans), sans-serif;
+  --wanas-accent: var(--wanas-game-accent);
+  --wanas-accent-hover: var(--wanas-game-accent-hover);
+  --wanas-accent-soft: var(--wanas-game-accent-soft);
+  --wanas-game-primary-shadow: rgb(0 0 0 / 0.24);
+}
+
+.font-game button.bg-gradient-to-b {
+  background-image: none;
+  background-color: var(--wanas-game-accent);
+  box-shadow: 0 4px 14px var(--wanas-game-primary-shadow);
+}
+
+.font-game button.bg-gradient-to-b:hover:not(:disabled) {
+  background-color: var(--wanas-game-accent-hover);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.28);
+}
+
+@keyframes wanas-game-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wanas-game-screen {
+  animation: wanas-game-fade-in 280ms ease-out;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+  padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+  padding-left: max(0.5rem, env(safe-area-inset-left, 0px));
+  padding-right: max(0.5rem, env(safe-area-inset-right, 0px));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wanas-game-screen {
+    animation: none;
+  }
+}
+
+.wanas-game-card {
+  border-radius: var(--wanas-game-radius);
+  border: 1px solid var(--wanas-game-card-border);
+  background-color: var(--wanas-game-card);
+  box-shadow: var(--wanas-game-shadow);
+  transition:
+    box-shadow var(--wanas-game-transition),
+    transform var(--wanas-game-transition),
+    border-color var(--wanas-game-transition);
+}
+
+.wanas-game-card-interactive:hover {
+  box-shadow: var(--wanas-game-shadow-hover);
+  transform: scale(1.01);
+}
+
+.wanas-game-panel {
+  min-width: 0;
+  border: 1px solid var(--wanas-game-panel-border);
+  border-radius: 0.875rem;
+  background-color: var(--wanas-game-panel-bg);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.04);
+}
+
+.wanas-game-phase-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid var(--wanas-game-accent);
+  background: var(--wanas-game-accent-soft);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--wanas-game-accent);
+  white-space: nowrap;
+}
+
+.wanas-game-helper {
+  font-size: 0.875rem;
+  line-height: 1.625;
+  color: var(--wanas-game-text-secondary);
+  font-weight: 400;
+}
+
+.wanas-game-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--wanas-game-text-primary);
+  letter-spacing: -0.01em;
+}
+
+@media (min-width: 640px) {
+  .wanas-game-title {
+    font-size: 1.25rem;
+  }
+}
+

@@ -13,8 +13,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Wanasatna",
+  title: {
+    default: "Wanasatna",
+    template: "%s | Wanasatna",
+  },
   description: "Arabic-first browser-based multiplayer party games platform",
+  applicationName: "Wanasatna",
 };
 
 export default function RootLayout({

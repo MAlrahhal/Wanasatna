@@ -27,6 +27,13 @@ export const kickPlayerSchema = z.object({
 
 export const reconnectSchema = z.object({
   playerId: playerIdSchema,
+  reconnectToken: z.string().trim().min(16, 'Reconnect token is required'),
+  roomCode: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, 'Room code must be exactly 6 digits')
+    .optional(),
+  roomId: z.string().trim().min(1, 'Room ID is required').optional(),
 });
 
 export type CreateRoomInput = z.infer<typeof createRoomSchema>;

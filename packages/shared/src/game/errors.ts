@@ -1,0 +1,26 @@
+export type GameErrorCode =
+  | 'VALIDATION_ERROR'
+  | 'NOT_HOST'
+  | 'NOT_IN_ROOM'
+  | 'SHELL_NOT_FOUND'
+  | 'SHELL_ALREADY_EXISTS'
+  | 'INVALID_PHASE'
+  | 'PLAYER_NOT_FOUND'
+  | 'GAME_NOT_SELECTED'
+  | 'INTERNAL_ERROR'
+  | 'ALREADY_SUBMITTED'
+  | 'NOT_PARTICIPANT'
+  | 'INVALID_DESCRIPTION'
+  | 'EMPTY_DESCRIPTION'
+  | 'DESCRIPTION_TOO_LONG'
+  | 'NOT_ACTIVE_PLAYER'
+  | 'NOT_ACTIVE_ASKER'
+  | 'INVALID_TARGET'
+  | 'PLAYER_ALREADY_COMPLETED'
+  | 'NOT_IMPOSTOR'
+  | 'INVALID_OPTION';
+
+export type GameError = {
+  code: GameErrorCode;
+  message: string;
+};

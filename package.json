@@ -9,12 +9,16 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "pnpm --parallel --filter=./apps/* run dev",
+    "dev": "pnpm --parallel --filter @wanasatna/server --filter @wanasatna/web run dev",
     "build": "pnpm --recursive --filter=./apps/* run build",
     "lint": "pnpm --recursive run lint",
     "typecheck": "pnpm --recursive run typecheck",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:server:unit": "pnpm --filter @wanasatna/server run test:unit",
+    "test:server:multiplayer": "pnpm --filter @wanasatna/server run test:multiplayer",
+    "test:web:unit": "pnpm --filter @wanasatna/web run test:unit",
+    "test:e2e": "pnpm --filter @wanasatna/web run test:e2e"
   },
   "devDependencies": {
     "prettier": "^3.4.2",

@@ -1,0 +1,7 @@
+{
+  "minPlayers": 3,
+  "maxPlayers": 12,
+  "roundTime": 10,
+  "rounds": 3,
+  "enabledCategories": []
+}

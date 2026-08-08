@@ -1,0 +1,147 @@
+/**
+ * Wanasatna design tokens — official brand identity.
+ * Official identity V2 — Deep Space.
+ */
+:root {
+  /* Official brand */
+  --wanas-brand-sky: #00d4ff;
+  --wanas-brand-navy: #1b2e5e;
+  --wanas-brand-navy-hover: #3d5599;
+  --wanas-brand-navy-active: #2a4080;
+
+  /* Page backgrounds */
+  --wanas-background: #0d0d1a;
+  --wanas-background-strong: #13132a;
+  --wanas-home-background: #0d0d1a;
+  --wanas-navbar: #13132a;
+  --wanas-hero: #0d0d1a;
+  --wanas-panel-soft: #1a1a35;
+
+  /* Primary interaction — cyan with navy support */
+  --wanas-primary: #00d4ff;
+  --wanas-primary-dark: #2a4080;
+  --wanas-primary-darker: #1b2e5e;
+  --wanas-primary-soft: #00ffea;
+  --wanas-primary-muted: #5e6885;
+  --wanas-primary-surface: #1a1a35;
+  --wanas-primary-surface-strong: #22224a;
+
+  /* Surfaces */
+  --wanas-surface: #1a1a35;
+  --wanas-surface-soft: #22224a;
+  --wanas-surface-alt: #13132a;
+  --wanas-surface-muted: #22224a;
+
+  /* Borders */
+  --wanas-border: #22224a;
+  --wanas-border-muted: #22224a;
+  --wanas-border-subtle: #1a1a35;
+
+  /* Text */
+  --wanas-text-primary: #f5f7ff;
+  --wanas-text-secondary: #c9d1e8;
+  --wanas-text-muted: #8e98b8;
+  --wanas-text-subtle: #5e6885;
+  --wanas-text-on-brand: #f5f7ff;
+
+  /* Global interaction accent */
+  --wanas-accent: #00d4ff;
+  --wanas-accent-hover: #00ffea;
+  --wanas-accent-soft: #22224a;
+
+  /* Premium — gold semantic only */
+  --wanas-premium: #d4a017;
+  --wanas-premium-dark: #b8860b;
+  --wanas-premium-surface: #1a1a35;
+  --wanas-premium-border: #d4a017;
+
+  /* Semantic — success */
+  --wanas-success: #00d4ff;
+  --wanas-success-dark: #00ffea;
+  --wanas-success-text: #00d4ff;
+  --wanas-success-surface: #1a1a35;
+  --wanas-success-border: #2a4080;
+  --wanas-success-border-light: #3d5599;
+
+  /* Semantic — warning */
+  --wanas-warning: #f97316;
+  --wanas-warning-dark: #ea580c;
+  --wanas-warning-text: #c2410c;
+  --wanas-warning-surface: #1a1a35;
+  --wanas-warning-surface-light: #22224a;
+  --wanas-warning-border: #fdba74;
+  --wanas-warning-border-strong: #fb923c;
+
+  /* Semantic — danger */
+  --wanas-error: #f87171;
+  --wanas-error-border: #fca5a5;
+  --wanas-error-surface: #1a1a35;
+  --wanas-error-surface-strong: #22224a;
+  --wanas-error-border-strong: #fecdd3;
+  --wanas-error-surface-hover: #22224a;
+
+  --wanas-disabled: #5e6885;
+  --wanas-neutral-border: #22224a;
+
+  /* Game catalog accents — small per-game identity only */
+  --wanas-game-blue: #2563eb;
+  --wanas-game-blue-surface: #1a1a35;
+  --wanas-game-blue-border: #2a4080;
+  --wanas-game-blue-icon-bg: #22224a;
+  --wanas-game-blue-icon-text: #00d4ff;
+
+  --wanas-game-orange: #f97316;
+  --wanas-game-orange-surface: #1a1a35;
+  --wanas-game-orange-border: #fdba74;
+  --wanas-game-orange-icon-bg: #22224a;
+  --wanas-game-orange-icon-text: #ea580c;
+  --wanas-game-orange-dark: #ea580c;
+  --wanas-game-orange-surface-strong: #22224a;
+
+  --wanas-game-rose: #f43f5e;
+  --wanas-game-rose-surface: #1a1a35;
+  --wanas-game-rose-border: #fda4af;
+  --wanas-game-rose-icon-bg: #22224a;
+  --wanas-game-rose-icon-text: #e11d48;
+
+  --wanas-game-teal: #00d4ff;
+  --wanas-game-teal-dark: #00d4ff;
+  --wanas-game-teal-darker: #2a4080;
+  --wanas-game-teal-surface: #1a1a35;
+  --wanas-game-teal-border: #2a4080;
+  --wanas-game-teal-border-light: #3d5599;
+  --wanas-game-teal-icon-bg: #22224a;
+  --wanas-game-teal-icon-text: #00d4ff;
+
+  /* Legacy slot mapped to the official navy/cyan identity */
+  --wanas-game-purple: #1b2e5e;
+  --wanas-game-purple-dark: #2a4080;
+  --wanas-game-purple-surface: #1a1a35;
+  --wanas-game-purple-surface-strong: #22224a;
+  --wanas-game-purple-border: #2a4080;
+  --wanas-game-purple-border-strong: #3d5599;
+  --wanas-game-purple-icon-bg: #22224a;
+  --wanas-game-purple-icon-text: #00d4ff;
+
+  --wanas-game-green: #22c55e;
+  --wanas-game-green-surface: #1a1a35;
+  --wanas-game-green-border: #86efac;
+  --wanas-game-green-icon-bg: #22224a;
+  --wanas-game-green-icon-text: #16a34a;
+
+  --wanas-game-slate: #8e98b8;
+  --wanas-game-slate-surface: #1a1a35;
+  --wanas-game-slate-border: #22224a;
+  --wanas-game-slate-icon-bg: #22224a;
+  --wanas-game-slate-icon-text: #8e98b8;
+  --wanas-game-slate-icon-text-dark: #c9d1e8;
+
+  /* Shared shape and elevation */
+  --wanas-radius-control: 0.875rem;
+  --wanas-radius-card: 1rem;
+  --wanas-radius-panel: 1.25rem;
+  --wanas-shadow-card: 0 2px 8px rgb(0 0 0 / 0.2), 0 14px 32px rgb(0 0 0 / 0.22);
+  --wanas-shadow-card-hover: 0 4px 12px rgb(0 0 0 / 0.24), 0 20px 40px rgb(0 0 0 / 0.28);
+  --wanas-shadow-panel: 0 2px 8px rgb(0 0 0 / 0.18), 0 10px 28px rgb(0 0 0 / 0.2);
+}
+

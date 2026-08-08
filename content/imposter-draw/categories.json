@@ -1,0 +1,11 @@
+[
+  { "id": "animals", "name": "حيوانات", "enabled": true },
+  { "id": "food", "name": "أكلات", "enabled": true },
+  { "id": "countries", "name": "بلدان", "enabled": true },
+  { "id": "cars", "name": "سيارات", "enabled": true },
+  { "id": "football", "name": "كرة قدم", "enabled": true },
+  { "id": "movies", "name": "أفلام", "enabled": true },
+  { "id": "series", "name": "مسلسلات", "enabled": true },
+  { "id": "games", "name": "ألعاب", "enabled": true },
+  { "id": "tech", "name": "تقنيات", "enabled": true }
+]

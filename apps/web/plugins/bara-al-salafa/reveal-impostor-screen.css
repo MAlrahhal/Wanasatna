@@ -1,0 +1,22 @@
+@keyframes bara-reveal-impostor {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.bara-reveal-impostor-card {
+  animation: bara-reveal-impostor 0.55s ease-out both;
+  animation-iteration-count: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bara-reveal-impostor-card {
+    animation: none;
+  }
+}

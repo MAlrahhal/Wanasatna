@@ -1,0 +1,459 @@
+/**
+ * Unit tests for Bara AlSalafa pure game logic.
+ * Run: pnpm --filter @wanasatna/server exec tsx tests/unit.test.ts
+ */
+import assert from 'node:assert/strict';
+import type { BaraAlSalafaMatchState, GameShellState } from '@wanasatna/shared';
+import {
+  buildDirectedQuestionPairsFromOrder,
+  buildSpeakingOrder,
+  DirectedQuestionPairsBuildError,
+} from '../src/modules/game/plugins/bara-al-salafa/speaking-order.js';
+import {
+  applyRoundScores,
+  buildResultsLeaderboardEntries,
+  computePlayerRoundPoints,
+} from '../src/modules/game/plugins/bara-al-salafa/scoring.js';
+import { applyVote, haveAllConnectedParticipantsVoted } from '../src/modules/game/plugins/bara-al-salafa/voting.js';
+import {
+  applyRoleUnderstood,
+  haveAllConnectedParticipantsAcknowledgedRole,
+} from '../src/modules/game/plugins/bara-al-salafa/role-understood.js';
+import { buildBaraAlSalafaPlayerView } from '../src/modules/game/plugins/bara-al-salafa/state.js';
+
+let passed = 0;
+let failed = 0;
+
+function test(name: string, fn: () => void): void {
+  try {
+    fn();
+    passed += 1;
+    console.log(`PASS ${name}`);
+  } catch (error) {
+    failed += 1;
+    console.error(`FAIL ${name}`);
+    console.error(error instanceof Error ? error.message : error);
+  }
+}
+
+function makeMatch(overrides?: Partial<BaraAlSalafaMatchState['round']>): BaraAlSalafaMatchState {
+  return {
+    playerIds: ['p1', 'p2', 'p3'],
+    playerNames: { p1: 'محمد', p2: 'خالد', p3: 'علي' },
+    currentRound: 1,
+    totalRounds: 3,
+    scores: { p1: 0, p2: 0, p3: 0 },
+    matchStatus: 'in-progress',
+    round: {
+      word: 'مكة',
+      wordCategoryId: 'places',
+      impostorPlayerId: 'p2',
+      gamePhase: 'description',
+      phaseRemainingSeconds: 60,
+      descriptionDurationSeconds: 60,
+      questionTurnDurationSeconds: 30,
+      speakingOrder: [],
+      directedQuestionPairs: [],
+      currentSpeakerIndex: 0,
+      activeFreeQuestionPlayerId: null,
+      pendingFreeQuestionTargetPlayerId: null,
+      completedFreeQuestionTurns: [],
+      votes: {},
+      submittedVoterIds: [],
+      votingDurationSeconds: 30,
+      revealDurationSeconds: 5,
+      impostorGuessOptions: [],
+      impostorGuessDurationSeconds: 20,
+      selectedWord: null,
+      guessedCorrectly: null,
+      roleUnderstoodPlayerIds: [],
+      ...overrides,
+    },
+  };
+}
+
+function makeShell(): GameShellState {
+  return {
+    shellId: 'shell-1',
+    roomId: 'room-1',
+    gameId: 'bara-al-salafa',
+    phase: 'PLAYING',
+    hostPlayerId: 'p1',
+    players: [
+      { id: 'p1', name: 'محمد', isHost: true, isConnected: true, isReady: false },
+      { id: 'p2', name: 'خالد', isHost: false, isConnected: true, isReady: false },
+      { id: 'p3', name: 'علي', isHost: false, isConnected: true, isReady: false },
+    ],
+    readyPlayerIds: [],
+    countdownSeconds: 3,
+    countdownRemainingSeconds: null,
+    gameTimerSeconds: 60,
+    gameTimerRemainingSeconds: null,
+    startedAt: null,
+    finishedAt: null,
+    updatedAt: new Date().toISOString(),
+    matchParticipantIds: ['p1', 'p2', 'p3'],
+  };
+}
+
+// --- Directed question pairing ---
+
+test('directed pairs: every player asks once, is targeted once, no self-pairs (sizes 2-8)', () => {
+  for (let size = 2; size <= 8; size += 1) {
+    for (let run = 0; run < 50; run += 1) {
+      const ids = Array.from({ length: size }, (_, i) => `player-${i}`);
+      const order = buildSpeakingOrder(ids);
+      const pairs = buildDirectedQuestionPairsFromOrder(order);
+
+      assert.equal(pairs.length, size);
+      const askers = new Set(pairs.map((p) => p.askerPlayerId));
+      const targets = new Set(pairs.map((p) => p.targetPlayerId));
+      assert.equal(askers.size, size, 'each player asks exactly once');
+      assert.equal(targets.size, size, 'each player is targeted exactly once');
+      for (const pair of pairs) {
+        assert.notEqual(pair.askerPlayerId, pair.targetPlayerId, 'no self-pair');
+      }
+    }
+  }
+});
+
+test('directed pairs: throws for fewer than 2 players', () => {
+  assert.throws(() => buildDirectedQuestionPairsFromOrder(['solo']), DirectedQuestionPairsBuildError);
+  assert.throws(() => buildDirectedQuestionPairsFromOrder([]), DirectedQuestionPairsBuildError);
+});
+
+test('directed pairs: throws for duplicate order entries', () => {
+  assert.throws(
+    () => buildDirectedQuestionPairsFromOrder(['a', 'b', 'a']),
+    DirectedQuestionPairsBuildError,
+  );
+});
+
+// --- Scoring ---
+
+test('scoring: correct voter +100, impostor correct guess +100, wrong voter +0', () => {
+  const match = makeMatch({
+    votes: { p1: 'p2', p3: 'p1' },
+    guessedCorrectly: true,
+  });
+
+  assert.equal(computePlayerRoundPoints(match, 'p1'), 100, 'p1 voted the impostor');
+  assert.equal(computePlayerRoundPoints(match, 'p2'), 100, 'impostor guessed correctly');
+  assert.equal(computePlayerRoundPoints(match, 'p3'), 0, 'p3 voted the wrong player');
+
+  const scored = applyRoundScores(match);
+  assert.deepEqual(scored.scores, { p1: 100, p2: 100, p3: 0 });
+});
+
+test('scoring: impostor wrong guess gets 0', () => {
+  const match = makeMatch({ votes: { p1: 'p2', p3: 'p2' }, guessedCorrectly: false });
+  const scored = applyRoundScores(match);
+  assert.deepEqual(scored.scores, { p1: 100, p2: 0, p3: 100 });
+});
+
+test('scoring: accumulates on top of previous rounds without mutating input', () => {
+  const match = makeMatch({ votes: { p1: 'p2' }, guessedCorrectly: true });
+  match.scores = { p1: 100, p2: 200, p3: 0 };
+  const scored = applyRoundScores(match);
+  assert.deepEqual(scored.scores, { p1: 200, p2: 300, p3: 0 });
+  assert.deepEqual(match.scores, { p1: 100, p2: 200, p3: 0 }, 'input not mutated');
+});
+
+test('leaderboard: tied winners share rank and isFirstPlace', () => {
+  const match = makeMatch();
+  match.scores = { p1: 200, p2: 200, p3: 100 };
+  const entries = buildResultsLeaderboardEntries(match);
+  assert.equal(entries[0]!.rank, 1);
+  assert.equal(entries[1]!.rank, 1, 'tie shares rank 1');
+  assert.equal(entries[0]!.isFirstPlace, true);
+  assert.equal(entries[1]!.isFirstPlace, true);
+  assert.equal(entries[2]!.isFirstPlace, false);
+});
+
+// --- Role acknowledgement ---
+
+test('role understood: one acknowledgement per participant; all connected completes phase gate', () => {
+  const shell = makeShell();
+  let match = makeMatch({ gamePhase: 'description' });
+
+  assert.equal(haveAllConnectedParticipantsAcknowledgedRole(shell, match), false);
+
+  match = applyRoleUnderstood(match, 'p1');
+  assert.equal(haveAllConnectedParticipantsAcknowledgedRole(shell, match), false);
+  assert.deepEqual(match.round.roleUnderstoodPlayerIds, ['p1']);
+
+  match = applyRoleUnderstood(match, 'p1');
+  assert.deepEqual(match.round.roleUnderstoodPlayerIds, ['p1'], 'duplicate ack ignored');
+
+  match = applyRoleUnderstood(match, 'p2');
+  match = applyRoleUnderstood(match, 'p3');
+  assert.equal(haveAllConnectedParticipantsAcknowledgedRole(shell, match), true);
+});
+
+test('role understood view: aggregate progress only; reconnect restores self ack state', () => {
+  const shell = makeShell();
+  const match = applyRoleUnderstood(
+    applyRoleUnderstood(makeMatch({ gamePhase: 'description' }), 'p1'),
+    'p2',
+  );
+
+  const ackedView = buildBaraAlSalafaPlayerView(match, 'p1', shell);
+  assert.equal(ackedView.hasAcknowledgedRole, true);
+  assert.equal(ackedView.roleAcknowledgementCount, 2);
+  assert.equal(ackedView.eligibleRoleAcknowledgementCount, 3);
+
+  const pendingView = buildBaraAlSalafaPlayerView(match, 'p3', shell);
+  assert.equal(pendingView.hasAcknowledgedRole, false);
+});
+
+test('role understood: disconnected participant does not block completion', () => {
+  const shell = makeShell();
+  shell.players[2]!.isConnected = false;
+  let match = makeMatch({ gamePhase: 'description' });
+  match = applyRoleUnderstood(match, 'p1');
+  match = applyRoleUnderstood(match, 'p2');
+  assert.equal(haveAllConnectedParticipantsAcknowledgedRole(shell, match), true);
+});
+
+// --- Directed questions ---
+
+test('directed questions view: only current asker is active', () => {
+  const shell = makeShell();
+  const match = makeMatch({
+    gamePhase: 'directed-questions',
+    speakingOrder: ['p1', 'p2', 'p3'],
+    directedQuestionPairs: [
+      { askerPlayerId: 'p1', targetPlayerId: 'p2' },
+      { askerPlayerId: 'p2', targetPlayerId: 'p3' },
+      { askerPlayerId: 'p3', targetPlayerId: 'p1' },
+    ],
+    currentSpeakerIndex: 0,
+    phaseRemainingSeconds: 0,
+  });
+
+  const askerView = buildBaraAlSalafaPlayerView(match, 'p1', shell);
+  assert.equal(askerView.isDirectedQuestionActiveAsker, true);
+  assert.equal(askerView.directedQuestionAskerPlayerId, 'p1');
+  assert.equal(askerView.directedQuestionTargetPlayerId, 'p2');
+
+  const waiterView = buildBaraAlSalafaPlayerView(match, 'p3', shell);
+  assert.equal(waiterView.isDirectedQuestionActiveAsker, false);
+  assert.equal(waiterView.directedQuestionAskerName, 'محمد');
+  assert.equal(waiterView.directedQuestionTargetName, 'خالد');
+  assert.equal(waiterView.instruction, 'محمد اسأل خالد');
+});
+
+test('directed questions view: asker-target order preserved for target and observer', () => {
+  const shell = makeShell();
+  const match = makeMatch({
+    gamePhase: 'directed-questions',
+    speakingOrder: ['p2', 'p3', 'p1'],
+    directedQuestionPairs: [
+      { askerPlayerId: 'p2', targetPlayerId: 'p3' },
+      { askerPlayerId: 'p3', targetPlayerId: 'p1' },
+      { askerPlayerId: 'p1', targetPlayerId: 'p2' },
+    ],
+    currentSpeakerIndex: 0,
+    phaseRemainingSeconds: 0,
+  });
+
+  const targetView = buildBaraAlSalafaPlayerView(match, 'p3', shell);
+  assert.equal(targetView.directedQuestionAskerPlayerId, 'p2');
+  assert.equal(targetView.directedQuestionTargetPlayerId, 'p3');
+  assert.equal(targetView.directedQuestionAskerName, 'خالد');
+  assert.equal(targetView.directedQuestionTargetName, 'علي');
+
+  const observerView = buildBaraAlSalafaPlayerView(match, 'p1', shell);
+  assert.equal(observerView.directedQuestionAskerName, 'خالد');
+  assert.equal(observerView.directedQuestionTargetName, 'علي');
+});
+
+test('free questions conversation view: authoritative asker and pending target for all viewers', () => {
+  const shell = makeShell();
+  const match = makeMatch({
+    gamePhase: 'free-questions',
+    activeFreeQuestionPlayerId: 'p2',
+    pendingFreeQuestionTargetPlayerId: 'p1',
+    completedFreeQuestionTurns: [],
+  });
+
+  const askerView = buildBaraAlSalafaPlayerView(match, 'p2', shell);
+  assert.equal(askerView.isFreeQuestionActivePlayer, true);
+  assert.equal(askerView.activeFreeQuestionPlayerId, 'p2');
+  assert.equal(askerView.activeFreeQuestionTargetPlayerId, 'p1');
+  assert.equal(askerView.activeFreeQuestionPlayerName, 'خالد');
+  assert.equal(askerView.activeFreeQuestionTargetPlayerName, 'محمد');
+  assert.equal(askerView.instruction, 'خالد يسأل محمد');
+  assert.deepEqual(askerView.selectablePlayers, []);
+
+  const targetView = buildBaraAlSalafaPlayerView(match, 'p1', shell);
+  assert.equal(targetView.isFreeQuestionActivePlayer, false);
+  assert.equal(targetView.instruction, 'خالد يسأل محمد');
+  assert.equal(targetView.activeFreeQuestionTargetPlayerId, 'p1');
+
+  const observerView = buildBaraAlSalafaPlayerView(match, 'p3', shell);
+  assert.equal(observerView.instruction, 'خالد يسأل محمد');
+});
+
+// --- Voting completion ---
+
+test('voting completion: all connected voters required; disconnected does not block', () => {
+  const shell = makeShell();
+  let match = makeMatch({ gamePhase: 'voting' });
+  assert.equal(haveAllConnectedParticipantsVoted(shell, match), false);
+
+  match = applyVote(match, 'p1', 'p2');
+  assert.equal(haveAllConnectedParticipantsVoted(shell, match), false);
+
+  shell.players[2]!.isConnected = false;
+  match = applyVote(match, 'p2', 'p1');
+  assert.equal(haveAllConnectedParticipantsVoted(shell, match), true, 'disconnected p3 excluded');
+});
+
+// --- Round results host continue ---
+
+test('round-results: host can continue; non-host sees waiting message', () => {
+  const shell = makeShell();
+  const match = applyRoundScores(
+    makeMatch({ gamePhase: 'round-results', votes: { p1: 'p2', p3: 'p1' }, guessedCorrectly: true }),
+  );
+
+  const hostView = buildBaraAlSalafaPlayerView(match, 'p1', shell);
+  assert.equal(hostView.isHost, true);
+  assert.equal(hostView.canContinueFromRoundResults, true);
+  assert.equal(hostView.roundResultsContinueLabel, 'بدء الجولة التالية');
+
+  const guestView = buildBaraAlSalafaPlayerView(match, 'p3', shell);
+  assert.equal(guestView.canContinueFromRoundResults, false);
+  assert.ok(guestView.roundResultsWaitingMessage?.includes('المضيف'));
+});
+
+test('round-results final round: host sees final-results label', () => {
+  const shell = makeShell();
+  const match = applyRoundScores(
+    makeMatch({
+      gamePhase: 'round-results',
+      votes: { p1: 'p2' },
+      guessedCorrectly: false,
+    }),
+  );
+  match.currentRound = 3;
+
+  const hostView = buildBaraAlSalafaPlayerView(match, 'p1', shell);
+  assert.equal(hostView.roundResultsContinueLabel, 'عرض النتائج النهائية');
+});
+
+// --- Voting ---
+
+test('voting: applyVote records voter exactly once', () => {
+  const match = makeMatch({ gamePhase: 'voting' });
+  const once = applyVote(match, 'p1', 'p2');
+  const twice = applyVote(once, 'p1', 'p2');
+  assert.deepEqual(twice.round.submittedVoterIds, ['p1']);
+  assert.equal(twice.round.votes.p1, 'p2');
+});
+
+test('voting view privacy: no other-player vote targets exposed; self state restored', () => {
+  const shell = makeShell();
+  const match = applyVote(makeMatch({ gamePhase: 'voting' }), 'p1', 'p2');
+
+  const voterView = buildBaraAlSalafaPlayerView(match, 'p1', shell);
+  assert.equal(voterView.hasVoted, true);
+  assert.equal(voterView.confirmedVoteTargetPlayerId, 'p2', 'own vote restored');
+  assert.deepEqual(voterView.votablePlayers, [], 'no re-vote after submitting');
+
+  const otherView = buildBaraAlSalafaPlayerView(match, 'p3', shell);
+  assert.equal(otherView.hasVoted, false);
+  assert.equal(otherView.confirmedVoteTargetPlayerId, null, 'cannot see p1 vote target');
+  assert.equal(otherView.submittedVotesCount, 1, 'aggregate count only');
+  assert.ok(
+    otherView.votablePlayers.every((p) => p.id !== 'p3'),
+    'cannot vote for self',
+  );
+});
+
+// --- Role privacy ---
+
+test('role privacy: impostor never receives the word; players never see impostor id', () => {
+  const shell = makeShell();
+  const match = makeMatch();
+
+  const impostorView = buildBaraAlSalafaPlayerView(match, 'p2', shell);
+  assert.equal(impostorView.role, 'impostor');
+  assert.equal(impostorView.displayText, 'أنت برا السالفة');
+  assert.ok(!impostorView.displayText.includes(match.round.word), 'word hidden from impostor');
+
+  const playerView = buildBaraAlSalafaPlayerView(match, 'p1', shell);
+  assert.equal(playerView.role, 'player');
+  assert.equal(playerView.displayText, match.round.word);
+  assert.equal(playerView.revealedImpostorPlayerId, null, 'impostor hidden in description');
+});
+
+// --- Impostor guess privacy ---
+
+test('impostor guess privacy: only impostor gets options; others see waiting state', () => {
+  const shell = makeShell();
+  const match = makeMatch({
+    gamePhase: 'impostor-guess',
+    impostorGuessOptions: ['مكة', 'جدة', 'الرياض', 'الدمام'],
+  });
+
+  const impostorView = buildBaraAlSalafaPlayerView(match, 'p2', shell);
+  assert.equal(impostorView.isImpostorGuessActivePlayer, true);
+  assert.deepEqual(impostorView.impostorGuessOptions, ['مكة', 'جدة', 'الرياض', 'الدمام']);
+  assert.equal(impostorView.displayText, '', 'word not leaked via displayText');
+
+  for (const playerId of ['p1', 'p3']) {
+    const view = buildBaraAlSalafaPlayerView(match, playerId, shell);
+    assert.equal(view.isImpostorGuessActivePlayer, false);
+    assert.deepEqual(view.impostorGuessOptions, [], `options hidden from ${playerId}`);
+  }
+});
+
+test('impostor guess: options hidden after submission', () => {
+  const shell = makeShell();
+  const match = makeMatch({
+    gamePhase: 'impostor-guess',
+    impostorGuessOptions: ['مكة', 'جدة'],
+    selectedWord: 'جدة',
+  });
+
+  const impostorView = buildBaraAlSalafaPlayerView(match, 'p2', shell);
+  assert.equal(impostorView.hasSubmittedImpostorGuess, true);
+  assert.deepEqual(impostorView.impostorGuessOptions, [], 'one submission only');
+});
+
+// --- Reveal impostor ---
+
+test('reveal-impostor: identity revealed, word and votes still hidden', () => {
+  const shell = makeShell();
+  const match = makeMatch({ gamePhase: 'reveal-impostor', votes: { p1: 'p2', p3: 'p2' } });
+
+  const view = buildBaraAlSalafaPlayerView(match, 'p1', shell);
+  assert.equal(view.revealedImpostorPlayerId, 'p2');
+  assert.equal(view.revealedWord, null, 'word not revealed yet');
+  assert.deepEqual(view.roundResults, [], 'no scores yet');
+  assert.equal(view.confirmedVoteTargetPlayerId, null, 'no vote breakdown');
+});
+
+// --- Round results ---
+
+test('round-results: reveals word, impostor, guess result, points, leaderboard', () => {
+  const shell = makeShell();
+  const match = applyRoundScores(
+    makeMatch({ gamePhase: 'round-results', votes: { p1: 'p2', p3: 'p1' }, guessedCorrectly: true }),
+  );
+
+  const view = buildBaraAlSalafaPlayerView(match, 'p3', shell);
+  assert.equal(view.revealedWord, 'مكة');
+  assert.equal(view.revealedImpostorPlayerId, 'p2');
+  assert.equal(view.impostorGuessedCorrectly, true);
+
+  const byId = Object.fromEntries(view.roundResults.map((entry) => [entry.playerId, entry]));
+  assert.equal(byId.p1!.roundPoints, 100);
+  assert.equal(byId.p2!.roundPoints, 100);
+  assert.equal(byId.p3!.roundPoints, 0);
+});
+
+console.log(`\n${passed} passed, ${failed} failed`);
+process.exit(failed > 0 ? 1 : 0);

@@ -1,0 +1,65 @@
+import {
+  BARA_AL_SALAFA_GAME_ID,
+  DRAW_GUESS_GAME_ID,
+  IMPOSTER_DRAW_GAME_ID,
+} from '@wanasatna/shared';
+import type { GameShellRecord } from '../game.service.js';
+import { getConnectedParticipantIds as getBaraConnectedParticipantIds } from '../plugins/bara-al-salafa/free-questions.js';
+import { getBaraAlSalafaState } from '../plugins/bara-al-salafa/store.js';
+import { getConnectedParticipantIds as getDrawGuessConnectedParticipantIds } from '../plugins/draw-guess/state.js';
+import { getDrawGuessState } from '../plugins/draw-guess/store.js';
+import { getConnectedParticipantIds as getImposterDrawConnectedParticipantIds } from '../plugins/imposter-draw/state.js';
+import { getImposterDrawState } from '../plugins/imposter-draw/store.js';
+import { getGamePluginDefinition } from './plugin-registry.js';
+
+function countLockedShellParticipants(shell: GameShellRecord): number {
+  if (!shell.matchParticipantIds) {
+    return shell.players.filter((player) => player.isConnected).length;
+  }
+
+  const lockedIds = new Set(shell.matchParticipantIds);
+
+  return shell.players.filter((player) => player.isConnected && lockedIds.has(player.id)).length;
+}
+
+export function getGameMinPlayers(gameId: string | null): number | undefined {
+  if (!gameId) {
+    return undefined;
+  }
+
+  return getGamePluginDefinition(gameId)?.minPlayers;
+}
+
+export function countConnectedEligibleParticipants(shell: GameShellRecord): number {
+  if (shell.gameId === BARA_AL_SALAFA_GAME_ID) {
+    const match = getBaraAlSalafaState(shell.roomId);
+
+    if (!match) {
+      return countLockedShellParticipants(shell);
+    }
+
+    return getBaraConnectedParticipantIds(shell, match).length;
+  }
+
+  if (shell.gameId === DRAW_GUESS_GAME_ID) {
+    const match = getDrawGuessState(shell.roomId);
+
+    if (!match) {
+      return countLockedShellParticipants(shell);
+    }
+
+    return getDrawGuessConnectedParticipantIds(shell, match).length;
+  }
+
+  if (shell.gameId === IMPOSTER_DRAW_GAME_ID) {
+    const match = getImposterDrawState(shell.roomId);
+
+    if (!match) {
+      return countLockedShellParticipants(shell);
+    }
+
+    return getImposterDrawConnectedParticipantIds(shell, match).length;
+  }
+
+  return shell.players.filter((player) => player.isConnected).length;
+}

@@ -15,4 +15,7 @@ export type RoomData = {
 export type RoomSessionData = {
   room: RoomData;
   player: RoomPlayerData;
+  players: RoomPlayerData[];
+  /** Opaque reconnect credential — only returned to the connecting client. */
+  reconnectToken?: string;
 };

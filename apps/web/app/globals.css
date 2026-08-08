@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "../styles/design-tokens.css";
+@import "../styles/game-theme.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -46,75 +48,182 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Wanasatna semantic colors */
+  --color-wanas-brand-sky: var(--wanas-brand-sky);
+  --color-wanas-brand-navy: var(--wanas-brand-navy);
+  --color-wanas-brand-navy-hover: var(--wanas-brand-navy-hover);
+  --color-wanas-brand-navy-active: var(--wanas-brand-navy-active);
+  --color-wanas-text-on-brand: var(--wanas-text-on-brand);
+  --color-wanas-primary: var(--wanas-primary);
+  --color-wanas-primary-dark: var(--wanas-primary-dark);
+  --color-wanas-primary-darker: var(--wanas-primary-darker);
+  --color-wanas-primary-soft: var(--wanas-primary-soft);
+  --color-wanas-primary-muted: var(--wanas-primary-muted);
+  --color-wanas-primary-surface: var(--wanas-primary-surface);
+  --color-wanas-primary-surface-strong: var(--wanas-primary-surface-strong);
+  --color-wanas-background: var(--wanas-background);
+  --color-wanas-background-strong: var(--wanas-background-strong);
+  --color-wanas-home-background: var(--wanas-home-background);
+  --color-wanas-navbar: var(--wanas-navbar);
+  --color-wanas-hero: var(--wanas-hero);
+  --color-wanas-panel-soft: var(--wanas-panel-soft);
+  --color-wanas-surface: var(--wanas-surface);
+  --color-wanas-surface-soft: var(--wanas-surface-soft);
+  --color-wanas-surface-alt: var(--wanas-surface-alt);
+  --color-wanas-surface-muted: var(--wanas-surface-muted);
+  --color-wanas-border: var(--wanas-border);
+  --color-wanas-border-muted: var(--wanas-border-muted);
+  --color-wanas-border-subtle: var(--wanas-border-subtle);
+  --color-wanas-text-primary: var(--wanas-text-primary);
+  --color-wanas-text-secondary: var(--wanas-text-secondary);
+  --color-wanas-text-muted: var(--wanas-text-muted);
+  --color-wanas-text-subtle: var(--wanas-text-subtle);
+  --color-wanas-accent: var(--wanas-accent);
+  --color-wanas-accent-hover: var(--wanas-accent-hover);
+  --color-wanas-accent-soft: var(--wanas-accent-soft);
+  --color-wanas-hero-from: var(--wanas-hero);
+  --color-wanas-hero-to: var(--wanas-hero);
+  --color-wanas-success: var(--wanas-success);
+  --color-wanas-success-dark: var(--wanas-success-dark);
+  --color-wanas-success-text: var(--wanas-success-text);
+  --color-wanas-success-surface: var(--wanas-success-surface);
+  --color-wanas-success-border: var(--wanas-success-border);
+  --color-wanas-success-border-light: var(--wanas-success-border-light);
+  --color-wanas-warning: var(--wanas-warning);
+  --color-wanas-warning-dark: var(--wanas-warning-dark);
+  --color-wanas-warning-text: var(--wanas-warning-text);
+  --color-wanas-warning-surface: var(--wanas-warning-surface);
+  --color-wanas-warning-surface-light: var(--wanas-warning-surface-light);
+  --color-wanas-warning-border: var(--wanas-warning-border);
+  --color-wanas-warning-border-strong: var(--wanas-warning-border-strong);
+  --color-wanas-error: var(--wanas-error);
+  --color-wanas-error-border: var(--wanas-error-border);
+  --color-wanas-error-surface: var(--wanas-error-surface);
+  --color-wanas-error-surface-strong: var(--wanas-error-surface-strong);
+  --color-wanas-error-border-strong: var(--wanas-error-border-strong);
+  --color-wanas-error-surface-hover: var(--wanas-error-surface-hover);
+  --color-wanas-premium: var(--wanas-premium);
+  --color-wanas-premium-dark: var(--wanas-premium-dark);
+  --color-wanas-premium-surface: var(--wanas-premium-surface);
+  --color-wanas-premium-border: var(--wanas-premium-border);
+  --color-wanas-disabled: var(--wanas-disabled);
+  --color-wanas-neutral-border: var(--wanas-neutral-border);
+  --color-wanas-game-blue: var(--wanas-game-blue);
+  --color-wanas-game-blue-surface: var(--wanas-game-blue-surface);
+  --color-wanas-game-blue-border: var(--wanas-game-blue-border);
+  --color-wanas-game-blue-icon-bg: var(--wanas-game-blue-icon-bg);
+  --color-wanas-game-blue-icon-text: var(--wanas-game-blue-icon-text);
+  --color-wanas-game-orange: var(--wanas-game-orange);
+  --color-wanas-game-orange-surface: var(--wanas-game-orange-surface);
+  --color-wanas-game-orange-border: var(--wanas-game-orange-border);
+  --color-wanas-game-orange-icon-bg: var(--wanas-game-orange-icon-bg);
+  --color-wanas-game-orange-icon-text: var(--wanas-game-orange-icon-text);
+  --color-wanas-game-orange-dark: var(--wanas-game-orange-dark);
+  --color-wanas-game-orange-surface-strong: var(--wanas-game-orange-surface-strong);
+  --color-wanas-game-rose: var(--wanas-game-rose);
+  --color-wanas-game-rose-surface: var(--wanas-game-rose-surface);
+  --color-wanas-game-rose-border: var(--wanas-game-rose-border);
+  --color-wanas-game-rose-icon-bg: var(--wanas-game-rose-icon-bg);
+  --color-wanas-game-rose-icon-text: var(--wanas-game-rose-icon-text);
+  --color-wanas-game-teal: var(--wanas-game-teal);
+  --color-wanas-game-teal-dark: var(--wanas-game-teal-dark);
+  --color-wanas-game-teal-darker: var(--wanas-game-teal-darker);
+  --color-wanas-game-teal-surface: var(--wanas-game-teal-surface);
+  --color-wanas-game-teal-border: var(--wanas-game-teal-border);
+  --color-wanas-game-teal-border-light: var(--wanas-game-teal-border-light);
+  --color-wanas-game-teal-icon-bg: var(--wanas-game-teal-icon-bg);
+  --color-wanas-game-teal-icon-text: var(--wanas-game-teal-icon-text);
+  --color-wanas-game-purple: var(--wanas-game-purple);
+  --color-wanas-game-purple-dark: var(--wanas-game-purple-dark);
+  --color-wanas-game-purple-surface: var(--wanas-game-purple-surface);
+  --color-wanas-game-purple-surface-strong: var(--wanas-game-purple-surface-strong);
+  --color-wanas-game-purple-border: var(--wanas-game-purple-border);
+  --color-wanas-game-purple-border-strong: var(--wanas-game-purple-border-strong);
+  --color-wanas-game-purple-icon-bg: var(--wanas-game-purple-icon-bg);
+  --color-wanas-game-purple-icon-text: var(--wanas-game-purple-icon-text);
+  --color-wanas-game-green: var(--wanas-game-green);
+  --color-wanas-game-green-surface: var(--wanas-game-green-surface);
+  --color-wanas-game-green-border: var(--wanas-game-green-border);
+  --color-wanas-game-green-icon-bg: var(--wanas-game-green-icon-bg);
+  --color-wanas-game-green-icon-text: var(--wanas-game-green-icon-text);
+  --color-wanas-game-slate: var(--wanas-game-slate);
+  --color-wanas-game-slate-surface: var(--wanas-game-slate-surface);
+  --color-wanas-game-slate-border: var(--wanas-game-slate-border);
+  --color-wanas-game-slate-icon-bg: var(--wanas-game-slate-icon-bg);
+  --color-wanas-game-slate-icon-text: var(--wanas-game-slate-icon-text);
+  --color-wanas-game-slate-icon-text-dark: var(--wanas-game-slate-icon-text-dark);
 }
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --background: #0d0d1a;
+  --foreground: #f5f7ff;
+  --card: #1a1a35;
+  --card-foreground: #f5f7ff;
+  --popover: #1a1a35;
+  --popover-foreground: #f5f7ff;
+  --primary: #00d4ff;
+  --primary-foreground: #0d0d1a;
+  --secondary: #1b2e5e;
+  --secondary-foreground: #f5f7ff;
+  --muted: #22224a;
+  --muted-foreground: #8e98b8;
+  --accent: #22224a;
+  --accent-foreground: #f5f7ff;
+  --destructive: #f87171;
+  --destructive-foreground: #ffffff;
+  --border: #22224a;
+  --input: #22224a;
+  --ring: #00d4ff;
+  --chart-1: #00d4ff;
+  --chart-2: #00ffea;
+  --chart-3: #3d5599;
+  --chart-4: #2a4080;
+  --chart-5: #8e98b8;
+  --sidebar: #13132a;
+  --sidebar-foreground: #f5f7ff;
+  --sidebar-primary: #00d4ff;
+  --sidebar-primary-foreground: #0d0d1a;
+  --sidebar-accent: #22224a;
+  --sidebar-accent-foreground: #f5f7ff;
+  --sidebar-border: #22224a;
+  --sidebar-ring: #00d4ff;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #0d0d1a;
+  --foreground: #f5f7ff;
+  --card: #1a1a35;
+  --card-foreground: #f5f7ff;
+  --popover: #1a1a35;
+  --popover-foreground: #f5f7ff;
+  --primary: #00d4ff;
+  --primary-foreground: #0d0d1a;
+  --secondary: #1b2e5e;
+  --secondary-foreground: #f5f7ff;
+  --muted: #22224a;
+  --muted-foreground: #8e98b8;
+  --accent: #22224a;
+  --accent-foreground: #f5f7ff;
+  --destructive: #f87171;
+  --destructive-foreground: #ffffff;
+  --border: #22224a;
+  --input: #22224a;
+  --ring: #00d4ff;
+  --chart-1: #00d4ff;
+  --chart-2: #00ffea;
+  --chart-3: #3d5599;
+  --chart-4: #2a4080;
+  --chart-5: #8e98b8;
+  --sidebar: #13132a;
+  --sidebar-foreground: #f5f7ff;
+  --sidebar-primary: #00d4ff;
+  --sidebar-primary-foreground: #0d0d1a;
+  --sidebar-accent: #22224a;
+  --sidebar-accent-foreground: #f5f7ff;
+  --sidebar-border: #22224a;
+  --sidebar-ring: #00d4ff;
 }
 
 @layer base {
@@ -125,3 +234,45 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .wanas-panel {
+    border: 1px solid var(--wanas-border);
+    border-radius: var(--wanas-radius-panel);
+    background: var(--wanas-surface);
+    box-shadow: var(--wanas-shadow-panel);
+  }
+
+  .wanas-interactive-card {
+    border: 1px solid var(--wanas-border);
+    border-radius: var(--wanas-radius-card);
+    background: var(--wanas-surface);
+    box-shadow: var(--wanas-shadow-card);
+    transition:
+      transform 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .wanas-interactive-card:hover {
+    border-color: var(--wanas-accent);
+    box-shadow: var(--wanas-shadow-card-hover);
+    transform: translateY(-3px);
+  }
+
+  .wanas-section-frame {
+    border-block: 1px solid var(--wanas-border);
+    background: var(--wanas-surface-soft);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wanas-interactive-card {
+      transition: none;
+    }
+
+    .wanas-interactive-card:hover {
+      transform: none;
+    }
+  }
+}
+

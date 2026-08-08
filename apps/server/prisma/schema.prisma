@@ -72,7 +72,8 @@ model Player {
   status       PlayerStatus @default(CONNECTED)
   isSpectator  Boolean      @default(false)
   joinedAt     DateTime     @default(now())
-  lastSeenAt   DateTime     @default(now())
+  lastSeenAt         DateTime     @default(now())
+  reconnectTokenHash String?
 
   room         Room          @relation("RoomPlayers", fields: [roomId], references: [id], onDelete: Cascade)
   hostedRoom   Room?         @relation("RoomHost")

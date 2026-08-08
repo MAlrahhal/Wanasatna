@@ -1,6 +1,12 @@
 import { PlayerStatus, type Player, type Room } from '@prisma/client';
+import type { Server } from 'socket.io';
 import { prisma } from '../../lib/prisma.js';
-import type { RoomData, RoomPlayerData } from '@wanasatna/shared';
+import {
+  ROOM_PLAYERS_SNAPSHOT_EVENT,
+  type RoomData,
+  type RoomPlayerData,
+  type RoomSessionData,
+} from '@wanasatna/shared';
 
 export const ROOM_CODE_LENGTH = 6;
 export const MAX_CODE_GENERATION_ATTEMPTS = 10;
@@ -63,14 +69,47 @@ export function mapPlayerData(player: Player, hostPlayerId: string): RoomPlayerD
   };
 }
 
-export function mapRoomSession(room: Room, player: Player): {
-  room: RoomData;
-  player: RoomPlayerData;
-} {
+export async function loadActiveRoomPlayers(
+  roomId: string,
+  hostPlayerId: string,
+): Promise<RoomPlayerData[]> {
+  const players = await prisma.player.findMany({
+    where: {
+      roomId,
+      status: { in: [PlayerStatus.CONNECTED, PlayerStatus.DISCONNECTED] },
+    },
+    orderBy: { joinedAt: 'asc' },
+  });
+
+  return players.map((entry) => mapPlayerData(entry, hostPlayerId));
+}
+
+export function mapRoomSession(
+  room: Room,
+  player: Player,
+  players?: RoomPlayerData[],
+  reconnectToken?: string,
+): RoomSessionData {
   return {
     room: mapRoomData(room),
     player: mapPlayerData(player, room.hostPlayerId),
+    players: players ?? [mapPlayerData(player, room.hostPlayerId)],
+    ...(reconnectToken ? { reconnectToken } : {}),
   };
+}
+
+export async function broadcastRoomPlayersSnapshot(io: Server, roomId: string): Promise<void> {
+  const room = await prisma.room.findUnique({
+    where: { id: roomId },
+    select: { hostPlayerId: true },
+  });
+
+  if (!room) {
+    return;
+  }
+
+  const players = await loadActiveRoomPlayers(roomId, room.hostPlayerId);
+  io.to(getRoomChannel(roomId)).emit(ROOM_PLAYERS_SNAPSHOT_EVENT, { players });
 }
 
 export function isActivePlayerStatus(status: PlayerStatus): boolean {

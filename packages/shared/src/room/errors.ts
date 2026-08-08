@@ -9,7 +9,10 @@ export type RoomErrorCode =
   | 'NOT_HOST'
   | 'CANNOT_KICK_SELF'
   | 'RECONNECT_EXPIRED'
+  | 'RECONNECT_INVALID_TOKEN'
+  | 'MATCH_IN_PROGRESS'
   | 'ROOM_CODE_GENERATION_FAILED'
+  | 'CONNECTION_FAILED'
   | 'INTERNAL_ERROR';
 
 export type RoomError = {

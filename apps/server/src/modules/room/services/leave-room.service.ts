@@ -56,6 +56,7 @@ export async function leaveRoom(
     where: { id: playerId },
     data: {
       status: PlayerStatus.LEFT,
+      reconnectTokenHash: null,
       lastSeenAt: new Date(),
     },
   });
@@ -119,6 +120,7 @@ export async function kickPlayer(
     where: { id: targetPlayerId },
     data: {
       status: PlayerStatus.LEFT,
+      reconnectTokenHash: null,
       lastSeenAt: new Date(),
     },
   });

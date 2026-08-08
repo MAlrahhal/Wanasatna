@@ -1,8 +1,23 @@
-const PLAYER_ID_KEY = 'wanasatna:playerId';
-const ROOM_ID_KEY = 'wanasatna:roomId';
-const PLAYER_NAME_KEY = 'wanasatna:playerName';
-const ROOM_CODE_KEY = 'wanasatna:roomCode';
-const SELECTED_GAME_KEY = 'wanasatna:selectedGameId';
+import { disconnectRoomSocket } from '@/lib/room/socket';
+import {
+  findRoomReconnectCredential,
+  removeRoomReconnectCredential,
+  type RoomReconnectCredential,
+} from '@/lib/room/reconnect-credential';
+
+export const ROOM_SESSION_STORAGE_KEYS = {
+  playerId: 'wanasatna:playerId',
+  roomId: 'wanasatna:roomId',
+  playerName: 'wanasatna:playerName',
+  roomCode: 'wanasatna:roomCode',
+  selectedGameId: 'wanasatna:selectedGameId',
+} as const;
+
+const PLAYER_ID_KEY = ROOM_SESSION_STORAGE_KEYS.playerId;
+const ROOM_ID_KEY = ROOM_SESSION_STORAGE_KEYS.roomId;
+const PLAYER_NAME_KEY = ROOM_SESSION_STORAGE_KEYS.playerName;
+const ROOM_CODE_KEY = ROOM_SESSION_STORAGE_KEYS.roomCode;
+const SELECTED_GAME_KEY = ROOM_SESSION_STORAGE_KEYS.selectedGameId;
 
 export type RoomSession = {
   playerId: string;
@@ -10,6 +25,18 @@ export type RoomSession = {
   playerName: string;
   roomCode: string;
 };
+
+export type RoomEntryIntent =
+  | { type: 'create'; playerName: string }
+  | { type: 'join'; roomCode: string; playerName: string }
+  | {
+      type: 'reconnect';
+      playerId: string;
+      roomId: string;
+      roomCode: string;
+      reconnectToken: string;
+    }
+  | { type: 'none' };
 
 export function readRoomSession(): RoomSession | null {
   if (typeof window === 'undefined') {
@@ -59,3 +86,99 @@ export function writeSelectedGameId(gameId: string | null): void {
 
   window.sessionStorage.removeItem(SELECTED_GAME_KEY);
 }
+
+export function buildLobbyUrl(roomCode: string): string {
+  return `/lobby?code=${encodeURIComponent(roomCode)}`;
+}
+
+export function lobbyUrlNeedsNormalization(
+  params: Pick<URLSearchParams, 'get' | 'has'>,
+  roomCode: string,
+): boolean {
+  const currentCode = params.get('code')?.trim() ?? '';
+  const hasIntentParams = params.has('name') || params.has('action');
+
+  return currentCode !== roomCode || hasIntentParams;
+}
+
+function reconnectIntentFromCredential(
+  credential: RoomReconnectCredential,
+): Extract<RoomEntryIntent, { type: 'reconnect' }> {
+  return {
+    type: 'reconnect',
+    playerId: credential.playerId,
+    roomId: credential.roomId,
+    roomCode: credential.roomCode,
+    reconnectToken: credential.reconnectToken,
+  };
+}
+
+export function resolveRoomEntryIntent(
+  params: Pick<URLSearchParams, 'get'>,
+  storedSession: RoomSession | null,
+  roomCodeForCredential?: string | null,
+): RoomEntryIntent {
+  const action = params.get('action');
+  const playerName = params.get('name')?.trim() ?? '';
+  const roomCode = params.get('code')?.trim() ?? '';
+  const credential = findRoomReconnectCredential(roomCodeForCredential ?? roomCode);
+
+  if (action === 'create' && playerName) {
+    return { type: 'create', playerName };
+  }
+
+  if (roomCode && credential?.roomCode === roomCode) {
+    return reconnectIntentFromCredential(credential);
+  }
+
+  if (storedSession && roomCode && storedSession.roomCode === roomCode) {
+    const sessionCredential = findRoomReconnectCredential(storedSession.roomCode);
+
+    if (sessionCredential && sessionCredential.playerId === storedSession.playerId) {
+      return reconnectIntentFromCredential(sessionCredential);
+    }
+  }
+
+  if (roomCode && playerName) {
+    return { type: 'join', roomCode, playerName };
+  }
+
+  if (storedSession) {
+    const sessionCredential = findRoomReconnectCredential(storedSession.roomCode);
+
+    if (sessionCredential && sessionCredential.playerId === storedSession.playerId) {
+      return reconnectIntentFromCredential(sessionCredential);
+    }
+  }
+
+  return { type: 'none' };
+}
+
+export function beginNewRoomIdentity(roomCode?: string): void {
+  clearRoomSession();
+
+  if (roomCode) {
+    removeRoomReconnectCredential(roomCode);
+  }
+
+  disconnectRoomSocket();
+}
+
+export function resetWanasatnaRoomSession(): void {
+  beginNewRoomIdentity();
+}
+
+export function shouldClearSessionOnReconnectFailure(code: string): boolean {
+  return (
+    code === 'PLAYER_NOT_FOUND' ||
+    code === 'RECONNECT_EXPIRED' ||
+    code === 'RECONNECT_INVALID_TOKEN' ||
+    code === 'ROOM_NOT_FOUND' ||
+    code === 'ROOM_CLOSED' ||
+    code === 'CONNECTION_FAILED' ||
+    code === 'VALIDATION_ERROR'
+  );
+}
+
+export const STALE_ROOM_SESSION_MESSAGE =
+  'انتهت صلاحية جلسة الغرفة المخزنة. يمكنك إنشاء غرفة جديدة أو الانضمام مرة أخرى.';
