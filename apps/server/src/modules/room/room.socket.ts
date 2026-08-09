@@ -8,6 +8,7 @@ import {
   registerLeaveRoomHandler,
   registerLockRoomHandler,
   registerReconnectHandler,
+  registerRoomSyncHandler,
   registerUnlockRoomHandler,
 } from './room.socket.handlers.js';
 
@@ -20,6 +21,7 @@ export function registerRoomSockets(io: Server): void {
     registerLockRoomHandler(io, socket);
     registerUnlockRoomHandler(io, socket);
     registerReconnectHandler(io, socket);
+    registerRoomSyncHandler(io, socket);
     registerDisconnectHandler(io, socket);
   });
 }

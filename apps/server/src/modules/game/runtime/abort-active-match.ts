@@ -1,6 +1,7 @@
 import type { Server } from 'socket.io';
 import type { GameShellAbortReason } from '@wanasatna/shared';
 import { prisma } from '../../../lib/prisma.js';
+import { broadcastRoomPlayersSnapshot } from '../../room/room.utils.js';
 import { deleteGameShell, getGameShellByRoomId } from '../game.service.js';
 import { cleanupGameShellRuntime, navigateRoomToLobby } from '../game.lifecycle.js';
 import { cancelPlayerRecovery } from './player-recovery.js';
@@ -32,10 +33,20 @@ export async function abortActiveMatch(
     select: { code: true },
   });
 
+  // End GAME only — room membership is untouched. Rebroadcast roster so every
+  // client converging on /lobby shares the same authoritative players list.
+  await broadcastRoomPlayersSnapshot(io, roomId);
+
   navigateRoomToLobby(io, roomId, {
     roomCode: room?.code,
     reason,
     message: ABORT_MESSAGES[reason],
+  });
+
+  console.info('[room-lifecycle]', {
+    stage: 'end-game-to-lobby',
+    roomId,
+    reason,
   });
 
   return true;

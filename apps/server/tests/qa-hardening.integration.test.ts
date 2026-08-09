@@ -56,6 +56,7 @@ function makeClient(name: string): TestClient {
     reconnectToken: '',
     shellEvents: [],
     roster: [],
+    rosterPlayers: [],
     navigations: [],
     recoveryEvents: [],
   };

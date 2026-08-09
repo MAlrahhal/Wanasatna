@@ -33,6 +33,7 @@ import { abortActiveMatch } from './runtime/abort-active-match.js';
 import { setRoomRoundCategory } from './runtime/round-category-store.js';
 import { applyTimingChallengeLobbySettings } from './plugins/timing-challenge/socket.handlers.js';
 import { logGameShellDiagnostic } from './game.diagnostics.js';
+import { broadcastRoomPlayersSnapshot } from '../room/room.utils.js';
 import {
   broadcastGameShellState,
   startGameShellTimer,
@@ -338,7 +339,13 @@ export function registerGameShellReturnToLobbyHandler(io: Server, socket: Socket
 
       if (response.success) {
         cleanupGameShellRuntime(roomId!);
+        await broadcastRoomPlayersSnapshot(io, roomId!);
         navigateRoomToLobby(io, roomId!);
+        console.info('[room-lifecycle]', {
+          stage: 'return-to-lobby',
+          roomId,
+          playerId,
+        });
       }
 
       sendGameResponse(callback, response);

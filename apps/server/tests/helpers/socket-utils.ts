@@ -18,6 +18,13 @@ export const PLAYER_NAMES = [
   'ريم',
 ] as const;
 
+export type RosterPlayer = {
+  id: string;
+  name: string;
+  status: string;
+  isHost: boolean;
+};
+
 export type TestClient = {
   name: string;
   socket: Socket;
@@ -27,6 +34,7 @@ export type TestClient = {
   reconnectToken: string;
   shellEvents: Array<{ phase: string; countdown: number | null }>;
   roster: string[];
+  rosterPlayers: RosterPlayer[];
   navigations: string[];
   recoveryEvents: Array<{
     isActive: boolean;
@@ -64,10 +72,21 @@ export function trackClientEvents(client: TestClient): void {
     });
   });
 
-  client.socket.on('room-players-snapshot', (payload: { players: Array<{ name: string }> }) => {
-    client.roster.length = 0;
-    client.roster.push(...payload.players.map((p) => p.name).sort());
-  });
+  client.socket.on(
+    'room-players-snapshot',
+    (payload: {
+      players: Array<{ id: string; name: string; status: string; isHost: boolean }>;
+    }) => {
+      client.roster.length = 0;
+      client.roster.push(...payload.players.map((p) => p.name).sort());
+      client.rosterPlayers = payload.players.map((p) => ({
+        id: p.id,
+        name: p.name,
+        status: p.status,
+        isHost: p.isHost,
+      }));
+    },
+  );
 
   client.socket.on('game-shell-navigate', (payload: { path: string }) => {
     client.navigations.push(payload.path);

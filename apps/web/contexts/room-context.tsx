@@ -72,6 +72,10 @@ import {
   saveRoomReconnectCredential,
 } from '@/lib/room/reconnect-credential';
 import { disconnectRoomSocket, getRoomSocket, waitForRoomSocketConnection } from '@/lib/room/socket';
+import {
+  rebindRoomSocketFromStoredSession,
+  setRoomSessionResumeListener,
+} from '@/lib/room/socket-resume';
 import { getDefaultRoundCategoryId } from '@/lib/game/round-categories';
 import { registerAllClientGamePlugins } from '@/plugins';
 
@@ -329,6 +333,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     };
 
     const onPlayerKicked = (payload: PlayerKickedPayload) => {
+      setRoomSessionResumeListener(null);
       beginNewRoomIdentity();
       setStatus('error');
       setErrorMessage('تم طردك من الغرفة.');
@@ -379,20 +384,12 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       setActiveGameShell(payload.state);
     };
 
-    // After a transport-level reconnect the server loses socket session binding.
-    // Resume from stored credentials only — never re-read sticky action=create
-    // from the URL (that would call beginNewRoomIdentity and destroy the room).
-    const onManagerReconnect = () => {
-      void connectToRoomRef.current?.({ resumeStoredSessionOnly: true });
-    };
-
     socket.on(ROOM_PLAYERS_SNAPSHOT_EVENT, onPlayersSnapshot);
     socket.on(HOST_CHANGED_EVENT, onHostChanged);
     socket.on(ROOM_UPDATED_EVENT, onRoomUpdated);
     socket.on(PLAYER_KICKED_EVENT, onPlayerKicked);
     socket.on(GAME_SHELL_NAVIGATE_EVENT, onGameShellNavigate);
     socket.on(GAME_SHELL_STATE_EVENT, onGameShellState);
-    socket.io.on('reconnect', onManagerReconnect);
 
     removeSocketListenersRef.current = () => {
       socket.off(ROOM_PLAYERS_SNAPSHOT_EVENT, onPlayersSnapshot);
@@ -401,7 +398,6 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       socket.off(PLAYER_KICKED_EVENT, onPlayerKicked);
       socket.off(GAME_SHELL_NAVIGATE_EVENT, onGameShellNavigate);
       socket.off(GAME_SHELL_STATE_EVENT, onGameShellState);
-      socket.io.off('reconnect', onManagerReconnect);
       removeSocketListenersRef.current = null;
     };
   }, [applyHostChange, applyPlayersSnapshot, router]);
@@ -562,6 +558,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       }
 
       // Transport resume should not destroy an already-rendered lobby on transient errors.
+      // Module-level rebind already attempted; avoid wiping a live lobby UI here.
       if (resumeStoredSessionOnly) {
         return;
       }
@@ -655,11 +652,31 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   connectToRoomRef.current = connectToRoom;
 
   useEffect(() => {
-    void connectToRoom();
+    setRoomSessionResumeListener((data) => {
+      applyRoomSession(data);
+    });
+
+    void (async () => {
+      await connectToRoom();
+      const attemptAfterConnect = connectionAttemptRef.current;
+
+      // After /game → /lobby (or any remount), force an authoritative rebind/sync so
+      // React roster state cannot diverge from server socket membership.
+      if (!readRoomSession()) {
+        return;
+      }
+
+      const synced = await rebindRoomSocketFromStoredSession();
+
+      if (synced && connectionAttemptRef.current === attemptAfterConnect) {
+        applyRoomSession(synced);
+      }
+    })();
 
     return () => {
       connectionAttemptRef.current += 1;
       removeSocketListenersRef.current?.();
+      setRoomSessionResumeListener(null);
     };
     // Connect once on mount; URL params are read via searchParamsRef.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -770,6 +787,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     // Detach listeners before tearing down the socket so a manager reconnect
     // cannot race and re-apply a just-invalidated identity.
     removeSocketListenersRef.current?.();
+    setRoomSessionResumeListener(null);
     beginNewRoomIdentity(leavingRoomCode);
     setRoom(null);
     setPlayer(null);

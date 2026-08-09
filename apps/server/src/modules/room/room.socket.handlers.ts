@@ -9,6 +9,7 @@ import {
   LOCK_ROOM_EVENT,
   PLAYER_KICKED_EVENT,
   RECONNECT_EVENT,
+  ROOM_SYNC_EVENT,
   ROOM_UPDATED_EVENT,
   UNLOCK_ROOM_EVENT,
   type CreateRoomResponse,
@@ -25,6 +26,7 @@ import {
   leaveRoom,
   lockRoom,
   reconnectPlayer,
+  syncBoundRoomSession,
   unlockRoom,
 } from './room.service.js';
 import {
@@ -323,6 +325,43 @@ export function registerReconnectHandler(io: Server, socket: Socket): void {
             HOST_CHANGED_EVENT,
             response.hostChanged,
           );
+        }
+
+        sendResponse(callback, response);
+      } catch {
+        sendInternalError(callback);
+      }
+    },
+  );
+}
+
+export function registerRoomSyncHandler(io: Server, socket: Socket): void {
+  socket.on(
+    ROOM_SYNC_EVENT,
+    async (_payload: unknown, callback?: (response: RoomActionResponse<unknown>) => void) => {
+      const contextError = getSocketContext(socket);
+
+      if (contextError) {
+        // Unbound sockets must use reconnect credentials — sync is for reassert only.
+        sendResponse(callback, contextError);
+        return;
+      }
+
+      const { playerId, roomId } = socket.data;
+
+      try {
+        // Re-assert channel membership in case transport recovery dropped it.
+        await bindSocketToRoomSession(socket, roomId!, playerId!);
+        const response = await syncBoundRoomSession(playerId!, roomId!);
+
+        if (response.success) {
+          console.info('[room-sync]', {
+            stage: 'bound-sync',
+            roomId,
+            playerId,
+            playerCount: response.data.players.length,
+          });
+          await broadcastRoomPlayersSnapshot(io, roomId!);
         }
 
         sendResponse(callback, response);

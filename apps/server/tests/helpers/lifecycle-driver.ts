@@ -39,6 +39,7 @@ export async function startMatchWithPlayers(playerCount: number): Promise<Lifecy
     reconnectToken: '',
     shellEvents: [],
     roster: [],
+    rosterPlayers: [],
     navigations: [],
     recoveryEvents: [],
   };
@@ -68,6 +69,7 @@ export async function startMatchWithPlayers(playerCount: number): Promise<Lifecy
       reconnectToken: '',
       shellEvents: [],
       roster: [],
+      rosterPlayers: [],
       navigations: [],
       recoveryEvents: [],
     };

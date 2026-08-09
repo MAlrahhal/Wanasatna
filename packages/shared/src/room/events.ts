@@ -5,6 +5,8 @@ export const KICK_PLAYER_EVENT = 'kick-player' as const;
 export const LOCK_ROOM_EVENT = 'lock-room' as const;
 export const UNLOCK_ROOM_EVENT = 'unlock-room' as const;
 export const RECONNECT_EVENT = 'reconnect' as const;
+/** Re-bind + return authoritative room session for an already-authenticated socket. */
+export const ROOM_SYNC_EVENT = 'room-sync' as const;
 
 export const HOST_CHANGED_EVENT = 'host-changed' as const;
 export const ROOM_UPDATED_EVENT = 'room-updated' as const;

@@ -82,6 +82,7 @@ export async function runFullMatchFlow(playerCount: number): Promise<MatchFlowRe
     reconnectToken: '',
     shellEvents: [],
     roster: [],
+    rosterPlayers: [],
     navigations: [],
     recoveryEvents: [],
   };
@@ -112,6 +113,7 @@ export async function runFullMatchFlow(playerCount: number): Promise<MatchFlowRe
       reconnectToken: '',
       shellEvents: [],
       roster: [],
+      rosterPlayers: [],
       navigations: [],
       recoveryEvents: [],
     };

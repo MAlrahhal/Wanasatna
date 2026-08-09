@@ -12,6 +12,7 @@ import {
   disconnectClient,
   hostEndGame,
   reconnectClient,
+  startMatchWithPlayers,
   startThreePlayerMatch,
   waitForRecoveryActive,
   waitForRecoveryInactive,
@@ -50,6 +51,7 @@ async function joinFreshPlayer(roomCode: string, playerName: string): Promise<Te
     reconnectToken: '',
     shellEvents: [],
     roster: [],
+    rosterPlayers: [],
     navigations: [],
     recoveryEvents: [],
   };
@@ -145,8 +147,9 @@ async function main(): Promise<void> {
   });
 
   await runTest('E explicit leave then fresh rejoin becomes waiting player', async () => {
-    const { host, clients, roomCode } = await startThreePlayerMatch();
-    const leaver = clients[2]!;
+    // 4 players so one explicit leave keeps the match above minPlayers (3).
+    const { host, clients, roomCode } = await startMatchWithPlayers(4);
+    const leaver = clients[3]!;
     const leaveName = leaver.name;
 
     const leaveRes = await ack<{ success: boolean }>(leaver.socket, 'leave-room');
@@ -159,11 +162,11 @@ async function main(): Promise<void> {
 
     const shellRes = await syncShell(returning);
     assert.ok(shellRes.success);
+    assert.ok(shellRes.data.state, 'match must remain active after non-critical leave');
     assert.equal(shellRes.data.state.matchParticipantIds?.includes(returning.id), false);
 
     host.socket.disconnect();
-    clients[0]!.socket.disconnect();
-    clients[1]!.socket.disconnect();
+    clients.filter((c) => c.id !== leaver.id).forEach((c) => c.socket.disconnect());
     returning.socket.disconnect();
   });
 
