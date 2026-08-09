@@ -11,7 +11,11 @@ export type WhoWroteItGuessingScreenProps = {
   options: readonly WhoWroteItPlayerOption[];
   progressIndex: number;
   progressTotal: number;
-  hasCompleted: boolean;
+  isOwnAnswer: boolean;
+  hasGuessedCurrent: boolean;
+  canSubmitGuess: boolean;
+  currentGuessCount: number;
+  requiredGuessCount: number;
   isSubmitting: boolean;
   actionError?: string | null;
   onGuess: (answerId: string, ownerPlayerId: string) => void;
@@ -23,17 +27,20 @@ export function WhoWroteItGuessingScreen({
   options,
   progressIndex,
   progressTotal,
-  hasCompleted,
+  isOwnAnswer,
+  hasGuessedCurrent,
+  canSubmitGuess,
+  currentGuessCount,
+  requiredGuessCount,
   isSubmitting,
   actionError = null,
   onGuess,
 }: WhoWroteItGuessingScreenProps) {
-  if (hasCompleted || !currentAnswer) {
+  if (!currentAnswer) {
     return (
       <GameScreen ariaLabel="بانتظار التخمينات" maxWidth="3xl">
         <div className="wanas-game-card rounded-[2rem] px-6 py-12 text-center">
-          <p className="text-lg font-semibold text-wanas-text-primary">تم إرسال تخميناتك</p>
-          <p className="mt-2 text-sm text-wanas-text-muted">بانتظار بقية اللاعبين...</p>
+          <p className="text-sm text-wanas-text-muted">بانتظار بقية اللاعبين...</p>
         </div>
       </GameScreen>
     );
@@ -56,28 +63,52 @@ export function WhoWroteItGuessingScreen({
           </p>
         </div>
 
-        <div>
-          <p className="mb-3 text-center text-sm font-semibold text-wanas-text-primary">
-            من تتوقع كتب هذه الإجابة؟
-          </p>
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-            {options.map((option) => (
-              <Button
-                key={option.playerId}
-                type="button"
-                variant="outline"
-                size="lg"
-                disabled={isSubmitting}
-                onClick={() => onGuess(currentAnswer.answerId, option.playerId)}
-                className={cn(
-                  'h-12 min-h-12 whitespace-normal break-words px-3 text-sm sm:h-14 sm:text-base',
-                )}
-              >
-                {option.name}
-              </Button>
-            ))}
+        {isOwnAnswer ? (
+          <div className="wanas-game-card rounded-[1.25rem] px-5 py-8 text-center">
+            <p className="text-lg font-semibold text-wanas-text-primary">هذه إجابتك</p>
+            <p className="mt-2 text-sm text-wanas-text-muted">
+              بانتظار تخمينات بقية اللاعبين...
+            </p>
+            {requiredGuessCount > 0 ? (
+              <p className="mt-4 text-sm tabular-nums text-wanas-text-muted">
+                {currentGuessCount} / {requiredGuessCount} خمنوا
+              </p>
+            ) : null}
           </div>
-        </div>
+        ) : hasGuessedCurrent || !canSubmitGuess ? (
+          <div className="wanas-game-card rounded-[1.25rem] px-5 py-8 text-center">
+            <p className="text-lg font-semibold text-wanas-text-primary">تم إرسال تخمينك</p>
+            <p className="mt-2 text-sm text-wanas-text-muted">بانتظار بقية اللاعبين...</p>
+            {requiredGuessCount > 0 ? (
+              <p className="mt-4 text-sm tabular-nums text-wanas-text-muted">
+                {currentGuessCount} / {requiredGuessCount} خمنوا
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <div>
+            <p className="mb-3 text-center text-sm font-semibold text-wanas-text-primary">
+              من تتوقع كتب هذه الإجابة؟
+            </p>
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+              {options.map((option) => (
+                <Button
+                  key={option.playerId}
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  disabled={isSubmitting}
+                  onClick={() => onGuess(currentAnswer.answerId, option.playerId)}
+                  className={cn(
+                    'h-12 min-h-12 whitespace-normal break-words px-3 text-sm sm:h-14 sm:text-base',
+                  )}
+                >
+                  {option.name}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <p className="text-center text-sm tabular-nums text-wanas-text-muted">
           {progressIndex} من {progressTotal}

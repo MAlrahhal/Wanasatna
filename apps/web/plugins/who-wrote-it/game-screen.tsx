@@ -178,7 +178,11 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
         options={view.guessOptions}
         progressIndex={view.guessingProgressIndex}
         progressTotal={view.guessingProgressTotal}
-        hasCompleted={view.hasCompletedGuessing}
+        isOwnAnswer={view.isOwnAnswer}
+        hasGuessedCurrent={view.hasGuessedCurrentAnswer}
+        canSubmitGuess={view.canSubmitGuess}
+        currentGuessCount={view.currentAnswerGuessCount}
+        requiredGuessCount={view.currentAnswerRequiredGuessCount}
         isSubmitting={isSubmittingAction}
         actionError={actionError}
         onGuess={(answerId, ownerPlayerId) => void submitOwnerGuess(answerId, ownerPlayerId)}

@@ -57,6 +57,7 @@ export function createRoundState(
     categoryId: prompt.categoryId,
     answers: [],
     shuffledAnswerIds: [],
+    currentAnswerIndex: 0,
     guessesByPlayerId: {},
   };
 }
@@ -118,16 +119,6 @@ export function findAnswerById(
   return match.round.answers.find((answer) => answer.answerId === answerId);
 }
 
-export function getGuessableAnswerIds(
-  match: WhoWroteItMatchState,
-  playerId: string,
-): string[] {
-  return match.round.shuffledAnswerIds.filter((answerId) => {
-    const answer = findAnswerById(match, answerId);
-    return Boolean(answer && answer.ownerPlayerId !== playerId);
-  });
-}
-
 export function getPlayerGuessMap(
   match: WhoWroteItMatchState,
   playerId: string,
@@ -135,47 +126,70 @@ export function getPlayerGuessMap(
   return match.round.guessesByPlayerId[playerId] ?? {};
 }
 
-export function hasCompletedGuessing(
-  match: WhoWroteItMatchState,
-  playerId: string,
-): boolean {
-  const guessable = getGuessableAnswerIds(match, playerId);
-  if (guessable.length === 0) {
-    return true;
+export function getCurrentAnswerId(match: WhoWroteItMatchState): string | null {
+  if (match.round.gamePhase !== 'guessing') {
+    return null;
   }
 
-  const guesses = getPlayerGuessMap(match, playerId);
-  return guessable.every((answerId) => Boolean(guesses[answerId]));
+  return match.round.shuffledAnswerIds[match.round.currentAnswerIndex] ?? null;
 }
 
-export function getCurrentGuessAnswerId(
+export function getCurrentAnswer(
   match: WhoWroteItMatchState,
-  playerId: string,
-): string | null {
-  const guessable = getGuessableAnswerIds(match, playerId);
-  const guesses = getPlayerGuessMap(match, playerId);
-  return guessable.find((answerId) => !guesses[answerId]) ?? null;
+): WhoWroteItAnswerRecord | undefined {
+  const answerId = getCurrentAnswerId(match);
+  return answerId ? findAnswerById(match, answerId) : undefined;
 }
 
-export function getUsedOwnerIds(
+/** Connected non-owner participants who must guess the current answer. */
+export function getRequiredGuesserIds(
   match: WhoWroteItMatchState,
-  playerId: string,
-): Set<string> {
-  return new Set(Object.values(getPlayerGuessMap(match, playerId)));
+  shell: GameShellState,
+): string[] {
+  const current = getCurrentAnswer(match);
+  if (!current) {
+    return [];
+  }
+
+  return getConnectedParticipantIds(match, shell).filter(
+    (playerId) => playerId !== current.ownerPlayerId,
+  );
+}
+
+export function countGuessesForCurrentAnswer(
+  match: WhoWroteItMatchState,
+  shell: GameShellState,
+): { guessed: number; required: number } {
+  const currentAnswerId = getCurrentAnswerId(match);
+  const requiredIds = getRequiredGuesserIds(match, shell);
+
+  if (!currentAnswerId) {
+    return { guessed: 0, required: 0 };
+  }
+
+  const guessed = requiredIds.filter(
+    (playerId) => Boolean(getPlayerGuessMap(match, playerId)[currentAnswerId]),
+  ).length;
+
+  return { guessed, required: requiredIds.length };
+}
+
+export function allRequiredHaveGuessedCurrent(
+  match: WhoWroteItMatchState,
+  shell: GameShellState,
+): boolean {
+  const { guessed, required } = countGuessesForCurrentAnswer(match, shell);
+  return required > 0 && guessed >= required;
 }
 
 export function getEligibleOwnerOptions(
   match: WhoWroteItMatchState,
   playerId: string,
 ): Array<{ playerId: string; name: string }> {
-  const usedOwners = getUsedOwnerIds(match, playerId);
   const answerOwners = new Set(match.round.answers.map((answer) => answer.ownerPlayerId));
 
   return match.playerIds
-    .filter(
-      (ownerId) =>
-        ownerId !== playerId && answerOwners.has(ownerId) && !usedOwners.has(ownerId),
-    )
+    .filter((ownerId) => ownerId !== playerId && answerOwners.has(ownerId))
     .map((ownerId) => ({
       playerId: ownerId,
       name: match.playerNames[ownerId] ?? 'لاعب',
@@ -192,18 +206,6 @@ export function allConnectedHaveAnswered(
   }
 
   return connected.every((playerId) => Boolean(findAnswerByPlayerId(match, playerId)));
-}
-
-export function allConnectedHaveGuessed(
-  match: WhoWroteItMatchState,
-  shell: GameShellState,
-): boolean {
-  const connected = getConnectedParticipantIds(match, shell);
-  if (connected.length === 0) {
-    return false;
-  }
-
-  return connected.every((playerId) => hasCompletedGuessing(match, playerId));
 }
 
 export function submitAnswerToMatch(
@@ -238,13 +240,11 @@ export function beginGuessingPhase(match: WhoWroteItMatchState): WhoWroteItMatch
     ...match.round,
     gamePhase: 'guessing',
     shuffledAnswerIds,
+    currentAnswerIndex: 0,
     guessesByPlayerId: {},
   });
 }
 
-/**
- * Apply a validated owner guess and auto-assign the final remaining pair if needed.
- */
 export function applyOwnerGuess(
   match: WhoWroteItMatchState,
   playerId: string,
@@ -254,33 +254,35 @@ export function applyOwnerGuess(
   const existingGuesses = { ...getPlayerGuessMap(match, playerId) };
   existingGuesses[answerId] = ownerPlayerId;
 
-  let nextMatch = withRound(match, {
+  return withRound(match, {
     ...match.round,
     guessesByPlayerId: {
       ...match.round.guessesByPlayerId,
       [playerId]: existingGuesses,
     },
   });
+}
 
-  const remainingAnswerIds = getGuessableAnswerIds(nextMatch, playerId).filter(
-    (id) => !existingGuesses[id],
-  );
-  const remainingOwners = getEligibleOwnerOptions(nextMatch, playerId);
+/**
+ * Advance global answer index, or signal that guessing is complete.
+ * Caller must ensure current answer guesses are complete.
+ */
+export function advanceGlobalAnswerOrComplete(
+  match: WhoWroteItMatchState,
+): { match: WhoWroteItMatchState; completed: boolean } {
+  const nextIndex = match.round.currentAnswerIndex + 1;
 
-  if (remainingAnswerIds.length === 1 && remainingOwners.length === 1) {
-    const finalAnswerId = remainingAnswerIds[0]!;
-    const finalOwnerId = remainingOwners[0]!.playerId;
-    existingGuesses[finalAnswerId] = finalOwnerId;
-    nextMatch = withRound(nextMatch, {
-      ...nextMatch.round,
-      guessesByPlayerId: {
-        ...nextMatch.round.guessesByPlayerId,
-        [playerId]: { ...existingGuesses },
-      },
-    });
+  if (nextIndex >= match.round.shuffledAnswerIds.length) {
+    return { match, completed: true };
   }
 
-  return nextMatch;
+  return {
+    match: withRound(match, {
+      ...match.round,
+      currentAnswerIndex: nextIndex,
+    }),
+    completed: false,
+  };
 }
 
 function buildRevealEntries(
@@ -293,7 +295,8 @@ function buildRevealEntries(
     .map((answerId) => findAnswerById(match, answerId))
     .filter((answer): answer is WhoWroteItAnswerRecord => Boolean(answer))
     .map((answer) => {
-      const guessedOwnerPlayerId = guesses[answer.answerId] ?? null;
+      const isOwn = answer.ownerPlayerId === playerId;
+      const guessedOwnerPlayerId = isOwn ? null : (guesses[answer.answerId] ?? null);
       return {
         answerId: answer.answerId,
         text: answer.text,
@@ -303,7 +306,7 @@ function buildRevealEntries(
         guessedOwnerName: guessedOwnerPlayerId
           ? (match.playerNames[guessedOwnerPlayerId] ?? 'لاعب')
           : null,
-        isCorrect: guessedOwnerPlayerId === answer.ownerPlayerId,
+        isCorrect: !isOwn && guessedOwnerPlayerId === answer.ownerPlayerId,
       };
     });
 }
@@ -348,14 +351,17 @@ export function buildWhoWroteItPlayerView(
   const submittedAnswerCount = match.round.answers.length;
   const totalAnswerSlots = Math.max(connectedIds.length, submittedAnswerCount);
 
-  const guessable = getGuessableAnswerIds(match, playerId);
-  const guesses = getPlayerGuessMap(match, playerId);
-  const completedGuessCount = guessable.filter((answerId) => Boolean(guesses[answerId])).length;
-  const currentAnswerId =
-    phase === 'guessing' && !hasCompletedGuessing(match, playerId)
-      ? getCurrentGuessAnswerId(match, playerId)
-      : null;
-  const currentAnswer = currentAnswerId ? findAnswerById(match, currentAnswerId) : null;
+  const currentAnswer = phase === 'guessing' ? getCurrentAnswer(match) : undefined;
+  const currentAnswerId = currentAnswer?.answerId ?? null;
+  const isOwnAnswer = Boolean(
+    currentAnswer && currentAnswer.ownerPlayerId === playerId,
+  );
+  const hasGuessedCurrentAnswer = Boolean(
+    currentAnswerId && getPlayerGuessMap(match, playerId)[currentAnswerId],
+  );
+  const guessCounts = phase === 'guessing'
+    ? countGuessesForCurrentAnswer(match, shell)
+    : { guessed: 0, required: 0 };
 
   return {
     gamePhase: phase,
@@ -376,13 +382,25 @@ export function buildWhoWroteItPlayerView(
       currentAnswer && phase === 'guessing'
         ? { answerId: currentAnswer.answerId, text: currentAnswer.text }
         : null,
-    guessingProgressIndex: Math.min(completedGuessCount + 1, Math.max(guessable.length, 1)),
-    guessingProgressTotal: guessable.length,
+    isOwnAnswer: phase === 'guessing' ? isOwnAnswer : false,
+    hasGuessedCurrentAnswer: phase === 'guessing' ? hasGuessedCurrentAnswer : false,
+    canSubmitGuess:
+      isParticipant &&
+      phase === 'guessing' &&
+      !isOwnAnswer &&
+      !hasGuessedCurrentAnswer &&
+      Boolean(currentAnswerId),
+    guessingProgressIndex:
+      phase === 'guessing'
+        ? Math.min(match.round.currentAnswerIndex + 1, match.round.shuffledAnswerIds.length)
+        : 0,
+    guessingProgressTotal: match.round.shuffledAnswerIds.length,
+    currentAnswerGuessCount: guessCounts.guessed,
+    currentAnswerRequiredGuessCount: guessCounts.required,
     guessOptions:
-      phase === 'guessing' && currentAnswerId
+      phase === 'guessing' && !isOwnAnswer && !hasGuessedCurrentAnswer
         ? getEligibleOwnerOptions(match, playerId)
         : [],
-    hasCompletedGuessing: phase === 'guessing' ? hasCompletedGuessing(match, playerId) : false,
     revealEntries: revealed ? buildRevealEntries(match, playerId) : [],
     roundResults: revealed ? buildRoundResultEntries(match) : [],
     leaderboard: buildLeaderboardEntries(match),

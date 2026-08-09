@@ -95,7 +95,7 @@ export function WhoWroteItRoundResultsScreen({
                     </span>
                   </p>
                 ) : (
-                  <p className="mt-1 text-xs text-wanas-text-muted">هذه إجابتك</p>
+                  <p className="mt-1 text-xs text-wanas-text-muted">إجابتك</p>
                 )}
               </li>
             ))}
@@ -133,7 +133,8 @@ export function WhoWroteItRoundResultsScreen({
                         {isCurrent ? ' (أنت)' : ''}
                       </p>
                       <p className="text-xs text-wanas-text-muted">
-                        {player.correctCount} إجابات صحيحة · المجموع: {player.totalPoints}
+                        {player.correctCount} / {player.guessTotal} صحيحة · المجموع:{' '}
+                        {player.totalPoints}
                       </p>
                     </div>
                   </div>

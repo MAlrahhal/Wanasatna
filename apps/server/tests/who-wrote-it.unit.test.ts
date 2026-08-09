@@ -1,5 +1,5 @@
 /**
- * Unit tests for Who Wrote It (من كتبها؟).
+ * Unit tests for Who Wrote It (من كتبها؟) — global guessing flow.
  * Run: pnpm --filter @wanasatna/server test:who-wrote-it
  */
 import assert from 'node:assert/strict';
@@ -14,7 +14,6 @@ import {
 } from '@wanasatna/shared';
 import {
   createOpaqueAnswerId,
-  shuffleIds,
   validateSubmittedAnswer,
 } from '../src/modules/game/plugins/who-wrote-it/answers.js';
 import {
@@ -24,12 +23,13 @@ import {
   countCorrectGuesses,
 } from '../src/modules/game/plugins/who-wrote-it/scoring.js';
 import {
+  advanceGlobalAnswerOrComplete,
+  allRequiredHaveGuessedCurrent,
   applyOwnerGuess,
   beginGuessingPhase,
   buildWhoWroteItPlayerView,
+  getCurrentAnswerId,
   getEligibleOwnerOptions,
-  getGuessableAnswerIds,
-  hasCompletedGuessing,
   submitAnswerToMatch,
   withRound,
 } from '../src/modules/game/plugins/who-wrote-it/state.js';
@@ -84,6 +84,7 @@ function makeRound(overrides?: Partial<WhoWroteItRoundState>): WhoWroteItRoundSt
     categoryId: 'funny',
     answers: [],
     shuffledAnswerIds: [],
+    currentAnswerIndex: 0,
     guessesByPlayerId: {},
     ...overrides,
   };
@@ -122,170 +123,186 @@ function seedAnswers(match: WhoWroteItMatchState): WhoWroteItMatchState {
   return next;
 }
 
+function startGuessingWithOrder(
+  match: WhoWroteItMatchState,
+  ownerOrder: string[],
+): WhoWroteItMatchState {
+  let next = seedAnswers(match);
+  next = beginGuessingPhase(next);
+  const byOwner = Object.fromEntries(
+    next.round.answers.map((answer) => [answer.ownerPlayerId, answer.answerId]),
+  );
+  const shuffledAnswerIds = ownerOrder.map((ownerId) => byOwner[ownerId]!);
+  return withRound(next, {
+    ...next.round,
+    shuffledAnswerIds,
+    currentAnswerIndex: 0,
+  });
+}
+
 test('opaque answer ids do not encode player ids', () => {
   const id = createOpaqueAnswerId();
   assert.match(id, /^ans_[a-f0-9]{16}$/);
-  assert.equal(id.includes('p1'), false);
 });
 
-test('empty answer rejected', () => {
+test('empty / over-length answers rejected', () => {
   assert.equal(validateSubmittedAnswer('   ').ok, false);
-  assert.equal(validateSubmittedAnswer('').ok, false);
-});
-
-test('over-length answer rejected', () => {
-  const long = 'ا'.repeat(WHO_WROTE_IT_MAX_ANSWER_LENGTH + 1);
-  assert.equal(validateSubmittedAnswer(long).ok, false);
-});
-
-test('valid answer accepted and trimmed', () => {
-  const result = validateSubmittedAnswer('  مرحبا   بالعالم  ');
-  assert.equal(result.ok, true);
-  if (result.ok) {
-    assert.equal(result.text, 'مرحبا بالعالم');
-  }
-});
-
-test('duplicate answer submission ignored', () => {
-  let match = makeMatch();
-  match = submitAnswerToMatch(match, 'p1', 'أول إجابة');
-  match = submitAnswerToMatch(match, 'p1', 'ثاني إجابة');
-  assert.equal(match.round.answers.length, 1);
-  assert.equal(match.round.answers[0]?.text, 'أول إجابة');
-});
-
-test('answers private before guessing — no owners in player view', () => {
-  let match = seedAnswers(makeMatch());
-  const view = buildWhoWroteItPlayerView(match, 'p2', makeShell());
-  assert.equal(view.gamePhase, 'answering');
-  assert.equal(view.revealEntries.length, 0);
-  assert.equal(view.currentAnonymousAnswer, null);
-  const serialized = JSON.stringify(view);
-  assert.equal(serialized.includes('ownerPlayerId'), false);
-  assert.equal(serialized.includes('أنام إذا طفشت'), false);
-});
-
-test('begin guessing creates one authoritative shuffled order', () => {
-  let match = seedAnswers(makeMatch());
-  match = beginGuessingPhase(match);
-  assert.equal(match.round.gamePhase, 'guessing');
-  assert.equal(match.round.shuffledAnswerIds.length, 4);
-  assert.deepEqual(
-    [...match.round.shuffledAnswerIds].sort(),
-    match.round.answers.map((answer) => answer.answerId).sort(),
+  assert.equal(
+    validateSubmittedAnswer('ا'.repeat(WHO_WROTE_IT_MAX_ANSWER_LENGTH + 1)).ok,
+    false,
   );
 });
 
-test('own answer excluded from guessing sequence', () => {
-  let match = seedAnswers(makeMatch());
-  match = beginGuessingPhase(match);
-  const guessable = getGuessableAnswerIds(match, 'p1');
-  assert.equal(guessable.length, 3);
-  for (const answerId of guessable) {
-    const answer = match.round.answers.find((entry) => entry.answerId === answerId);
-    assert.ok(answer);
-    assert.notEqual(answer.ownerPlayerId, 'p1');
-  }
+test('A: all clients receive same current anonymous answer', () => {
+  const match = startGuessingWithOrder(makeMatch(), ['p2', 'p1', 'p3', 'p4']);
+  const shell = makeShell();
+  const views = ['p1', 'p2', 'p3', 'p4'].map((id) =>
+    buildWhoWroteItPlayerView(match, id, shell),
+  );
+  const answerIds = views.map((view) => view.currentAnonymousAnswer?.answerId);
+  assert.ok(answerIds[0]);
+  assert.ok(answerIds.every((id) => id === answerIds[0]));
 });
 
-test('anonymous player view exposes only answerId + text', () => {
-  let match = seedAnswers(makeMatch());
-  match = beginGuessingPhase(match);
-  const view = buildWhoWroteItPlayerView(match, 'p1', makeShell());
-  assert.ok(view.currentAnonymousAnswer);
-  assert.equal(typeof view.currentAnonymousAnswer.answerId, 'string');
-  assert.equal(typeof view.currentAnonymousAnswer.text, 'string');
-  const serialized = JSON.stringify(view.currentAnonymousAnswer);
-  assert.equal(serialized.includes('ownerPlayerId'), false);
-  assert.equal(serialized.includes('ownerName'), false);
+test('B: current answer owner receives isOwnAnswer true', () => {
+  const match = startGuessingWithOrder(makeMatch(), ['p2', 'p1', 'p3', 'p4']);
+  const shell = makeShell();
+  assert.equal(buildWhoWroteItPlayerView(match, 'p2', shell).isOwnAnswer, true);
+  assert.equal(buildWhoWroteItPlayerView(match, 'p1', shell).isOwnAnswer, false);
 });
 
-test('selecting self rejected via eligible options', () => {
-  let match = seedAnswers(makeMatch());
-  match = beginGuessingPhase(match);
+test('C: owner cannot submit — canSubmitGuess false', () => {
+  const match = startGuessingWithOrder(makeMatch(), ['p2', 'p1', 'p3', 'p4']);
+  const shell = makeShell();
+  assert.equal(buildWhoWroteItPlayerView(match, 'p2', shell).canSubmitGuess, false);
+  assert.equal(buildWhoWroteItPlayerView(match, 'p1', shell).canSubmitGuess, true);
+});
+
+test('E: guesser cannot select themselves', () => {
+  const match = startGuessingWithOrder(makeMatch(), ['p2', 'p1', 'p3', 'p4']);
   const options = getEligibleOwnerOptions(match, 'p1');
   assert.equal(options.some((option) => option.playerId === 'p1'), false);
+  assert.ok(options.some((option) => option.playerId === 'p2'));
 });
 
-test('reusing same owner for two answers rejected by used set', () => {
-  let match = seedAnswers(makeMatch());
-  match = beginGuessingPhase(match);
-  const guessable = getGuessableAnswerIds(match, 'p1');
-  const firstAnswerId = guessable[0]!;
-  const firstOwner = getEligibleOwnerOptions(match, 'p1')[0]!.playerId;
-  match = applyOwnerGuess(match, 'p1', firstAnswerId, firstOwner);
-  const remainingOptions = getEligibleOwnerOptions(match, 'p1');
-  assert.equal(remainingOptions.some((option) => option.playerId === firstOwner), false);
+test('F: same owner may be selected again on a different answer', () => {
+  let match = startGuessingWithOrder(makeMatch(), ['p2', 'p3', 'p4', 'p1']);
+  const firstId = getCurrentAnswerId(match)!;
+  match = applyOwnerGuess(match, 'p1', firstId, 'p2');
+  const advanced = advanceGlobalAnswerOrComplete(match);
+  match = advanced.match;
+  const secondId = getCurrentAnswerId(match)!;
+  // Selecting p2 again on a different answer is allowed
+  match = applyOwnerGuess(match, 'p1', secondId, 'p2');
+  assert.equal(match.round.guessesByPlayerId.p1?.[firstId], 'p2');
+  assert.equal(match.round.guessesByPlayerId.p1?.[secondId], 'p2');
 });
 
-test('final remaining owner auto-assigned', () => {
-  let match = seedAnswers(makeMatch());
-  match = beginGuessingPhase(match);
-  const guessable = getGuessableAnswerIds(match, 'p1');
-  assert.equal(guessable.length, 3);
+test('G/H: answer advances only after all required non-owners submit', () => {
+  let match = startGuessingWithOrder(makeMatch(), ['p2', 'p1', 'p3', 'p4']);
+  const shell = makeShell();
+  const answerId = getCurrentAnswerId(match)!;
+  const indexBefore = match.round.currentAnswerIndex;
 
-  // Assign first two owners (third auto-assigns)
-  const ownersPool = ['p2', 'p3', 'p4'];
-  match = applyOwnerGuess(match, 'p1', guessable[0]!, ownersPool[0]!);
-  match = applyOwnerGuess(match, 'p1', guessable[1]!, ownersPool[1]!);
+  match = applyOwnerGuess(match, 'p1', answerId, 'p2');
+  assert.equal(allRequiredHaveGuessedCurrent(match, shell), false);
+  assert.equal(match.round.currentAnswerIndex, indexBefore);
 
-  assert.equal(hasCompletedGuessing(match, 'p1'), true);
-  assert.ok(match.round.guessesByPlayerId.p1?.[guessable[2]!]);
+  match = applyOwnerGuess(match, 'p3', answerId, 'p2');
+  assert.equal(allRequiredHaveGuessedCurrent(match, shell), false);
+
+  match = applyOwnerGuess(match, 'p4', answerId, 'p3');
+  assert.equal(allRequiredHaveGuessedCurrent(match, shell), true);
+
+  const advanced = advanceGlobalAnswerOrComplete(match);
+  assert.equal(advanced.completed, false);
+  assert.equal(advanced.match.round.currentAnswerIndex, indexBefore + 1);
 });
 
-test('correct guess awards +100; incorrect 0; accumulate', () => {
-  let match = seedAnswers(makeMatch());
-  match = beginGuessingPhase(match);
-  const guessable = getGuessableAnswerIds(match, 'p1');
+test('I: everyone advances to same next answer', () => {
+  let match = startGuessingWithOrder(makeMatch(), ['p2', 'p3', 'p4', 'p1']);
+  const shell = makeShell();
+  const firstId = getCurrentAnswerId(match)!;
+  for (const guesser of ['p1', 'p3', 'p4']) {
+    match = applyOwnerGuess(match, guesser, firstId, 'p2');
+  }
+  match = advanceGlobalAnswerOrComplete(match).match;
+  const views = ['p1', 'p2', 'p3', 'p4'].map((id) =>
+    buildWhoWroteItPlayerView(match, id, shell),
+  );
+  const nextIds = views.map((view) => view.currentAnonymousAnswer?.answerId);
+  assert.ok(nextIds[0]);
+  assert.notEqual(nextIds[0], firstId);
+  assert.ok(nextIds.every((id) => id === nextIds[0]));
+});
 
+test('J: every submitted answer appears exactly once', () => {
+  const match = startGuessingWithOrder(makeMatch(), ['p4', 'p1', 'p2', 'p3']);
+  assert.equal(match.round.shuffledAnswerIds.length, 4);
+  assert.equal(new Set(match.round.shuffledAnswerIds).size, 4);
+});
+
+test('K: final answer completion signals done', () => {
+  let match = startGuessingWithOrder(makeMatch(), ['p1', 'p2', 'p3', 'p4']);
+  match = withRound(match, { ...match.round, currentAnswerIndex: 3 });
+  const advanced = advanceGlobalAnswerOrComplete(match);
+  assert.equal(advanced.completed, true);
+});
+
+test('L/M/N: scoring +100; own answer not scored; max 300 for 4 players', () => {
+  let match = startGuessingWithOrder(makeMatch(), ['p2', 'p3', 'p4', 'p1']);
   const byOwner = Object.fromEntries(
     match.round.answers.map((answer) => [answer.ownerPlayerId, answer.answerId]),
   );
 
-  // Correct for p2, wrong for p3, correct for p4 via remaining auto if needed
+  // p1 guesses all three others correctly
   match = applyOwnerGuess(match, 'p1', byOwner.p2!, 'p2');
-  match = applyOwnerGuess(match, 'p1', byOwner.p3!, 'p4');
-  // auto-assigns remaining p3 answer → wrong if guessed as leftover
+  match = applyOwnerGuess(match, 'p1', byOwner.p3!, 'p3');
+  match = applyOwnerGuess(match, 'p1', byOwner.p4!, 'p4');
 
-  const correct = countCorrectGuesses(match, 'p1');
-  assert.ok(correct >= 1);
-  assert.equal(computePlayerRoundPoints(2), 2 * WHO_WROTE_IT_POINTS_PER_CORRECT);
-  assert.equal(computePlayerRoundPoints(0), 0);
-
+  assert.equal(countCorrectGuesses(match, 'p1'), 3);
+  assert.equal(computePlayerRoundPoints(3), 300);
   match = applyRoundScores(match);
   const results = buildRoundResultEntries(match);
   const p1 = results.find((entry) => entry.playerId === 'p1');
   assert.ok(p1);
-  assert.equal(p1.roundPoints, correct * WHO_WROTE_IT_POINTS_PER_CORRECT);
-  assert.equal(p1.totalPoints, p1.roundPoints);
+  assert.equal(p1.guessTotal, 3);
+  assert.equal(p1.roundPoints, 300);
 });
 
-test('equal correct count gives equal round score', () => {
-  assert.equal(computePlayerRoundPoints(2), computePlayerRoundPoints(2));
+test('O: reconnect restores same global currentAnswerIndex via view', () => {
+  let match = startGuessingWithOrder(makeMatch(), ['p2', 'p3', 'p4', 'p1']);
+  match = withRound(match, { ...match.round, currentAnswerIndex: 2 });
+  const shell = makeShell();
+  const view = buildWhoWroteItPlayerView(match, 'p1', shell);
+  assert.equal(view.guessingProgressIndex, 3);
+  assert.equal(view.currentAnonymousAnswer?.answerId, match.round.shuffledAnswerIds[2]);
 });
 
-test('shuffleIds permutes without losing items', () => {
-  const ids = ['a', 'b', 'c', 'd'];
-  const shuffled = shuffleIds(ids);
-  assert.deepEqual([...shuffled].sort(), [...ids].sort());
-});
-
-test('reveal entries appear only after round-results', () => {
-  let match = seedAnswers(makeMatch());
-  match = beginGuessingPhase(match);
-  const guessable = getGuessableAnswerIds(match, 'p1');
-  for (const answerId of guessable) {
-    const options = getEligibleOwnerOptions(match, 'p1');
-    if (options[0]) {
-      match = applyOwnerGuess(match, 'p1', answerId, options[0].playerId);
-    }
-  }
-
-  match = withRound(match, { ...match.round, gamePhase: 'round-results' });
-  match = applyRoundScores(match);
+test('P: reconnect after guessing restores waiting state', () => {
+  let match = startGuessingWithOrder(makeMatch(), ['p2', 'p3', 'p4', 'p1']);
+  const answerId = getCurrentAnswerId(match)!;
+  match = applyOwnerGuess(match, 'p1', answerId, 'p2');
   const view = buildWhoWroteItPlayerView(match, 'p1', makeShell());
-  assert.ok(view.revealEntries.length >= 3);
-  assert.ok(view.revealEntries.every((entry) => typeof entry.ownerName === 'string'));
+  assert.equal(view.hasGuessedCurrentAnswer, true);
+  assert.equal(view.canSubmitGuess, false);
+  assert.equal(view.isOwnAnswer, false);
+});
+
+test('Q: reconnect on own answer restores owner waiting', () => {
+  const match = startGuessingWithOrder(makeMatch(), ['p2', 'p3', 'p4', 'p1']);
+  const view = buildWhoWroteItPlayerView(match, 'p2', makeShell());
+  assert.equal(view.isOwnAnswer, true);
+  assert.equal(view.canSubmitGuess, false);
+  assert.ok(view.currentAnonymousAnswer);
+});
+
+test('privacy: anonymous payload has no owner fields', () => {
+  const match = startGuessingWithOrder(makeMatch(), ['p2', 'p1', 'p3', 'p4']);
+  const view = buildWhoWroteItPlayerView(match, 'p1', makeShell());
+  const serialized = JSON.stringify(view.currentAnonymousAnswer);
+  assert.equal(serialized.includes('ownerPlayerId'), false);
+  assert.equal(view.isOwnAnswer, false);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

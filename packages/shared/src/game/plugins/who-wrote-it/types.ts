@@ -28,6 +28,8 @@ export type WhoWroteItRoundState = {
   answers: WhoWroteItAnswerRecord[];
   /** Authoritative anonymous order — empty until guessing starts. */
   shuffledAnswerIds: string[];
+  /** Global index into shuffledAnswerIds — all clients share this. */
+  currentAnswerIndex: number;
   /** playerId → answerId → guessedOwnerPlayerId */
   guessesByPlayerId: Record<string, Record<string, string>>;
 };
@@ -62,6 +64,8 @@ export type WhoWroteItRoundResultEntry = {
   playerId: string;
   name: string;
   correctCount: number;
+  /** Answers this player was asked to identify (excludes own). */
+  guessTotal: number;
   roundPoints: number;
   totalPoints: number;
 };
@@ -92,10 +96,15 @@ export type WhoWroteItPlayerView = {
   submittedAnswerCount: number;
   totalAnswerSlots: number;
   currentAnonymousAnswer: WhoWroteItAnonymousAnswer | null;
+  /** True when the global current answer belongs to this player. */
+  isOwnAnswer: boolean;
+  hasGuessedCurrentAnswer: boolean;
+  canSubmitGuess: boolean;
   guessingProgressIndex: number;
   guessingProgressTotal: number;
+  currentAnswerGuessCount: number;
+  currentAnswerRequiredGuessCount: number;
   guessOptions: WhoWroteItPlayerOption[];
-  hasCompletedGuessing: boolean;
   revealEntries: WhoWroteItRevealEntry[];
   roundResults: WhoWroteItRoundResultEntry[];
   leaderboard: WhoWroteItLeaderboardEntry[];

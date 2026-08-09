@@ -32,17 +32,16 @@ import {
 } from './match-lifecycle.js';
 import { clearWhoWroteItPhaseTimerRuntime } from './phase-timer.js';
 import {
+  advanceGlobalAnswerOrComplete,
   allConnectedHaveAnswered,
-  allConnectedHaveGuessed,
+  allRequiredHaveGuessedCurrent,
   applyOwnerGuess,
   buildWhoWroteItPlayerView,
   findAnswerById,
   findAnswerByPlayerId,
-  getCurrentGuessAnswerId,
+  getCurrentAnswerId,
   getEligibleOwnerOptions,
   getPlayerGuessMap,
-  getUsedOwnerIds,
-  hasCompletedGuessing,
   submitAnswerToMatch,
 } from './state.js';
 import {
@@ -227,11 +226,6 @@ export function registerWhoWroteItSocketHandlers(io: Server, socket: Socket): vo
         return;
       }
 
-      if (hasCompletedGuessing(match, playerId!)) {
-        sendGameResponse(callback, invalidActionError('أكملت تخميناتك مسبقاً.'));
-        return;
-      }
-
       const answerId =
         payload && typeof payload === 'object' && typeof payload.answerId === 'string'
           ? payload.answerId
@@ -241,9 +235,9 @@ export function registerWhoWroteItSocketHandlers(io: Server, socket: Socket): vo
           ? payload.ownerPlayerId
           : '';
 
-      const expectedAnswerId = getCurrentGuessAnswerId(match, playerId!);
+      const expectedAnswerId = getCurrentAnswerId(match);
 
-      if (!answerId || answerId !== expectedAnswerId) {
+      if (!answerId || !expectedAnswerId || answerId !== expectedAnswerId) {
         sendGameResponse(callback, invalidActionError('هذه الإجابة غير متاحة للتخمين الآن.'));
         return;
       }
@@ -270,11 +264,6 @@ export function registerWhoWroteItSocketHandlers(io: Server, socket: Socket): vo
         return;
       }
 
-      if (getUsedOwnerIds(match, playerId!).has(ownerPlayerId)) {
-        sendGameResponse(callback, invalidActionError('تم اختيار هذا اللاعب مسبقاً.'));
-        return;
-      }
-
       const eligible = getEligibleOwnerOptions(match, playerId!).some(
         (option) => option.playerId === ownerPlayerId,
       );
@@ -287,8 +276,16 @@ export function registerWhoWroteItSocketHandlers(io: Server, socket: Socket): vo
       match = applyOwnerGuess(match, playerId!, answerId, ownerPlayerId);
       setWhoWroteItState(roomId!, match);
 
-      if (allConnectedHaveGuessed(match, shell)) {
-        match = startRoundResults(io, roomId!, match);
+      if (allRequiredHaveGuessedCurrent(match, shell)) {
+        const advanced = advanceGlobalAnswerOrComplete(match);
+
+        if (advanced.completed) {
+          match = startRoundResults(io, roomId!, advanced.match);
+        } else {
+          match = advanced.match;
+          setWhoWroteItState(roomId!, match);
+          io.to(getRoomChannel(roomId!)).emit(WHO_WROTE_IT_PHASE_CHANGED_EVENT, {});
+        }
       } else {
         io.to(getRoomChannel(roomId!)).emit(WHO_WROTE_IT_PHASE_CHANGED_EVENT, {});
       }

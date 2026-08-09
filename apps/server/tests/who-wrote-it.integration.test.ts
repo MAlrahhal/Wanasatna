@@ -1,5 +1,5 @@
 /**
- * Who Wrote It Socket.IO multiplayer flow (Host + B + C + D).
+ * Who Wrote It Socket.IO — global synchronized guessing.
  * Requires server on localhost:4001 with WANASATNA_TEST_MODE=1.
  *
  * Run: pnpm --filter @wanasatna/server test:who-wrote-it:integration
@@ -34,6 +34,33 @@ async function runTest(name: string, fn: () => Promise<void>): Promise<void> {
     console.error(`FAIL ${name}`);
     console.error(error instanceof Error ? error.message : error);
   }
+}
+
+type SyncView = {
+  gamePhase: string;
+  question: string | null;
+  currentAnonymousAnswer: { answerId: string; text: string } | null;
+  isOwnAnswer: boolean;
+  hasGuessedCurrentAnswer: boolean;
+  canSubmitGuess: boolean;
+  guessingProgressIndex: number;
+  guessingProgressTotal: number;
+  guessOptions: Array<{ playerId: string; name: string }>;
+  revealEntries: Array<{
+    answerId: string;
+    text: string;
+    ownerPlayerId: string;
+  }>;
+  roundResults: Array<{ playerId: string; roundPoints: number; correctCount: number }>;
+};
+
+async function syncView(client: TestClient): Promise<SyncView> {
+  const syncRes = await ack<{ success: boolean; data: { view: SyncView } }>(
+    client.socket,
+    WHO_WROTE_IT_SYNC_EVENT,
+  );
+  assert.ok(syncRes.success);
+  return syncRes.data.view;
 }
 
 async function startWhoWroteItMatch(): Promise<{
@@ -115,156 +142,191 @@ async function startWhoWroteItMatch(): Promise<{
   );
 
   await waitFor(async () => {
-    const syncRes = await ack<{
-      success: boolean;
-      data?: { view: { gamePhase: string; question: string | null } };
-    }>(host.socket, WHO_WROTE_IT_SYNC_EVENT);
-    return syncRes.success && syncRes.data?.view.gamePhase === 'answering'
-      ? syncRes.data.view
-      : null;
+    const view = await syncView(host);
+    return view.gamePhase === 'answering' ? view : null;
   }, 15000, 'answering phase');
 
   return { host, clients };
-}
-
-type SyncView = {
-  gamePhase: string;
-  question: string | null;
-  currentAnonymousAnswer: { answerId: string; text: string } | null;
-  guessOptions: Array<{ playerId: string; name: string }>;
-  hasCompletedGuessing: boolean;
-  revealEntries: Array<{
-    answerId: string;
-    text: string;
-    ownerPlayerId: string;
-    ownerName: string;
-  }>;
-  roundResults: Array<{ playerId: string; roundPoints: number; correctCount: number }>;
-};
-
-async function syncView(client: TestClient): Promise<SyncView> {
-  const syncRes = await ack<{ success: boolean; data: { view: SyncView } }>(
-    client.socket,
-    WHO_WROTE_IT_SYNC_EVENT,
-  );
-  assert.ok(syncRes.success);
-  return syncRes.data.view;
-}
-
-async function completeGuessing(client: TestClient): Promise<void> {
-  for (let step = 0; step < 8; step += 1) {
-    const view = await syncView(client);
-    if (view.gamePhase !== 'guessing' || view.hasCompletedGuessing || !view.currentAnonymousAnswer) {
-      return;
-    }
-
-    const option = view.guessOptions[0];
-    assert.ok(option, 'expected guess option');
-    const guessRes = await ack<{ success: boolean; error?: { message?: string } }>(
-      client.socket,
-      WHO_WROTE_IT_SUBMIT_OWNER_GUESS_EVENT,
-      {
-        answerId: view.currentAnonymousAnswer.answerId,
-        ownerPlayerId: option.playerId,
-      },
-    );
-    assert.ok(guessRes.success, guessRes.error?.message ?? 'guess failed');
-  }
 }
 
 async function main(): Promise<void> {
   console.log('[who-wrote-it] waiting for test server...');
   await waitForServer();
 
-  await runTest('Host+B+C+D full round → shared reveal mappings', async () => {
+  await runTest('global guessing: sync advance + reconnect + reveal', async () => {
     const { clients } = await startWhoWroteItMatch();
-    const answers = ['أنام إذا طفشت', 'أطلب بيتزا', 'أسافر فوراً', 'أتصل بأمي'];
+    const [host, playerB, playerC, playerD] = clients;
+    assert.ok(host && playerB && playerC && playerD);
 
-    const questions = await Promise.all(clients.map((client) => syncView(client)));
-    for (const view of questions) {
-      assert.equal(view.gamePhase, 'answering');
-      assert.equal(view.question, questions[0]!.question);
-    }
+    const answersByClient = new Map<string, string>([
+      [host.id, 'إجابة محمد'],
+      [playerB.id, 'إجابة خالد'],
+      [playerC.id, 'إجابة سارة'],
+      [playerD.id, 'إجابة عبدالله'],
+    ]);
 
-    for (const [index, client] of clients.entries()) {
+    for (const client of clients) {
       const submitRes = await ack<{ success: boolean }>(
         client.socket,
         WHO_WROTE_IT_SUBMIT_ANSWER_EVENT,
-        { answer: answers[index]! },
+        { answer: answersByClient.get(client.id)! },
       );
       assert.ok(submitRes.success);
     }
 
     await waitFor(async () => {
-      const view = await syncView(clients[0]!);
+      const view = await syncView(host);
       return view.gamePhase === 'guessing' ? view : null;
     }, 10000, 'guessing phase');
 
-    for (const client of clients) {
-      const view = await syncView(client);
-      assert.equal(view.gamePhase, 'guessing');
-      assert.ok(view.currentAnonymousAnswer || view.hasCompletedGuessing);
-      const serialized = JSON.stringify(view.currentAnonymousAnswer);
-      if (view.currentAnonymousAnswer) {
-        assert.equal(serialized.includes('ownerPlayerId'), false);
-      }
-    }
-
-    // Reconnect mid-guess for player B
-    const playerB = clients[1]!;
-    const beforeDisconnect = await syncView(playerB);
-    assert.ok(beforeDisconnect.currentAnonymousAnswer);
-    const firstAnswerId = beforeDisconnect.currentAnonymousAnswer.answerId;
-    const firstOption = beforeDisconnect.guessOptions[0]!;
-    const firstGuess = await ack<{ success: boolean }>(
-      playerB.socket,
-      WHO_WROTE_IT_SUBMIT_OWNER_GUESS_EVENT,
-      { answerId: firstAnswerId, ownerPlayerId: firstOption.playerId },
+    const firstViews = await Promise.all(clients.map((client) => syncView(client)));
+    const firstAnswerId = firstViews[0]!.currentAnonymousAnswer?.answerId;
+    assert.ok(firstAnswerId);
+    assert.ok(
+      firstViews.every((view) => view.currentAnonymousAnswer?.answerId === firstAnswerId),
     );
-    assert.ok(firstGuess.success);
+    assert.equal(firstViews[0]!.guessingProgressIndex, 1);
+    assert.equal(firstViews[0]!.guessingProgressTotal, 4);
 
-    const afterFirst = await syncView(playerB);
-    const orderAfterFirst = afterFirst.currentAnonymousAnswer?.answerId ?? null;
+    const ownerClient = clients.find((client, index) => firstViews[index]!.isOwnAnswer);
+    assert.ok(ownerClient, 'exactly one owner for current answer');
+    const ownerView = await syncView(ownerClient);
+    assert.equal(ownerView.isOwnAnswer, true);
+    assert.equal(ownerView.canSubmitGuess, false);
 
-    playerB.socket.disconnect();
+    const ownerGuessAttempt = await ack<{ success: boolean }>(
+      ownerClient.socket,
+      WHO_WROTE_IT_SUBMIT_OWNER_GUESS_EVENT,
+      { answerId: firstAnswerId, ownerPlayerId: host.id },
+    );
+    assert.equal(ownerGuessAttempt.success, false);
+
+    const guessers = clients.filter((client) => client.id !== ownerClient.id);
+    assert.equal(guessers.length, 3);
+
+    // Partial submissions must NOT advance
+    const g0 = guessers[0]!;
+    const g0View = await syncView(g0);
+    const option0 = g0View.guessOptions[0]!;
+    assert.ok(option0);
+    assert.ok(option0.playerId !== g0.id);
+
+    const guess0 = await ack<{ success: boolean }>(
+      g0.socket,
+      WHO_WROTE_IT_SUBMIT_OWNER_GUESS_EVENT,
+      { answerId: firstAnswerId, ownerPlayerId: option0.playerId },
+    );
+    assert.ok(guess0.success);
+
+    const afterOne = await Promise.all(clients.map((client) => syncView(client)));
+    assert.ok(
+      afterOne.every((view) => view.currentAnonymousAnswer?.answerId === firstAnswerId),
+    );
+
+    const g1 = guessers[1]!;
+    const g1View = await syncView(g1);
+    const guess1 = await ack<{ success: boolean }>(
+      g1.socket,
+      WHO_WROTE_IT_SUBMIT_OWNER_GUESS_EVENT,
+      { answerId: firstAnswerId, ownerPlayerId: g1View.guessOptions[0]!.playerId },
+    );
+    assert.ok(guess1.success);
+
+    const afterTwo = await Promise.all(clients.map((client) => syncView(client)));
+    assert.ok(
+      afterTwo.every((view) => view.currentAnonymousAnswer?.answerId === firstAnswerId),
+    );
+
+    // Reconnect a guesser who already submitted while still on answer #1
+    g0.socket.disconnect();
     const reconnected = await connectClient();
-    playerB.socket = reconnected;
-    trackClientEvents(playerB);
-
+    g0.socket = reconnected;
+    trackClientEvents(g0);
     const resumeRes = await ack<{ success: boolean; error?: { message?: string } }>(
       reconnected,
       RECONNECT_EVENT,
       {
-        playerId: playerB.id,
-        roomId: playerB.roomId,
-        roomCode: playerB.roomCode,
-        reconnectToken: playerB.reconnectToken,
+        playerId: g0.id,
+        roomId: g0.roomId,
+        roomCode: g0.roomCode,
+        reconnectToken: g0.reconnectToken,
       },
     );
     assert.ok(resumeRes.success, resumeRes.error?.message ?? 'reconnect failed');
 
-    await waitFor(async () => {
-      const view = await syncView(playerB);
-      return view.gamePhase === 'guessing' ? view : null;
-    }, 10000, 'reconnect guessing');
-
-    const afterReconnect = await syncView(playerB);
+    const afterReconnect = await syncView(g0);
     assert.equal(afterReconnect.gamePhase, 'guessing');
-    assert.equal(afterReconnect.currentAnonymousAnswer?.answerId ?? null, orderAfterFirst);
+    assert.equal(afterReconnect.currentAnonymousAnswer?.answerId, firstAnswerId);
+    assert.equal(afterReconnect.hasGuessedCurrentAnswer, true);
+    assert.equal(afterReconnect.canSubmitGuess, false);
 
-    for (const client of clients) {
-      await completeGuessing(client);
+    const g2 = guessers[2]!;
+    const g2View = await syncView(g2);
+    const guess2 = await ack<{ success: boolean }>(
+      g2.socket,
+      WHO_WROTE_IT_SUBMIT_OWNER_GUESS_EVENT,
+      { answerId: firstAnswerId, ownerPlayerId: g2View.guessOptions[0]!.playerId },
+    );
+    assert.ok(guess2.success);
+
+    await waitFor(async () => {
+      const view = await syncView(host);
+      if (view.gamePhase === 'round-results') {
+        return view;
+      }
+      if (
+        view.gamePhase === 'guessing' &&
+        view.currentAnonymousAnswer?.answerId &&
+        view.currentAnonymousAnswer.answerId !== firstAnswerId
+      ) {
+        return view;
+      }
+      return null;
+    }, 10000, 'advance after all required guesses');
+
+    // Finish remaining answers
+    for (let step = 0; step < 8; step += 1) {
+      const views = await Promise.all(clients.map((client) => syncView(client)));
+      if (views.every((view) => view.gamePhase === 'round-results')) {
+        break;
+      }
+
+      assert.ok(
+        views.every(
+          (view) =>
+            view.currentAnonymousAnswer?.answerId ===
+            views[0]!.currentAnonymousAnswer?.answerId,
+        ),
+      );
+
+      const currentId = views[0]!.currentAnonymousAnswer?.answerId;
+      assert.ok(currentId);
+
+      for (const [index, client] of clients.entries()) {
+        const view = views[index]!;
+        if (!view.canSubmitGuess || view.isOwnAnswer || view.hasGuessedCurrentAnswer) {
+          continue;
+        }
+        const option = view.guessOptions[0];
+        assert.ok(option);
+        const res = await ack<{ success: boolean; error?: { message?: string } }>(
+          client.socket,
+          WHO_WROTE_IT_SUBMIT_OWNER_GUESS_EVENT,
+          { answerId: currentId, ownerPlayerId: option.playerId },
+        );
+        assert.ok(res.success, res.error?.message ?? 'guess failed');
+      }
     }
 
     await waitFor(async () => {
-      const view = await syncView(clients[0]!);
+      const view = await syncView(host);
       return view.gamePhase === 'round-results' ? view : null;
     }, 15000, 'round-results');
 
     const reveals = await Promise.all(clients.map((client) => syncView(client)));
     for (const view of reveals) {
       assert.equal(view.gamePhase, 'round-results');
-      assert.ok(view.revealEntries.length >= 3);
+      assert.equal(view.revealEntries.length, 4);
     }
 
     const mappingA = reveals[0]!.revealEntries

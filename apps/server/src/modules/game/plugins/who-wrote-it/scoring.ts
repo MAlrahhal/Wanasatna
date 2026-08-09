@@ -44,6 +44,8 @@ export function applyRoundScores(match: WhoWroteItMatchState): WhoWroteItMatchSt
 export function buildRoundResultEntries(
   match: WhoWroteItMatchState,
 ): WhoWroteItRoundResultEntry[] {
+  const guessTotal = Math.max(0, match.round.answers.length - 1);
+
   return [...match.playerIds]
     .map((playerId) => {
       const correctCount = countCorrectGuesses(match, playerId);
@@ -51,6 +53,7 @@ export function buildRoundResultEntries(
         playerId,
         name: match.playerNames[playerId] ?? 'لاعب',
         correctCount,
+        guessTotal,
         roundPoints: computePlayerRoundPoints(correctCount),
         totalPoints: match.scores[playerId] ?? 0,
       };
