@@ -21,6 +21,8 @@
     "test:who-wrote-it:integration": "tsx tests/who-wrote-it.integration.test.ts",
     "test:judge": "tsx tests/judge.unit.test.ts",
     "test:judge:integration": "tsx tests/judge.integration.test.ts",
+    "test:guessing-challenge": "tsx tests/guessing-challenge.unit.test.ts",
+    "test:guessing-challenge:integration": "tsx tests/guessing-challenge.integration.test.ts",
     "test:multiplayer": "tsx tests/multiplayer.integration.test.ts",
     "test:lifecycle": "tsx tests/lifecycle.integration.test.ts",
     "test:reconnect": "tsx tests/reconnect.integration.test.ts",

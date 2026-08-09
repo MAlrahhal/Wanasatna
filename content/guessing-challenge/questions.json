@@ -1,0 +1,272 @@
+[
+  {
+    "id": "animals-lion",
+    "categoryId": "animals",
+    "question": "أسد",
+    "acceptedAnswers": ["أسد", "الاسد", "الأسد", "اسد"]
+  },
+  {
+    "id": "animals-elephant",
+    "categoryId": "animals",
+    "question": "فيل",
+    "acceptedAnswers": ["فيل", "الفيل"]
+  },
+  {
+    "id": "animals-giraffe",
+    "categoryId": "animals",
+    "question": "زرافة",
+    "acceptedAnswers": ["زرافة", "الزرافة"]
+  },
+  {
+    "id": "animals-penguin",
+    "categoryId": "animals",
+    "question": "بطريق",
+    "acceptedAnswers": ["بطريق", "البطريق"]
+  },
+  {
+    "id": "animals-crocodile",
+    "categoryId": "animals",
+    "question": "تمساح",
+    "acceptedAnswers": ["تمساح", "التمساح"]
+  },
+  {
+    "id": "food-pizza",
+    "categoryId": "food",
+    "question": "بيتزا",
+    "acceptedAnswers": ["بيتزا", "البيتزا", "pizza"]
+  },
+  {
+    "id": "food-kabsa",
+    "categoryId": "food",
+    "question": "كبسة",
+    "acceptedAnswers": ["كبسة", "الكبسة"]
+  },
+  {
+    "id": "food-burger",
+    "categoryId": "food",
+    "question": "برجر",
+    "acceptedAnswers": ["برجر", "البرجر", "همبرجر", "burger"]
+  },
+  {
+    "id": "food-sushi",
+    "categoryId": "food",
+    "question": "سوشي",
+    "acceptedAnswers": ["سوشي", "السوشي", "sushi"]
+  },
+  {
+    "id": "food-shawarma",
+    "categoryId": "food",
+    "question": "شاورما",
+    "acceptedAnswers": ["شاورما", "الشاورما", "شاورمة"]
+  },
+  {
+    "id": "countries-saudi",
+    "categoryId": "countries",
+    "question": "السعودية",
+    "acceptedAnswers": ["السعودية", "سعودية", "المملكة العربية السعودية", "السعوديه"]
+  },
+  {
+    "id": "countries-japan",
+    "categoryId": "countries",
+    "question": "اليابان",
+    "acceptedAnswers": ["اليابان", "يابان"]
+  },
+  {
+    "id": "countries-brazil",
+    "categoryId": "countries",
+    "question": "البرازيل",
+    "acceptedAnswers": ["البرازيل", "برازيل"]
+  },
+  {
+    "id": "countries-france",
+    "categoryId": "countries",
+    "question": "فرنسا",
+    "acceptedAnswers": ["فرنسا", "الفرنسا"]
+  },
+  {
+    "id": "countries-egypt",
+    "categoryId": "countries",
+    "question": "مصر",
+    "acceptedAnswers": ["مصر", "المصر"]
+  },
+  {
+    "id": "cars-toyota",
+    "categoryId": "cars",
+    "question": "تويوتا",
+    "acceptedAnswers": ["تويوتا", "toyota"]
+  },
+  {
+    "id": "cars-mercedes",
+    "categoryId": "cars",
+    "question": "مرسيدس",
+    "acceptedAnswers": ["مرسيدس", "mercedes", "بنز"]
+  },
+  {
+    "id": "cars-ferrari",
+    "categoryId": "cars",
+    "question": "فيراري",
+    "acceptedAnswers": ["فيراري", "ferrari"]
+  },
+  {
+    "id": "cars-tesla",
+    "categoryId": "cars",
+    "question": "تسلا",
+    "acceptedAnswers": ["تسلا", "tesla"]
+  },
+  {
+    "id": "cars-lambo",
+    "categoryId": "cars",
+    "question": "لامبورغيني",
+    "acceptedAnswers": ["لامبورغيني", "لامبورجيني", "lamborghini"]
+  },
+  {
+    "id": "football-ronaldo",
+    "categoryId": "football",
+    "question": "كريستيانو رونالدو",
+    "acceptedAnswers": ["كريستيانو رونالدو", "كريستيانو", "رونالدو", "كريستيانو رونالدو", "cr7"]
+  },
+  {
+    "id": "football-messi",
+    "categoryId": "football",
+    "question": "ليونيل ميسي",
+    "acceptedAnswers": ["ليونيل ميسي", "ميسي", "ليونيل", "messi"]
+  },
+  {
+    "id": "football-neymar",
+    "categoryId": "football",
+    "question": "نيمار",
+    "acceptedAnswers": ["نيمار", "neymar"]
+  },
+  {
+    "id": "football-salah",
+    "categoryId": "football",
+    "question": "محمد صلاح",
+    "acceptedAnswers": ["محمد صلاح", "صلاح", "mo salah"]
+  },
+  {
+    "id": "football-mbappe",
+    "categoryId": "football",
+    "question": "كيليان مبابي",
+    "acceptedAnswers": ["كيليان مبابي", "مبابي", "mbappe"]
+  },
+  {
+    "id": "movies-inception",
+    "categoryId": "movies",
+    "question": "انسبشن",
+    "acceptedAnswers": ["انسبشن", "الإنسبشن", "inception"]
+  },
+  {
+    "id": "movies-avatar",
+    "categoryId": "movies",
+    "question": "أفاتار",
+    "acceptedAnswers": ["أفاتار", "افاتار", "avatar"]
+  },
+  {
+    "id": "movies-titanic",
+    "categoryId": "movies",
+    "question": "تايتنك",
+    "acceptedAnswers": ["تايتنك", "التيتانيك", "titanic"]
+  },
+  {
+    "id": "movies-joker",
+    "categoryId": "movies",
+    "question": "الجوكر",
+    "acceptedAnswers": ["الجوكر", "جوكر", "joker"]
+  },
+  {
+    "id": "movies-frozen",
+    "categoryId": "movies",
+    "question": "ملكة الثلج",
+    "acceptedAnswers": ["ملكة الثلج", "فروزن", "frozen"]
+  },
+  {
+    "id": "series-friends",
+    "categoryId": "series",
+    "question": "فريندز",
+    "acceptedAnswers": ["فريندز", "الأصدقاء", "friends"]
+  },
+  {
+    "id": "series-got",
+    "categoryId": "series",
+    "question": "صراع العروش",
+    "acceptedAnswers": ["صراع العروش", "قيم أوف ثرونز", "game of thrones"]
+  },
+  {
+    "id": "series-breaking",
+    "categoryId": "series",
+    "question": "بريكينغ باد",
+    "acceptedAnswers": ["بريكينغ باد", "بريكنج باد", "breaking bad"]
+  },
+  {
+    "id": "series-squid",
+    "categoryId": "series",
+    "question": "لعبة الحبار",
+    "acceptedAnswers": ["لعبة الحبار", "سكويد قيم", "squid game"]
+  },
+  {
+    "id": "series-money",
+    "categoryId": "series",
+    "question": "بيت الورق",
+    "acceptedAnswers": ["بيت الورق", "لا كاسا دي بابل", "money heist"]
+  },
+  {
+    "id": "games-minecraft",
+    "categoryId": "games",
+    "question": "ماينكرافت",
+    "acceptedAnswers": ["ماينكرافت", "minecraft"]
+  },
+  {
+    "id": "games-fifa",
+    "categoryId": "games",
+    "question": "فيفا",
+    "acceptedAnswers": ["فيفا", "fifa", "ea fc"]
+  },
+  {
+    "id": "games-fortnite",
+    "categoryId": "games",
+    "question": "فورتنايت",
+    "acceptedAnswers": ["فورتنايت", "fortnite"]
+  },
+  {
+    "id": "games-gta",
+    "categoryId": "games",
+    "question": "جراند ثفت أوتو",
+    "acceptedAnswers": ["جراند ثفت أوتو", "جي تي اي", "gta"]
+  },
+  {
+    "id": "games-pubg",
+    "categoryId": "games",
+    "question": "ببجي",
+    "acceptedAnswers": ["ببجي", "pubg"]
+  },
+  {
+    "id": "tech-iphone",
+    "categoryId": "tech",
+    "question": "آيفون",
+    "acceptedAnswers": ["آيفون", "ايفون", "iphone"]
+  },
+  {
+    "id": "tech-android",
+    "categoryId": "tech",
+    "question": "أندرويد",
+    "acceptedAnswers": ["أندرويد", "اندرويد", "android"]
+  },
+  {
+    "id": "tech-playstation",
+    "categoryId": "tech",
+    "question": "بلايستيشن",
+    "acceptedAnswers": ["بلايستيشن", "بلاي ستيشن", "playstation", "ps5"]
+  },
+  {
+    "id": "tech-chatgpt",
+    "categoryId": "tech",
+    "question": "شات جي بي تي",
+    "acceptedAnswers": ["شات جي بي تي", "chatgpt", "chat gpt"]
+  },
+  {
+    "id": "tech-youtube",
+    "categoryId": "tech",
+    "question": "يوتيوب",
+    "acceptedAnswers": ["يوتيوب", "youtube"]
+  }
+]

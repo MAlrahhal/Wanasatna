@@ -45,6 +45,7 @@ test('all known plugin ids are registered exactly once', () => {
       'bara-al-salafa',
       'draw-guess',
       'fast-answer',
+      'guessing-challenge',
       'imposter-draw',
       'judge',
       'timing-challenge',
@@ -80,6 +81,15 @@ test('judge client plugin is registered', () => {
   assert.equal(typeof plugin.GameScreen, 'function');
 });
 
+test('guessing-challenge client plugin is registered', () => {
+  assert.equal(hasClientGamePlugin('guessing-challenge'), true);
+  const plugin = getClientGamePlugin('guessing-challenge');
+  assert.ok(plugin);
+  assert.equal(plugin.metadata.id, 'guessing-challenge');
+  assert.equal(plugin.metadata.minPlayers, 2);
+  assert.equal(typeof plugin.GameScreen, 'function');
+});
+
 test('timing-challenge client plugin is registered', () => {
   assert.equal(hasClientGamePlugin('timing-challenge'), true);
   const plugin = getClientGamePlugin('timing-challenge');
@@ -97,7 +107,7 @@ test('timing-challenge lobby catalog ID matches plugin ID', () => {
 test('re-running registration is idempotent (Strict Mode / Fast Refresh safe)', () => {
   registerAllClientGamePlugins();
   registerAllClientGamePlugins();
-  assert.equal(listClientGamePlugins().length, 7, 'no duplicate registrations');
+  assert.equal(listClientGamePlugins().length, 8, 'no duplicate registrations');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

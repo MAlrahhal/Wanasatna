@@ -5,6 +5,7 @@ import {
   DRAW_GUESS_GAME_ID,
   FAST_ANSWER_GAME_ID,
   IMPOSTER_DRAW_GAME_ID,
+  GUESSING_CHALLENGE_GAME_ID,
   JUDGE_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
   WHO_WROTE_IT_GAME_ID,
@@ -16,6 +17,7 @@ import { useRoom } from '@/contexts/room-context';
 import { BaraAlSalafaCountdownLive } from '@/plugins/bara-al-salafa/bara-al-salafa-countdown-live';
 import { DrawGuessCountdownLive } from '@/plugins/draw-guess/draw-guess-countdown-live';
 import { FastAnswerCountdownLive } from '@/plugins/fast-answer/fast-answer-countdown-live';
+import { GuessingChallengeCountdownLive } from '@/plugins/guessing-challenge/guessing-challenge-countdown-live';
 import { ImposterDrawCountdownLive } from '@/plugins/imposter-draw/imposter-draw-countdown-live';
 import { JudgeCountdownLive } from '@/plugins/judge/judge-countdown-live';
 import { TimingChallengeCountdownLive } from '@/plugins/timing-challenge/timing-challenge-countdown-live';
@@ -30,7 +32,8 @@ function usesPluginExperienceShell(gameId: string): boolean {
     gameId === TIMING_CHALLENGE_GAME_ID ||
     gameId === FAST_ANSWER_GAME_ID ||
     gameId === WHO_WROTE_IT_GAME_ID ||
-    gameId === JUDGE_GAME_ID
+    gameId === JUDGE_GAME_ID ||
+    gameId === GUESSING_CHALLENGE_GAME_ID
   );
 }
 
@@ -57,6 +60,10 @@ function CountdownForGame({ gameId }: { gameId: string }) {
 
   if (gameId === JUDGE_GAME_ID) {
     return <JudgeCountdownLive />;
+  }
+
+  if (gameId === GUESSING_CHALLENGE_GAME_ID) {
+    return <GuessingChallengeCountdownLive />;
   }
 
   return <BaraAlSalafaCountdownLive />;

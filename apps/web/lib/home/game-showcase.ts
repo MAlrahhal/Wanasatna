@@ -50,6 +50,12 @@ export const homeGameShowcaseById: Record<string, HomeGameShowcase> = {
     iconClassName: 'bg-[#E2E8F0] text-[#334155]',
     hoverBorderClassName: 'hover:border-[#94A3B8]',
   },
+  'guessing-challenge': {
+    availability: 'available',
+    accentClassName: 'bg-[#ECFDF5] text-[#0F766E]',
+    iconClassName: 'bg-[#CCFBF1] text-[#0F766E]',
+    hoverBorderClassName: 'hover:border-[#5EEAD4]',
+  },
   marathon: {
     availability: 'coming-soon',
     accentClassName: 'bg-[#F8FAFC] text-[#94A3B8]',

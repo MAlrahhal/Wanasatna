@@ -44,6 +44,13 @@ export const mockLobbyGames: LobbyGame[] = [
     emoji: '⚖️',
   },
   {
+    id: 'guessing-challenge',
+    title: 'تحدي التخمين',
+    description: 'اعرف هويتك قبل خصمك',
+    iconLabel: 'ت',
+    emoji: '🎯',
+  },
+  {
     id: 'fast-answer',
     title: 'أسرع إجابة',
     description: 'أسئلة سريعة… أول واحد يجيب صح يكسب النقاط.',
@@ -84,6 +91,10 @@ export const mockGameSettingsByGameId: Record<string, LobbyGameSettingsPlacehold
   judge: [
     { id: 'rounds', label: 'عدد الجولات', value: '٣ جولات' },
     { id: 'cases', label: 'نوع القضايا', value: 'مختلط' },
+  ],
+  'guessing-challenge': [
+    { id: 'rounds', label: 'عدد الجولات', value: '٤ جولات' },
+    { id: 'players', label: 'عدد اللاعبين', value: 'لاعبان' },
   ],
   'fast-answer': [
     { id: 'rounds', label: 'عدد الجولات', value: '٥ جولات' },

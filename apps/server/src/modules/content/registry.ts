@@ -49,6 +49,7 @@ export function registerAllGameContent(): void {
   registerGameContent('fast-answer');
   registerGameContent('who-wrote-it');
   registerGameContent('judge');
+  registerGameContent('guessing-challenge');
 }
 
 export function listRegisteredContentGameIds(): string[] {

@@ -93,6 +93,17 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
     playerRange: '٣–١٢ لاعب',
     featured: false,
   },
+  'guessing-challenge': {
+    availability: 'available',
+    accent: 'var(--wanas-game-teal)',
+    accentLight: 'var(--wanas-game-teal-surface)',
+    accentBorder: 'var(--wanas-game-teal-border)',
+    iconBg: 'var(--wanas-game-teal-icon-bg)',
+    iconText: 'var(--wanas-game-teal-icon-text)',
+    shadow: 'shadow-wanas-game-teal/15',
+    playerRange: 'لاعبان',
+    featured: true,
+  },
   marathon: {
     availability: 'coming-soon',
     accent: 'var(--wanas-game-green)',

@@ -15,6 +15,10 @@ export function getGameStartPlayerRequirementReason(
   const plugin = getClientGamePlugin(gameId);
   const minPlayers = plugin?.metadata.minPlayers;
 
+  if (gameId === 'guessing-challenge' && activeParticipantCount !== 2) {
+    return 'تحدي التخمين للعبتين فقط — يلزم لاعبان.';
+  }
+
   if (minPlayers === undefined || activeParticipantCount >= minPlayers) {
     return null;
   }

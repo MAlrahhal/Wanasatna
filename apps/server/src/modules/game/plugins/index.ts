@@ -2,6 +2,7 @@ import { registerBaraAlSalafaPlugin } from './bara-al-salafa/index.js';
 import { registerDrawGuessPlugin } from './draw-guess/index.js';
 import { registerFastAnswerPlugin } from './fast-answer/index.js';
 import { registerImposterDrawPlugin } from './imposter-draw/index.js';
+import { registerGuessingChallengePlugin } from './guessing-challenge/index.js';
 import { registerJudgePlugin } from './judge/index.js';
 import { registerTimingChallengePlugin } from './timing-challenge/index.js';
 import { registerWhoWroteItPlugin } from './who-wrote-it/index.js';
@@ -18,6 +19,7 @@ export function registerAllGamePlugins(): void {
   registerFastAnswerPlugin();
   registerWhoWroteItPlugin();
   registerJudgePlugin();
+  registerGuessingChallengePlugin();
 }
 
 export { registerBaraAlSalafaPlugin } from './bara-al-salafa/index.js';
@@ -27,3 +29,4 @@ export { registerImposterDrawPlugin } from './imposter-draw/index.js';
 export { registerTimingChallengePlugin } from './timing-challenge/index.js';
 export { registerWhoWroteItPlugin } from './who-wrote-it/index.js';
 export { registerJudgePlugin } from './judge/index.js';
+export { registerGuessingChallengePlugin } from './guessing-challenge/index.js';

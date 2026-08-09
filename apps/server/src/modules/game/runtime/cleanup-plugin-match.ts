@@ -3,6 +3,7 @@ import {
   DRAW_GUESS_GAME_ID,
   FAST_ANSWER_GAME_ID,
   IMPOSTER_DRAW_GAME_ID,
+  GUESSING_CHALLENGE_GAME_ID,
   JUDGE_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
   WHO_WROTE_IT_GAME_ID,
@@ -14,6 +15,8 @@ import { stopDrawGuessPhaseTimer } from '../plugins/draw-guess/phase-timer.js';
 import { deleteDrawGuessState } from '../plugins/draw-guess/store.js';
 import { clearFastAnswerPhaseTimerRuntime } from '../plugins/fast-answer/phase-timer.js';
 import { deleteFastAnswerState } from '../plugins/fast-answer/store.js';
+import { clearGuessingChallengePhaseTimerRuntime } from '../plugins/guessing-challenge/phase-timer.js';
+import { deleteGuessingChallengeState } from '../plugins/guessing-challenge/store.js';
 import { stopImposterDrawPhaseTimer } from '../plugins/imposter-draw/phase-timer.js';
 import { deleteImposterDrawState } from '../plugins/imposter-draw/store.js';
 import { clearJudgePhaseTimerRuntime } from '../plugins/judge/phase-timer.js';
@@ -63,5 +66,10 @@ export function cleanupPluginMatchState(roomId: string, gameId: string | null): 
   if (gameId === JUDGE_GAME_ID) {
     clearJudgePhaseTimerRuntime(roomId);
     deleteJudgeState(roomId);
+  }
+
+  if (gameId === GUESSING_CHALLENGE_GAME_ID) {
+    clearGuessingChallengePhaseTimerRuntime(roomId);
+    deleteGuessingChallengeState(roomId);
   }
 }

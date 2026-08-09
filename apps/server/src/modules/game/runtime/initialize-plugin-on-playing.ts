@@ -4,6 +4,7 @@ import {
   DRAW_GUESS_GAME_ID,
   FAST_ANSWER_GAME_ID,
   IMPOSTER_DRAW_GAME_ID,
+  GUESSING_CHALLENGE_GAME_ID,
   JUDGE_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
   WHO_WROTE_IT_GAME_ID,
@@ -13,6 +14,7 @@ import { logGameShellDiagnostic } from '../game.diagnostics.js';
 import { ensureBaraAlSalafaMatchStateWithTimer } from '../plugins/bara-al-salafa/init-match.js';
 import { ensureDrawGuessMatchStateWithTimer } from '../plugins/draw-guess/init-match.js';
 import { ensureFastAnswerMatchStateWithTimer } from '../plugins/fast-answer/init-match.js';
+import { ensureGuessingChallengeMatchStateWithTimer } from '../plugins/guessing-challenge/init-match.js';
 import { ensureImposterDrawMatchStateWithTimer } from '../plugins/imposter-draw/init-match.js';
 import { ensureJudgeMatchStateWithTimer } from '../plugins/judge/init-match.js';
 import { ensureTimingChallengeMatchStateWithTimer } from '../plugins/timing-challenge/init-match.js';
@@ -65,7 +67,8 @@ export async function initializePluginOnPlaying(io: Server, roomId: string): Pro
       shell.gameId !== TIMING_CHALLENGE_GAME_ID &&
       shell.gameId !== FAST_ANSWER_GAME_ID &&
       shell.gameId !== WHO_WROTE_IT_GAME_ID &&
-      shell.gameId !== JUDGE_GAME_ID
+      shell.gameId !== JUDGE_GAME_ID &&
+      shell.gameId !== GUESSING_CHALLENGE_GAME_ID
     ) {
       return;
     }
@@ -95,7 +98,9 @@ export async function initializePluginOnPlaying(io: Server, roomId: string): Pro
                   ? ensureWhoWroteItMatchStateWithTimer(io, roomId)
                   : shell.gameId === JUDGE_GAME_ID
                     ? ensureJudgeMatchStateWithTimer(io, roomId)
-                    : null;
+                    : shell.gameId === GUESSING_CHALLENGE_GAME_ID
+                      ? ensureGuessingChallengeMatchStateWithTimer(io, roomId)
+                      : null;
 
     if (!match) {
       logGameShellDiagnostic('plugin-init-no-match-state', {

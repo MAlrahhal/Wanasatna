@@ -5,6 +5,7 @@
 import assert from 'node:assert/strict';
 import {
   FAST_ANSWER_GAME_ID,
+  GUESSING_CHALLENGE_GAME_ID,
   JUDGE_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
   WHO_WROTE_IT_GAME_ID,
@@ -68,6 +69,15 @@ test('judge resolves in server registry', () => {
   assert.equal(plugin.minPlayers, 3);
 });
 
+test('guessing-challenge resolves in server registry', () => {
+  assert.equal(hasGamePlugin(GUESSING_CHALLENGE_GAME_ID), true);
+  const plugin = getGamePluginDefinition(GUESSING_CHALLENGE_GAME_ID);
+  assert.ok(plugin);
+  assert.equal(plugin.id, 'guessing-challenge');
+  assert.equal(plugin.minPlayers, 2);
+  assert.equal(plugin.maxPlayers, 2);
+});
+
 test('lobby/plugin canonical IDs include production games', () => {
   const ids = listRegisteredGames()
     .map(({ gameId }) => gameId)
@@ -79,6 +89,7 @@ test('lobby/plugin canonical IDs include production games', () => {
   assert.ok(ids.includes('fast-answer'));
   assert.ok(ids.includes('who-wrote-it'));
   assert.ok(ids.includes('judge'));
+  assert.ok(ids.includes('guessing-challenge'));
   assert.deepEqual(
     ids.filter((id) => id === 'timing-challenge'),
     ['timing-challenge'],

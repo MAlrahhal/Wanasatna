@@ -3,6 +3,7 @@ import {
   DRAW_GUESS_GAME_ID,
   FAST_ANSWER_GAME_ID,
   IMPOSTER_DRAW_GAME_ID,
+  GUESSING_CHALLENGE_GAME_ID,
   JUDGE_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
   WHO_WROTE_IT_GAME_ID,
@@ -14,6 +15,8 @@ import { getConnectedParticipantIds as getDrawGuessConnectedParticipantIds } fro
 import { getDrawGuessState } from '../plugins/draw-guess/store.js';
 import { getConnectedParticipantIds as getFastAnswerConnectedParticipantIds } from '../plugins/fast-answer/state.js';
 import { getFastAnswerState } from '../plugins/fast-answer/store.js';
+import { getConnectedParticipantIds as getGuessingChallengeConnectedParticipantIds } from '../plugins/guessing-challenge/state.js';
+import { getGuessingChallengeState } from '../plugins/guessing-challenge/store.js';
 import { getConnectedParticipantIds as getImposterDrawConnectedParticipantIds } from '../plugins/imposter-draw/state.js';
 import { getImposterDrawState } from '../plugins/imposter-draw/store.js';
 import { getConnectedParticipantIds as getJudgeConnectedParticipantIds } from '../plugins/judge/state.js';
@@ -111,6 +114,16 @@ export function countConnectedEligibleParticipants(shell: GameShellRecord): numb
     }
 
     return getJudgeConnectedParticipantIds(match, shell).length;
+  }
+
+  if (shell.gameId === GUESSING_CHALLENGE_GAME_ID) {
+    const match = getGuessingChallengeState(shell.roomId);
+
+    if (!match) {
+      return countLockedShellParticipants(shell);
+    }
+
+    return getGuessingChallengeConnectedParticipantIds(match, shell).length;
   }
 
   return shell.players.filter((player) => player.isConnected).length;
