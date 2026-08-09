@@ -2,44 +2,54 @@
 
 import type { GuessingChallengeVisibleIdentity } from '@wanasatna/shared';
 import { cn } from '@/lib/utils';
+import { resolveIdentityCardText } from './identity-display';
 
 export type GuessingChallengeIdentityCardProps = {
   label: string;
   identity: GuessingChallengeVisibleIdentity | null;
   hidden?: boolean;
   highlight?: boolean;
+  size?: 'distant' | 'foreground';
   className?: string;
+  'data-testid'?: string;
 };
+
+export { resolveIdentityCardText } from './identity-display';
 
 export function GuessingChallengeIdentityCard({
   label,
   identity,
   hidden = false,
   highlight = false,
+  size = 'distant',
   className,
+  'data-testid': dataTestId,
 }: GuessingChallengeIdentityCardProps) {
-  const display =
-    hidden || !identity
-      ? '؟؟؟'
-      : identity.type === 'text'
-        ? (identity.value ?? '؟؟؟')
-        : 'صورة';
+  const display = resolveIdentityCardText(identity, hidden);
+  const isHidden = hidden || !identity;
 
   return (
     <div
+      data-testid={dataTestId}
       className={cn(
-        'wanas-game-card flex min-h-[5.5rem] w-full max-w-[16rem] flex-col justify-center rounded-2xl border px-4 py-5 text-center sm:min-h-[6.5rem] sm:px-5',
+        'flex w-full flex-col justify-center rounded-2xl border text-center',
+        size === 'distant' && 'min-h-[4.25rem] max-w-[13.5rem] px-3 py-3 sm:min-h-[4.75rem]',
+        size === 'foreground' && 'min-h-[5.5rem] max-w-[18rem] px-4 py-4 sm:min-h-[6.25rem] sm:px-5',
         highlight
           ? 'border-wanas-success-border/80 bg-wanas-success-surface'
-          : 'border-border bg-card',
+          : 'border-slate-500/40 bg-slate-900/95',
         className,
       )}
     >
-      <p className="text-[0.7rem] font-medium tracking-wide text-wanas-text-muted">{label}</p>
+      <p className="text-[0.65rem] font-medium tracking-wide text-wanas-text-muted sm:text-[0.7rem]">
+        {label}
+      </p>
       <p
+        data-testid={dataTestId ? `${dataTestId}-value` : undefined}
         className={cn(
-          'mt-2 break-words text-xl font-bold sm:text-2xl',
-          hidden || !identity ? 'text-wanas-text-muted' : 'text-wanas-text-primary',
+          'mt-1.5 break-words font-bold',
+          size === 'distant' ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl',
+          isHidden ? 'text-wanas-text-muted' : 'text-wanas-text-primary',
           highlight && 'text-wanas-success-dark',
         )}
       >

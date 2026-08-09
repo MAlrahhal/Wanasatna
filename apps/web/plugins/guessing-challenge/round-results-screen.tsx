@@ -11,8 +11,7 @@ import {
   GUESSING_CHALLENGE_GAME_ICON,
   GUESSING_CHALLENGE_GAME_NAME,
 } from '@/lib/game/guessing-challenge-brand';
-import { CharacterFigure } from './character-figure';
-import { GuessingChallengeIdentityCard } from './identity-card';
+import { FirstPersonGameScene } from './first-person-game-scene';
 
 export type GuessingChallengeRoundResultsScreenProps = {
   view: GuessingChallengePlayerView;
@@ -56,49 +55,33 @@ export function GuessingChallengeRoundResultsScreen({
         phaseLabel="نتائج الجولة"
       />
 
-      <div className="flex flex-col gap-6">
-        <div className="wanas-game-card rounded-[2rem] border-wanas-success-border/80 bg-wanas-success-surface px-6 py-8 text-center">
-          <p className="text-2xl font-bold text-wanas-success-dark">
+      <div className="flex flex-col gap-4 sm:gap-5">
+        <div className="wanas-game-card rounded-[1.75rem] border-wanas-success-border/80 bg-wanas-success-surface px-5 py-6 text-center sm:px-8">
+          <p className="text-xl font-bold text-wanas-success-dark sm:text-2xl">
             🎉 {view.winnerName ?? 'لاعب'} فاز بالجولة
           </p>
           {view.winningGuess ? (
-            <p className="mt-3 text-sm text-wanas-text-primary">
+            <p className="mt-2 text-sm text-wanas-text-primary">
               التخمين الفائز: «{view.winningGuess}»
             </p>
           ) : null}
         </div>
 
-        <section className="wanas-game-card rounded-[2rem] border border-border px-4 py-6 sm:px-8">
-          <div className="flex flex-col items-center gap-6">
-            {opponentReveal ? (
-              <div className="flex flex-col items-center gap-3">
-                <GuessingChallengeIdentityCard
-                  label={`${opponentReveal.name} كان`}
-                  identity={opponentReveal.identity}
-                  highlight={opponentReveal.isWinner}
-                />
-                <CharacterFigure name={opponentReveal.name} accent="opponent" />
-              </div>
-            ) : null}
+        <FirstPersonGameScene
+          mode="reveal"
+          opponentName={opponentReveal?.name ?? view.opponent.name}
+          selfName={selfReveal?.name ?? view.self.name}
+          opponentIdentity={opponentReveal?.identity ?? view.opponent.visibleIdentity}
+          selfIdentity={selfReveal?.identity ?? view.self.revealedIdentity}
+          selfHidden={false}
+          opponentHighlight={Boolean(opponentReveal?.isWinner)}
+          selfHighlight={Boolean(selfReveal?.isWinner)}
+          showSpecialCards={false}
+        />
 
-            <div className="text-sm font-semibold text-cyan-300">VS</div>
-
-            {selfReveal ? (
-              <div className="flex flex-col items-center gap-3">
-                <CharacterFigure name={selfReveal.name} accent="self" />
-                <GuessingChallengeIdentityCard
-                  label="كنت"
-                  identity={selfReveal.identity}
-                  highlight={selfReveal.isWinner}
-                />
-              </div>
-            ) : null}
-          </div>
-        </section>
-
-        <GameCard className="p-5 sm:p-6">
-          <h2 className="wanas-game-title mb-4">نقاط الجولة</h2>
-          <ul className="space-y-2">
+        <GameCard className="p-4 sm:p-5">
+          <h2 className="wanas-game-title mb-3">نقاط الجولة</h2>
+          <ul className="space-y-2" data-testid="gc-round-scores">
             {sortedResults.map((entry) => (
               <li
                 key={entry.playerId}

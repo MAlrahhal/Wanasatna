@@ -210,6 +210,21 @@ async function main(): Promise<void> {
     );
     assert.equal(resumeRes.success, true, resumeRes.error?.message ?? 'reconnect failed');
 
+    // 1v1 recovery must fully clear before further plugin actions.
+    await waitFor(
+      async () => {
+        const latestA = a.recoveryEvents.at(-1);
+        const latestB = b.recoveryEvents.at(-1);
+        if (latestA && latestA.isActive) return null;
+        if (latestB && latestB.isActive) return null;
+        // Also probe an action-safe sync.
+        const view = await syncView(a);
+        return view.gamePhase === 'playing' ? view : null;
+      },
+      5000,
+      'recovery cleared after reconnect',
+    );
+
     const afterReconnect = await syncView(a);
     assert.equal(afterReconnect.gamePhase, 'playing', 'phase after reconnect');
     assert.equal(afterReconnect.self.revealedIdentity, null, 'own identity still hidden');
