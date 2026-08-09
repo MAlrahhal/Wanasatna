@@ -26,7 +26,7 @@ export const homeGameShowcaseById: Record<string, HomeGameShowcase> = {
     iconClassName: 'bg-[#FEE2E2] text-[#DC2626]',
     hoverBorderClassName: 'hover:border-[#FCA5A5]',
   },
-  'guess-challenge': {
+  'fast-answer': {
     availability: 'available',
     accentClassName: 'bg-[#EFF6FF] text-[#2563EB]',
     iconClassName: 'bg-[#DBEAFE] text-[#2563EB]',

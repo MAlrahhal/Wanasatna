@@ -9,7 +9,7 @@ import { RoomNavigationGuardProvider } from '@/contexts/room-navigation-guard-co
 export function PublicLayoutClient({ children }: { children: ReactNode }) {
   return (
     <RoomNavigationGuardProvider>
-      <div className="flex min-h-full flex-col bg-wanas-background text-wanas-text-primary">
+      <div className="flex min-h-full flex-col text-wanas-text-primary">
         <PublicNavbar />
         <ActiveRoomBanner />
         <div className="flex-1">{children}</div>

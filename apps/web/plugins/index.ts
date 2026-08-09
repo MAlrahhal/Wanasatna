@@ -1,6 +1,7 @@
 import { hasClientGamePlugin, registerGame } from '@/lib/game-plugins/registry';
 import { baraAlSalafaClientPlugin } from '@/plugins/bara-al-salafa';
 import { drawGuessClientPlugin } from '@/plugins/draw-guess';
+import { fastAnswerClientPlugin } from '@/plugins/fast-answer';
 import { imposterDrawClientPlugin } from '@/plugins/imposter-draw';
 import { judgeClientPlugin } from '@/plugins/judge';
 import { timingChallengeClientPlugin } from '@/plugins/timing-challenge';
@@ -8,6 +9,7 @@ import { timingChallengeClientPlugin } from '@/plugins/timing-challenge';
 const allClientGamePlugins = [
   baraAlSalafaClientPlugin,
   drawGuessClientPlugin,
+  fastAnswerClientPlugin,
   imposterDrawClientPlugin,
   judgeClientPlugin,
   timingChallengeClientPlugin,
@@ -29,6 +31,7 @@ registerAllClientGamePlugins();
 export {
   baraAlSalafaClientPlugin,
   drawGuessClientPlugin,
+  fastAnswerClientPlugin,
   imposterDrawClientPlugin,
   judgeClientPlugin,
   timingChallengeClientPlugin,

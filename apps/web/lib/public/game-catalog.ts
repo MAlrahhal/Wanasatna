@@ -49,7 +49,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
     playerRange: '٢–١٢ لاعب',
     featured: true,
   },
-  'guess-challenge': {
+  'fast-answer': {
     availability: 'available',
     accent: 'var(--wanas-game-teal)',
     accentLight: 'var(--wanas-game-teal-surface)',

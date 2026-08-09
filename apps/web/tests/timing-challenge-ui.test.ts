@@ -115,7 +115,7 @@ test('global doodle pattern CSS var opacity restored above invisible threshold',
   const { readFileSync } = await import('node:fs');
   const { join } = await import('node:path');
   const css = readFileSync(join(__dirname, '..', 'styles', 'game-theme.css'), 'utf8');
-  assert.match(css, /opacity='0\.055'/);
+  assert.match(css, /opacity='0\.12'/);
   assert.match(css, /\.wanas-site-bg-pattern/);
   assert.match(css, /pointer-events:\s*none/);
 });

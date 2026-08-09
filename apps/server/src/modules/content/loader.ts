@@ -3,6 +3,7 @@ import { dirname, join } from 'node:path';
 import type {
   GameContentBundle,
   GameContentCategory,
+  GameContentQuestion,
   GameContentSettings,
   GameContentWord,
 } from '@wanasatna/shared';
@@ -46,10 +47,16 @@ export function loadGameContentBundle(gameId: string): GameContentBundle {
     readFileSync(join(gameContentPath, 'words.json'), 'utf8'),
   ) as GameContentWord[];
 
+  const questionsPath = join(gameContentPath, 'questions.json');
+  const questions = existsSync(questionsPath)
+    ? (JSON.parse(readFileSync(questionsPath, 'utf8')) as GameContentQuestion[])
+    : undefined;
+
   return {
     gameId,
     categories,
     words,
+    ...(questions ? { questions } : {}),
   };
 }
 

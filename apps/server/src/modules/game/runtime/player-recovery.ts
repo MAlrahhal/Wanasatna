@@ -16,6 +16,10 @@ import {
   resumeDrawGuessPhaseTimer,
 } from '../plugins/draw-guess/phase-timer.js';
 import {
+  pauseFastAnswerPhaseTimer,
+  resumeFastAnswerPhaseTimer,
+} from '../plugins/fast-answer/phase-timer.js';
+import {
   pauseImposterDrawPhaseTimer,
   resumeImposterDrawPhaseTimer,
 } from '../plugins/imposter-draw/phase-timer.js';
@@ -116,6 +120,7 @@ export function cancelPlayerRecovery(io: Server, roomId: string): void {
   resumeDrawGuessPhaseTimer(io, roomId);
   resumeImposterDrawPhaseTimer(io, roomId);
   resumeTimingChallengePhaseTimer(io, roomId);
+  resumeFastAnswerPhaseTimer(io, roomId);
 
   const shell = getGameShellByRoomId(roomId);
   const minimumCount = shell ? (getGameMinPlayers(shell.gameId) ?? 0) : 0;
@@ -138,6 +143,7 @@ function startRecovery(io: Server, roomId: string, connectedCount: number, minim
   pauseDrawGuessPhaseTimer(roomId);
   pauseImposterDrawPhaseTimer(roomId);
   pauseTimingChallengePhaseTimer(roomId);
+  pauseFastAnswerPhaseTimer(roomId);
   stopGameShellTimer(roomId);
 
   const deadlineAt = Date.now() + resolvePlayerRecoverySeconds() * 1000;

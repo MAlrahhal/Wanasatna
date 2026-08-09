@@ -44,11 +44,11 @@ export const mockLobbyGames: LobbyGame[] = [
     emoji: '⚖️',
   },
   {
-    id: 'guess-challenge',
-    title: 'تحدي التخمين',
-    description: 'أسئلة سريعة… أول واحد يخمّن صح يكسب.',
-    iconLabel: 'خ',
-    emoji: '🎯',
+    id: 'fast-answer',
+    title: 'أسرع إجابة',
+    description: 'أسئلة سريعة… أول واحد يجيب صح يكسب النقاط.',
+    iconLabel: 'س',
+    emoji: '⚡',
   },
   {
     id: 'marathon',
@@ -85,9 +85,9 @@ export const mockGameSettingsByGameId: Record<string, LobbyGameSettingsPlacehold
     { id: 'rounds', label: 'عدد الجولات', value: '٣ جولات' },
     { id: 'cases', label: 'نوع القضايا', value: 'مختلط' },
   ],
-  'guess-challenge': [
-    { id: 'rounds', label: 'عدد الجولات', value: '٨ جولات' },
-    { id: 'speed', label: 'سرعة السؤال', value: 'سريع' },
+  'fast-answer': [
+    { id: 'rounds', label: 'عدد الجولات', value: '٥ جولات' },
+    { id: 'round-time', label: 'وقت السؤال', value: '١٥ ثانية' },
   ],
   marathon: [
     { id: 'games', label: 'عدد الألعاب', value: '٣ ألعاب' },

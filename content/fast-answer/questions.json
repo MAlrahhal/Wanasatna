@@ -1,0 +1,164 @@
+[
+  {
+    "id": "animals-1",
+    "categoryId": "animals",
+    "question": "ما اسم أكبر حيوان على اليابسة؟",
+    "acceptedAnswers": ["فيل", "الفيل", "فيل افريقي", "الفيل الافريقي"]
+  },
+  {
+    "id": "animals-2",
+    "categoryId": "animals",
+    "question": "أي حيوان يُلقّب بملك الغابة؟",
+    "acceptedAnswers": ["أسد", "الاسد", "الأسد"]
+  },
+  {
+    "id": "animals-3",
+    "categoryId": "animals",
+    "question": "ما الحيوان المعروف برقبة طويلة جداً؟",
+    "acceptedAnswers": ["زرافة", "الزرافة"]
+  },
+  {
+    "id": "food-1",
+    "categoryId": "food",
+    "question": "ما اسم الطبق الإيطالي الأشهر المصنوع من العجين والجبن؟",
+    "acceptedAnswers": ["بيتزا", "البيتزا", "pizza"]
+  },
+  {
+    "id": "food-2",
+    "categoryId": "food",
+    "question": "ما الفاكهة الصفراء الطويلة المنحنية؟",
+    "acceptedAnswers": ["موز", "الموز", "موزه", "موزة"]
+  },
+  {
+    "id": "food-3",
+    "categoryId": "food",
+    "question": "ما المشروب الساخن الأشهر المصنوع من البن؟",
+    "acceptedAnswers": ["قهوة", "القهوة", "قهوه", "القهوه"]
+  },
+  {
+    "id": "countries-1",
+    "categoryId": "countries",
+    "question": "ما عاصمة مصر؟",
+    "acceptedAnswers": ["القاهرة", "قاهره", "القاهره", "cairo"]
+  },
+  {
+    "id": "countries-2",
+    "categoryId": "countries",
+    "question": "أي دولة تشتهر ببرج إيفل؟",
+    "acceptedAnswers": ["فرنسا", "france"]
+  },
+  {
+    "id": "countries-3",
+    "categoryId": "countries",
+    "question": "ما أكبر دولة عربية من حيث المساحة؟",
+    "acceptedAnswers": ["الجزائر", "جزائر"]
+  },
+  {
+    "id": "cars-1",
+    "categoryId": "cars",
+    "question": "ما الشركة الألمانية الشهيرة بصنع سيارات BMW؟",
+    "acceptedAnswers": ["بي ام دبليو", "بي إم دبليو", "bmw", "بي ام دبليو"]
+  },
+  {
+    "id": "cars-2",
+    "categoryId": "cars",
+    "question": "ما اسم المركبة ذات العجلتين التي يقودها شخص واحد غالباً؟",
+    "acceptedAnswers": ["دراجة نارية", "دراجه ناريه", "موتوسيكل", "دراجة", "دراجه"]
+  },
+  {
+    "id": "cars-3",
+    "categoryId": "cars",
+    "question": "ما الشركة اليابانية الشهيرة بسيارات تويوتا؟",
+    "acceptedAnswers": ["تويوتا", "toyota"]
+  },
+  {
+    "id": "football-1",
+    "categoryId": "football",
+    "question": "كم لاعباً في فريق كرة القدم على الملعب؟",
+    "acceptedAnswers": ["١١", "11", "احد عشر", "أحد عشر", "١١ لاعب", "١١ لاعبا"]
+  },
+  {
+    "id": "football-2",
+    "categoryId": "football",
+    "question": "ما اسم البطولة العالمية لكرة القدم التي تقام كل أربع سنوات؟",
+    "acceptedAnswers": ["كأس العالم", "كاس العالم", "world cup", "المونديال"]
+  },
+  {
+    "id": "football-3",
+    "categoryId": "football",
+    "question": "أين يضع الحارس يديه لصد الكرة؟",
+    "acceptedAnswers": ["المرمى", "مرمى", "الهدف", "هدف"]
+  },
+  {
+    "id": "movies-1",
+    "categoryId": "movies",
+    "question": "ما اسم الفيلم الشهير عن سفينة غرقت في المحيط؟",
+    "acceptedAnswers": ["تايتانك", "تايتانيك", "titanic", "تيتانيك"]
+  },
+  {
+    "id": "movies-2",
+    "categoryId": "movies",
+    "question": "من بطل أفلام الرجل العنكبوت؟",
+    "acceptedAnswers": ["سبايدرمان", "سبايدر مان", "الرجل العنكبوت", "spider man", "spiderman"]
+  },
+  {
+    "id": "movies-3",
+    "categoryId": "movies",
+    "question": "ما اسم المخرج الشهير لأفلام إنترستيلار وبداية؟",
+    "acceptedAnswers": ["كريستوفر نولان", "نولان", "christopher nolan", "nolan"]
+  },
+  {
+    "id": "series-1",
+    "categoryId": "series",
+    "question": "ما اسم المسلسل الشهير عن عائلة تعيش في سياتل ويعملون في مستشفى؟",
+    "acceptedAnswers": ["جريز اناتومي", "غريز أناتومي", "greys anatomy", "grey's anatomy"]
+  },
+  {
+    "id": "series-2",
+    "categoryId": "series",
+    "question": "ما اسم المسلسل التركي الشهير عن عثمان؟",
+    "acceptedAnswers": ["قيامة عثمان", "قيامه عثمان", "عثمان", "kurulus osman"]
+  },
+  {
+    "id": "series-3",
+    "categoryId": "series",
+    "question": "ما اسم مسلسل الأصدقاء الأمريكي الشهير؟",
+    "acceptedAnswers": ["فريندز", "الاصدقاء", "الأصدقاء", "friends"]
+  },
+  {
+    "id": "games-1",
+    "categoryId": "games",
+    "question": "ما اسم لعبة المكعبات الشهيرة من ماينكرافت؟",
+    "acceptedAnswers": ["ماينكرافت", "minecraft", "ماين كرافت"]
+  },
+  {
+    "id": "games-2",
+    "categoryId": "games",
+    "question": "في أي لعبة يظهر بطل اسمه ماريو؟",
+    "acceptedAnswers": ["سوبر ماريو", "ماريو", "super mario", "mario"]
+  },
+  {
+    "id": "games-3",
+    "categoryId": "games",
+    "question": "ما اسم لعبة كرة القدم الإلكترونية الأشهر من EA؟",
+    "acceptedAnswers": ["فيفا", "فيفا", "fifa", "اي اف سي", "ea fc", "eafc"]
+  },
+  {
+    "id": "tech-1",
+    "categoryId": "tech",
+    "question": "ما اسم الشركة التي تصنع آيفون؟",
+    "acceptedAnswers": ["ابل", "آبل", "أبل", "apple"]
+  },
+  {
+    "id": "tech-2",
+    "categoryId": "tech",
+    "question": "ما الجهاز المحمول الذي نستخدمه للاتصال والتصفح؟",
+    "acceptedAnswers": ["هاتف", "جوال", "موبايل", "الهاتف", "الجوال", "phone", "smartphone"]
+  },
+  {
+    "id": "tech-3",
+    "categoryId": "tech",
+    "question": "ما اسم محرك البحث الأشهر في العالم؟",
+    "acceptedAnswers": ["جوجل", "غوغل", "google"]
+  }
+]

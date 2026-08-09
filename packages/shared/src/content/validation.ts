@@ -40,9 +40,14 @@ export function validateEnabledCategories(
   const wordsInEnabledCategories = bundle.words.filter((word) =>
     enabledCategoryIds.has(word.categoryId),
   );
+  const questionsInEnabledCategories = (bundle.questions ?? []).filter((question) =>
+    enabledCategoryIds.has(question.categoryId),
+  );
 
-  if (wordsInEnabledCategories.length === 0) {
-    return failure(['At least one word is required in the enabled categories.']);
+  if (wordsInEnabledCategories.length === 0 && questionsInEnabledCategories.length === 0) {
+    return failure([
+      'At least one word or question is required in the enabled categories.',
+    ]);
   }
 
   return { valid: true };
@@ -87,8 +92,33 @@ export function validateContentBundle(bundle: GameContentBundle): ContentValidat
     }
   }
 
-  if (bundle.words.length === 0) {
-    errors.push('At least one word is required.');
+  const questions = bundle.questions ?? [];
+
+  for (const question of questions) {
+    if (!question.question.trim()) {
+      errors.push(`Question "${question.id}" must have text.`);
+    }
+
+    if (!categoryIds.has(question.categoryId)) {
+      errors.push(
+        `Question "${question.id}" references unknown category "${question.categoryId}".`,
+      );
+    }
+
+    if (!question.acceptedAnswers || question.acceptedAnswers.length === 0) {
+      errors.push(`Question "${question.id}" must have at least one accepted answer.`);
+      continue;
+    }
+
+    for (const [index, answer] of question.acceptedAnswers.entries()) {
+      if (!answer.trim()) {
+        errors.push(`Question "${question.id}" accepted answer #${index + 1} must have text.`);
+      }
+    }
+  }
+
+  if (bundle.words.length === 0 && questions.length === 0) {
+    errors.push('At least one word or question is required.');
   }
 
   return errors.length > 0 ? failure(errors) : { valid: true };

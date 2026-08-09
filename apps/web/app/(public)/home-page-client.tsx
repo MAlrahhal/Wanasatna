@@ -38,8 +38,8 @@ export function HomePageClient() {
   }, []);
 
   return (
-    <main className="overflow-x-hidden bg-wanas-home-background">
-      <section className="relative overflow-hidden border-b border-wanas-border bg-wanas-home-background">
+    <main className="overflow-x-hidden">
+      <section className="relative overflow-hidden border-b border-wanas-border">
         <div
           aria-hidden
           className="pointer-events-none absolute -start-6 top-8 text-white/15"

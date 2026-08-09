@@ -46,6 +46,7 @@ export function registerAllGameContent(): void {
   registerGameContent('bara-al-salafa');
   registerGameContent('draw-guess');
   registerGameContent('imposter-draw');
+  registerGameContent('fast-answer');
 }
 
 export function listRegisteredContentGameIds(): string[] {

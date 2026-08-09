@@ -3,7 +3,7 @@
  * Run: pnpm --filter @wanasatna/server exec tsx tests/plugin-registry.unit.test.ts
  */
 import assert from 'node:assert/strict';
-import { TIMING_CHALLENGE_GAME_ID } from '@wanasatna/shared';
+import { FAST_ANSWER_GAME_ID, TIMING_CHALLENGE_GAME_ID } from '@wanasatna/shared';
 import { registerAllGameContent } from '../src/modules/content/index.js';
 import { registerAllGamePlugins } from '../src/modules/game/plugins/index.js';
 import {
@@ -39,6 +39,14 @@ test('timing-challenge resolves in server registry', () => {
   assert.equal(plugin.minPlayers, 2);
 });
 
+test('fast-answer resolves in server registry', () => {
+  assert.equal(hasGamePlugin(FAST_ANSWER_GAME_ID), true);
+  const plugin = getGamePluginDefinition(FAST_ANSWER_GAME_ID);
+  assert.ok(plugin);
+  assert.equal(plugin.id, 'fast-answer');
+  assert.equal(plugin.minPlayers, 2);
+});
+
 test('lobby/plugin canonical IDs include production games', () => {
   const ids = listRegisteredGames()
     .map(({ gameId }) => gameId)
@@ -47,6 +55,7 @@ test('lobby/plugin canonical IDs include production games', () => {
   assert.ok(ids.includes('draw-guess'));
   assert.ok(ids.includes('imposter-draw'));
   assert.ok(ids.includes('timing-challenge'));
+  assert.ok(ids.includes('fast-answer'));
   assert.deepEqual(
     ids.filter((id) => id === 'timing-challenge'),
     ['timing-challenge'],
