@@ -44,6 +44,51 @@ export function GuessingChallengeRoundResultsScreen({
   const selfReveal = view.revealEntries.find((entry) => entry.playerId === currentPlayerId);
   const opponentReveal = view.revealEntries.find((entry) => entry.playerId !== currentPlayerId);
 
+  const mappedTeammate = useMemo(() => {
+    if (!view.teammate) {
+      return null;
+    }
+    return {
+      playerId: view.teammate.playerId,
+      name: view.teammate.name,
+      seat: view.teammate.seat,
+      lookYaw: view.teammate.lookYaw,
+      lookPitch: view.teammate.lookPitch,
+    };
+  }, [view.teammate]);
+
+  const mappedOpponents = useMemo(() => {
+    if (view.mode === '2v2' && view.opponents.length > 0) {
+      return view.opponents.map((opponent) => ({
+        playerId: opponent.playerId,
+        name: opponent.name,
+        seat: opponent.seat,
+        lookYaw: opponent.lookYaw,
+        lookPitch: opponent.lookPitch,
+      }));
+    }
+    if (opponentReveal) {
+      return [
+        {
+          playerId: opponentReveal.playerId,
+          name: opponentReveal.name,
+          seat: 0 as const,
+        },
+      ];
+    }
+    return undefined;
+  }, [opponentReveal, view.mode, view.opponents]);
+
+  const opponentIdentity =
+    view.mode === '2v2'
+      ? (view.opponent.visibleIdentity ?? opponentReveal?.identity ?? null)
+      : (opponentReveal?.identity ?? view.opponent.visibleIdentity);
+
+  const opponentName =
+    view.mode === '2v2'
+      ? (view.opponents[0]?.name ?? view.opponent.name)
+      : (opponentReveal?.name ?? view.opponent.name);
+
   return (
     <GameScreen ariaLabel="نتائج الجولة" maxWidth="4xl">
       <GameHeader
@@ -69,9 +114,14 @@ export function GuessingChallengeRoundResultsScreen({
 
         <GameplayScene
           mode="reveal"
-          opponentName={opponentReveal?.name ?? view.opponent.name}
+          matchMode={view.mode}
+          selfTeam={view.selfTeam ?? undefined}
+          selfSeat={view.selfSeat ?? undefined}
+          teammate={mappedTeammate}
+          opponents={mappedOpponents}
+          opponentName={opponentName}
           selfName={selfReveal?.name ?? view.self.name}
-          opponentIdentity={opponentReveal?.identity ?? view.opponent.visibleIdentity}
+          opponentIdentity={opponentIdentity}
           selfIdentity={selfReveal?.identity ?? view.self.revealedIdentity}
           selfHidden={false}
           opponentHighlight={Boolean(opponentReveal?.isWinner)}

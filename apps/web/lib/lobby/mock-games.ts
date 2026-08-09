@@ -94,7 +94,8 @@ export const mockGameSettingsByGameId: Record<string, LobbyGameSettingsPlacehold
   ],
   'guessing-challenge': [
     { id: 'rounds', label: 'عدد الجولات', value: '٤ جولات' },
-    { id: 'players', label: 'عدد اللاعبين', value: 'لاعبان' },
+    { id: 'mode', label: 'وضع اللعب', value: '1 ضد 1 / 2 ضد 2' },
+    { id: 'players', label: 'عدد اللاعبين', value: '٢ أو ٤' },
   ],
   'fast-answer': [
     { id: 'rounds', label: 'عدد الجولات', value: '٥ جولات' },

@@ -3,8 +3,8 @@
   min-height: 240px;
   border-radius: 1.5rem;
   overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  background: #070b16;
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  background: #2e1065;
   touch-action: none;
   width: 100%;
 }

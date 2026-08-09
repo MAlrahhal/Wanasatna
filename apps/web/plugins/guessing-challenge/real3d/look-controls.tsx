@@ -4,10 +4,11 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
-const YAW_LIMIT = (38 * Math.PI) / 180;
-const PITCH_LIMIT = (18 * Math.PI) / 180;
+const DEFAULT_YAW_LIMIT = (38 * Math.PI) / 180;
+const DEFAULT_PITCH_LIMIT = (18 * Math.PI) / 180;
 const SENSITIVITY = 0.0032;
 const DAMPING = 0.14;
+const LOOK_EMIT_MS = 100;
 
 export type LookControlsHandle = {
   recenter: () => void;
@@ -16,7 +17,13 @@ export type LookControlsHandle = {
 type LookControlsProps = {
   enabled?: boolean;
   reduceMotion?: boolean;
+  /** Absolute yaw limit in radians (default ~38°). */
+  yawLimit?: number;
+  /** Absolute pitch limit in radians (default ~18°). */
+  pitchLimit?: number;
   onReady?: (handle: LookControlsHandle) => void;
+  /** Normalized look in -1..1 relative to limits. Throttled ~100ms. */
+  onLookChange?: (yaw: number, pitch: number) => void;
 };
 
 /**
@@ -25,7 +32,10 @@ type LookControlsProps = {
 export function LookControls({
   enabled = true,
   reduceMotion = false,
+  yawLimit = DEFAULT_YAW_LIMIT,
+  pitchLimit = DEFAULT_PITCH_LIMIT,
   onReady,
+  onLookChange,
 }: LookControlsProps) {
   const { camera, gl } = useThree();
   const yaw = useRef(0);
@@ -35,6 +45,15 @@ export function LookControls({
   const dragging = useRef(false);
   const last = useRef<{ x: number; y: number } | null>(null);
   const euler = useRef(new THREE.Euler(0, 0, 0, 'YXZ'));
+  const yawLimitRef = useRef(yawLimit);
+  const pitchLimitRef = useRef(pitchLimit);
+  const onLookChangeRef = useRef(onLookChange);
+  const lastEmit = useRef(0);
+  const lastEmitted = useRef({ yaw: 0, pitch: 0 });
+
+  yawLimitRef.current = yawLimit;
+  pitchLimitRef.current = pitchLimit;
+  onLookChangeRef.current = onLookChange;
 
   useEffect(() => {
     onReady?.({
@@ -71,13 +90,13 @@ export function LookControls({
 
       targetYaw.current = THREE.MathUtils.clamp(
         targetYaw.current - dx * SENSITIVITY,
-        -YAW_LIMIT,
-        YAW_LIMIT,
+        -yawLimitRef.current,
+        yawLimitRef.current,
       );
       targetPitch.current = THREE.MathUtils.clamp(
         targetPitch.current - dy * SENSITIVITY,
-        -PITCH_LIMIT,
-        PITCH_LIMIT,
+        -pitchLimitRef.current,
+        pitchLimitRef.current,
       );
     };
 
@@ -113,6 +132,24 @@ export function LookControls({
 
     euler.current.set(pitch.current, yaw.current, 0, 'YXZ');
     camera.quaternion.setFromEuler(euler.current);
+
+    const cb = onLookChangeRef.current;
+    if (!cb) return;
+
+    const yLim = yawLimitRef.current || 1;
+    const pLim = pitchLimitRef.current || 1;
+    const nYaw = THREE.MathUtils.clamp(yaw.current / yLim, -1, 1);
+    const nPitch = THREE.MathUtils.clamp(pitch.current / pLim, -1, 1);
+    const now = performance.now();
+    const changed =
+      Math.abs(nYaw - lastEmitted.current.yaw) > 0.01 ||
+      Math.abs(nPitch - lastEmitted.current.pitch) > 0.01;
+
+    if (changed && now - lastEmit.current >= LOOK_EMIT_MS) {
+      lastEmit.current = now;
+      lastEmitted.current = { yaw: nYaw, pitch: nPitch };
+      cb(nYaw, nPitch);
+    }
   });
 
   return null;

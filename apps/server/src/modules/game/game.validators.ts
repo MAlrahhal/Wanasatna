@@ -22,10 +22,15 @@ const timingChallengeSettingsSchema = z
     message: 'Minimum time must be less than maximum time.',
   });
 
+const guessingChallengeSettingsSchema = z.object({
+  mode: z.enum(['1v1', '2v2']),
+});
+
 const startFromLobbySchema = z.object({
   gameId: z.string().trim().min(1, 'Game selection is required'),
   categoryId: z.string().trim().min(1).nullable().optional(),
   timingChallenge: timingChallengeSettingsSchema.optional(),
+  guessingChallenge: guessingChallengeSettingsSchema.optional(),
 });
 
 type ValidationSuccess<T> = { success: true; data: T };

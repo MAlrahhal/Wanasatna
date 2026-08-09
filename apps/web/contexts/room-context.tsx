@@ -43,7 +43,9 @@ import {
   type RoomPlayersSnapshotPayload,
   type RoomSessionData,
   type RoomUpdatedPayload,
+  type GuessingChallengeMode,
   type TimingChallengeSettings,
+  GUESSING_CHALLENGE_GAME_ID,
   TIMING_CHALLENGE_DEFAULT_MAX_SECONDS,
   TIMING_CHALLENGE_DEFAULT_MIN_SECONDS,
   TIMING_CHALLENGE_DEFAULT_ROUNDS,
@@ -99,6 +101,8 @@ type RoomContextValue = {
   selectedRoundCategoryId: string | null;
   timingChallengeSettings: TimingChallengeSettings;
   setTimingChallengeSettings: (settings: TimingChallengeSettings) => void;
+  guessingChallengeMode: GuessingChallengeMode;
+  setGuessingChallengeMode: (mode: GuessingChallengeMode) => void;
   lockRoom: () => Promise<void>;
   unlockRoom: () => Promise<void>;
   kickPlayer: (playerId: string) => Promise<void>;
@@ -195,6 +199,8 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   const [timingChallengeSettings, setTimingChallengeSettings] = useState<TimingChallengeSettings>(
     DEFAULT_TIMING_CHALLENGE_SETTINGS,
   );
+  const [guessingChallengeMode, setGuessingChallengeMode] =
+    useState<GuessingChallengeMode>('1v1');
   const [activeGameShell, setActiveGameShell] = useState<GameShellState | null>(null);
   // Latest shell for socket callbacks: listener closures must never act on a
   // stale shell snapshot (e.g. suppressing /game navigation for a player who
@@ -760,6 +766,9 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         ...(selectedGameId === TIMING_CHALLENGE_GAME_ID
           ? { timingChallenge: timingChallengeSettings }
           : {}),
+        ...(selectedGameId === GUESSING_CHALLENGE_GAME_ID
+          ? { guessingChallenge: { mode: guessingChallengeMode } }
+          : {}),
       },
     );
 
@@ -770,7 +779,14 @@ export function RoomProvider({ children }: { children: ReactNode }) {
 
     setErrorMessage(null);
     router.push('/game');
-  }, [isHost, router, selectedGameId, selectedRoundCategoryId, timingChallengeSettings]);
+  }, [
+    guessingChallengeMode,
+    isHost,
+    router,
+    selectedGameId,
+    selectedRoundCategoryId,
+    timingChallengeSettings,
+  ]);
 
   const leaveRoom = useCallback(async (redirectTo = '/') => {
     const leavingRoomCode = room?.code ?? readRoomSession()?.roomCode ?? undefined;
@@ -812,6 +828,8 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       selectedRoundCategoryId,
       timingChallengeSettings,
       setTimingChallengeSettings,
+      guessingChallengeMode,
+      setGuessingChallengeMode,
       lockRoom,
       unlockRoom,
       kickPlayer,
@@ -837,9 +855,12 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       selectRoundCategory,
       selectedGameId,
       selectedRoundCategoryId,
+      setGuessingChallengeMode,
+      setTimingChallengeSettings,
       startGame,
       status,
       timingChallengeSettings,
+      guessingChallengeMode,
       unlockRoom,
     ],
   );

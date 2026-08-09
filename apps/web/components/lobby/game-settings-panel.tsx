@@ -3,9 +3,10 @@
 import type { LobbyGame, LobbyGameSettingsPlaceholder } from '@/lib/lobby/types';
 import { getGameCatalogEntry } from '@/lib/public/game-catalog';
 import { useRoom } from '@/contexts/room-context';
-import { TIMING_CHALLENGE_GAME_ID } from '@wanasatna/shared';
+import { GUESSING_CHALLENGE_GAME_ID, TIMING_CHALLENGE_GAME_ID } from '@wanasatna/shared';
 import { EmptyState } from './empty-state';
 import { LobbyPanel } from './lobby-ui';
+import { GuessingChallengeSettingsPanel } from './guessing-challenge-settings-panel';
 import { TimingChallengeSettingsPanel } from './timing-challenge-settings-panel';
 
 type GameSettingsPanelProps = {
@@ -15,9 +16,15 @@ type GameSettingsPanelProps = {
 };
 
 export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettingsPanelProps) {
-  const { timingChallengeSettings, setTimingChallengeSettings } = useRoom();
+  const {
+    timingChallengeSettings,
+    setTimingChallengeSettings,
+    guessingChallengeMode,
+    setGuessingChallengeMode,
+  } = useRoom();
   const catalogEntry = selectedGame ? getGameCatalogEntry(selectedGame.id) : null;
   const isTimingChallenge = selectedGame?.id === TIMING_CHALLENGE_GAME_ID;
+  const isGuessingChallenge = selectedGame?.id === GUESSING_CHALLENGE_GAME_ID;
 
   return (
     <LobbyPanel
@@ -62,6 +69,12 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
               settings={timingChallengeSettings}
               isHost={isHost}
               onChange={setTimingChallengeSettings}
+            />
+          ) : isGuessingChallenge ? (
+            <GuessingChallengeSettingsPanel
+              mode={guessingChallengeMode}
+              isHost={isHost}
+              onChange={setGuessingChallengeMode}
             />
           ) : (
             <div className="space-y-1.5">

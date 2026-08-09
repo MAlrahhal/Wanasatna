@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { GuessingChallengePlayerView } from '@wanasatna/shared';
 import { GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
@@ -10,6 +10,7 @@ import {
   GUESSING_CHALLENGE_GAME_NAME,
 } from '@/lib/game/guessing-challenge-brand';
 import { GameplayScene } from './gameplay-scene';
+import { GuessingChallengeSpecialCardsPanel } from './special-cards-panel';
 
 export type GuessingChallengePlayingScreenProps = {
   view: GuessingChallengePlayerView;
@@ -21,6 +22,7 @@ export type GuessingChallengePlayingScreenProps = {
   onSubmitGuess: (guess: string) => void;
   onUseYellow: () => void;
   onUseRed: () => void;
+  onLookChange?: (yaw: number, pitch: number) => void;
 };
 
 export function GuessingChallengePlayingScreen({
@@ -33,10 +35,42 @@ export function GuessingChallengePlayingScreen({
   onSubmitGuess,
   onUseYellow,
   onUseRed,
+  onLookChange,
 }: GuessingChallengePlayingScreenProps) {
   const [showGuessForm, setShowGuessForm] = useState(false);
   const [guess, setGuess] = useState('');
-  const [confirmCard, setConfirmCard] = useState<'yellow' | 'red' | null>(null);
+
+  const mappedTeammate = useMemo(() => {
+    if (!view.teammate) {
+      return null;
+    }
+    return {
+      playerId: view.teammate.playerId,
+      name: view.teammate.name,
+      seat: view.teammate.seat,
+      lookYaw: view.teammate.lookYaw,
+      lookPitch: view.teammate.lookPitch,
+    };
+  }, [view.teammate]);
+
+  const mappedOpponents = useMemo(
+    () =>
+      view.opponents.map((opponent) => ({
+        playerId: opponent.playerId,
+        name: opponent.name,
+        seat: opponent.seat,
+        lookYaw: opponent.lookYaw,
+        lookPitch: opponent.lookPitch,
+      })),
+    [view.opponents],
+  );
+
+  const identityNotice =
+    view.mode === '2v2'
+      ? 'تم تغيير هويتكم بواسطة البطاقة الحمراء'
+      : 'تم تغيير هويتك بواسطة البطاقة الحمراء';
+
+  const guessPrompt = view.mode === '2v2' ? 'ما هي هوية فريقكم؟' : 'من تعتقد أنك؟';
 
   return (
     <GameScreen ariaLabel="تحدي التخمين" maxWidth="4xl">
@@ -55,30 +89,43 @@ export function GuessingChallengePlayingScreen({
             className="rounded-xl border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-center text-sm text-rose-100"
             data-testid="gc-red-card-notice"
           >
-            تم تغيير هويتك بواسطة البطاقة الحمراء
+            {identityNotice}
           </p>
         ) : null}
 
-        <GameplayScene
-          mode="playing"
-          opponentName={view.opponent.name}
-          selfName={view.self.name}
-          opponentIdentity={view.opponent.visibleIdentity}
-          selfIdentity={null}
-          selfHidden
-          isMyTurn={view.isMyTurn}
-          turnTitle={view.isMyTurn ? 'دورك' : `دور ${view.currentTurnPlayerName ?? 'الخصم'}`}
-          turnInstruction={view.turnInstruction}
-          yellowQuestionsRemaining={view.yellowQuestionsRemaining}
-          yellowAvailable={view.self.yellowCardAvailable}
-          redAvailable={view.self.redCardAvailable}
-          canUseYellow={view.canUseYellow}
-          canUseRed={view.canUseRed}
-          yellowDisabled={isSubmittingAction || showGuessForm}
-          redDisabled={isSubmittingAction || showGuessForm}
-          onUseYellow={() => setConfirmCard('yellow')}
-          onUseRed={() => setConfirmCard('red')}
-        />
+        <div className="relative">
+          <GameplayScene
+            mode="playing"
+            matchMode={view.mode}
+            selfTeam={view.selfTeam ?? undefined}
+            selfSeat={view.selfSeat ?? undefined}
+            teammate={mappedTeammate}
+            opponents={mappedOpponents}
+            opponentName={view.opponent.name}
+            selfName={view.self.name}
+            opponentIdentity={view.opponent.visibleIdentity}
+            selfIdentity={null}
+            selfHidden
+            isMyTurn={view.isMyTurn}
+            turnTitle={view.isMyTurn ? 'دورك' : `دور ${view.currentTurnPlayerName ?? 'الخصم'}`}
+            turnInstruction={view.turnInstruction}
+            yellowQuestionsRemaining={view.yellowQuestionsRemaining}
+            showSpecialCards={false}
+            onLookChange={onLookChange}
+          />
+
+          <GuessingChallengeSpecialCardsPanel
+            className="absolute right-2 top-2 z-10 w-[6.5rem] sm:w-28"
+            yellowAvailable={view.self.yellowCardAvailable}
+            redAvailable={view.self.redCardAvailable}
+            canUseYellow={view.canUseYellow}
+            canUseRed={view.canUseRed}
+            disabled={isSubmittingAction || showGuessForm}
+            cardConfirmStatus={view.cardConfirmStatus}
+            onUseYellow={onUseYellow}
+            onUseRed={onUseRed}
+          />
+        </div>
 
         {guessFeedback ? (
           <p className="text-center text-sm font-medium text-rose-300" data-testid="gc-guess-feedback">
@@ -94,7 +141,7 @@ export function GuessingChallengePlayingScreen({
             className="wanas-game-card rounded-2xl border border-border p-4 sm:p-5"
             data-testid="gc-final-guess-panel"
           >
-            <p className="mb-3 text-sm font-semibold text-wanas-text-primary">من تعتقد أنك؟</p>
+            <p className="mb-3 text-sm font-semibold text-wanas-text-primary">{guessPrompt}</p>
             <input
               value={guess}
               onChange={(event) => setGuess(event.target.value)}
@@ -124,45 +171,6 @@ export function GuessingChallengePlayingScreen({
                   setShowGuessForm(false);
                   setGuess('');
                 }}
-              >
-                إلغاء
-              </Button>
-            </div>
-          </div>
-        ) : null}
-
-        {confirmCard ? (
-          <div className="wanas-game-card rounded-2xl border border-border p-4 sm:p-5">
-            <p className="text-sm font-semibold text-wanas-text-primary">
-              {confirmCard === 'yellow'
-                ? 'استخدام البطاقة الصفراء؟'
-                : 'استخدام البطاقة الحمراء؟'}
-            </p>
-            <p className="mt-1 text-xs text-wanas-text-muted">
-              {confirmCard === 'yellow'
-                ? 'ستحصل على 3 أسئلة متتالية.'
-                : 'سيتم تغيير هوية خصمك.'}
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button
-                type="button"
-                disabled={isSubmittingAction}
-                onClick={() => {
-                  if (confirmCard === 'yellow') {
-                    onUseYellow();
-                  } else {
-                    onUseRed();
-                  }
-                  setConfirmCard(null);
-                }}
-              >
-                تأكيد
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={isSubmittingAction}
-                onClick={() => setConfirmCard(null)}
               >
                 إلغاء
               </Button>

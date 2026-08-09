@@ -9,6 +9,7 @@ import {
   GAME_SHELL_START_COUNTDOWN_EVENT,
   GAME_SHELL_START_FROM_LOBBY_EVENT,
   GAME_SHELL_SYNC_EVENT,
+  GUESSING_CHALLENGE_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
 } from '@wanasatna/shared';
 import {
@@ -32,6 +33,7 @@ import {
 } from './game.lifecycle.js';
 import { abortActiveMatch } from './runtime/abort-active-match.js';
 import { setRoomRoundCategory } from './runtime/round-category-store.js';
+import { applyGuessingChallengeLobbySettings } from './plugins/guessing-challenge/socket.handlers.js';
 import { applyTimingChallengeLobbySettings } from './plugins/timing-challenge/socket.handlers.js';
 import { logGameShellDiagnostic } from './game.diagnostics.js';
 import { broadcastRoomPlayersSnapshot } from '../room/room.utils.js';
@@ -293,6 +295,24 @@ export function registerGameShellStartFromLobbyHandler(io: Server, socket: Socke
           const settingsResult = applyTimingChallengeLobbySettings(
             roomId!,
             validation.data.timingChallenge,
+          );
+
+          if (!settingsResult.success) {
+            sendGameResponse(callback, {
+              success: false,
+              error: {
+                code: 'VALIDATION_ERROR',
+                message: settingsResult.error,
+              },
+            });
+            return;
+          }
+        }
+
+        if (validation.data.gameId === GUESSING_CHALLENGE_GAME_ID) {
+          const settingsResult = applyGuessingChallengeLobbySettings(
+            roomId!,
+            validation.data.guessingChallenge,
           );
 
           if (!settingsResult.success) {

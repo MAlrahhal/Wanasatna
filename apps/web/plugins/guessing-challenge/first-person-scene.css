@@ -1,12 +1,14 @@
-/* Lightweight first-person / perspective illusion for تحدي التخمين */
+/* Lightweight first-person / lounge illusion for تحدي التخمين */
 
 .gc-fp-scene {
   --gc-fp-depth: 920px;
   position: relative;
   overflow: hidden;
   border-radius: 1.75rem;
-  border: 1px solid var(--border, hsl(var(--border)));
-  background: color-mix(in oklab, var(--card, #0f172a) 88%, transparent);
+  border: 1px solid rgb(167 139 250 / 0.35);
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 0%, rgb(124 58 237 / 0.45), transparent 70%),
+    linear-gradient(180deg, #4c1d95 0%, #5b21b6 42%, #78350f 100%);
   padding: 0.75rem 0.75rem 0.5rem;
 }
 
@@ -32,7 +34,44 @@
   }
 }
 
-.gc-fp-opponent {
+.gc-fp-teammate-strip {
+  position: absolute;
+  top: 0.5rem;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  opacity: 0.92;
+  transform: scale(0.72);
+}
+
+.gc-fp-teammate-strip.is-left {
+  inset-inline-start: 0.25rem;
+}
+
+.gc-fp-teammate-strip.is-right {
+  inset-inline-end: 0.25rem;
+}
+
+.gc-fp-team-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  box-shadow: 0 0 6px currentColor;
+}
+
+.gc-fp-team-dot.is-blue {
+  background: #38bdf8;
+  color: #38bdf8;
+}
+
+.gc-fp-team-dot.is-red {
+  background: #fb7185;
+  color: #fb7185;
+}
+
+.gc-fp-opponents {
   position: relative;
   z-index: 3;
   display: flex;
@@ -44,9 +83,28 @@
 }
 
 @media (min-width: 640px) {
-  .gc-fp-opponent {
+  .gc-fp-opponents {
     transform: translateZ(0) scale(0.88);
   }
+}
+
+.gc-fp-opponent-row {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.gc-fp-opponents.is-duo .gc-fp-opponent-row {
+  gap: 1.35rem;
+}
+
+.gc-fp-opponent {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .gc-fp-opponent-card {
@@ -55,58 +113,39 @@
   box-shadow: 0 10px 24px rgb(0 0 0 / 0.28);
 }
 
-.gc-fp-table-wrap {
+.gc-fp-shared-identity {
+  margin-bottom: 0.15rem;
+}
+
+/* Soft floor / rug — replaces giant center table */
+.gc-fp-floor {
   position: relative;
   z-index: 2;
-  margin-top: -0.35rem;
-  width: min(100%, 34rem);
-  transform-style: preserve-3d;
+  margin-top: 0.25rem;
+  width: min(100%, 22rem);
+  height: 3.25rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 }
 
-.gc-fp-table {
-  position: relative;
-  height: 7.5rem;
-  width: 100%;
-  transform: rotateX(58deg) scale(1.05);
-  transform-origin: center top;
-  border: 1px solid rgb(148 163 184 / 0.28);
-  border-radius: 0.85rem;
-  background: #1e293b;
-  box-shadow:
-    0 18px 28px rgb(0 0 0 / 0.35),
-    inset 0 1px 0 rgb(255 255 255 / 0.04);
+.gc-fp-rug {
+  width: 70%;
+  height: 2.4rem;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 50%, #fbbf24 0 18%, transparent 19%),
+    radial-gradient(circle at 50% 50%, #7c3aed 0 42%, #f59e0b 43% 58%, #4c1d95 59% 100%);
+  box-shadow: 0 8px 18px rgb(0 0 0 / 0.25);
+  transform: rotateX(62deg) scaleX(1.35);
+  transform-origin: center bottom;
+  opacity: 0.9;
 }
 
-@media (min-width: 640px) {
-  .gc-fp-table {
-    height: 9.5rem;
-  }
-}
-
-.gc-fp-table::before {
-  content: '';
-  position: absolute;
-  inset: 12% 10% auto;
-  height: 1px;
-  background: rgb(148 163 184 / 0.18);
-}
-
-.gc-fp-table-edge {
-  position: absolute;
-  inset-inline: 8%;
-  bottom: -0.55rem;
-  height: 0.7rem;
-  border: 1px solid rgb(100 116 139 / 0.35);
-  border-top: 0;
-  border-radius: 0 0 0.65rem 0.65rem;
-  background: #0f172a;
-  box-shadow: 0 8px 16px rgb(0 0 0 / 0.35);
-}
-
-.gc-fp-table-cards {
+.gc-fp-side-cards {
   position: absolute;
   inset-inline: 0.35rem;
-  bottom: 0.85rem;
+  bottom: 5.5rem;
   z-index: 5;
   display: flex;
   justify-content: space-between;
@@ -114,19 +153,18 @@
   pointer-events: none;
 }
 
-.gc-fp-table-cards > * {
+.gc-fp-side-cards > * {
   pointer-events: auto;
   width: min(42%, 9.5rem);
-  transform: rotateX(8deg);
 }
 
 @media (min-width: 640px) {
-  .gc-fp-table-cards {
+  .gc-fp-side-cards {
     inset-inline: 0.75rem;
-    bottom: 1.1rem;
+    bottom: 6.25rem;
   }
 
-  .gc-fp-table-cards > * {
+  .gc-fp-side-cards > * {
     width: min(38%, 10.5rem);
   }
 }
@@ -134,18 +172,12 @@
 .gc-fp-foreground {
   position: relative;
   z-index: 6;
-  margin-top: -1.75rem;
+  margin-top: -0.5rem;
   display: flex;
   width: 100%;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-}
-
-@media (min-width: 640px) {
-  .gc-fp-foreground {
-    margin-top: -2.25rem;
-  }
 }
 
 .gc-fp-self-card {
@@ -159,28 +191,37 @@
 }
 
 .gc-fp-hands {
+  position: relative;
+  display: flex;
   width: min(100%, 16rem);
-  height: 1.1rem;
-  border-radius: 999px 999px 0 0;
-  border: 1px solid rgb(100 116 139 / 0.25);
-  border-bottom: 0;
-  background: #1e293b;
-  opacity: 0.85;
+  height: 1.35rem;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-inline: 0.75rem;
+}
+
+.gc-fp-glove {
+  width: 2.6rem;
+  height: 1.15rem;
+  border-radius: 0.55rem 0.55rem 0.2rem 0.2rem;
+  background: #f8fafc;
+  box-shadow: 0 -6px 0 0 #ea580c;
+  opacity: 0.95;
 }
 
 .gc-fp-turn {
   margin-top: 0.35rem;
   width: 100%;
   border-radius: 0.9rem;
-  border: 1px solid rgb(34 211 238 / 0.28);
-  background: rgb(8 51 68 / 0.55);
+  border: 1px solid rgb(251 146 60 / 0.35);
+  background: rgb(76 29 149 / 0.55);
   padding: 0.55rem 0.75rem;
   text-align: center;
 }
 
 .gc-fp-turn.is-waiting {
-  border-color: rgb(148 163 184 / 0.25);
-  background: rgb(15 23 42 / 0.55);
+  border-color: rgb(167 139 250 / 0.3);
+  background: rgb(46 16 101 / 0.55);
 }
 
 .gc-fp-reveal-in {
@@ -206,12 +247,11 @@
   .gc-fp-opponent,
   .gc-fp-opponent-card,
   .gc-fp-self-card,
-  .gc-fp-table-cards > * {
+  .gc-fp-rug {
     transform: none;
   }
 
-  .gc-fp-table {
-    transform: none;
-    height: 4.5rem;
+  .gc-fp-floor {
+    height: 2rem;
   }
 }

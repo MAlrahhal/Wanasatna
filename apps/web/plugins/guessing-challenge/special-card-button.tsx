@@ -48,7 +48,7 @@ export function SpecialCardButton({
           compact ? 'text-[0.65rem] leading-snug' : 'text-xs',
         )}
       >
-        {used ? 'تم الاستخدام' : description}
+        {used ? 'تم استخدامها' : description}
       </span>
     </button>
   );

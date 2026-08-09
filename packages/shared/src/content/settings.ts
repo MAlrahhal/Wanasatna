@@ -10,6 +10,8 @@ export type GameContentSettings = {
   countdownTime?: number;
   rounds?: number;
   enabledCategories: string[];
+  /** Guessing Challenge match mode (optional; defaults to 1v1). */
+  mode?: '1v1' | '2v2';
 };
 
 export type GameContentSettingsDocument = GameContentSettings;

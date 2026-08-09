@@ -1,6 +1,7 @@
 {
   "minPlayers": 2,
-  "maxPlayers": 2,
+  "maxPlayers": 4,
   "rounds": 4,
+  "mode": "1v1",
   "enabledCategories": []
 }

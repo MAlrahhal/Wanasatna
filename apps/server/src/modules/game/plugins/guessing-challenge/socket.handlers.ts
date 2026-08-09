@@ -1,6 +1,8 @@
 import type { Server, Socket } from 'socket.io';
 import type {
   GameActionResponse,
+  GuessingChallengeLookPayload,
+  GuessingChallengeMode,
   GuessingChallengeSetCategoryPayload,
   GuessingChallengeSubmitFinalGuessPayload,
 } from '@wanasatna/shared';
@@ -8,6 +10,8 @@ import {
   GUESSING_CHALLENGE_CONTINUE_ROUND_RESULTS_EVENT,
   GUESSING_CHALLENGE_END_QUESTION_EVENT,
   GUESSING_CHALLENGE_GAME_ID,
+  GUESSING_CHALLENGE_LOOK_EVENT,
+  GUESSING_CHALLENGE_LOOK_UPDATE_EVENT,
   GUESSING_CHALLENGE_PHASE_CHANGED_EVENT,
   GUESSING_CHALLENGE_SET_CATEGORY_EVENT,
   GUESSING_CHALLENGE_SUBMIT_FINAL_GUESS_EVENT,
@@ -30,13 +34,19 @@ import {
   continueFromRoundResults,
   startRoundResults,
 } from './match-lifecycle.js';
+import {
+  clearGuessingChallengeRoomMode,
+  setGuessingChallengeRoomMode,
+} from './mode-store.js';
 import { clearGuessingChallengePhaseTimerRuntime } from './phase-timer.js';
 import {
-  activateRedCard,
-  activateYellowCard,
   applyFinalGuess,
+  applyLookDirection,
   buildGuessingChallengePlayerView,
+  clearLookThrottleForRoom,
+  confirmSpecialCard,
   endQuestionTurn,
+  resetPlayerLook,
 } from './state.js';
 import {
   deleteGuessingChallengeState,
@@ -81,6 +91,8 @@ function recoveryBlockedResponse(
 
 function clearGuessingChallengeRuntime(roomId: string): void {
   clearGuessingChallengePhaseTimerRuntime(roomId);
+  clearLookThrottleForRoom(roomId);
+  clearGuessingChallengeRoomMode(roomId);
   deleteGuessingChallengeState(roomId);
 }
 
@@ -105,6 +117,29 @@ function respondWithView(
       ...extra,
     },
   });
+}
+
+export function applyGuessingChallengeLobbySettings(
+  roomId: string,
+  settingsInput: unknown,
+): { success: true } | { success: false; error: string } {
+  if (!settingsInput || typeof settingsInput !== 'object') {
+    clearGuessingChallengeRoomMode(roomId);
+    return { success: true };
+  }
+
+  const mode = (settingsInput as { mode?: unknown }).mode;
+  if (mode === undefined) {
+    clearGuessingChallengeRoomMode(roomId);
+    return { success: true };
+  }
+
+  if (mode !== '1v1' && mode !== '2v2') {
+    return { success: false, error: 'وضع اللعب غير صالح.' };
+  }
+
+  setGuessingChallengeRoomMode(roomId, mode as GuessingChallengeMode);
+  return { success: true };
 }
 
 export function registerGuessingChallengeSocketHandlers(io: Server, socket: Socket): void {
@@ -229,6 +264,7 @@ export function registerGuessingChallengeSocketHandlers(io: Server, socket: Sock
     },
   );
 
+  // USE_YELLOW means "confirm yellow-card use" (team confirmation in 2v2).
   socket.on(GUESSING_CHALLENGE_USE_YELLOW_CARD_EVENT, (_payload: unknown, callback) => {
     const contextError = getGameSocketContext(socket);
 
@@ -255,23 +291,25 @@ export function registerGuessingChallengeSocketHandlers(io: Server, socket: Sock
     }
 
     ensureGuessingChallengeMatchStateWithTimer(io, roomId!);
-    const match = getGuessingChallengeState(roomId!);
-    if (!match) {
-      sendGameResponse(callback, gameNotReadyError());
-      return;
-    }
 
-    const result = activateYellowCard(match, playerId!);
+    const result = confirmSpecialCard(
+      () => getGuessingChallengeState(roomId!),
+      (next) => setGuessingChallengeState(roomId!, next),
+      shell,
+      playerId!,
+      'yellow',
+    );
+
     if (!result.ok) {
       sendGameResponse(callback, invalidActionError(result.message));
       return;
     }
 
-    setGuessingChallengeState(roomId!, result.match);
     broadcastPhaseChanged(io, roomId!);
     respondWithView(callback, roomId!, playerId!);
   });
 
+  // USE_RED means "confirm red-card use" (team confirmation in 2v2).
   socket.on(GUESSING_CHALLENGE_USE_RED_CARD_EVENT, (_payload: unknown, callback) => {
     const contextError = getGameSocketContext(socket);
 
@@ -298,22 +336,78 @@ export function registerGuessingChallengeSocketHandlers(io: Server, socket: Sock
     }
 
     ensureGuessingChallengeMatchStateWithTimer(io, roomId!);
-    const match = getGuessingChallengeState(roomId!);
-    if (!match) {
-      sendGameResponse(callback, gameNotReadyError());
-      return;
-    }
 
-    const result = activateRedCard(match, playerId!);
+    const result = confirmSpecialCard(
+      () => getGuessingChallengeState(roomId!),
+      (next) => setGuessingChallengeState(roomId!, next),
+      shell,
+      playerId!,
+      'red',
+    );
+
     if (!result.ok) {
       sendGameResponse(callback, invalidActionError(result.message));
       return;
     }
 
-    setGuessingChallengeState(roomId!, result.match);
     broadcastPhaseChanged(io, roomId!);
     respondWithView(callback, roomId!, playerId!);
   });
+
+  socket.on(
+    GUESSING_CHALLENGE_LOOK_EVENT,
+    (payload: GuessingChallengeLookPayload, callback) => {
+      const contextError = getGameSocketContext(socket);
+
+      if (contextError) {
+        sendGameResponse(callback, contextError);
+        return;
+      }
+
+      const { roomId, playerId } = socket.data;
+      const shell = getGameShellByRoomId(roomId!);
+      if (!shell || shell.gameId !== GUESSING_CHALLENGE_GAME_ID || shell.phase !== 'PLAYING') {
+        sendGameResponse(callback, gameNotReadyError());
+        return;
+      }
+
+      if (!isActiveMatchParticipant(shell, playerId!)) {
+        sendGameResponse(callback, notParticipantError());
+        return;
+      }
+
+      ensureGuessingChallengeMatchStateWithTimer(io, roomId!);
+      const match = getGuessingChallengeState(roomId!);
+      if (!match) {
+        sendGameResponse(callback, gameNotReadyError());
+        return;
+      }
+
+      const applied = applyLookDirection(
+        match,
+        roomId!,
+        playerId!,
+        typeof payload?.yaw === 'number' ? payload.yaw : 0,
+        typeof payload?.pitch === 'number' ? payload.pitch : 0,
+      );
+
+      if (!applied) {
+        sendGameResponse(callback, { success: true, data: { throttled: true } });
+        return;
+      }
+
+      setGuessingChallengeState(roomId!, applied.match);
+      io.to(getRoomChannel(roomId!)).emit(GUESSING_CHALLENGE_LOOK_UPDATE_EVENT, {
+        playerId: playerId!,
+        yaw: applied.yaw,
+        pitch: applied.pitch,
+      });
+      sendGameResponse(callback, {
+        success: true,
+        data: { yaw: applied.yaw, pitch: applied.pitch },
+      });
+    },
+  );
 
   socket.on(GUESSING_CHALLENGE_CONTINUE_ROUND_RESULTS_EVENT, (_payload: unknown, callback) => {
     const contextError = getGameSocketContext(socket);
@@ -379,6 +473,7 @@ export function registerGuessingChallengeSocketHandlers(io: Server, socket: Sock
 
   socket.on('disconnect', () => {
     const roomId = socket.data.roomId as string | undefined;
+    const playerId = socket.data.playerId as string | undefined;
     if (!roomId) {
       return;
     }
@@ -388,7 +483,21 @@ export function registerGuessingChallengeSocketHandlers(io: Server, socket: Sock
       return;
     }
 
+    if (playerId) {
+      const match = getGuessingChallengeState(roomId);
+      if (match) {
+        setGuessingChallengeState(roomId, resetPlayerLook(match, playerId));
+        io.to(getRoomChannel(roomId)).emit(GUESSING_CHALLENGE_LOOK_UPDATE_EVENT, {
+          playerId,
+          yaw: 0,
+          pitch: 0,
+        });
+      }
+    }
+
     // Runtime cleanup is owned by shared shell/end-game paths.
     void clearGuessingChallengeRuntime;
   });
 }
+
+export { clearGuessingChallengeRuntime };

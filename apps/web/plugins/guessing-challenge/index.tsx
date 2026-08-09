@@ -10,7 +10,7 @@ export const guessingChallengeClientPlugin: WebClientGamePlugin = {
     description: 'اعرف هويتك قبل خصمك',
     iconLabel: 'ت',
     minPlayers: 2,
-    maxPlayers: 2,
+    maxPlayers: 4,
   },
   GameScreen: GuessingChallengeGameScreen,
 };

@@ -41,6 +41,7 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
     useRedCard,
     continueFromRoundResults,
     setNextRoundCategory,
+    emitLook,
   } = useGuessingChallengePlayerView(pluginEnabled);
 
   const activeFinalResultsView =
@@ -185,6 +186,7 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
       onSubmitGuess={submitFinalGuess}
       onUseYellow={useYellowCard}
       onUseRed={useRedCard}
+      onLookChange={emitLook}
     />
   );
 }

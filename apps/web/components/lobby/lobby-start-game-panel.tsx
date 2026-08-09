@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
-import { TIMING_CHALLENGE_GAME_ID } from '@wanasatna/shared';
+import { GUESSING_CHALLENGE_GAME_ID, TIMING_CHALLENGE_GAME_ID } from '@wanasatna/shared';
 import { useRoom } from '@/contexts/room-context';
 import { getGameStartPlayerRequirementReason } from '@/lib/game-shell/start-validation';
 import { getGameCatalogEntry } from '@/lib/public/game-catalog';
@@ -18,6 +18,7 @@ export function LobbyStartGamePanel() {
     players,
     isWaitingForNextMatch,
     timingChallengeSettings,
+    guessingChallengeMode,
   } = useRoom();
   const [isStarting, setIsStarting] = useState(false);
   const startingRef = useRef(false);
@@ -47,6 +48,7 @@ export function LobbyStartGamePanel() {
     const playerRequirementReason = getGameStartPlayerRequirementReason(
       selectedGameId,
       activeParticipantCount,
+      selectedGameId === GUESSING_CHALLENGE_GAME_ID ? guessingChallengeMode : undefined,
     );
 
     if (playerRequirementReason) {
@@ -64,6 +66,7 @@ export function LobbyStartGamePanel() {
   }, [
     activeParticipantCount,
     catalogEntry?.availability,
+    guessingChallengeMode,
     isWaitingForNextMatch,
     selectedGameId,
     status,

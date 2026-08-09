@@ -87,6 +87,7 @@ test('guessing-challenge client plugin is registered', () => {
   assert.ok(plugin);
   assert.equal(plugin.metadata.id, 'guessing-challenge');
   assert.equal(plugin.metadata.minPlayers, 2);
+  assert.equal(plugin.metadata.maxPlayers, 4);
   assert.equal(typeof plugin.GameScreen, 'function');
 });
 

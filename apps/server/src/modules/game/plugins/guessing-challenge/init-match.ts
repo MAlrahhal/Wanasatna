@@ -3,8 +3,13 @@ import type { GuessingChallengeMatchState } from '@wanasatna/shared';
 import { GUESSING_CHALLENGE_GAME_ID } from '@wanasatna/shared';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { getGameShellByRoomId } from '../../game.service.js';
+import { getGuessingChallengeRoomMode } from './mode-store.js';
 import { startGuessingChallengePhaseTimerIfNeeded } from './phase-timer.js';
-import { createMatchState } from './state.js';
+import {
+  createMatchState,
+  requiredPlayerCountForMode,
+  resolveGuessingChallengeMode,
+} from './state.js';
 import { getGuessingChallengeState, setGuessingChallengeState } from './store.js';
 
 function resolveMatchPlayers(shell: NonNullable<ReturnType<typeof getGameShellByRoomId>>) {
@@ -38,12 +43,15 @@ export function ensureGuessingChallengeMatchState(
   }
 
   const matchPlayers = resolveMatchPlayers(shell);
+  const roomMode = getGuessingChallengeRoomMode(roomId);
+  const mode = resolveGuessingChallengeMode(content.settings, roomMode);
+  const expected = requiredPlayerCountForMode(mode);
 
-  if (matchPlayers.length !== 2 || !matchPlayers.some((player) => player.isConnected)) {
+  if (matchPlayers.length !== expected || !matchPlayers.some((player) => player.isConnected)) {
     return null;
   }
 
-  const match = createMatchState(roomId, matchPlayers, content.settings);
+  const match = createMatchState(roomId, matchPlayers, content.settings, mode);
   setGuessingChallengeState(roomId, match);
   return match;
 }

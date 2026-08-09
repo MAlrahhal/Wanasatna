@@ -1,10 +1,15 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { GuessingChallengePlayerView } from '@wanasatna/shared';
+import type {
+  GuessingChallengeLookUpdatePayload,
+  GuessingChallengePlayerView,
+} from '@wanasatna/shared';
 import {
   GUESSING_CHALLENGE_CONTINUE_ROUND_RESULTS_EVENT,
   GUESSING_CHALLENGE_END_QUESTION_EVENT,
+  GUESSING_CHALLENGE_LOOK_EVENT,
+  GUESSING_CHALLENGE_LOOK_UPDATE_EVENT,
   GUESSING_CHALLENGE_PHASE_CHANGED_EVENT,
   GUESSING_CHALLENGE_SET_CATEGORY_EVENT,
   GUESSING_CHALLENGE_SUBMIT_FINAL_GUESS_EVENT,
@@ -32,6 +37,41 @@ async function fetchPlayerView(): Promise<{
   }
 
   return { view: response.data.view, errorMessage: null };
+}
+
+function patchLookInView(
+  view: GuessingChallengePlayerView,
+  payload: GuessingChallengeLookUpdatePayload,
+): GuessingChallengePlayerView {
+  const { playerId, yaw, pitch } = payload;
+  let changed = false;
+
+  const teammate =
+    view.teammate?.playerId === playerId
+      ? { ...view.teammate, lookYaw: yaw, lookPitch: pitch }
+      : view.teammate;
+
+  if (teammate !== view.teammate) {
+    changed = true;
+  }
+
+  const opponents = view.opponents.map((opponent) => {
+    if (opponent.playerId !== playerId) {
+      return opponent;
+    }
+    changed = true;
+    return { ...opponent, lookYaw: yaw, lookPitch: pitch };
+  });
+
+  if (!changed) {
+    return view;
+  }
+
+  return {
+    ...view,
+    teammate,
+    opponents,
+  };
 }
 
 export function useGuessingChallengePlayerView(enabled: boolean) {
@@ -90,10 +130,23 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
     const onPhaseChanged = () => {
       void syncView();
     };
+    const onLookUpdate = (payload: GuessingChallengeLookUpdatePayload) => {
+      if (
+        !payload ||
+        typeof payload.playerId !== 'string' ||
+        typeof payload.yaw !== 'number' ||
+        typeof payload.pitch !== 'number'
+      ) {
+        return;
+      }
+      setView((prev) => (prev ? patchLookInView(prev, payload) : prev));
+    };
 
     socket.on(GUESSING_CHALLENGE_PHASE_CHANGED_EVENT, onPhaseChanged);
+    socket.on(GUESSING_CHALLENGE_LOOK_UPDATE_EVENT, onLookUpdate);
     return () => {
       socket.off(GUESSING_CHALLENGE_PHASE_CHANGED_EVENT, onPhaseChanged);
+      socket.off(GUESSING_CHALLENGE_LOOK_UPDATE_EVENT, onLookUpdate);
     };
   }, [enabled, syncView]);
 
@@ -155,6 +208,16 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
     [runAction],
   );
 
+  const emitLook = useCallback(
+    (yaw: number, pitch: number) => {
+      if (!enabled) {
+        return;
+      }
+      getRoomSocket().emit(GUESSING_CHALLENGE_LOOK_EVENT, { yaw, pitch });
+    },
+    [enabled],
+  );
+
   return {
     view,
     errorMessage,
@@ -168,5 +231,6 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
     useRedCard,
     continueFromRoundResults,
     setNextRoundCategory,
+    emitLook,
   };
 }

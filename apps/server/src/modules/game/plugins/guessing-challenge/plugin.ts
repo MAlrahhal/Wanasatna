@@ -8,6 +8,8 @@ import {
   GUESSING_CHALLENGE_CONTINUE_ROUND_RESULTS_EVENT,
   GUESSING_CHALLENGE_END_QUESTION_EVENT,
   GUESSING_CHALLENGE_GAME_ID,
+  GUESSING_CHALLENGE_LOOK_EVENT,
+  GUESSING_CHALLENGE_LOOK_UPDATE_EVENT,
   GUESSING_CHALLENGE_PHASE_CHANGED_EVENT,
   GUESSING_CHALLENGE_SET_CATEGORY_EVENT,
   GUESSING_CHALLENGE_STATE_EVENT,
@@ -18,7 +20,12 @@ import {
   contentValidationToPluginError,
   validateGameStartContent,
 } from '@wanasatna/shared';
-import { createMatchState } from './state.js';
+import { getGuessingChallengeRoomMode } from './mode-store.js';
+import {
+  createMatchState,
+  requiredPlayerCountForMode,
+  resolveGuessingChallengeMode,
+} from './state.js';
 
 const metadata = {
   id: GUESSING_CHALLENGE_GAME_ID,
@@ -31,20 +38,41 @@ export function buildGuessingChallengePluginDefinition(
   content: LoadedGameContent,
 ): GamePluginDefinition {
   const { bundle, settings } = content;
+  const defaultMode = resolveGuessingChallengeMode(settings);
 
   return {
     ...metadata,
     minPlayers: settings.minPlayers,
     maxPlayers: settings.maxPlayers,
-    defaultSettings: settings as GamePluginSettings,
-    settingsSchema: [],
-    validateStart: (_context, _pluginSettings) => {
-      const connectedCount = _context.players.filter((player) => player.isConnected).length;
+    defaultSettings: {
+      ...(settings as GamePluginSettings),
+      mode: defaultMode,
+    },
+    settingsSchema: [
+      {
+        id: 'mode',
+        label: 'وضع اللعب',
+        type: 'select',
+        defaultValue: defaultMode,
+        options: [
+          { value: '1v1', label: 'فردي (1 ضد 1)' },
+          { value: '2v2', label: 'فرق (2 ضد 2)' },
+        ],
+      },
+    ],
+    validateStart: (context, pluginSettings) => {
+      const roomMode = getGuessingChallengeRoomMode(context.roomId);
+      const mode = resolveGuessingChallengeMode(settings, roomMode ?? pluginSettings?.mode);
+      const required = requiredPlayerCountForMode(mode);
+      const connectedCount = context.players.filter((player) => player.isConnected).length;
 
-      if (connectedCount !== 2) {
+      if (connectedCount !== required) {
         return {
           success: false,
-          error: 'تحدي التخمين للعبتين فقط — يلزم لاعبان متصلان.',
+          error:
+            mode === '2v2'
+              ? 'تحدي التخمين ثنائي الفرق يحتاج أربعة لاعبين متصلين.'
+              : 'تحدي التخمين الفردي يحتاج لاعبين متصلين.',
         };
       }
 
@@ -57,8 +85,11 @@ export function buildGuessingChallengePluginDefinition(
 
       return { success: true };
     },
-    createInitialState: (context, _pluginSettings) =>
-      createMatchState(context.roomId, context.players, settings),
+    createInitialState: (context, pluginSettings) => {
+      const roomMode = getGuessingChallengeRoomMode(context.roomId);
+      const mode = resolveGuessingChallengeMode(settings, roomMode ?? pluginSettings?.mode);
+      return createMatchState(context.roomId, context.players, settings, mode);
+    },
     serializeState: (state) => state,
     deserializeState: (payload) => payload as GuessingChallengeMatchState,
     lifecycle: {},
@@ -72,6 +103,8 @@ export function buildGuessingChallengePluginDefinition(
         useRedCard: GUESSING_CHALLENGE_USE_RED_CARD_EVENT,
         continueRoundResults: GUESSING_CHALLENGE_CONTINUE_ROUND_RESULTS_EVENT,
         setCategory: GUESSING_CHALLENGE_SET_CATEGORY_EVENT,
+        look: GUESSING_CHALLENGE_LOOK_EVENT,
+        lookUpdate: GUESSING_CHALLENGE_LOOK_UPDATE_EVENT,
         state: GUESSING_CHALLENGE_STATE_EVENT,
       },
     },

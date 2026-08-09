@@ -1,11 +1,12 @@
 /**
- * Guessing Challenge Socket.IO multiplayer (A + B).
+ * Guessing Challenge Socket.IO multiplayer (1v1 + 2v2).
  * Requires server on localhost:4001 with WANASATNA_TEST_MODE=1.
  *
  * Run: pnpm --filter @wanasatna/server test:guessing-challenge:integration
  */
 import assert from 'node:assert/strict';
 import {
+  GUESSING_CHALLENGE_CONTINUE_ROUND_RESULTS_EVENT,
   GUESSING_CHALLENGE_END_QUESTION_EVENT,
   GUESSING_CHALLENGE_GAME_ID,
   GUESSING_CHALLENGE_SUBMIT_FINAL_GUESS_EVENT,
@@ -40,28 +41,43 @@ async function runTest(name: string, fn: () => Promise<void>): Promise<void> {
 
 type SyncView = {
   gamePhase: string;
+  mode: '1v1' | '2v2';
   isMyTurn: boolean;
   currentTurnPlayerId: string | null;
+  currentTurnTeamId: string | null;
+  selfTeam: string | null;
   self: {
     playerId: string;
     revealedIdentity: { value: string | null } | null;
     yellowCardAvailable: boolean;
     redCardAvailable: boolean;
   };
+  teammate: { playerId: string; name: string } | null;
   opponent: {
     playerId: string;
     visibleIdentity: { value: string | null } | null;
   };
+  opponents: Array<{
+    playerId: string;
+    visibleIdentity: { value: string | null } | null;
+  }>;
   yellowQuestionsRemaining: number | null;
   canEndQuestion: boolean;
   canGuess: boolean;
   canUseYellow: boolean;
   canUseRed: boolean;
+  cardConfirmStatus: {
+    card: string;
+    confirmedCount: number;
+    requiredCount: number;
+    selfConfirmed: boolean;
+  } | null;
   identityChangedNotice: boolean;
   winnerName: string | null;
   winningGuess: string | null;
   revealEntries: Array<{ playerId: string; identity: { value: string | null }; isWinner: boolean }>;
-  roundResults: Array<{ playerId: string; roundPoints: number }>;
+  roundResults: Array<{ playerId: string; roundPoints: number; isWinner: boolean }>;
+  canContinueFromRoundResults: boolean;
 };
 
 async function syncView(client: TestClient): Promise<SyncView> {
@@ -73,11 +89,10 @@ async function syncView(client: TestClient): Promise<SyncView> {
   return syncRes.data.view;
 }
 
-async function startMatch(): Promise<{ a: TestClient; b: TestClient }> {
-  const hostSocket = await connectClient();
-  const a: TestClient = {
-    name: 'محمد',
-    socket: hostSocket,
+function emptyClient(name: string): TestClient {
+  return {
+    name,
+    socket: null as unknown as TestClient['socket'],
     id: '',
     roomId: '',
     roomCode: '',
@@ -88,6 +103,12 @@ async function startMatch(): Promise<{ a: TestClient; b: TestClient }> {
     navigations: [],
     recoveryEvents: [],
   };
+}
+
+async function startMatch1v1(): Promise<{ a: TestClient; b: TestClient }> {
+  const hostSocket = await connectClient();
+  const a = emptyClient('محمد');
+  a.socket = hostSocket;
   trackClientEvents(a);
 
   const createRes = await ack<{
@@ -101,19 +122,9 @@ async function startMatch(): Promise<{ a: TestClient; b: TestClient }> {
   a.reconnectToken = createRes.data.reconnectToken ?? '';
 
   const bSocket = await connectClient();
-  const b: TestClient = {
-    name: 'خالد',
-    socket: bSocket,
-    id: '',
-    roomId: '',
-    roomCode: a.roomCode,
-    reconnectToken: '',
-    shellEvents: [],
-    roster: [],
-    rosterPlayers: [],
-    navigations: [],
-    recoveryEvents: [],
-  };
+  const b = emptyClient('خالد');
+  b.socket = bSocket;
+  b.roomCode = a.roomCode;
   trackClientEvents(b);
 
   const joinRes = await ack<{
@@ -128,7 +139,11 @@ async function startMatch(): Promise<{ a: TestClient; b: TestClient }> {
   const startRes = await ack<{ success: boolean; error?: { message?: string } }>(
     a.socket,
     'game-shell-start-from-lobby',
-    { gameId: GUESSING_CHALLENGE_GAME_ID, categoryId: 'football' },
+    {
+      gameId: GUESSING_CHALLENGE_GAME_ID,
+      categoryId: 'football',
+      guessingChallenge: { mode: '1v1' },
+    },
   );
   assert.equal(startRes.success, true, startRes.error?.message ?? 'start-from-lobby failed');
 
@@ -150,16 +165,85 @@ async function startMatch(): Promise<{ a: TestClient; b: TestClient }> {
   return { a, b };
 }
 
+async function startMatch2v2(): Promise<{
+  a: TestClient;
+  b: TestClient;
+  c: TestClient;
+  d: TestClient;
+}> {
+  const names = ['محمد', 'خالد', 'سارة', 'نورة'] as const;
+  const clients: TestClient[] = [];
+
+  for (let index = 0; index < 4; index += 1) {
+    const client = emptyClient(names[index]!);
+    client.socket = await connectClient();
+    trackClientEvents(client);
+    clients.push(client);
+  }
+
+  const [a, b, c, d] = clients as [TestClient, TestClient, TestClient, TestClient];
+
+  const createRes = await ack<{
+    success: boolean;
+    data: { room: { code: string; id: string }; player: { id: string }; reconnectToken?: string };
+  }>(a.socket, 'create-room', { playerName: a.name });
+  assert.equal(createRes.success, true, 'create-room failed');
+  a.id = createRes.data.player.id;
+  a.roomId = createRes.data.room.id;
+  a.roomCode = createRes.data.room.code;
+  a.reconnectToken = createRes.data.reconnectToken ?? '';
+
+  for (const joiner of [b, c, d]) {
+    joiner.roomCode = a.roomCode;
+    const joinRes = await ack<{
+      success: boolean;
+      data: { player: { id: string }; room: { id: string }; reconnectToken?: string };
+    }>(joiner.socket, 'join-room', { roomCode: a.roomCode, playerName: joiner.name });
+    assert.equal(joinRes.success, true, `join-room failed for ${joiner.name}`);
+    joiner.id = joinRes.data.player.id;
+    joiner.roomId = joinRes.data.room.id;
+    joiner.reconnectToken = joinRes.data.reconnectToken ?? '';
+  }
+
+  const startRes = await ack<{ success: boolean; error?: { message?: string } }>(
+    a.socket,
+    'game-shell-start-from-lobby',
+    {
+      gameId: GUESSING_CHALLENGE_GAME_ID,
+      categoryId: 'football',
+      guessingChallenge: { mode: '2v2' },
+    },
+  );
+  assert.equal(startRes.success, true, startRes.error?.message ?? '2v2 start failed');
+
+  await waitFor(
+    async () =>
+      clients.every((client) => client.shellEvents.some((event) => event.phase === 'PLAYING'))
+        ? true
+        : null,
+    15000,
+    'PLAYING 2v2',
+  );
+
+  await waitFor(async () => {
+    const view = await syncView(a);
+    return view.gamePhase === 'playing' && view.mode === '2v2' ? view : null;
+  }, 10000, '2v2 playing phase');
+
+  return { a, b, c, d };
+}
+
 async function main(): Promise<void> {
   console.log('[guessing-challenge] waiting for test server...');
   await waitForServer();
 
   await runTest('A+B privacy, turns, yellow, red, reconnect, wrong+correct guess', async () => {
-    const { a, b } = await startMatch();
+    const { a, b } = await startMatch1v1();
 
     const viewA = await syncView(a);
     const viewB = await syncView(b);
 
+    assert.equal(viewA.mode, '1v1');
     assert.ok(viewA.opponent.visibleIdentity?.value, 'A should see B identity');
     assert.ok(viewB.opponent.visibleIdentity?.value, 'B should see A identity');
     assert.equal(viewA.self.revealedIdentity, null, 'A own identity hidden');
@@ -191,7 +275,6 @@ async function main(): Promise<void> {
     const afterEnd1 = await syncView(a);
     assert.equal(afterEnd1.currentTurnPlayerId, other.id, 'turn should pass to other');
 
-    // Reconnect A early (1v1 recovery window is short in test mode).
     const oppBeforeReconnect = (await syncView(a)).opponent.visibleIdentity?.value;
     const turnBeforeReconnect = (await syncView(a)).currentTurnPlayerId;
     assert.ok(a.reconnectToken, 'missing reconnect token');
@@ -210,14 +293,12 @@ async function main(): Promise<void> {
     );
     assert.equal(resumeRes.success, true, resumeRes.error?.message ?? 'reconnect failed');
 
-    // 1v1 recovery must fully clear before further plugin actions.
     await waitFor(
       async () => {
         const latestA = a.recoveryEvents.at(-1);
         const latestB = b.recoveryEvents.at(-1);
         if (latestA && latestA.isActive) return null;
         if (latestB && latestB.isActive) return null;
-        // Also probe an action-safe sync.
         const view = await syncView(a);
         return view.gamePhase === 'playing' ? view : null;
       },
@@ -235,29 +316,9 @@ async function main(): Promise<void> {
       'opponent identity preserved',
     );
 
-    // Ensure other has the turn for yellow/red actions.
-    let turnView = await syncView(other);
+    let turnView = await syncView(a);
     if (turnView.currentTurnPlayerId !== other.id) {
-      const pass = await ack<{ success: boolean; error?: { message?: string } }>(
-        starter.id === other.id ? a.socket : starter.socket,
-        GUESSING_CHALLENGE_END_QUESTION_EVENT,
-      );
-      // If starter is A and reconnect replaced socket, use current starter socket.
-      if (!pass.success) {
-        const pass2 = await ack<{ success: boolean; error?: { message?: string } }>(
-          (await syncView(a)).currentTurnPlayerId === a.id ? a.socket : b.socket,
-          GUESSING_CHALLENGE_END_QUESTION_EVENT,
-        );
-        assert.equal(pass2.success, true, pass2.error?.message ?? 'pass turn failed');
-      }
-      turnView = await syncView(other);
-    }
-
-    // Force a known turn owner: if not other, end once from current.
-    turnView = await syncView(a);
-    if (turnView.currentTurnPlayerId !== other.id) {
-      const current =
-        turnView.currentTurnPlayerId === a.id ? a : b;
+      const current = turnView.currentTurnPlayerId === a.id ? a : b;
       const pass = await ack<{ success: boolean; error?: { message?: string } }>(
         current.socket,
         GUESSING_CHALLENGE_END_QUESTION_EVENT,
@@ -295,7 +356,6 @@ async function main(): Promise<void> {
     assert.equal(y3.data.view.currentTurnPlayerId, starter.id);
     assert.equal(y3.data.view.yellowQuestionsRemaining, null);
 
-    // Put turn back to other for red card.
     if ((await syncView(a)).currentTurnPlayerId !== other.id) {
       const pass = await ack<{ success: boolean }>(
         starter.socket,
@@ -323,7 +383,6 @@ async function main(): Promise<void> {
       'victim must not see new own identity',
     );
 
-    // Wrong guess by current turn player.
     let currentId = (await syncView(a)).currentTurnPlayerId;
     let guesser = currentId === a.id ? a : b;
     const wrong = await ack<{
@@ -345,7 +404,6 @@ async function main(): Promise<void> {
       'wrong guess text private',
     );
 
-    // Correct guess: B's secret is visible on A's opponent card (may have changed via red).
     const bSecretNow = (await syncView(a)).opponent.visibleIdentity?.value;
     assert.ok(bSecretNow, 'B secret visible to A');
 
@@ -379,6 +437,215 @@ async function main(): Promise<void> {
 
     a.socket.disconnect();
     b.socket.disconnect();
+  });
+
+  await runTest('2v2 start, privacy, confirm, yellow persists, red shared, reconnect, guess, continue', async () => {
+    const { a, b, c, d } = await startMatch2v2();
+    // Assignment: P0 a blue0, P1 b red0, P2 c blue1, P3 d red1
+    const blueTeam = [a, c];
+    const redTeam = [b, d];
+
+    const views = {
+      a: await syncView(a),
+      b: await syncView(b),
+      c: await syncView(c),
+      d: await syncView(d),
+    };
+
+    assert.equal(views.a.mode, '2v2');
+    assert.equal(views.a.selfTeam, 'blue');
+    assert.equal(views.c.selfTeam, 'blue');
+    assert.equal(views.b.selfTeam, 'red');
+    assert.equal(views.d.selfTeam, 'red');
+    assert.equal(views.a.teammate?.playerId, c.id);
+    assert.equal(views.a.opponents.length, 2);
+
+    const blueSecret = views.b.opponent.visibleIdentity?.value;
+    const redSecret = views.a.opponent.visibleIdentity?.value;
+    assert.ok(blueSecret && redSecret && blueSecret !== redSecret, 'shared team identities differ');
+    assert.equal(views.a.opponent.visibleIdentity?.value, redSecret);
+    assert.equal(views.c.opponent.visibleIdentity?.value, redSecret);
+    assert.equal(views.b.opponent.visibleIdentity?.value, blueSecret);
+    assert.equal(views.d.opponent.visibleIdentity?.value, blueSecret);
+
+    for (const client of [a, c]) {
+      const view = await syncView(client);
+      assert.equal(JSON.stringify(view).includes(blueSecret!), false, `${client.name} own secret leak`);
+    }
+    for (const client of [b, d]) {
+      const view = await syncView(client);
+      assert.equal(JSON.stringify(view).includes(redSecret!), false, `${client.name} own secret leak`);
+    }
+
+    // Blue team starts — confirm yellow with only one teammate (should not activate).
+    assert.equal(views.a.currentTurnTeamId, 'blue');
+    const confirm1 = await ack<{ success: boolean; data: { view: SyncView }; error?: { message?: string } }>(
+      a.socket,
+      GUESSING_CHALLENGE_USE_YELLOW_CARD_EVENT,
+    );
+    assert.equal(confirm1.success, true, confirm1.error?.message ?? 'confirm1 failed');
+    assert.equal(confirm1.data.view.yellowQuestionsRemaining, null, '1/2 must not activate');
+    assert.ok(confirm1.data.view.cardConfirmStatus, 'confirm status visible');
+    assert.equal(confirm1.data.view.cardConfirmStatus?.confirmedCount, 1);
+    assert.equal(confirm1.data.view.cardConfirmStatus?.requiredCount, 2);
+
+    const teammateView = await syncView(c);
+    assert.equal(teammateView.cardConfirmStatus?.selfConfirmed, false);
+    assert.equal(teammateView.self.yellowCardAvailable, true);
+
+    const confirm2 = await ack<{ success: boolean; data: { view: SyncView }; error?: { message?: string } }>(
+      c.socket,
+      GUESSING_CHALLENGE_USE_YELLOW_CARD_EVENT,
+    );
+    assert.equal(confirm2.success, true, confirm2.error?.message ?? 'confirm2 failed');
+    assert.equal(confirm2.data.view.yellowQuestionsRemaining, 3, '2/2 activates yellow');
+    assert.equal(confirm2.data.view.self.yellowCardAvailable, false);
+    assert.equal(confirm2.data.view.cardConfirmStatus, null);
+
+    // Drain yellow sequence then finish round with a correct guess so we can check card persistence.
+    for (let i = 0; i < 3; i += 1) {
+      const actor = (await syncView(a)).isMyTurn ? a : c;
+      const end = await ack<{ success: boolean; error?: { message?: string } }>(
+        actor.socket,
+        GUESSING_CHALLENGE_END_QUESTION_EVENT,
+      );
+      assert.equal(end.success, true, end.error?.message ?? `yellow drain ${i}`);
+    }
+
+    // Red turn: confirm red card with both red teammates (shared identity change).
+    let turnTeam = (await syncView(a)).currentTurnTeamId;
+    if (turnTeam !== 'red') {
+      const actor = (await syncView(a)).isMyTurn ? a : c;
+      await ack(actor.socket, GUESSING_CHALLENGE_END_QUESTION_EVENT);
+      turnTeam = (await syncView(a)).currentTurnTeamId;
+    }
+    assert.equal(turnTeam, 'red');
+
+    const beforeRed = (await syncView(b)).opponent.visibleIdentity?.value;
+    const redConfirm1 = await ack<{ success: boolean; data: { view: SyncView } }>(
+      b.socket,
+      GUESSING_CHALLENGE_USE_RED_CARD_EVENT,
+    );
+    assert.equal(redConfirm1.success, true);
+    assert.equal(redConfirm1.data.view.cardConfirmStatus?.confirmedCount, 1);
+
+    const redConfirm2 = await ack<{ success: boolean; data: { view: SyncView }; error?: { message?: string } }>(
+      d.socket,
+      GUESSING_CHALLENGE_USE_RED_CARD_EVENT,
+    );
+    assert.equal(redConfirm2.success, true, redConfirm2.error?.message ?? 'red confirm2');
+    assert.equal(redConfirm2.data.view.self.redCardAvailable, false);
+    const afterRed = redConfirm2.data.view.opponent.visibleIdentity?.value;
+    assert.ok(afterRed, 'new opposing identity visible');
+    assert.notEqual(afterRed, beforeRed, 'red replaced blue shared identity');
+
+    // Both red players see the same new blue identity; blue players must not see it.
+    const redSees = await syncView(b);
+    const redSees2 = await syncView(d);
+    assert.equal(redSees.opponent.visibleIdentity?.value, afterRed);
+    assert.equal(redSees2.opponent.visibleIdentity?.value, afterRed);
+    assert.equal((await syncView(a)).identityChangedNotice, true);
+    assert.equal((await syncView(c)).identityChangedNotice, true);
+    assert.equal(JSON.stringify(await syncView(a)).includes(afterRed!), false);
+    assert.equal(JSON.stringify(await syncView(c)).includes(afterRed!), false);
+
+    // Reconnect a blue player — state preserved.
+    const turnBefore = (await syncView(a)).currentTurnTeamId;
+    const oppBefore = (await syncView(a)).opponent.visibleIdentity?.value;
+    a.socket.disconnect();
+    a.socket = await connectClient();
+    trackClientEvents(a);
+    const resume = await ack<{ success: boolean; error?: { message?: string } }>(
+      a.socket,
+      RECONNECT_EVENT,
+      {
+        playerId: a.id,
+        roomId: a.roomId,
+        roomCode: a.roomCode,
+        reconnectToken: a.reconnectToken,
+      },
+    );
+    assert.equal(resume.success, true, resume.error?.message ?? '2v2 reconnect');
+
+    await waitFor(
+      async () => {
+        const latest = a.recoveryEvents.at(-1);
+        if (latest?.isActive) return null;
+        const view = await syncView(a);
+        return view.gamePhase === 'playing' ? view : null;
+      },
+      8000,
+      '2v2 recovery cleared',
+    );
+
+    const afterRc = await syncView(a);
+    assert.equal(afterRc.currentTurnTeamId, turnBefore);
+    assert.equal(afterRc.opponent.visibleIdentity?.value, oppBefore);
+    assert.equal(afterRc.self.yellowCardAvailable, false, 'yellow still used after reconnect');
+
+    // Correct guess by red team (guess their own red secret).
+    const redOwnSecret = (await syncView(a)).opponent.visibleIdentity?.value;
+    assert.ok(redOwnSecret);
+
+    if ((await syncView(b)).currentTurnTeamId !== 'red') {
+      const actor = (await syncView(a)).isMyTurn ? a : c;
+      await ack(actor.socket, GUESSING_CHALLENGE_END_QUESTION_EVENT);
+    }
+
+    const guesser = (await syncView(b)).isMyTurn ? b : d;
+    const correct = await ack<{
+      success: boolean;
+      data: { view: SyncView; guessCorrect?: boolean };
+      error?: { message?: string };
+    }>(guesser.socket, GUESSING_CHALLENGE_SUBMIT_FINAL_GUESS_EVENT, { guess: redOwnSecret });
+    assert.equal(correct.success, true, correct.error?.message ?? '2v2 correct guess');
+    assert.equal(correct.data.guessCorrect, true);
+    assert.equal(correct.data.view.gamePhase, 'round-results');
+    assert.equal(correct.data.view.revealEntries.length, 4, 'one reveal entry per player');
+    assert.ok(
+      correct.data.view.roundResults.filter((entry) => entry.isWinner).length === 2,
+      'both red teammates marked winners',
+    );
+    assert.ok(
+      correct.data.view.roundResults.every((entry) =>
+        redTeam.some((p) => p.id === entry.playerId)
+          ? entry.roundPoints === 100
+          : entry.roundPoints === 0,
+      ),
+      'team score mirrored without double-award side effects',
+    );
+
+    // Continue from round results.
+    // In WANASATNA_TEST_MODE totalRounds is forced to 1 → match-completed.
+    // Card persistence across rounds is covered by the unit suite.
+    assert.equal((await syncView(a)).canContinueFromRoundResults, true);
+    const cont = await ack<{ success: boolean; data: { view: SyncView }; error?: { message?: string } }>(
+      a.socket,
+      GUESSING_CHALLENGE_CONTINUE_ROUND_RESULTS_EVENT,
+    );
+    assert.equal(cont.success, true, cont.error?.message ?? 'continue failed');
+    assert.ok(
+      cont.data.view.gamePhase === 'playing' || cont.data.view.gamePhase === 'match-completed',
+      `unexpected phase after continue: ${cont.data.view.gamePhase}`,
+    );
+    if (cont.data.view.gamePhase === 'playing') {
+      assert.equal(cont.data.view.currentRound, 2);
+      assert.equal(cont.data.view.self.yellowCardAvailable, false, 'yellow persists next round');
+      assert.equal((await syncView(b)).self.redCardAvailable, false, 'red persists next round');
+
+      const r2BlueSecret = (await syncView(b)).opponent.visibleIdentity?.value;
+      const r2RedSecret = (await syncView(a)).opponent.visibleIdentity?.value;
+      assert.ok(r2BlueSecret && r2RedSecret);
+      assert.equal(JSON.stringify(await syncView(a)).includes(r2BlueSecret!), false);
+      assert.equal(JSON.stringify(await syncView(c)).includes(r2BlueSecret!), false);
+    } else {
+      assert.equal(cont.data.view.self.yellowCardAvailable, false, 'yellow still used at match end');
+      assert.equal((await syncView(b)).self.redCardAvailable, false, 'red still used at match end');
+    }
+
+    for (const client of [a, b, c, d]) {
+      client.socket.disconnect();
+    }
   });
 
   console.log(`\n${passed} passed, ${failed} failed`);

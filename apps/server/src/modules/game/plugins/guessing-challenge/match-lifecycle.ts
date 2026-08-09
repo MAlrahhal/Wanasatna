@@ -6,6 +6,7 @@ import { getRoomChannel } from '../../../room/room.utils.js';
 import { finishGameShellForRoom } from '../../game.service.js';
 import { cleanupGameShellRuntime } from '../../game.lifecycle.js';
 import { broadcastGameShellState } from '../../game.timer.js';
+import { clearGuessingChallengeRoomMode } from './mode-store.js';
 import {
   startGuessingChallengePhaseTimerIfNeeded,
   stopGuessingChallengePhaseTimer,
@@ -13,6 +14,7 @@ import {
 import { applyRoundScores } from './scoring.js';
 import {
   appendRecentIdentityIds,
+  clearLookThrottleForRoom,
   createRoundState,
   withRound,
 } from './state.js';
@@ -39,6 +41,7 @@ export function startRoundResults(
     ...scoredMatch.round,
     gamePhase: 'round-results',
     phaseRemainingSeconds: 0,
+    cardConfirm: null,
   });
 
   setGuessingChallengeState(roomId, nextMatch);
@@ -52,12 +55,12 @@ function startNextRound(
   roomId: string,
   match: GuessingChallengeMatchState,
 ): GuessingChallengeMatchState {
-  const startingPlayerId =
-    match.playerIds[match.nextStartingPlayerIndex % match.playerIds.length]!;
+  const startingTeamId = match.nextStartingTeamId;
+  // Preserve match-scoped teamCards — do not reset between rounds.
   const round = createRoundState(
     roomId,
-    match.playerIds,
-    startingPlayerId,
+    match.teamByPlayerId,
+    startingTeamId,
     match.recentIdentityIds,
   );
 
@@ -65,7 +68,7 @@ function startNextRound(
     ...match,
     currentRound: match.currentRound + 1,
     matchStatus: 'in-progress',
-    nextStartingPlayerIndex: (match.nextStartingPlayerIndex + 1) % match.playerIds.length,
+    nextStartingTeamId: startingTeamId === 'blue' ? 'red' : 'blue',
     recentIdentityIds: appendRecentIdentityIds(match.recentIdentityIds, round.usedIdentityIds),
     round,
   };
@@ -89,6 +92,7 @@ function startMatchCompletedPhase(
       ...match.round,
       gamePhase: 'match-completed',
       phaseRemainingSeconds: timedPhaseDurations.matchResults(),
+      cardConfirm: null,
     },
   );
 
@@ -124,6 +128,8 @@ export function continueFromRoundResults(
 
 export function completeMatch(io: Server, roomId: string): void {
   stopGuessingChallengePhaseTimer(roomId);
+  clearLookThrottleForRoom(roomId);
+  clearGuessingChallengeRoomMode(roomId);
   deleteGuessingChallengeState(roomId);
 
   const nextShell = finishGameShellForRoom(roomId);

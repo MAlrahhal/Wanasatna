@@ -101,7 +101,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
     iconBg: 'var(--wanas-game-teal-icon-bg)',
     iconText: 'var(--wanas-game-teal-icon-text)',
     shadow: 'shadow-wanas-game-teal/15',
-    playerRange: 'لاعبان',
+    playerRange: '٢ أو ٤ لاعبين',
     featured: true,
   },
   marathon: {
