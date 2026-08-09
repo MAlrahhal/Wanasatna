@@ -13,6 +13,8 @@
     "test:e2e:ui": "pnpm exec playwright test --ui"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.8",
+    "@react-three/fiber": "^9.7.0",
     "@wanasatna/shared": "workspace:*",
     "clsx": "^2.1.1",
     "next": "16.2.10",
@@ -20,7 +22,8 @@
     "react-dom": "19.2.4",
     "shadcn": "^3.0.0",
     "socket.io-client": "^4.8.3",
-    "tailwind-merge": "^3.0.1"
+    "tailwind-merge": "^3.0.1",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
@@ -28,6 +31,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.185.4",
     "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",

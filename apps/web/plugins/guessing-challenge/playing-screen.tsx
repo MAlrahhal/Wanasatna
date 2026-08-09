@@ -9,7 +9,7 @@ import {
   GUESSING_CHALLENGE_GAME_ICON,
   GUESSING_CHALLENGE_GAME_NAME,
 } from '@/lib/game/guessing-challenge-brand';
-import { FirstPersonGameScene } from './first-person-game-scene';
+import { GameplayScene } from './gameplay-scene';
 
 export type GuessingChallengePlayingScreenProps = {
   view: GuessingChallengePlayerView;
@@ -59,7 +59,7 @@ export function GuessingChallengePlayingScreen({
           </p>
         ) : null}
 
-        <FirstPersonGameScene
+        <GameplayScene
           mode="playing"
           opponentName={view.opponent.name}
           selfName={view.self.name}

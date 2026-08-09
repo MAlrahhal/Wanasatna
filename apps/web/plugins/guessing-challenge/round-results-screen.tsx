@@ -11,7 +11,7 @@ import {
   GUESSING_CHALLENGE_GAME_ICON,
   GUESSING_CHALLENGE_GAME_NAME,
 } from '@/lib/game/guessing-challenge-brand';
-import { FirstPersonGameScene } from './first-person-game-scene';
+import { GameplayScene } from './gameplay-scene';
 
 export type GuessingChallengeRoundResultsScreenProps = {
   view: GuessingChallengePlayerView;
@@ -67,7 +67,7 @@ export function GuessingChallengeRoundResultsScreen({
           ) : null}
         </div>
 
-        <FirstPersonGameScene
+        <GameplayScene
           mode="reveal"
           opponentName={opponentReveal?.name ?? view.opponent.name}
           selfName={selfReveal?.name ?? view.self.name}

@@ -1,0 +1,17 @@
+.gc-real3d-canvas-shell {
+  height: min(62vh, 480px);
+  min-height: 240px;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: #070b16;
+  touch-action: none;
+  width: 100%;
+}
+
+@media (max-width: 639px) {
+  .gc-real3d-canvas-shell {
+    height: min(48vh, 360px);
+    min-height: 220px;
+  }
+}

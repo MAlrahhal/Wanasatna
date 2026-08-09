@@ -1,36 +1,13 @@
 'use client';
 
-import type { GuessingChallengeVisibleIdentity } from '@wanasatna/shared';
 import { cn } from '@/lib/utils';
 import { CharacterFigure } from './character-figure';
 import { GuessingChallengeIdentityCard } from './identity-card';
+import type { GuessingChallengeSceneProps } from './scene-props';
 import { SpecialCardButton } from './special-card-button';
 import './first-person-scene.css';
 
-export type FirstPersonGameSceneProps = {
-  mode: 'playing' | 'reveal';
-  opponentName: string;
-  selfName: string;
-  opponentIdentity: GuessingChallengeVisibleIdentity | null;
-  selfIdentity: GuessingChallengeVisibleIdentity | null;
-  selfHidden: boolean;
-  opponentHighlight?: boolean;
-  selfHighlight?: boolean;
-  isMyTurn?: boolean;
-  turnTitle?: string | null;
-  turnInstruction?: string | null;
-  yellowQuestionsRemaining?: number | null;
-  yellowAvailable?: boolean;
-  redAvailable?: boolean;
-  canUseYellow?: boolean;
-  canUseRed?: boolean;
-  yellowDisabled?: boolean;
-  redDisabled?: boolean;
-  onUseYellow?: () => void;
-  onUseRed?: () => void;
-  showSpecialCards?: boolean;
-  className?: string;
-};
+export type FirstPersonGameSceneProps = GuessingChallengeSceneProps;
 
 export function FirstPersonGameScene({
   mode,
