@@ -5,6 +5,7 @@ import {
   FAST_ANSWER_GAME_ID,
   IMPOSTER_DRAW_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
+  WHO_WROTE_IT_GAME_ID,
 } from '@wanasatna/shared';
 import { getGameShellByRoomId, syncGameShell } from '../game.service.js';
 import { logGameShellDiagnostic } from '../game.diagnostics.js';
@@ -13,6 +14,7 @@ import { ensureDrawGuessMatchStateWithTimer } from '../plugins/draw-guess/init-m
 import { ensureFastAnswerMatchStateWithTimer } from '../plugins/fast-answer/init-match.js';
 import { ensureImposterDrawMatchStateWithTimer } from '../plugins/imposter-draw/init-match.js';
 import { ensureTimingChallengeMatchStateWithTimer } from '../plugins/timing-challenge/init-match.js';
+import { ensureWhoWroteItMatchStateWithTimer } from '../plugins/who-wrote-it/init-match.js';
 import { abortActiveMatch } from './abort-active-match.js';
 
 function hasConnectedMatchParticipant(
@@ -59,7 +61,8 @@ export async function initializePluginOnPlaying(io: Server, roomId: string): Pro
       shell.gameId !== DRAW_GUESS_GAME_ID &&
       shell.gameId !== IMPOSTER_DRAW_GAME_ID &&
       shell.gameId !== TIMING_CHALLENGE_GAME_ID &&
-      shell.gameId !== FAST_ANSWER_GAME_ID
+      shell.gameId !== FAST_ANSWER_GAME_ID &&
+      shell.gameId !== WHO_WROTE_IT_GAME_ID
     ) {
       return;
     }
@@ -85,7 +88,9 @@ export async function initializePluginOnPlaying(io: Server, roomId: string): Pro
               ? ensureTimingChallengeMatchStateWithTimer(io, roomId)
               : shell.gameId === FAST_ANSWER_GAME_ID
                 ? ensureFastAnswerMatchStateWithTimer(io, roomId)
-                : null;
+                : shell.gameId === WHO_WROTE_IT_GAME_ID
+                  ? ensureWhoWroteItMatchStateWithTimer(io, roomId)
+                  : null;
 
     if (!match) {
       logGameShellDiagnostic('plugin-init-no-match-state', {

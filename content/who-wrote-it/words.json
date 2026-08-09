@@ -1,0 +1,82 @@
+[
+  {
+    "id": "funny-1",
+    "categoryId": "funny",
+    "text": "وش أغرب عذر ممكن تستخدمه عشان ما تروح الدوام؟"
+  },
+  {
+    "id": "funny-2",
+    "categoryId": "funny",
+    "text": "لو صحيت ولقيت نفسك مشهور، أول شيء بتسويه؟"
+  },
+  {
+    "id": "funny-3",
+    "categoryId": "funny",
+    "text": "وش أسوأ نصيحة ممكن تعطيها لشخص قبل مقابلة عمل؟"
+  },
+  {
+    "id": "funny-4",
+    "categoryId": "funny",
+    "text": "لو صار عندك زر يوقف الزمن دقيقة واحدة، وش بتسوي فيها؟"
+  },
+  {
+    "id": "personal-1",
+    "categoryId": "personal",
+    "text": "وش عادة فيك تتمنى تغيرها؟"
+  },
+  {
+    "id": "personal-2",
+    "categoryId": "personal",
+    "text": "وش أكثر شيء يخليك تعصب بسرعة؟"
+  },
+  {
+    "id": "personal-3",
+    "categoryId": "personal",
+    "text": "وش شيء صغير يسعدك بدون سبب واضح؟"
+  },
+  {
+    "id": "personal-4",
+    "categoryId": "personal",
+    "text": "وش أكثر موقف تتذكره من طفولتك؟"
+  },
+  {
+    "id": "situations-1",
+    "categoryId": "situations",
+    "text": "لو ضعت في مدينة ما تعرفها، وش أول شيء بتسويه؟"
+  },
+  {
+    "id": "situations-2",
+    "categoryId": "situations",
+    "text": "لو انقطع النت عندك لأسبوع، وش بتشغل نفسك فيه؟"
+  },
+  {
+    "id": "situations-3",
+    "categoryId": "situations",
+    "text": "لو اكتشفت إن عندك يوم إجازة مفاجئ بكرة، وش خطتك؟"
+  },
+  {
+    "id": "situations-4",
+    "categoryId": "situations",
+    "text": "لو طفشت وسط تجمع كبير، وش تسوي عادة؟"
+  },
+  {
+    "id": "preferences-1",
+    "categoryId": "preferences",
+    "text": "وش الشيء اللي مستحيل تتنازل عنه في السفر؟"
+  },
+  {
+    "id": "preferences-2",
+    "categoryId": "preferences",
+    "text": "قهوة ولا شاي؟ وليه؟"
+  },
+  {
+    "id": "preferences-3",
+    "categoryId": "preferences",
+    "text": "وش نوع الأكل اللي تطلبه دائماً إذا ما قدرت تقرر؟"
+  },
+  {
+    "id": "preferences-4",
+    "categoryId": "preferences",
+    "text": "تفضّل الصباح الهادئ ولا السهرة الطويلة؟"
+  }
+]

@@ -6,6 +6,7 @@ import {
   FAST_ANSWER_GAME_ID,
   IMPOSTER_DRAW_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
+  WHO_WROTE_IT_GAME_ID,
 } from '@wanasatna/shared';
 import { GameExperienceShell } from '@/components/game-experience/game-experience-shell';
 import { GameExperienceProvider } from '@/contexts/game-experience-context';
@@ -16,6 +17,7 @@ import { DrawGuessCountdownLive } from '@/plugins/draw-guess/draw-guess-countdow
 import { FastAnswerCountdownLive } from '@/plugins/fast-answer/fast-answer-countdown-live';
 import { ImposterDrawCountdownLive } from '@/plugins/imposter-draw/imposter-draw-countdown-live';
 import { TimingChallengeCountdownLive } from '@/plugins/timing-challenge/timing-challenge-countdown-live';
+import { WhoWroteItCountdownLive } from '@/plugins/who-wrote-it/who-wrote-it-countdown-live';
 import { GamePluginRenderer } from './game-plugin-renderer';
 
 function usesPluginExperienceShell(gameId: string): boolean {
@@ -24,7 +26,8 @@ function usesPluginExperienceShell(gameId: string): boolean {
     gameId === DRAW_GUESS_GAME_ID ||
     gameId === IMPOSTER_DRAW_GAME_ID ||
     gameId === TIMING_CHALLENGE_GAME_ID ||
-    gameId === FAST_ANSWER_GAME_ID
+    gameId === FAST_ANSWER_GAME_ID ||
+    gameId === WHO_WROTE_IT_GAME_ID
   );
 }
 
@@ -43,6 +46,10 @@ function CountdownForGame({ gameId }: { gameId: string }) {
 
   if (gameId === FAST_ANSWER_GAME_ID) {
     return <FastAnswerCountdownLive />;
+  }
+
+  if (gameId === WHO_WROTE_IT_GAME_ID) {
+    return <WhoWroteItCountdownLive />;
   }
 
   return <BaraAlSalafaCountdownLive />;

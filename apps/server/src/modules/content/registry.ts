@@ -47,6 +47,7 @@ export function registerAllGameContent(): void {
   registerGameContent('draw-guess');
   registerGameContent('imposter-draw');
   registerGameContent('fast-answer');
+  registerGameContent('who-wrote-it');
 }
 
 export function listRegisteredContentGameIds(): string[] {

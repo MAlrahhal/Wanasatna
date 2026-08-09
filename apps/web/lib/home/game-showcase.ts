@@ -39,10 +39,10 @@ export const homeGameShowcaseById: Record<string, HomeGameShowcase> = {
     hoverBorderClassName: 'hover:border-[#C4B5FD]',
   },
   'who-wrote-it': {
-    availability: 'coming-soon',
-    accentClassName: 'bg-[#F8FAFC] text-[#94A3B8]',
-    iconClassName: 'bg-[#F1F5F9] text-[#94A3B8]',
-    hoverBorderClassName: '',
+    availability: 'available',
+    accentClassName: 'bg-[#F5F3FF] text-[#7C3AED]',
+    iconClassName: 'bg-[#EDE9FE] text-[#7C3AED]',
+    hoverBorderClassName: 'hover:border-[#C4B5FD]',
   },
   judge: {
     availability: 'coming-soon',

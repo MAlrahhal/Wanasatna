@@ -48,6 +48,7 @@ test('all known plugin ids are registered exactly once', () => {
       'imposter-draw',
       'judge',
       'timing-challenge',
+      'who-wrote-it',
     ],
   );
 });
@@ -58,6 +59,15 @@ test('fast-answer client plugin is registered', () => {
   assert.ok(plugin);
   assert.equal(plugin.metadata.id, 'fast-answer');
   assert.equal(plugin.metadata.minPlayers, 2);
+  assert.equal(typeof plugin.GameScreen, 'function');
+});
+
+test('who-wrote-it client plugin is registered', () => {
+  assert.equal(hasClientGamePlugin('who-wrote-it'), true);
+  const plugin = getClientGamePlugin('who-wrote-it');
+  assert.ok(plugin);
+  assert.equal(plugin.metadata.id, 'who-wrote-it');
+  assert.equal(plugin.metadata.minPlayers, 3);
   assert.equal(typeof plugin.GameScreen, 'function');
 });
 
@@ -78,7 +88,7 @@ test('timing-challenge lobby catalog ID matches plugin ID', () => {
 test('re-running registration is idempotent (Strict Mode / Fast Refresh safe)', () => {
   registerAllClientGamePlugins();
   registerAllClientGamePlugins();
-  assert.equal(listClientGamePlugins().length, 6, 'no duplicate registrations');
+  assert.equal(listClientGamePlugins().length, 7, 'no duplicate registrations');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

@@ -1,0 +1,6 @@
+[
+  { "id": "funny", "name": "أسئلة مضحكة", "enabled": true },
+  { "id": "personal", "name": "أسئلة شخصية", "enabled": true },
+  { "id": "situations", "name": "مواقف", "enabled": true },
+  { "id": "preferences", "name": "تفضيلات", "enabled": true }
+]

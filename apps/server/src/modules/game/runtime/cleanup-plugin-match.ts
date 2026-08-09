@@ -4,6 +4,7 @@ import {
   FAST_ANSWER_GAME_ID,
   IMPOSTER_DRAW_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
+  WHO_WROTE_IT_GAME_ID,
 } from '@wanasatna/shared';
 import { stopPhaseTimer } from '../plugins/bara-al-salafa/phase-timer.js';
 import { deleteBaraAlSalafaState } from '../plugins/bara-al-salafa/store.js';
@@ -19,6 +20,8 @@ import {
   clearTimingChallengeSettings,
   deleteTimingChallengeState,
 } from '../plugins/timing-challenge/store.js';
+import { clearWhoWroteItPhaseTimerRuntime } from '../plugins/who-wrote-it/phase-timer.js';
+import { deleteWhoWroteItState } from '../plugins/who-wrote-it/store.js';
 
 export function cleanupPluginMatchState(roomId: string, gameId: string | null): void {
   clearRoomRoundCategory(roomId);
@@ -47,5 +50,10 @@ export function cleanupPluginMatchState(roomId: string, gameId: string | null): 
   if (gameId === FAST_ANSWER_GAME_ID) {
     clearFastAnswerPhaseTimerRuntime(roomId);
     deleteFastAnswerState(roomId);
+  }
+
+  if (gameId === WHO_WROTE_IT_GAME_ID) {
+    clearWhoWroteItPhaseTimerRuntime(roomId);
+    deleteWhoWroteItState(roomId);
   }
 }

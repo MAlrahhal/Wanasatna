@@ -72,7 +72,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
     featured: true,
   },
   'who-wrote-it': {
-    availability: 'coming-soon',
+    availability: 'available',
     accent: 'var(--wanas-game-purple)',
     accentLight: 'var(--wanas-game-purple-surface)',
     accentBorder: 'var(--wanas-game-purple-border-strong)',

@@ -4,6 +4,7 @@ import {
   FAST_ANSWER_GAME_ID,
   IMPOSTER_DRAW_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
+  WHO_WROTE_IT_GAME_ID,
 } from '@wanasatna/shared';
 import type { GameShellRecord } from '../game.service.js';
 import { getConnectedParticipantIds as getBaraConnectedParticipantIds } from '../plugins/bara-al-salafa/free-questions.js';
@@ -16,6 +17,8 @@ import { getConnectedParticipantIds as getImposterDrawConnectedParticipantIds } 
 import { getImposterDrawState } from '../plugins/imposter-draw/store.js';
 import { getConnectedParticipantIds as getTimingChallengeConnectedParticipantIds } from '../plugins/timing-challenge/state.js';
 import { getTimingChallengeState } from '../plugins/timing-challenge/store.js';
+import { getConnectedParticipantIds as getWhoWroteItConnectedParticipantIds } from '../plugins/who-wrote-it/state.js';
+import { getWhoWroteItState } from '../plugins/who-wrote-it/store.js';
 import { getGamePluginDefinition } from './plugin-registry.js';
 
 function countLockedShellParticipants(shell: GameShellRecord): number {
@@ -85,6 +88,16 @@ export function countConnectedEligibleParticipants(shell: GameShellRecord): numb
     }
 
     return getFastAnswerConnectedParticipantIds(match, shell).length;
+  }
+
+  if (shell.gameId === WHO_WROTE_IT_GAME_ID) {
+    const match = getWhoWroteItState(shell.roomId);
+
+    if (!match) {
+      return countLockedShellParticipants(shell);
+    }
+
+    return getWhoWroteItConnectedParticipantIds(match, shell).length;
   }
 
   return shell.players.filter((player) => player.isConnected).length;

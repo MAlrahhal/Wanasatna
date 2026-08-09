@@ -5,6 +5,7 @@ import { fastAnswerClientPlugin } from '@/plugins/fast-answer';
 import { imposterDrawClientPlugin } from '@/plugins/imposter-draw';
 import { judgeClientPlugin } from '@/plugins/judge';
 import { timingChallengeClientPlugin } from '@/plugins/timing-challenge';
+import { whoWroteItClientPlugin } from '@/plugins/who-wrote-it';
 
 const allClientGamePlugins = [
   baraAlSalafaClientPlugin,
@@ -13,6 +14,7 @@ const allClientGamePlugins = [
   imposterDrawClientPlugin,
   judgeClientPlugin,
   timingChallengeClientPlugin,
+  whoWroteItClientPlugin,
 ];
 
 export function registerAllClientGamePlugins(): void {
@@ -35,4 +37,5 @@ export {
   imposterDrawClientPlugin,
   judgeClientPlugin,
   timingChallengeClientPlugin,
+  whoWroteItClientPlugin,
 };

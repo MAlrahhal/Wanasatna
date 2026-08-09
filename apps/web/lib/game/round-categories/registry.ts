@@ -3,8 +3,10 @@ import {
   DRAW_GUESS_GAME_ID,
   FAST_ANSWER_GAME_ID,
   IMPOSTER_DRAW_GAME_ID,
+  WHO_WROTE_IT_GAME_ID,
 } from '@wanasatna/shared';
 import { baraAlSalafaRoundCategories } from './bara-al-salafa';
+import { whoWroteItRoundCategories } from './who-wrote-it';
 import type { GameRoundCategoriesConfig, RoundCategory } from './types';
 
 const gameRoundCategoriesById: Record<string, GameRoundCategoriesConfig> = {
@@ -12,6 +14,7 @@ const gameRoundCategoriesById: Record<string, GameRoundCategoriesConfig> = {
   [DRAW_GUESS_GAME_ID]: baraAlSalafaRoundCategories,
   [IMPOSTER_DRAW_GAME_ID]: baraAlSalafaRoundCategories,
   [FAST_ANSWER_GAME_ID]: baraAlSalafaRoundCategories,
+  [WHO_WROTE_IT_GAME_ID]: whoWroteItRoundCategories,
 };
 
 /** Returns category config for a game, or null when categories are unsupported. */
