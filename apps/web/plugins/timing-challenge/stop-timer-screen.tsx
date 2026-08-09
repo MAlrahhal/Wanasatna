@@ -2,9 +2,10 @@
 
 import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { ElectronicPanel, DigitalReadout } from './electronic-panel';
+import { unlockGameAudio } from '@/lib/game/sounds';
+import { DigitalTimerDisplay, ElectronicPanel } from './electronic-panel';
 import { PeerStatusList } from './peer-status-list';
-import { formatSecondsFromMs, formatSignedDeltaMs, timingFeedbackLabel } from './format';
+import { formatDigitalTimer, formatSignedDeltaMs, timingFeedbackLabel } from './format';
 import type { TimingChallengePeerStatus } from '@wanasatna/shared';
 import { cn } from '@/lib/utils';
 
@@ -80,21 +81,22 @@ export function StopTimerScreen({
   return (
     <div className="space-y-4">
       <ElectronicPanel ariaLabel="أوقف الوقت" className="min-h-[280px]">
-        <p className="text-center text-sm font-semibold text-wanas-text-muted">الوقت المطلوب</p>
-        <DigitalReadout value={formatSecondsFromMs(targetMs)} className="mt-2" />
+        <DigitalTimerDisplay
+          value={formatDigitalTimer(targetMs)}
+          label="الوقت المطلوب"
+          className="mt-1"
+        />
 
         {selfSubmitted && selfElapsedMs !== null ? (
-          <div className="mt-6 space-y-2 text-center">
-            <DigitalReadout value={formatSecondsFromMs(selfElapsedMs)} unit="" />
+          <div className="mt-6 space-y-3 text-center">
+            <DigitalTimerDisplay value={formatDigitalTimer(selfElapsedMs)} label="توقيتك" />
             {selfSignedDeltaMs !== null ? (
               <p
                 className={cn(
                   'font-mono text-lg font-bold',
                   selfSignedDeltaMs === 0
                     ? 'text-wanas-accent'
-                    : selfSignedDeltaMs > 0
-                      ? 'text-wanas-text-secondary'
-                      : 'text-wanas-text-secondary',
+                    : 'text-wanas-text-secondary',
                 )}
                 dir="ltr"
               >
@@ -110,14 +112,7 @@ export function StopTimerScreen({
         ) : (
           <div className="mt-6 space-y-3 text-center">
             {selfTimerRunning ? (
-              <>
-                <p className="text-base font-bold text-wanas-accent">المؤقت يعمل...</p>
-                <div className="flex justify-center gap-1.5" aria-hidden>
-                  <span className="size-2 animate-pulse rounded-full bg-wanas-accent" />
-                  <span className="size-2 animate-pulse rounded-full bg-wanas-accent [animation-delay:150ms]" />
-                  <span className="size-2 animate-pulse rounded-full bg-wanas-accent [animation-delay:300ms]" />
-                </div>
-              </>
+              <DigitalTimerDisplay value="--:--.--" running label="المؤقت يعمل..." />
             ) : (
               <p className="text-sm text-wanas-text-muted">اضغط لبدء المؤقت — لن ترى الوقت الجاري</p>
             )}
@@ -126,6 +121,7 @@ export function StopTimerScreen({
               type="button"
               disabled={(!canStartTimer && !canStopTimer) || isSubmitting}
               onClick={() => {
+                unlockGameAudio();
                 if (canStartTimer) {
                   onStart();
                   return;

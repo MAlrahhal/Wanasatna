@@ -1,10 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { ElectronicPanel, DigitalReadout } from './electronic-panel';
+import { unlockGameAudio } from '@/lib/game/sounds';
+import { DigitalTimerDisplay, ElectronicPanel } from './electronic-panel';
 import { PeerStatusList } from './peer-status-list';
 import type { TimingChallengePeerStatus } from '@wanasatna/shared';
-import { formatSecondsFromMs } from './format';
+import { formatDigitalTimer } from './format';
 
 type ReadyScreenProps = {
   mode: 'guess-time' | 'stop-timer';
@@ -32,11 +33,11 @@ export function ReadyScreen({
       <ElectronicPanel ariaLabel="استعد للجولة">
         <p className="text-center text-sm font-semibold text-wanas-text-muted">استعد</p>
         {mode === 'stop-timer' && targetMs !== null ? (
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 space-y-3">
             <p className="text-center text-sm font-bold text-wanas-text-primary">
               حاول توقف المؤقت عند
             </p>
-            <DigitalReadout value={formatSecondsFromMs(targetMs)} />
+            <DigitalTimerDisplay value={formatDigitalTimer(targetMs)} />
           </div>
         ) : (
           <p className="mt-4 text-center text-base font-bold text-wanas-text-primary">
@@ -48,7 +49,10 @@ export function ReadyScreen({
           <Button
             type="button"
             disabled={!canReady || isSubmitting}
-            onClick={onReady}
+            onClick={() => {
+              unlockGameAudio();
+              onReady();
+            }}
             className="h-12 min-h-[44px] min-w-[180px] rounded-xl bg-wanas-accent px-8 text-base font-bold text-[color:var(--wanas-background)] hover:bg-wanas-accent-hover disabled:opacity-60"
           >
             {selfReady ? 'بانتظار الباقي...' : 'ابدأ'}

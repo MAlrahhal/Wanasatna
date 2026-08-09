@@ -1,3 +1,14 @@
+/** Format milliseconds as digital stopwatch `MM:SS.cc`. */
+export function formatDigitalTimer(ms: number): string {
+  const totalMs = Math.max(0, Math.round(ms));
+  const minutes = Math.floor(totalMs / 60_000);
+  const seconds = Math.floor((totalMs % 60_000) / 1000);
+  const centiseconds = Math.floor((totalMs % 1000) / 10);
+
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
+}
+
+/** Compact seconds readout still used for deltas / peer lists. */
 export function formatSecondsFromMs(ms: number): string {
   return (ms / 1000).toFixed(2);
 }

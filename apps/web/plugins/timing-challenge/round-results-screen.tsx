@@ -6,8 +6,8 @@ import { GameHeader } from '@/components/game/game-header';
 import { Button } from '@/components/ui/button';
 import { TIMING_CHALLENGE_GAME_ICON, TIMING_CHALLENGE_GAME_NAME } from '@/lib/game/timing-challenge-brand';
 import { cn } from '@/lib/utils';
-import { DigitalReadout, ElectronicPanel } from './electronic-panel';
-import { formatSecondsFromMs } from './format';
+import { DigitalTimerDisplay, ElectronicPanel } from './electronic-panel';
+import { formatDigitalTimer, formatSecondsFromMs } from './format';
 
 type RoundResultsScreenProps = {
   mode: 'guess-time' | 'stop-timer';
@@ -51,10 +51,10 @@ export function TimingChallengeRoundResultsScreen({
 
       <div className="flex flex-col gap-4">
         <ElectronicPanel>
-          <p className="text-center text-sm font-semibold text-wanas-text-muted">
-            {mode === 'guess-time' ? 'الوقت الحقيقي' : 'الهدف'}
-          </p>
-          <DigitalReadout value={formatSecondsFromMs(targetMs)} className="mt-2" />
+          <DigitalTimerDisplay
+            value={formatDigitalTimer(targetMs)}
+            label={mode === 'guess-time' ? 'الوقت الحقيقي' : 'الهدف'}
+          />
           {winner ? (
             <p className="mt-4 text-center text-sm font-bold text-wanas-accent">
               الأقرب: {winner.name}
@@ -84,8 +84,8 @@ export function TimingChallengeRoundResultsScreen({
                       {entry.isTied ? ' · تعادل' : ''}
                     </p>
                     <p className="mt-0.5 font-mono text-xs text-wanas-text-muted" dir="ltr">
-                      {valueMs !== null ? formatSecondsFromMs(valueMs) : '—'} — الفرق{' '}
-                      {entry.errorMs !== null ? formatSecondsFromMs(entry.errorMs) : '—'}
+                      {valueMs !== null ? formatDigitalTimer(valueMs) : '--:--.--'} — الفرق{' '}
+                      {entry.errorMs !== null ? `${formatSecondsFromMs(entry.errorMs)}s` : '—'}
                     </p>
                   </div>
                   <div className="text-left text-xs font-bold text-wanas-text-secondary" dir="ltr">

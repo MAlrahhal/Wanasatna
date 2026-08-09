@@ -18,6 +18,7 @@ import { ReadyScreen } from './ready-screen';
 import { TimingChallengeRoundResultsScreen } from './round-results-screen';
 import { StopTimerScreen } from './stop-timer-screen';
 import { useTimingChallengePlayerView } from './use-player-view';
+import { useTimingStartSound } from './use-timing-start-sound';
 
 export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
   const { state: shellState, returnToLobby } = useGameShell();
@@ -41,6 +42,8 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
     stopTimer,
     continueFromRoundResults,
   } = useTimingChallengePlayerView(pluginEnabled);
+
+  useTimingStartSound(view);
 
   const activeFinalResultsView =
     finalResultsView ?? (view?.gamePhase === 'match-completed' ? view : null);

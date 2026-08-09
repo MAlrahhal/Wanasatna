@@ -31,7 +31,8 @@
   --wanas-game-radius: 1rem;
   --wanas-game-transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
   --wanas-game-shell-max: 96rem;
-  --wanas-game-doodle-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cg fill='none' stroke='%23F5F7FF' stroke-width='1.2' opacity='0.018'%3E%3Crect x='20' y='24' width='28' height='20' rx='3'/%3E%3Ccircle cx='130' cy='36' r='10'/%3E%3Cpath d='M48 120h24M60 108v24'/%3E%3Cpath d='M128 118l14 14M142 118l-14 14'/%3E%3Cpath d='M24 148h40M44 128v40'/%3E%3Ccircle cx='100' cy='150' r='8'/%3E%3Cpath d='M150 70l8 8-8 8-8-8z'/%3E%3C/g%3E%3C/svg%3E");
+  /* Restored visibility: ~5.5% stroke opacity (was ~1.8% and effectively invisible). */
+  --wanas-game-doodle-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cg fill='none' stroke='%23F5F7FF' stroke-width='1.2' opacity='0.055'%3E%3Crect x='20' y='24' width='28' height='20' rx='3'/%3E%3Ccircle cx='130' cy='36' r='10'/%3E%3Cpath d='M48 120h24M60 108v24'/%3E%3Cpath d='M128 118l14 14M142 118l-14 14'/%3E%3Cpath d='M24 148h40M44 128v40'/%3E%3Ccircle cx='100' cy='150' r='8'/%3E%3Cpath d='M150 70l8 8-8 8-8-8z'/%3E%3C/g%3E%3C/svg%3E");
 
   /* Legacy aliases used by in-phase components */
   --wanas-game-bg-from: var(--wanas-game-page-bg);
@@ -40,11 +41,25 @@
   --wanas-game-header-shadow: var(--wanas-game-shadow);
 }
 
+/**
+ * Fixed, non-interactive site-wide gaming motif layer.
+ * Applied once from the root layout so every page inherits it.
+ */
+.wanas-site-bg-pattern {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background-image: var(--wanas-game-doodle-pattern);
+  background-repeat: repeat;
+  background-size: 180px 180px;
+}
+
 .wanas-game-play-bg {
   min-height: 100dvh;
   background-color: var(--wanas-game-page-bg);
-  background-image: var(--wanas-game-doodle-pattern);
-  background-size: 180px 180px;
+  /* Pattern comes from the global fixed layer — avoid double stacking. */
   color: var(--wanas-game-text-on-structural);
 }
 
