@@ -1,0 +1,6 @@
+[
+  { "id": "funny", "name": "مواقف مضحكة", "enabled": true },
+  { "id": "hypothetical", "name": "مواقف افتراضية", "enabled": true },
+  { "id": "daily", "name": "الحياة اليومية", "enabled": true },
+  { "id": "weird", "name": "مواقف غريبة", "enabled": true }
+]

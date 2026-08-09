@@ -71,6 +71,15 @@ test('who-wrote-it client plugin is registered', () => {
   assert.equal(typeof plugin.GameScreen, 'function');
 });
 
+test('judge client plugin is registered', () => {
+  assert.equal(hasClientGamePlugin('judge'), true);
+  const plugin = getClientGamePlugin('judge');
+  assert.ok(plugin);
+  assert.equal(plugin.metadata.id, 'judge');
+  assert.equal(plugin.metadata.minPlayers, 3);
+  assert.equal(typeof plugin.GameScreen, 'function');
+});
+
 test('timing-challenge client plugin is registered', () => {
   assert.equal(hasClientGamePlugin('timing-challenge'), true);
   const plugin = getClientGamePlugin('timing-challenge');

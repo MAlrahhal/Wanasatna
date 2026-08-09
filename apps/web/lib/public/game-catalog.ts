@@ -83,8 +83,8 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
     featured: false,
   },
   judge: {
-    availability: 'coming-soon',
-    accent: 'var(--wanas-text-muted)',
+    availability: 'available',
+    accent: 'var(--wanas-game-slate)',
     accentLight: 'var(--wanas-game-slate-surface)',
     accentBorder: 'var(--wanas-game-slate-border)',
     iconBg: 'var(--wanas-game-slate-icon-bg)',

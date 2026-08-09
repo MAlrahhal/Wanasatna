@@ -28,6 +28,10 @@ import {
   resumeTimingChallengePhaseTimer,
 } from '../plugins/timing-challenge/phase-timer.js';
 import {
+  pauseJudgePhaseTimer,
+  resumeJudgePhaseTimer,
+} from '../plugins/judge/phase-timer.js';
+import {
   pauseWhoWroteItPhaseTimer,
   resumeWhoWroteItPhaseTimer,
 } from '../plugins/who-wrote-it/phase-timer.js';
@@ -126,6 +130,7 @@ export function cancelPlayerRecovery(io: Server, roomId: string): void {
   resumeTimingChallengePhaseTimer(io, roomId);
   resumeFastAnswerPhaseTimer(io, roomId);
   resumeWhoWroteItPhaseTimer(io, roomId);
+  resumeJudgePhaseTimer(io, roomId);
 
   const shell = getGameShellByRoomId(roomId);
   const minimumCount = shell ? (getGameMinPlayers(shell.gameId) ?? 0) : 0;
@@ -150,6 +155,7 @@ function startRecovery(io: Server, roomId: string, connectedCount: number, minim
   pauseTimingChallengePhaseTimer(roomId);
   pauseFastAnswerPhaseTimer(roomId);
   pauseWhoWroteItPhaseTimer(roomId);
+  pauseJudgePhaseTimer(roomId);
   stopGameShellTimer(roomId);
 
   const deadlineAt = Date.now() + resolvePlayerRecoverySeconds() * 1000;

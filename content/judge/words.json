@@ -1,0 +1,82 @@
+[
+  {
+    "id": "funny-1",
+    "categoryId": "funny",
+    "text": "وش أسوأ عذر ممكن تقوله إذا تأخرت ساعتين؟"
+  },
+  {
+    "id": "funny-2",
+    "categoryId": "funny",
+    "text": "لو انمسكت تكلم نفسك، وش بتقول عشان تبرر؟"
+  },
+  {
+    "id": "funny-3",
+    "categoryId": "funny",
+    "text": "وش أكثر موقف محرج ممكن يصير لك في مطعم؟"
+  },
+  {
+    "id": "funny-4",
+    "categoryId": "funny",
+    "text": "لو نمت في الشغل، وش أول شيء بتسويه لما تصحى؟"
+  },
+  {
+    "id": "hypothetical-1",
+    "categoryId": "hypothetical",
+    "text": "لو صحيت ولقيت عندك مليون ريال ليوم واحد فقط، وش بتسوي؟"
+  },
+  {
+    "id": "hypothetical-2",
+    "categoryId": "hypothetical",
+    "text": "لو قدرت تبدّل حياتك مع أي شخص ليوم واحد، مين تختار؟"
+  },
+  {
+    "id": "hypothetical-3",
+    "categoryId": "hypothetical",
+    "text": "لو اختفى النت من العالم لأسبوع، وش بتشغل نفسك فيه؟"
+  },
+  {
+    "id": "hypothetical-4",
+    "categoryId": "hypothetical",
+    "text": "لو صار عندك قدرة تقرأ الأفكار دقيقة واحدة، وش أول شيء بتسويه؟"
+  },
+  {
+    "id": "daily-1",
+    "categoryId": "daily",
+    "text": "وش أفضل حجة عشان تطلع من اجتماع ممل؟"
+  },
+  {
+    "id": "daily-2",
+    "categoryId": "daily",
+    "text": "وش أكثر شيء يضايقك في الانتظار بالطابور؟"
+  },
+  {
+    "id": "daily-3",
+    "categoryId": "daily",
+    "text": "لو جاك ضيف فجأة والبيت مو مرتب، وش خطتك؟"
+  },
+  {
+    "id": "daily-4",
+    "categoryId": "daily",
+    "text": "وش أسهل طريقة تقنع فيها نفسك تقوم بدري؟"
+  },
+  {
+    "id": "weird-1",
+    "categoryId": "weird",
+    "text": "لو حيوانك الأليف قدر يتكلم خمس دقائق، وش أول شيء تتوقع يقوله؟"
+  },
+  {
+    "id": "weird-2",
+    "categoryId": "weird",
+    "text": "لو لقيت باب سري في بيتك، وش أول شيء تسويه؟"
+  },
+  {
+    "id": "weird-3",
+    "categoryId": "weird",
+    "text": "لو كل الأشياء حوّلك صارت ملونة بلون واحد، أي لون تختار؟"
+  },
+  {
+    "id": "weird-4",
+    "categoryId": "weird",
+    "text": "لو اكتشفت إن ظلّك له رأي مختلف عنك، وش بيقول؟"
+  }
+]

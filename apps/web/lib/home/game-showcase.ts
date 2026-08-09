@@ -45,10 +45,10 @@ export const homeGameShowcaseById: Record<string, HomeGameShowcase> = {
     hoverBorderClassName: 'hover:border-[#C4B5FD]',
   },
   judge: {
-    availability: 'coming-soon',
-    accentClassName: 'bg-[#F8FAFC] text-[#94A3B8]',
-    iconClassName: 'bg-[#F1F5F9] text-[#94A3B8]',
-    hoverBorderClassName: '',
+    availability: 'available',
+    accentClassName: 'bg-[#F1F5F9] text-[#334155]',
+    iconClassName: 'bg-[#E2E8F0] text-[#334155]',
+    hoverBorderClassName: 'hover:border-[#94A3B8]',
   },
   marathon: {
     availability: 'coming-soon',

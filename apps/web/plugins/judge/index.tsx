@@ -1,12 +1,7 @@
 'use client';
 
-import type { GamePluginScreenProps } from '@wanasatna/shared';
-import { GamePluginPlaceholder } from '@/components/game-plugins/game-plugin-placeholder';
 import type { WebClientGamePlugin } from '@/lib/game-plugins/types';
-
-function JudgeGameScreen(_props: GamePluginScreenProps) {
-  return <GamePluginPlaceholder title="القاضي" />;
-}
+import { JudgeGameScreen } from './game-screen';
 
 export const judgeClientPlugin: WebClientGamePlugin = {
   metadata: {
@@ -14,6 +9,7 @@ export const judgeClientPlugin: WebClientGamePlugin = {
     title: 'القاضي',
     description: 'القاضي يحكم… والباقي يحاولون يقنعونه.',
     iconLabel: 'ق',
+    minPlayers: 3,
   },
   GameScreen: JudgeGameScreen,
 };

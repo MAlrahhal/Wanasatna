@@ -3,6 +3,7 @@ import {
   DRAW_GUESS_GAME_ID,
   FAST_ANSWER_GAME_ID,
   IMPOSTER_DRAW_GAME_ID,
+  JUDGE_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
   WHO_WROTE_IT_GAME_ID,
 } from '@wanasatna/shared';
@@ -15,6 +16,8 @@ import { clearFastAnswerPhaseTimerRuntime } from '../plugins/fast-answer/phase-t
 import { deleteFastAnswerState } from '../plugins/fast-answer/store.js';
 import { stopImposterDrawPhaseTimer } from '../plugins/imposter-draw/phase-timer.js';
 import { deleteImposterDrawState } from '../plugins/imposter-draw/store.js';
+import { clearJudgePhaseTimerRuntime } from '../plugins/judge/phase-timer.js';
+import { deleteJudgeState } from '../plugins/judge/store.js';
 import { clearTimingChallengePhaseTimerRuntime } from '../plugins/timing-challenge/phase-timer.js';
 import {
   clearTimingChallengeSettings,
@@ -55,5 +58,10 @@ export function cleanupPluginMatchState(roomId: string, gameId: string | null): 
   if (gameId === WHO_WROTE_IT_GAME_ID) {
     clearWhoWroteItPhaseTimerRuntime(roomId);
     deleteWhoWroteItState(roomId);
+  }
+
+  if (gameId === JUDGE_GAME_ID) {
+    clearJudgePhaseTimerRuntime(roomId);
+    deleteJudgeState(roomId);
   }
 }
