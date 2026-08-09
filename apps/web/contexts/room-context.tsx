@@ -756,7 +756,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   }, [isHost, router, selectedGameId, selectedRoundCategoryId, timingChallengeSettings]);
 
   const leaveRoom = useCallback(async (redirectTo = '/') => {
-    const leavingRoomCode = room?.code;
+    const leavingRoomCode = room?.code ?? readRoomSession()?.roomCode ?? undefined;
 
     const response = await emitWithAck<{ roomDeleted: boolean; hostChanged: HostChangedPayload | null }>(
       LEAVE_ROOM_EVENT,
@@ -767,12 +767,17 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    // Detach listeners before tearing down the socket so a manager reconnect
+    // cannot race and re-apply a just-invalidated identity.
+    removeSocketListenersRef.current?.();
     beginNewRoomIdentity(leavingRoomCode);
     setRoom(null);
     setPlayer(null);
     setPlayers([]);
     setSelectedGameId(null);
     setSelectedRoundCategoryId(null);
+    setActiveGameShell(null);
+    activeGameShellRef.current = null;
 
     router.push(redirectTo);
   }, [room?.code, router]);

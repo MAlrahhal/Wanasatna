@@ -155,10 +155,14 @@ export function resolveRoomEntryIntent(
 }
 
 export function beginNewRoomIdentity(roomCode?: string): void {
+  // Read session before clearing so explicit leave always drops the room-scoped
+  // reconnect credential even when callers omit roomCode (e.g. leaveActiveRoom).
+  const codeToClear = (roomCode ?? readRoomSession()?.roomCode)?.trim() || null;
+
   clearRoomSession();
 
-  if (roomCode) {
-    removeRoomReconnectCredential(roomCode);
+  if (codeToClear) {
+    removeRoomReconnectCredential(codeToClear);
   }
 
   disconnectRoomSocket();

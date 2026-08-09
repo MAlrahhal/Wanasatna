@@ -1,6 +1,6 @@
 import { LEAVE_ROOM_EVENT, type RoomActionResponse } from '@wanasatna/shared';
 import { getRoomErrorMessage } from '@/lib/room/error-messages';
-import { beginNewRoomIdentity } from '@/lib/room/session';
+import { beginNewRoomIdentity, readRoomSession } from '@/lib/room/session';
 import { getRoomSocket } from '@/lib/room/socket';
 
 type LeaveRoomResponse = { roomDeleted: boolean; hostChanged: unknown | null };
@@ -27,8 +27,9 @@ function emitLeaveRoom(): Promise<RoomActionResponse<LeaveRoomResponse>> {
 }
 
 export async function leaveActiveRoom(): Promise<{ success: boolean }> {
+  const roomCode = readRoomSession()?.roomCode;
   const response = await emitLeaveRoom();
-  beginNewRoomIdentity();
+  beginNewRoomIdentity(roomCode);
   return { success: response.success };
 }
 
