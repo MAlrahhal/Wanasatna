@@ -13,6 +13,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prisma:generate": "prisma generate",
     "test:unit": "tsx tests/unit.test.ts",
+    "test:plugin-registry": "tsx tests/plugin-registry.unit.test.ts",
+    "test:timing-challenge": "tsx tests/timing-challenge.unit.test.ts",
     "test:multiplayer": "tsx tests/multiplayer.integration.test.ts",
     "test:lifecycle": "tsx tests/lifecycle.integration.test.ts",
     "test:reconnect": "tsx tests/reconnect.integration.test.ts",

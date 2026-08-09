@@ -9,9 +9,9 @@ export const demoComingSoonGame: LobbyGame =
   mockLobbyGames[2]!;
 
 export const demoPlayers: LobbyPlayer[] = [
-  { id: 'host', name: 'سارة', isHost: true, isSpectator: false },
-  { id: 'guest', name: 'أحمد', isHost: false, isSpectator: false },
-  { id: 'spectator', name: 'ليان', isHost: false, isSpectator: true },
+  { id: 'host', name: 'سارة', isHost: true, isSpectator: false, isConnected: true },
+  { id: 'guest', name: 'أحمد', isHost: false, isSpectator: false, isConnected: true },
+  { id: 'spectator', name: 'ليان', isHost: false, isSpectator: true, isConnected: true },
 ];
 
 export const demoCatalogEntry = getGameCatalogEntry(demoGame.id);

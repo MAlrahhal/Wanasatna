@@ -89,7 +89,18 @@ export function registerJoinRoomHandler(io: Server, socket: Socket): void {
             response.data.player.id,
           );
 
+          console.info('[room-join]', {
+            roomId: response.data.room.id,
+            roomCode: response.data.room.code,
+            playerId: response.data.player.id,
+          });
+
           await broadcastRoomPlayersSnapshot(io, response.data.room.id);
+        } else {
+          console.info('[room-join]', {
+            stage: 'failed',
+            errorCode: response.error.code,
+          });
         }
 
         sendResponse(callback, response);
@@ -117,6 +128,13 @@ export function registerLeaveRoomHandler(io: Server, socket: Socket): void {
         const response = await leaveRoom(playerId!, roomId!);
 
         if (response.success) {
+          console.info('[room-leave]', {
+            roomId,
+            playerId,
+            roomDeleted: response.data.roomDeleted,
+            hostChanged: Boolean(response.data.hostChanged),
+          });
+
           await clearSocketSession(socket);
 
           if (!response.data.roomDeleted) {
@@ -254,6 +272,10 @@ export function registerReconnectHandler(io: Server, socket: Socket): void {
 
           for (const existingSocket of existingSockets) {
             if (existingSocket.id !== socket.id) {
+              // Clear session before force-disconnect so the disconnect handler
+              // does not mark this player DISCONNECTED after a successful reconnect.
+              existingSocket.data.playerId = undefined;
+              existingSocket.data.roomId = undefined;
               existingSocket.disconnect(true);
             }
           }
@@ -263,6 +285,12 @@ export function registerReconnectHandler(io: Server, socket: Socket): void {
             response.data.room.id,
             response.data.player.id,
           );
+
+          console.info('[room-reconnect]', {
+            roomId: response.data.room.id,
+            playerId: response.data.player.id,
+            supersededSockets: existingSockets.filter((entry) => entry.id !== socket.id).length,
+          });
 
           // Ack after bind so a later snapshot/recovery failure cannot surface as
           // INTERNAL_ERROR after the player was already reconnected successfully.
@@ -313,8 +341,34 @@ export function registerDisconnectHandler(io: Server, socket: Socket): void {
       return;
     }
 
+    // Detach this socket immediately so concurrent reconnect bind wins cleanly.
+    socket.data.playerId = undefined;
+    socket.data.roomId = undefined;
+
     try {
+      const remainingSockets = await io.in(getPlayerChannel(playerId)).fetchSockets();
+      const hasOtherActiveSocket = remainingSockets.some(
+        (entry) =>
+          entry.id !== socket.id &&
+          entry.data.playerId === playerId &&
+          entry.data.roomId === roomId,
+      );
+
+      if (hasOtherActiveSocket) {
+        console.info('[room-presence]', {
+          stage: 'disconnect-ignored-other-socket',
+          roomId,
+          playerId,
+        });
+        return;
+      }
+
       await handlePlayerDisconnect(playerId, roomId);
+      console.info('[room-presence]', {
+        stage: 'marked-disconnected',
+        roomId,
+        playerId,
+      });
       await broadcastRoomPlayersSnapshot(io, roomId);
       await evaluatePlayerRecovery(io, roomId);
     } catch {

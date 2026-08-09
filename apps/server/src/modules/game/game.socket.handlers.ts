@@ -9,6 +9,7 @@ import {
   GAME_SHELL_START_COUNTDOWN_EVENT,
   GAME_SHELL_START_FROM_LOBBY_EVENT,
   GAME_SHELL_SYNC_EVENT,
+  TIMING_CHALLENGE_GAME_ID,
 } from '@wanasatna/shared';
 import {
   cancelGameShellCountdown,
@@ -30,6 +31,7 @@ import {
 } from './game.lifecycle.js';
 import { abortActiveMatch } from './runtime/abort-active-match.js';
 import { setRoomRoundCategory } from './runtime/round-category-store.js';
+import { applyTimingChallengeLobbySettings } from './plugins/timing-challenge/socket.handlers.js';
 import { logGameShellDiagnostic } from './game.diagnostics.js';
 import {
   broadcastGameShellState,
@@ -274,6 +276,24 @@ export function registerGameShellStartFromLobbyHandler(io: Server, socket: Socke
 
       try {
         setRoomRoundCategory(roomId!, validation.data.categoryId);
+
+        if (validation.data.gameId === TIMING_CHALLENGE_GAME_ID) {
+          const settingsResult = applyTimingChallengeLobbySettings(
+            roomId!,
+            validation.data.timingChallenge,
+          );
+
+          if (!settingsResult.success) {
+            sendGameResponse(callback, {
+              success: false,
+              error: {
+                code: 'VALIDATION_ERROR',
+                message: settingsResult.error,
+              },
+            });
+            return;
+          }
+        }
 
         const response = await startGameShellFromLobby(
           roomId!,

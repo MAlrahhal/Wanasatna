@@ -24,7 +24,10 @@ export function GamePluginRenderer({ gameId, isHost, onAction }: GamePluginRende
 
   if (!plugin) {
     return (
-      <GamePluginPlaceholder title="لعبة غير مسجّلة" message={`لم يتم العثور على plugin للعبة: ${gameId}`} />
+      <GamePluginPlaceholder
+        title="إصدار غير متوافق"
+        message="هذه اللعبة غير متاحة في نسخة الواجهة الحالية. حدّث الصفحة بعد اكتمال التحديث، أو اطلب من المضيف إنهاء اللعبة والعودة للوبي."
+      />
     );
   }
 

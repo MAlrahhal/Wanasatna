@@ -1,10 +1,10 @@
 import type { LobbyPlayer } from '@/lib/lobby/types';
 
 export const roleRevealDemoPlayers: LobbyPlayer[] = [
-  { id: 'p1', name: 'محمد', isHost: true, isSpectator: false },
-  { id: 'p2', name: 'أحمد', isHost: false, isSpectator: false },
-  { id: 'p3', name: 'سارة', isHost: false, isSpectator: false },
-  { id: 'p4', name: 'عبدالله', isHost: false, isSpectator: false },
+  { id: 'p1', name: 'محمد', isHost: true, isSpectator: false, isConnected: true },
+  { id: 'p2', name: 'أحمد', isHost: false, isSpectator: false, isConnected: true },
+  { id: 'p3', name: 'سارة', isHost: false, isSpectator: false, isConnected: true },
+  { id: 'p4', name: 'عبدالله', isHost: false, isSpectator: false, isConnected: true },
 ];
 
 export const roleRevealDemoDefaults = {

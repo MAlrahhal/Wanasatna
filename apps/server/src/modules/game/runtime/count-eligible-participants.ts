@@ -2,6 +2,7 @@ import {
   BARA_AL_SALAFA_GAME_ID,
   DRAW_GUESS_GAME_ID,
   IMPOSTER_DRAW_GAME_ID,
+  TIMING_CHALLENGE_GAME_ID,
 } from '@wanasatna/shared';
 import type { GameShellRecord } from '../game.service.js';
 import { getConnectedParticipantIds as getBaraConnectedParticipantIds } from '../plugins/bara-al-salafa/free-questions.js';
@@ -10,6 +11,8 @@ import { getConnectedParticipantIds as getDrawGuessConnectedParticipantIds } fro
 import { getDrawGuessState } from '../plugins/draw-guess/store.js';
 import { getConnectedParticipantIds as getImposterDrawConnectedParticipantIds } from '../plugins/imposter-draw/state.js';
 import { getImposterDrawState } from '../plugins/imposter-draw/store.js';
+import { getConnectedParticipantIds as getTimingChallengeConnectedParticipantIds } from '../plugins/timing-challenge/state.js';
+import { getTimingChallengeState } from '../plugins/timing-challenge/store.js';
 import { getGamePluginDefinition } from './plugin-registry.js';
 
 function countLockedShellParticipants(shell: GameShellRecord): number {
@@ -59,6 +62,16 @@ export function countConnectedEligibleParticipants(shell: GameShellRecord): numb
     }
 
     return getImposterDrawConnectedParticipantIds(shell, match).length;
+  }
+
+  if (shell.gameId === TIMING_CHALLENGE_GAME_ID) {
+    const match = getTimingChallengeState(shell.roomId);
+
+    if (!match) {
+      return countLockedShellParticipants(shell);
+    }
+
+    return getTimingChallengeConnectedParticipantIds(match, shell).length;
   }
 
   return shell.players.filter((player) => player.isConnected).length;

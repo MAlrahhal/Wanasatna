@@ -1,7 +1,12 @@
+'use client';
+
 import type { LobbyGame, LobbyGameSettingsPlaceholder } from '@/lib/lobby/types';
 import { getGameCatalogEntry } from '@/lib/public/game-catalog';
+import { useRoom } from '@/contexts/room-context';
+import { TIMING_CHALLENGE_GAME_ID } from '@wanasatna/shared';
 import { EmptyState } from './empty-state';
 import { LobbyPanel } from './lobby-ui';
+import { TimingChallengeSettingsPanel } from './timing-challenge-settings-panel';
 
 type GameSettingsPanelProps = {
   selectedGame: LobbyGame | null;
@@ -10,7 +15,9 @@ type GameSettingsPanelProps = {
 };
 
 export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettingsPanelProps) {
+  const { timingChallengeSettings, setTimingChallengeSettings } = useRoom();
   const catalogEntry = selectedGame ? getGameCatalogEntry(selectedGame.id) : null;
+  const isTimingChallenge = selectedGame?.id === TIMING_CHALLENGE_GAME_ID;
 
   return (
     <LobbyPanel
@@ -50,17 +57,25 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
             <p className="mt-2 text-xs leading-5 text-wanas-text-muted">{selectedGame.description}</p>
           </div>
 
-          <div className="space-y-1.5">
-            {settings.map((setting) => (
-              <div
-                key={setting.id}
-                className="flex items-center justify-between rounded-lg border border-wanas-border bg-wanas-surface-soft px-3 py-2"
-              >
-                <span className="text-xs text-wanas-text-muted">{setting.label}</span>
-                <span className="text-xs font-bold text-wanas-text-primary">{setting.value}</span>
-              </div>
-            ))}
-          </div>
+          {isTimingChallenge ? (
+            <TimingChallengeSettingsPanel
+              settings={timingChallengeSettings}
+              isHost={isHost}
+              onChange={setTimingChallengeSettings}
+            />
+          ) : (
+            <div className="space-y-1.5">
+              {settings.map((setting) => (
+                <div
+                  key={setting.id}
+                  className="flex items-center justify-between rounded-lg border border-wanas-border bg-wanas-surface-soft px-3 py-2"
+                >
+                  <span className="text-xs text-wanas-text-muted">{setting.label}</span>
+                  <span className="text-xs font-bold text-wanas-text-primary">{setting.value}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </LobbyPanel>

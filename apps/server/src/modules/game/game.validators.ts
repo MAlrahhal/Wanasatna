@@ -11,9 +11,21 @@ const setReadySchema = z.object({
   isReady: z.boolean(),
 });
 
+const timingChallengeSettingsSchema = z
+  .object({
+    mode: z.enum(['guess-time', 'stop-timer']),
+    rounds: z.number().int().min(1).max(10),
+    minSeconds: z.number().min(1).max(60),
+    maxSeconds: z.number().min(1).max(60),
+  })
+  .refine((value) => value.minSeconds < value.maxSeconds, {
+    message: 'Minimum time must be less than maximum time.',
+  });
+
 const startFromLobbySchema = z.object({
   gameId: z.string().trim().min(1, 'Game selection is required'),
   categoryId: z.string().trim().min(1).nullable().optional(),
+  timingChallenge: timingChallengeSettingsSchema.optional(),
 });
 
 type ValidationSuccess<T> = { success: true; data: T };

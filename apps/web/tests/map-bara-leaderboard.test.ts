@@ -28,9 +28,9 @@ function test(name: string, fn: () => void): void {
 }
 
 const roomPlayers: LobbyPlayer[] = [
-  { id: 'p1', name: 'محمد', isHost: true, isSpectator: false },
-  { id: 'p2', name: 'خالد', isHost: false, isSpectator: false },
-  { id: 'p3', name: 'سارة', isHost: false, isSpectator: false },
+  { id: 'p1', name: 'محمد', isHost: true, isSpectator: false, isConnected: true },
+  { id: 'p2', name: 'خالد', isHost: false, isSpectator: false, isConnected: true },
+  { id: 'p3', name: 'سارة', isHost: false, isSpectator: false, isConnected: true },
 ];
 
 function baseView(overrides: Partial<BaraAlSalafaPlayerView> = {}): BaraAlSalafaPlayerView {
@@ -122,9 +122,9 @@ test('leaderboard mapping: higher total score sorts first', () => {
 
 test('leaderboard mapping: equal score Arabic before English', () => {
   const mixedPlayers: LobbyPlayer[] = [
-    { id: 'p1', name: 'Zaid', isHost: false, isSpectator: false },
-    { id: 'p2', name: 'أحمد', isHost: false, isSpectator: false },
-    { id: 'p3', name: 'Sara', isHost: false, isSpectator: false },
+    { id: 'p1', name: 'Zaid', isHost: false, isSpectator: false, isConnected: true },
+    { id: 'p2', name: 'أحمد', isHost: false, isSpectator: false, isConnected: true },
+    { id: 'p3', name: 'Sara', isHost: false, isSpectator: false, isConnected: true },
   ];
 
   const entries = mapBaraAlSalafaLeaderboard(
@@ -172,7 +172,7 @@ test('H round-results phase uses resultsLeaderboard totals immediately', () => {
 test('leaderboard mapping: excludes spectators', () => {
   const entries = mapBaraAlSalafaLeaderboard(baseView(), 'p1', [
     ...roomPlayers,
-    { id: 'p4', name: 'متفرج', isHost: false, isSpectator: true },
+    { id: 'p4', name: 'متفرج', isHost: false, isSpectator: true, isConnected: true },
   ]);
   assert.equal(entries.length, 3);
 });

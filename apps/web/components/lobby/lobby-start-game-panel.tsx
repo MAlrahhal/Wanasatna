@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
+import { TIMING_CHALLENGE_GAME_ID } from '@wanasatna/shared';
 import { useRoom } from '@/contexts/room-context';
 import { getGameStartPlayerRequirementReason } from '@/lib/game-shell/start-validation';
 import { getGameCatalogEntry } from '@/lib/public/game-catalog';
@@ -9,7 +10,15 @@ import { LobbyPanel } from './lobby-ui';
 import { cn } from '@/lib/utils';
 
 export function LobbyStartGamePanel() {
-  const { isHost, selectedGameId, status, startGame, players, isWaitingForNextMatch } = useRoom();
+  const {
+    isHost,
+    selectedGameId,
+    status,
+    startGame,
+    players,
+    isWaitingForNextMatch,
+    timingChallengeSettings,
+  } = useRoom();
   const [isStarting, setIsStarting] = useState(false);
   const startingRef = useRef(false);
 
@@ -44,8 +53,23 @@ export function LobbyStartGamePanel() {
       return playerRequirementReason;
     }
 
+    if (
+      selectedGameId === TIMING_CHALLENGE_GAME_ID &&
+      timingChallengeSettings.minSeconds >= timingChallengeSettings.maxSeconds
+    ) {
+      return 'نطاق الوقت غير صالح';
+    }
+
     return null;
-  }, [activeParticipantCount, catalogEntry?.availability, isWaitingForNextMatch, selectedGameId, status]);
+  }, [
+    activeParticipantCount,
+    catalogEntry?.availability,
+    isWaitingForNextMatch,
+    selectedGameId,
+    status,
+    timingChallengeSettings.maxSeconds,
+    timingChallengeSettings.minSeconds,
+  ]);
 
   async function handleStartGame() {
     if (startingRef.current || disabledReason) {

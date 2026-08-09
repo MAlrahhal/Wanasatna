@@ -73,8 +73,9 @@ export const mockGameSettingsByGameId: Record<string, LobbyGameSettingsPlacehold
     { id: 'imposters', label: 'عدد الإمبوستر', value: '١' },
   ],
   'timing-challenge': [
-    { id: 'rounds', label: 'عدد الجولات', value: '٦ جولات' },
-    { id: 'difficulty', label: 'الصعوبة', value: 'متوسط' },
+    { id: 'rounds', label: 'عدد الجولات', value: '٣ جولات' },
+    { id: 'mode', label: 'وضع اللعب', value: 'تخمين / أوقف' },
+    { id: 'range', label: 'نطاق الوقت', value: '٣–١٥ ثانية' },
   ],
   'who-wrote-it': [
     { id: 'rounds', label: 'عدد الجولات', value: '٤ جولات' },

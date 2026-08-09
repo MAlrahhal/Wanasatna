@@ -18,6 +18,13 @@ export type StartGameShellFromLobbyPayload = {
   gameId: string;
   /** Temporary lobby category selection until DB-backed settings land. */
   categoryId?: string | null;
+  /** Timing Challenge lobby settings (ignored for other games). */
+  timingChallenge?: {
+    mode: 'guess-time' | 'stop-timer';
+    rounds: number;
+    minSeconds: number;
+    maxSeconds: number;
+  };
 };
 
 export type GameShellAbortReason = 'host_aborted' | 'insufficient_players';

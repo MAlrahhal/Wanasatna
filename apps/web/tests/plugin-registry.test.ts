@@ -41,14 +41,28 @@ test('all known plugin ids are registered exactly once', () => {
   const ids = listClientGamePlugins().map((plugin) => plugin.metadata.id);
   assert.deepEqual(
     [...ids].sort(),
-    ['bara-al-salafa', 'draw-guess', 'imposter-draw', 'judge'],
+    ['bara-al-salafa', 'draw-guess', 'imposter-draw', 'judge', 'timing-challenge'],
   );
+});
+
+test('timing-challenge client plugin is registered', () => {
+  assert.equal(hasClientGamePlugin('timing-challenge'), true);
+  const plugin = getClientGamePlugin('timing-challenge');
+  assert.ok(plugin);
+  assert.equal(plugin.metadata.id, 'timing-challenge');
+  assert.equal(plugin.metadata.minPlayers, 2);
+  assert.equal(typeof plugin.GameScreen, 'function');
+});
+
+test('timing-challenge lobby catalog ID matches plugin ID', () => {
+  assert.equal(hasClientGamePlugin('timing-challenge'), true);
+  assert.equal(getClientGamePlugin('timing-challenge')?.metadata.id, 'timing-challenge');
 });
 
 test('re-running registration is idempotent (Strict Mode / Fast Refresh safe)', () => {
   registerAllClientGamePlugins();
   registerAllClientGamePlugins();
-  assert.equal(listClientGamePlugins().length, 4, 'no duplicate registrations');
+  assert.equal(listClientGamePlugins().length, 5, 'no duplicate registrations');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

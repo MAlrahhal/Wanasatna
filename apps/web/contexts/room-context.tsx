@@ -43,9 +43,15 @@ import {
   type RoomPlayersSnapshotPayload,
   type RoomSessionData,
   type RoomUpdatedPayload,
+  type TimingChallengeSettings,
+  TIMING_CHALLENGE_DEFAULT_MAX_SECONDS,
+  TIMING_CHALLENGE_DEFAULT_MIN_SECONDS,
+  TIMING_CHALLENGE_DEFAULT_ROUNDS,
+  TIMING_CHALLENGE_GAME_ID,
 } from '@wanasatna/shared';
 import { emitGameShellWithAck } from '@/lib/game-shell/emit';
 import { getGameShellErrorMessage } from '@/lib/game-shell/error-messages';
+import { hasClientGamePlugin } from '@/lib/game-plugins/registry';
 import { normalizeRoomDates, toLobbyPlayers } from '@/lib/room/map-player';
 import {
   beginNewRoomIdentity,
@@ -67,6 +73,14 @@ import {
 } from '@/lib/room/reconnect-credential';
 import { disconnectRoomSocket, getRoomSocket, waitForRoomSocketConnection } from '@/lib/room/socket';
 import { getDefaultRoundCategoryId } from '@/lib/game/round-categories';
+import { registerAllClientGamePlugins } from '@/plugins';
+
+const DEFAULT_TIMING_CHALLENGE_SETTINGS: TimingChallengeSettings = {
+  mode: 'guess-time',
+  rounds: TIMING_CHALLENGE_DEFAULT_ROUNDS,
+  minSeconds: TIMING_CHALLENGE_DEFAULT_MIN_SECONDS,
+  maxSeconds: TIMING_CHALLENGE_DEFAULT_MAX_SECONDS,
+};
 
 type ConnectionStatus = 'idle' | 'connecting' | 'connected' | 'error';
 
@@ -79,6 +93,8 @@ type RoomContextValue = {
   isHost: boolean;
   selectedGameId: string | null;
   selectedRoundCategoryId: string | null;
+  timingChallengeSettings: TimingChallengeSettings;
+  setTimingChallengeSettings: (settings: TimingChallengeSettings) => void;
   lockRoom: () => Promise<void>;
   unlockRoom: () => Promise<void>;
   kickPlayer: (playerId: string) => Promise<void>;
@@ -172,6 +188,9 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   const [players, setPlayers] = useState<LobbyPlayer[]>([]);
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
   const [selectedRoundCategoryId, setSelectedRoundCategoryId] = useState<string | null>(null);
+  const [timingChallengeSettings, setTimingChallengeSettings] = useState<TimingChallengeSettings>(
+    DEFAULT_TIMING_CHALLENGE_SETTINGS,
+  );
   const [activeGameShell, setActiveGameShell] = useState<GameShellState | null>(null);
   // Latest shell for socket callbacks: listener closures must never act on a
   // stale shell snapshot (e.g. suppressing /game navigation for a player who
@@ -551,7 +570,12 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         applyHostChange(response.hostChanged);
       }
 
-      if (response.error.code === 'RECONNECT_INVALID_TOKEN') {
+      if (
+        response.error.code === 'RECONNECT_INVALID_TOKEN' ||
+        response.error.code === 'PLAYER_NOT_FOUND' ||
+        response.error.code === 'RECONNECT_EXPIRED' ||
+        response.error.code === 'ROOM_NOT_FOUND'
+      ) {
         removeRoomReconnectCredential(intent.roomCode);
       }
 
@@ -560,13 +584,19 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         disconnectRoomSocket();
       }
 
-      const fallbackName = searchParamsRef.current.get('name')?.trim() ?? '';
+      const fallbackName =
+        searchParamsRef.current.get('name')?.trim() ||
+        storedSession?.playerName?.trim() ||
+        '';
 
-      if (
-        response.error.code === 'RECONNECT_INVALID_TOKEN' &&
-        fallbackName &&
-        intent.roomCode
-      ) {
+      // Stale credential / deleted identity: try a fresh join when the room may still exist.
+      const canFallbackJoin =
+        Boolean(fallbackName && intent.roomCode) &&
+        (response.error.code === 'RECONNECT_INVALID_TOKEN' ||
+          response.error.code === 'PLAYER_NOT_FOUND' ||
+          response.error.code === 'RECONNECT_EXPIRED');
+
+      if (canFallbackJoin) {
         beginNewRoomIdentity();
 
         if (!(await ensureSocketReady(isStale))) {
@@ -696,11 +726,23 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    // Guard against Web/Server deploy skew: never navigate into a broken game shell.
+    registerAllClientGamePlugins();
+    if (!hasClientGamePlugin(selectedGameId)) {
+      setErrorMessage(
+        'هذه اللعبة غير متاحة في نسخة الواجهة الحالية. حدّث الصفحة ثم حاول مرة أخرى.',
+      );
+      return;
+    }
+
     const response = await emitGameShellWithAck<{ state: GameShellState }>(
       GAME_SHELL_START_FROM_LOBBY_EVENT,
       {
         gameId: selectedGameId,
         categoryId: selectedRoundCategoryId,
+        ...(selectedGameId === TIMING_CHALLENGE_GAME_ID
+          ? { timingChallenge: timingChallengeSettings }
+          : {}),
       },
     );
 
@@ -711,7 +753,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
 
     setErrorMessage(null);
     router.push('/game');
-  }, [isHost, router, selectedGameId, selectedRoundCategoryId]);
+  }, [isHost, router, selectedGameId, selectedRoundCategoryId, timingChallengeSettings]);
 
   const leaveRoom = useCallback(async (redirectTo = '/') => {
     const leavingRoomCode = room?.code;
@@ -745,6 +787,8 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       isHost,
       selectedGameId,
       selectedRoundCategoryId,
+      timingChallengeSettings,
+      setTimingChallengeSettings,
       lockRoom,
       unlockRoom,
       kickPlayer,
@@ -772,6 +816,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       selectedRoundCategoryId,
       startGame,
       status,
+      timingChallengeSettings,
       unlockRoom,
     ],
   );

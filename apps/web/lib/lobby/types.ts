@@ -3,6 +3,8 @@ export type LobbyPlayer = {
   name: string;
   isHost: boolean;
   isSpectator: boolean;
+  /** Room presence: CONNECTED stays online; DISCONNECTED stays in roster offline. */
+  isConnected: boolean;
 };
 
 export type LobbyRoom = {

@@ -1,7 +1,7 @@
 import type { Server } from 'socket.io';
 import { registerAllGameContent } from '../content/index.js';
 import { registerAllGamePlugins } from './plugins/index.js';
-import { registerPluginSocketHandlers } from './runtime/index.js';
+import { listRegisteredGames, registerPluginSocketHandlers } from './runtime/index.js';
 import {
   registerGameShellCancelCountdownHandler,
   registerGameShellEndHandler,
@@ -24,6 +24,11 @@ function ensureGameRuntimeRegistered(): void {
   registerAllGameContent();
   registerAllGamePlugins();
   pluginsBootstrapped = true;
+
+  console.info('[game-registry]', {
+    stage: 'boot',
+    games: listRegisteredGames().map(({ gameId }) => gameId),
+  });
 }
 
 export function registerGameSockets(io: Server): void {

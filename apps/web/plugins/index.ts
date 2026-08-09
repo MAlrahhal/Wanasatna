@@ -3,12 +3,14 @@ import { baraAlSalafaClientPlugin } from '@/plugins/bara-al-salafa';
 import { drawGuessClientPlugin } from '@/plugins/draw-guess';
 import { imposterDrawClientPlugin } from '@/plugins/imposter-draw';
 import { judgeClientPlugin } from '@/plugins/judge';
+import { timingChallengeClientPlugin } from '@/plugins/timing-challenge';
 
 const allClientGamePlugins = [
   baraAlSalafaClientPlugin,
   drawGuessClientPlugin,
   imposterDrawClientPlugin,
   judgeClientPlugin,
+  timingChallengeClientPlugin,
 ];
 
 export function registerAllClientGamePlugins(): void {
@@ -29,4 +31,5 @@ export {
   drawGuessClientPlugin,
   imposterDrawClientPlugin,
   judgeClientPlugin,
+  timingChallengeClientPlugin,
 };

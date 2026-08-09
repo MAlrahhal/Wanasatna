@@ -1,0 +1,15 @@
+'use client';
+
+import type { WebClientGamePlugin } from '@/lib/game-plugins/types';
+import { TimingChallengeGameScreen } from './game-screen';
+
+export const timingChallengeClientPlugin: WebClientGamePlugin = {
+  metadata: {
+    id: 'timing-challenge',
+    title: 'تحدي التوقيت',
+    description: 'اختبر إحساسك بالوقت — خمّن أو أوقف المؤقت في اللحظة المناسبة.',
+    iconLabel: 'ت',
+    minPlayers: 2,
+  },
+  GameScreen: TimingChallengeGameScreen,
+};

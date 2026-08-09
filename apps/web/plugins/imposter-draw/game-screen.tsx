@@ -30,12 +30,14 @@ function toLobbyPlayers(
       name: currentPlayerName,
       isHost: false,
       isSpectator: false,
+      isConnected: true,
     },
     ...votablePlayers.map((player) => ({
       id: player.playerId,
       name: player.name,
       isHost: false,
       isSpectator: false,
+      isConnected: true,
     })),
   ];
 }

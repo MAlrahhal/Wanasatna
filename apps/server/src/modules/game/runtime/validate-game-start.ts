@@ -11,7 +11,11 @@ export function validateGameStart(
   const plugin = getGamePluginDefinition(gameId);
 
   if (!plugin) {
-    return gameServiceError('GAME_NOT_SELECTED', `Game "${gameId}" is not registered.`);
+    console.info('[game-registry]', { stage: 'missing-plugin', gameId, roomId });
+    return gameServiceError(
+      'GAME_NOT_SELECTED',
+      'هذه اللعبة غير متاحة على الخادم حالياً. حدّث الصفحة بعد لحظات ثم حاول مرة أخرى.',
+    );
   }
 
   const lifecycleContext: GamePluginLifecycleContext = {

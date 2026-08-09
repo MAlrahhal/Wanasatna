@@ -6,8 +6,9 @@ const plugins = new Map<string, ServerGamePlugin>();
 export function registerGame(plugin: ServerGamePlugin): void {
   const gameId = plugin.definition.id;
 
+  // Idempotent: safe if bootstrap retries after a partial failure.
   if (plugins.has(gameId)) {
-    throw new Error(`Game plugin "${gameId}" is already registered.`);
+    return;
   }
 
   plugins.set(gameId, plugin);

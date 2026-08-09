@@ -242,6 +242,106 @@ async function main(): Promise<void> {
     clients.forEach((c) => c.socket.disconnect());
   });
 
+  await runTest('presence: disconnect marks DISCONNECTED; reconnect stays CONNECTED', async () => {
+    const { host, clients, roomCode } = await startThreePlayerMatch();
+    const target = clients[1]!;
+    const playerId = target.id;
+    const token = target.reconnectToken;
+    let latestPlayers: Array<{ id: string; status: string }> = [];
+
+    const onSnapshot = (payload: { players: Array<{ id: string; status: string }> }) => {
+      latestPlayers = payload.players;
+    };
+    host.socket.on('room-players-snapshot', onSnapshot);
+
+    target.socket.disconnect();
+
+    await waitFor(
+      async () => {
+        const entry = latestPlayers.find((player) => player.id === playerId);
+        return entry?.status === 'DISCONNECTED' ? entry : null;
+      },
+      4000,
+      'target marked DISCONNECTED',
+    );
+
+    target.socket = await connectClient();
+    trackClientEvents(target);
+
+    const res = await ack<{
+      success: boolean;
+      data: { player: { id: string; status: string }; players: Array<{ id: string; status: string }> };
+    }>(target.socket, 'reconnect', {
+      playerId,
+      roomId: target.roomId,
+      roomCode,
+      reconnectToken: token,
+    });
+
+    assert.ok(res.success);
+    assert.equal(res.data.player.id, playerId);
+    assert.equal(res.data.player.status, 'CONNECTED');
+    assert.equal(
+      res.data.players.filter((player) => player.id === playerId).length,
+      1,
+      'no duplicate player after reconnect',
+    );
+
+    // Allow any late force-disconnect handlers to run; status must remain CONNECTED.
+    await sleep(400);
+    await waitFor(
+      async () => {
+        const entry = latestPlayers.find((player) => player.id === playerId);
+        return entry?.status === 'CONNECTED' ? entry : null;
+      },
+      4000,
+      'target remains CONNECTED after reconnect race',
+    );
+
+    host.socket.off('room-players-snapshot', onSnapshot);
+    host.socket.disconnect();
+    clients.forEach((client) => client.socket.disconnect());
+  });
+
+  await runTest('presence: explicit leave removes player from active roster', async () => {
+    const { host, clients, roomCode } = await startThreePlayerMatch();
+    const leaver = clients[1]!;
+    const leaverId = leaver.id;
+    let latestPlayers: Array<{ id: string }> = [];
+
+    const onSnapshot = (payload: { players: Array<{ id: string }> }) => {
+      latestPlayers = payload.players;
+    };
+    host.socket.on('room-players-snapshot', onSnapshot);
+
+    const leaveRes = await ack<{ success: boolean }>(leaver.socket, 'leave-room');
+    assert.ok(leaveRes.success);
+
+    await waitFor(
+      async () => (latestPlayers.every((player) => player.id !== leaverId) ? latestPlayers : null),
+      4000,
+      'leaver removed from active roster',
+    );
+
+    leaver.socket.disconnect();
+    await sleep(150);
+    leaver.socket = await connectClient();
+
+    const joinRes = await ack<{
+      success: boolean;
+      data: { player: { id: string }; players: Array<{ id: string }> };
+    }>(leaver.socket, 'join-room', {
+      roomCode,
+      playerName: `${leaver.name}-new`,
+    });
+    assert.ok(joinRes.success);
+    assert.notEqual(joinRes.data.player.id, leaverId);
+
+    host.socket.off('room-players-snapshot', onSnapshot);
+    host.socket.disconnect();
+    clients.forEach((client) => client.socket.disconnect());
+  });
+
   console.log(`\n${passed} passed, ${failed} failed`);
   process.exit(failed > 0 ? 1 : 0);
 }

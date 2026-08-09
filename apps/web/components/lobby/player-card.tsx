@@ -75,9 +75,20 @@ export function PlayerCard({
               بانتظار الجولة القادمة
             </span>
           ) : null}
-          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-wanas-success-dark">
-            <span className="size-1.5 rounded-full bg-wanas-success" aria-hidden />
-            متصل
+          <span
+            className={cn(
+              'inline-flex items-center gap-1 text-[10px] font-medium',
+              player.isConnected ? 'text-wanas-success-dark' : 'text-wanas-text-muted',
+            )}
+          >
+            <span
+              className={cn(
+                'size-1.5 rounded-full',
+                player.isConnected ? 'bg-wanas-success' : 'bg-wanas-text-muted',
+              )}
+              aria-hidden
+            />
+            {player.isConnected ? 'متصل' : 'غير متصل'}
           </span>
         </div>
       </div>
