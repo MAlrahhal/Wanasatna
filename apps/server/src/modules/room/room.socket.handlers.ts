@@ -264,17 +264,33 @@ export function registerReconnectHandler(io: Server, socket: Socket): void {
             response.data.player.id,
           );
 
-          await broadcastRoomPlayersSnapshot(io, response.data.room.id);
+          // Ack after bind so a later snapshot/recovery failure cannot surface as
+          // INTERNAL_ERROR after the player was already reconnected successfully.
+          sendResponse(callback, response);
 
-          ensureGameShellLifecycleProgress(io, response.data.room.id);
-          const shell = getGameShellByRoomId(response.data.room.id);
+          try {
+            await broadcastRoomPlayersSnapshot(io, response.data.room.id);
 
-          if (shell) {
-            socket.emit(GAME_SHELL_STATE_EVENT, { state: shell });
+            ensureGameShellLifecycleProgress(io, response.data.room.id);
+            const shell = getGameShellByRoomId(response.data.room.id);
+
+            if (shell) {
+              socket.emit(GAME_SHELL_STATE_EVENT, { state: shell });
+            }
+
+            await evaluatePlayerRecovery(io, response.data.room.id);
+          } catch (error) {
+            console.info('[reconnect]', {
+              stage: 'post-ack-side-effect-failed',
+              errorName: error instanceof Error ? error.name : typeof error,
+              errorMessage: error instanceof Error ? error.message : String(error),
+            });
           }
 
-          await evaluatePlayerRecovery(io, response.data.room.id);
-        } else if (response.hostChanged) {
+          return;
+        }
+
+        if (response.hostChanged) {
           io.to(getRoomChannel(response.hostChanged.roomId)).emit(
             HOST_CHANGED_EVENT,
             response.hostChanged,

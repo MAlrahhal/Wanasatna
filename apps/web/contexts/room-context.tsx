@@ -61,6 +61,7 @@ import {
   writeSelectedGameId,
 } from '@/lib/room/session';
 import {
+  findRoomReconnectCredential,
   removeRoomReconnectCredential,
   saveRoomReconnectCredential,
 } from '@/lib/room/reconnect-credential';
@@ -91,6 +92,15 @@ type RoomContextValue = {
 
 const RoomContext = createContext<RoomContextValue | null>(null);
 
+function isRoomActionResponse<T>(value: unknown): value is RoomActionResponse<T> {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'success' in value &&
+    typeof (value as { success: unknown }).success === 'boolean'
+  );
+}
+
 function emitWithAck<T>(
   event: string,
   payload?: unknown,
@@ -99,7 +109,15 @@ function emitWithAck<T>(
 
   return new Promise((resolve) => {
     socket.timeout(10000).emit(event, payload ?? {}, (error: unknown, response?: RoomActionResponse<T>) => {
-      if (error || !response) {
+      // Socket.IO timeout acks are (err, value). If a transport path delivers the
+      // payload as the first argument, accept it instead of treating it as failure.
+      const resolved = isRoomActionResponse<T>(response)
+        ? response
+        : isRoomActionResponse<T>(error)
+          ? error
+          : undefined;
+
+      if (!resolved) {
         resolve({
           success: false,
           error: {
@@ -110,7 +128,7 @@ function emitWithAck<T>(
         return;
       }
 
-      resolve(response);
+      resolve(resolved);
     });
   });
 }
@@ -138,9 +156,11 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const connectionAttemptRef = useRef(0);
-  const searchParamsRef = useRef(searchParams);
+  const searchParamsRef = useRef<Pick<URLSearchParams, 'get' | 'has' | 'toString'>>(searchParams);
   const pathnameRef = useRef(pathname);
-  const connectToRoomRef = useRef<(() => Promise<void>) | null>(null);
+  const connectToRoomRef = useRef<(options?: { resumeStoredSessionOnly?: boolean }) => Promise<void>>(
+    async () => undefined,
+  );
 
   searchParamsRef.current = searchParams;
   pathnameRef.current = pathname;
@@ -223,27 +243,24 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       setErrorMessage(null);
 
       const isOnGameRoute = pathnameRef.current === '/game';
+      const nextUrl = buildLobbyUrl(normalizedRoom.code);
 
-      console.debug('[debug applyRoomSession]', {
-        pathname: pathnameRef.current,
-        params: searchParamsRef.current.toString(),
-        code: normalizedRoom.code,
-        needs: lobbyUrlNeedsNormalization(searchParamsRef.current, normalizedRoom.code),
-      });
-
+      // Synchronously clear create/join intent from the URL + ref before any
+      // socket "reconnect" handler re-enters connectToRoom. Async router.replace
+      // alone can leave action=create sticky long enough to wipe the new session.
       if (
         !isOnGameRoute &&
         lobbyUrlNeedsNormalization(searchParamsRef.current, normalizedRoom.code)
       ) {
-        console.debug('[debug replace]', buildLobbyUrl(normalizedRoom.code));
-        router.replace(buildLobbyUrl(normalizedRoom.code), { scroll: false });
-        setTimeout(() => {
-          console.debug('[debug delayed replace]', window.location.search);
-          router.replace(buildLobbyUrl(normalizedRoom.code), { scroll: false });
-          setTimeout(() => {
-            console.debug('[debug after delayed replace]', window.location.search);
-          }, 1500);
-        }, 3000);
+        const nextParams = new URLSearchParams();
+        nextParams.set('code', normalizedRoom.code);
+        searchParamsRef.current = nextParams;
+
+        if (typeof window !== 'undefined') {
+          window.history.replaceState(window.history.state, '', nextUrl);
+        }
+
+        router.replace(nextUrl, { scroll: false });
       }
     },
     [router],
@@ -343,13 +360,11 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       setActiveGameShell(payload.state);
     };
 
-    // After a transport-level reconnect (server restart or network drop) the
-    // server-side socket loses its session binding. Re-run the room
-    // connection so the session is re-established and state re-synced.
+    // After a transport-level reconnect the server loses socket session binding.
+    // Resume from stored credentials only — never re-read sticky action=create
+    // from the URL (that would call beginNewRoomIdentity and destroy the room).
     const onManagerReconnect = () => {
-      if (readRoomSession()) {
-        void connectToRoomRef.current?.();
-      }
+      void connectToRoomRef.current?.({ resumeStoredSessionOnly: true });
     };
 
     socket.on(ROOM_PLAYERS_SNAPSHOT_EVENT, onPlayersSnapshot);
@@ -373,7 +388,10 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   }, [applyHostChange, applyPlayersSnapshot, router]);
 
   const ensureSocketReady = useCallback(
-    async (isStale: () => boolean): Promise<boolean> => {
+    async (
+      isStale: () => boolean,
+      options?: { suppressFailureUi?: boolean },
+    ): Promise<boolean> => {
       registerSocketListeners();
 
       const activeSocket = getRoomSocket();
@@ -384,7 +402,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
           await waitForRoomSocketConnection(activeSocket);
         }
       } catch {
-        if (!isStale()) {
+        if (!isStale() && !options?.suppressFailureUi) {
           handleFailure('CONNECTION_FAILED');
         }
         return false;
@@ -395,19 +413,47 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     [handleFailure, registerSocketListeners],
   );
 
-  const connectToRoom = useCallback(async () => {
+  const connectToRoom = useCallback(async (options?: { resumeStoredSessionOnly?: boolean }) => {
     const attemptId = ++connectionAttemptRef.current;
     const isStale = () => connectionAttemptRef.current !== attemptId;
+    const resumeStoredSessionOnly = options?.resumeStoredSessionOnly === true;
 
-    setStatus('connecting');
-    setErrorMessage(null);
+    // Transport resume must not flash the lobby into a loading/error state.
+    if (!resumeStoredSessionOnly) {
+      setStatus('connecting');
+      setErrorMessage(null);
+    }
 
-    if (!(await ensureSocketReady(isStale))) {
+    if (!(await ensureSocketReady(isStale, { suppressFailureUi: resumeStoredSessionOnly }))) {
       return;
     }
 
     const storedSession = readRoomSession();
-    const intent = resolveRoomEntryIntent(searchParamsRef.current, storedSession);
+    let intent = resumeStoredSessionOnly
+      ? ({ type: 'none' } as const)
+      : resolveRoomEntryIntent(searchParamsRef.current, storedSession);
+
+    if (resumeStoredSessionOnly && storedSession) {
+      const credential = findRoomReconnectCredential(storedSession.roomCode);
+
+      if (credential && credential.playerId === storedSession.playerId) {
+        intent = {
+          type: 'reconnect',
+          playerId: credential.playerId,
+          roomId: credential.roomId,
+          roomCode: credential.roomCode,
+          reconnectToken: credential.reconnectToken,
+        };
+      }
+    }
+
+    // TEMP diagnostic — no secrets/tokens.
+    console.info('[room-entry]', {
+      intent: intent.type,
+      resumeStoredSessionOnly,
+      hasStoredSession: Boolean(storedSession),
+      url: searchParamsRef.current.toString(),
+    });
 
     if (intent.type === 'create') {
       beginNewRoomIdentity();
@@ -423,6 +469,12 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       if (isStale()) {
         return;
       }
+
+      console.info('[room-entry]', {
+        intent: 'create',
+        success: response.success,
+        errorCode: response.success ? undefined : response.error.code,
+      });
 
       if (response.success) {
         applyRoomSession(response.data);
@@ -475,12 +527,23 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      console.info('[room-entry]', {
+        intent: 'reconnect',
+        success: response.success,
+        errorCode: response.success ? undefined : response.error.code,
+      });
+
       if (response.success) {
         applyRoomSession(response.data);
         const restoredGameId = readSelectedGameId();
         setSelectedGameId(restoredGameId);
         setSelectedRoundCategoryId(getDefaultRoundCategoryId(restoredGameId));
         await redirectIfActiveGameShell(response.data.player.id);
+        return;
+      }
+
+      // Transport resume should not destroy an already-rendered lobby on transient errors.
+      if (resumeStoredSessionOnly) {
         return;
       }
 
@@ -542,6 +605,10 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     }
 
     if (isStale()) {
+      return;
+    }
+
+    if (resumeStoredSessionOnly) {
       return;
     }
 

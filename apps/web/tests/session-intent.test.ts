@@ -109,5 +109,17 @@ test('URL normalization strips name and action after success', () => {
   assert.equal(buildLobbyUrl('318429'), '/lobby?code=318429');
 });
 
+test('sticky create URL still resolves to create and would override stored session', () => {
+  // Documents the production race: if action=create remains after success,
+  // resolveRoomEntryIntent prefers create over the stored session. applyRoomSession
+  // must sync the URL synchronously so transport resume never sees this intent.
+  saveRoomReconnectCredential(credential);
+  const intent = resolveRoomEntryIntent(
+    params({ action: 'create', name: 'محمد' }),
+    session,
+  );
+  assert.deepEqual(intent, { type: 'create', playerName: 'محمد' });
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);
