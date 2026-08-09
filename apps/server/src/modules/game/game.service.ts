@@ -184,17 +184,31 @@ export async function syncGameShell(
   const hostPlayerId = room?.hostPlayerId ?? shell.hostPlayerId;
   const players = await loadRoomPlayers(roomId, hostPlayerId);
 
+  // Re-read after awaits. Lobby wait / countdown may have advanced (or aborted)
+  // the shell while players were loading. Writing the pre-await snapshot would
+  // regress COUNTDOWN/PLAYING back to WAITING and stall the match start UI.
+  const currentShell = getGameShellByRoomId(roomId);
+
+  if (!currentShell) {
+    return {
+      success: true,
+      data: { state: null },
+    };
+  }
+
+  const effectiveHostPlayerId = room?.hostPlayerId ?? currentShell.hostPlayerId;
+
   return {
     success: true,
     data: {
       state: saveShell(
         withUpdatedPlayers(
           {
-            ...shell,
-            hostPlayerId,
+            ...currentShell,
+            hostPlayerId: effectiveHostPlayerId,
             players: players.map((player) => ({
               ...player,
-              isHost: player.id === hostPlayerId,
+              isHost: player.id === effectiveHostPlayerId,
             })),
           },
           players,
@@ -271,9 +285,27 @@ export async function startGameShellCountdown(
   }
 
   const players = await loadRoomPlayers(roomId, hostCheck.hostPlayerId);
+
+  const currentShell = getGameShellByRoomId(roomId);
+
+  if (!currentShell || currentShell.shellId !== shell.shellId) {
+    return gameServiceError('SHELL_NOT_FOUND', 'Game shell not found.');
+  }
+
+  if (currentShell.phase === 'COUNTDOWN' || currentShell.phase === 'PLAYING') {
+    return {
+      success: true,
+      data: { state: currentShell },
+    };
+  }
+
+  if (currentShell.phase !== 'WAITING') {
+    return gameServiceError('INVALID_PHASE', 'Countdown can only start from the waiting phase.');
+  }
+
   const syncedShell = withUpdatedPlayers(
     {
-      ...shell,
+      ...currentShell,
       hostPlayerId: hostCheck.hostPlayerId,
       players,
     },
@@ -284,7 +316,7 @@ export async function startGameShellCountdown(
     ...syncedShell,
     phase: 'COUNTDOWN',
     matchParticipantIds: lockMatchParticipantIds(players),
-    countdownRemainingSeconds: shell.countdownSeconds,
+    countdownRemainingSeconds: currentShell.countdownSeconds,
     updatedAt: nowIso(),
   });
 
@@ -494,7 +526,11 @@ export async function requestAbortGameShellByHost(
     return gameServiceError('SHELL_NOT_FOUND', 'Game shell not found.');
   }
 
-  const phaseError = assertPhase(shell, ['PLAYING'], 'The game can only be ended while playing.');
+  const phaseError = assertPhase(
+    shell,
+    ['WAITING', 'COUNTDOWN', 'PLAYING'],
+    'The game can only be ended before it has finished.',
+  );
   if (phaseError) {
     return phaseError;
   }

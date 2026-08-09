@@ -13,6 +13,7 @@ import {
 } from '@wanasatna/shared';
 import {
   cancelGameShellCountdown,
+  getGameShellByRoomId,
   requestAbortGameShellByHost,
   initGameShell,
   resetGameShell,
@@ -98,15 +99,25 @@ export function registerGameShellSyncHandler(io: Server, socket: Socket): void {
     const { roomId } = socket.data;
 
     try {
-      ensureGameShellLifecycleProgress(io, roomId!);
-
+      // Sync first (authoritative current shell), then heal lifecycle. Ordering
+      // matters: ensure must not race a stale sync write back to WAITING.
       const response = await syncGameShell(roomId!);
 
-      if (response.success && response.data.state) {
-        broadcastGameShellState(io, response.data.state);
+      ensureGameShellLifecycleProgress(io, roomId!);
+
+      const latest = getGameShellByRoomId(roomId!);
+      const state = latest ?? (response.success ? response.data.state : null);
+
+      if (state) {
+        broadcastGameShellState(io, state);
       }
 
-      sendGameResponse(callback, response);
+      sendGameResponse(
+        callback,
+        response.success
+          ? { success: true, data: { state } }
+          : response,
+      );
     } catch {
       sendGameInternalError(callback);
     }
@@ -303,6 +314,13 @@ export function registerGameShellStartFromLobbyHandler(io: Server, socket: Socke
         );
 
         if (response.success) {
+          console.info('[game-restart]', {
+            stage: 'shell-created',
+            roomId,
+            shellId: response.data.state.shellId,
+            gameId: response.data.state.gameId,
+            phase: response.data.state.phase,
+          });
           logGameShellDiagnostic('shell-created', {
             roomId,
             shellId: response.data.state.shellId,
@@ -313,6 +331,11 @@ export function registerGameShellStartFromLobbyHandler(io: Server, socket: Socke
           broadcastGameShellState(io, response.data.state);
           navigateRoomToGame(io, roomId!);
           scheduleGameShellLifecycle(io, roomId!, response.data.state.shellId);
+          console.info('[game-restart]', {
+            stage: 'waiting-scheduled',
+            roomId,
+            shellId: response.data.state.shellId,
+          });
         }
 
         sendGameResponse(callback, response);

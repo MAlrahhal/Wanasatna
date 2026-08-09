@@ -68,6 +68,12 @@ async function advanceToCountdownAndBroadcast(
 
   if (response.data.state.phase === 'COUNTDOWN' && !hasGameShellTimer(roomId)) {
     startGameShellTimer(io, roomId, 'countdown');
+    console.info('[game-restart]', {
+      stage: 'countdown-entered',
+      roomId,
+      shellId,
+      trigger,
+    });
   }
 }
 

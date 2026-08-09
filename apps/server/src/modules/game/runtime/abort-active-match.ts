@@ -19,14 +19,28 @@ export async function abortActiveMatch(
 ): Promise<boolean> {
   const shell = getGameShellByRoomId(roomId);
 
-  if (!shell || shell.phase !== 'PLAYING') {
+  // Host end / insufficient-players abort may fire in WAITING or COUNTDOWN
+  // (second-match start window) as well as PLAYING.
+  if (
+    !shell ||
+    (shell.phase !== 'WAITING' && shell.phase !== 'COUNTDOWN' && shell.phase !== 'PLAYING')
+  ) {
     return false;
   }
+
+  const abortedShellId = shell.shellId;
 
   cancelPlayerRecovery(io, roomId);
   cleanupGameShellRuntime(roomId);
   cleanupPluginMatchState(roomId, shell.gameId);
   deleteGameShell(roomId);
+
+  console.info('[game-restart]', {
+    stage: 'old-shell-cleanup-complete',
+    roomId,
+    shellId: abortedShellId,
+    reason,
+  });
 
   const room = await prisma.room.findUnique({
     where: { id: roomId },
