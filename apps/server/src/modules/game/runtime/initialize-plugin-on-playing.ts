@@ -50,13 +50,27 @@ async function abortBrokenMatch(io: Server, roomId: string, cause: string): Prom
  * sync recovery). It must never reject: a failure aborts only the affected
  * match and the Node process keeps serving every other room.
  */
-export async function initializePluginOnPlaying(io: Server, roomId: string): Promise<void> {
+export async function initializePluginOnPlaying(
+  io: Server,
+  roomId: string,
+  expectedShellId?: string,
+): Promise<void> {
   try {
     await syncGameShell(roomId);
 
     const shell = getGameShellByRoomId(roomId);
 
     if (!shell || shell.phase !== 'PLAYING' || !shell.gameId) {
+      return;
+    }
+
+    // Stale async work from a disposed shell must not initialize a later match.
+    if (expectedShellId && shell.shellId !== expectedShellId) {
+      logGameShellDiagnostic('plugin-init-stale-shell', {
+        roomId,
+        expectedShellId,
+        currentShellId: shell.shellId,
+      });
       return;
     }
 

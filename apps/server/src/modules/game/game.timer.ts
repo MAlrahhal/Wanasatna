@@ -91,10 +91,12 @@ export function startGameShellTimer(io: Server, roomId: string, kind: TimerKind)
           startGameShellTimer(io, roomId, 'game');
         }
 
-        void initializePluginOnPlaying(io, roomId).catch((error) => {
+        const shellIdForInit = nextState.shellId;
+        void initializePluginOnPlaying(io, roomId, shellIdForInit).catch((error) => {
           logGameShellDiagnostic('plugin-init-rejected', {
             roomId,
             trigger: 'countdown-timer',
+            shellId: shellIdForInit,
             error: error instanceof Error ? error.message : String(error),
           });
         });

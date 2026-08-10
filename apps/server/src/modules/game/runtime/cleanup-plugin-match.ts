@@ -16,6 +16,8 @@ import { deleteDrawGuessState } from '../plugins/draw-guess/store.js';
 import { clearFastAnswerPhaseTimerRuntime } from '../plugins/fast-answer/phase-timer.js';
 import { deleteFastAnswerState } from '../plugins/fast-answer/store.js';
 import { clearGuessingChallengePhaseTimerRuntime } from '../plugins/guessing-challenge/phase-timer.js';
+import { clearGuessingChallengeRoomMode } from '../plugins/guessing-challenge/mode-store.js';
+import { clearLookThrottleForRoom } from '../plugins/guessing-challenge/state.js';
 import { deleteGuessingChallengeState } from '../plugins/guessing-challenge/store.js';
 import { stopImposterDrawPhaseTimer } from '../plugins/imposter-draw/phase-timer.js';
 import { deleteImposterDrawState } from '../plugins/imposter-draw/store.js';
@@ -69,7 +71,10 @@ export function cleanupPluginMatchState(roomId: string, gameId: string | null): 
   }
 
   if (gameId === GUESSING_CHALLENGE_GAME_ID) {
+    // Match natural completeMatch: timers + look + room mode + match state.
     clearGuessingChallengePhaseTimerRuntime(roomId);
+    clearLookThrottleForRoom(roomId);
+    clearGuessingChallengeRoomMode(roomId);
     deleteGuessingChallengeState(roomId);
   }
 }

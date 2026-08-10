@@ -33,6 +33,7 @@ import {
   scheduleGameShellLifecycle,
 } from './game.lifecycle.js';
 import { abortActiveMatch } from './runtime/abort-active-match.js';
+import { clearPlayerRecoveryForTeardown } from './runtime/player-recovery.js';
 import { setRoomRoundCategory } from './runtime/round-category-store.js';
 import { applyGuessingChallengeLobbySettings } from './plugins/guessing-challenge/socket.handlers.js';
 import { applyTimingChallengeLobbySettings } from './plugins/timing-challenge/socket.handlers.js';
@@ -407,6 +408,7 @@ export function registerGameShellReturnToLobbyHandler(io: Server, socket: Socket
       const response = await returnGameShellToLobby(roomId!, playerId!);
 
       if (response.success) {
+        clearPlayerRecoveryForTeardown(io, roomId!);
         cleanupGameShellRuntime(roomId!);
         await broadcastRoomPlayersSnapshot(io, roomId!);
         navigateRoomToLobby(io, roomId!);

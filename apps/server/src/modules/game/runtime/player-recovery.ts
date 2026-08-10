@@ -108,6 +108,24 @@ function clearRecoverySchedule(roomId: string): void {
   recoveryByRoomId.delete(roomId);
 }
 
+/**
+ * Clears an active recovery window without resuming plugin timers.
+ * Use on End Game / shell teardown — resume would race cleanup.
+ */
+export function clearPlayerRecoveryForTeardown(io: Server, roomId: string): void {
+  if (!recoveryByRoomId.has(roomId)) {
+    return;
+  }
+
+  clearRecoverySchedule(roomId);
+  const sequence = nextRecoverySequence(roomId);
+  broadcastRecoveryState(
+    io,
+    roomId,
+    buildRecoveryPayload(roomId, 0, 0, null, sequence),
+  );
+}
+
 export function isPlayerRecoveryActive(roomId: string): boolean {
   return recoveryByRoomId.has(roomId);
 }

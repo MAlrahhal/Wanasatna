@@ -4,7 +4,7 @@ import { prisma } from '../../../lib/prisma.js';
 import { broadcastRoomPlayersSnapshot } from '../../room/room.utils.js';
 import { deleteGameShell, getGameShellByRoomId } from '../game.service.js';
 import { cleanupGameShellRuntime, navigateRoomToLobby } from '../game.lifecycle.js';
-import { cancelPlayerRecovery } from './player-recovery.js';
+import { clearPlayerRecoveryForTeardown } from './player-recovery.js';
 import { cleanupPluginMatchState } from './cleanup-plugin-match.js';
 
 const ABORT_MESSAGES: Record<GameShellAbortReason, string | undefined> = {
@@ -29,10 +29,12 @@ export async function abortActiveMatch(
   }
 
   const abortedShellId = shell.shellId;
+  const abortedGameId = shell.gameId;
 
-  cancelPlayerRecovery(io, roomId);
+  // Clear recovery without resuming phase timers (resume would race teardown).
+  clearPlayerRecoveryForTeardown(io, roomId);
   cleanupGameShellRuntime(roomId);
-  cleanupPluginMatchState(roomId, shell.gameId);
+  cleanupPluginMatchState(roomId, abortedGameId);
   deleteGameShell(roomId);
 
   console.info('[game-restart]', {

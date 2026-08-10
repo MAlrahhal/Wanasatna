@@ -182,10 +182,12 @@ export function ensureGameShellLifecycleProgress(io: Server, roomId: string): vo
 
     // Plugin-managed games never run the generic game timer; make sure the
     // plugin match state and its phase timer exist (idempotent).
-    void initializePluginOnPlaying(io, roomId).catch((error) => {
+    const shellIdForInit = shell.shellId;
+    void initializePluginOnPlaying(io, roomId, shellIdForInit).catch((error) => {
       logGameShellDiagnostic('plugin-init-rejected', {
         roomId,
         trigger: 'lifecycle-recovery',
+        shellId: shellIdForInit,
         error: error instanceof Error ? error.message : String(error),
       });
     });
