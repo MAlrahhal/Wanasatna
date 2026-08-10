@@ -78,7 +78,7 @@ run('D valid default 2v2 assignment', () => {
   );
 });
 
-run('E host moves player', () => {
+run('E host moves player (cross-team swap when dest full)', () => {
   clearPregameTeams(roomId);
   configurePregameTeams({
     roomId,
@@ -87,46 +87,49 @@ run('E host moves player', () => {
     eligiblePlayerIds: ['a', 'b', 'c', 'd'],
     preserveManual: false,
   });
-  // Move c (blue seat1) requires space on red — red is full, should fail
-  const full = assignPlayerToTeam({
+  // Defaults: blue=[a,c] red=[b,d]. Move c→red swaps with last red seat (d).
+  const swapped = assignPlayerToTeam({
     roomId,
     playerId: 'c',
     teamId: 'red',
     eligiblePlayerIds: ['a', 'b', 'c', 'd'],
   });
-  assert.equal(full.success, false);
-  if (!full.success) {
-    assert.equal(full.error.code, 'TEAM_FULL');
-  }
+  assert.ok(swapped.success);
+  assert.equal(swapped.data.assignments.find((e) => e.playerId === 'c')?.teamId, 'red');
+  assert.equal(swapped.data.assignments.find((e) => e.playerId === 'd')?.teamId, 'blue');
 
-  // Free a red seat then move
+  // Free-capacity path still works
   removePlayerFromPregameTeams(roomId, 'd', ['a', 'b', 'c']);
   const moved = assignPlayerToTeam({
     roomId,
-    playerId: 'c',
-    teamId: 'red',
+    playerId: 'b',
+    teamId: 'blue',
     eligiblePlayerIds: ['a', 'b', 'c'],
   });
   assert.ok(moved.success);
-  assert.equal(moved.data.assignments.find((e) => e.playerId === 'c')?.teamId, 'red');
+  assert.equal(moved.data.assignments.find((e) => e.playerId === 'b')?.teamId, 'blue');
 });
 
-run('G capacity enforced', () => {
+run('G capacity enforced (unassigned → full team)', () => {
   clearPregameTeams(roomId);
   configurePregameTeams({
     roomId,
     gameId: GUESSING_CHALLENGE_GAME_ID,
     mode: '1v1',
-    eligiblePlayerIds: ['a', 'b'],
+    eligiblePlayerIds: ['a', 'b', 'c'],
     preserveManual: false,
   });
+  // Defaults fill a→blue, b→red; c remains unassigned. Full blue rejects.
   const result = assignPlayerToTeam({
     roomId,
-    playerId: 'a',
-    teamId: 'red',
-    eligiblePlayerIds: ['a', 'b'],
+    playerId: 'c',
+    teamId: 'blue',
+    eligiblePlayerIds: ['a', 'b', 'c'],
   });
   assert.equal(result.success, false);
+  if (!result.success) {
+    assert.equal(result.error.code, 'TEAM_FULL');
+  }
 });
 
 run('H duplicate assignment impossible', () => {
@@ -271,11 +274,11 @@ run('S unassigned after manual join sync', () => {
     eligiblePlayerIds: ['a', 'b', 'c', 'd'],
     preserveManual: false,
   });
-  // Force manual flag
+  // Force manual flag via a real cross-team move (swap).
   assignPlayerToTeam({
     roomId,
     playerId: 'a',
-    teamId: 'blue',
+    teamId: 'red',
     eligiblePlayerIds: ['a', 'b', 'c', 'd'],
   });
   const snap = syncPregameTeamsWithRoster(roomId, ['a', 'b', 'c', 'd', 'e']);

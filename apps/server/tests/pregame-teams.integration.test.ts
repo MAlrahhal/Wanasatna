@@ -15,7 +15,6 @@ import {
 import {
   ack,
   connectClient,
-  sleep,
   trackClientEvents,
   waitFor,
   waitForServer,
@@ -155,30 +154,24 @@ async function main(): Promise<void> {
     }
   });
 
-  await runTest('host move converges; capacity rejects', async () => {
+  await runTest('host move converges; full-team unassigned rejects', async () => {
     const host = await createHost('مضيف');
     const b = await joinPlayer(host.roomCode, 'لاعب-ب');
     const c = await joinPlayer(host.roomCode, 'لاعب-ج');
     const d = await joinPlayer(host.roomCode, 'لاعب-د');
+    const all = [host, b, c, d].map((client) => {
+      const extended = client as TestClient & { teamSnapshots: PregameTeamSnapshot[] };
+      extended.teamSnapshots = [];
+      trackTeamSnapshot(extended);
+      return extended;
+    });
+
     await ack(host.socket, TEAM_CONFIGURE_EVENT, {
       gameId: GUESSING_CHALLENGE_GAME_ID,
       mode: '2v2',
     });
 
-    const full = await ack<{ success: boolean; error?: { code: string } }>(
-      host.socket,
-      TEAM_ASSIGN_EVENT,
-      { playerId: c.id, teamId: 'red' },
-    );
-    assert.equal(full.success, false);
-    assert.equal(full.error?.code, 'TEAM_FULL');
-
-    // Free red seat then move
-    // Kick d via leave from d
-    await ack(d.socket, 'leave-room');
-    d.socket.disconnect();
-    await sleep(200);
-
+    // Cross-team move into a full team swaps and converges on all clients.
     const moved = await ack<{ success: boolean; data: PregameTeamSnapshot }>(
       host.socket,
       TEAM_ASSIGN_EVENT,
@@ -187,16 +180,58 @@ async function main(): Promise<void> {
     assert.ok(moved.success);
     assert.equal(moved.data.assignments.find((e) => e.playerId === c.id)?.teamId, 'red');
 
-    const syncB = await ack<{ success: boolean; data: { snapshot: PregameTeamSnapshot | null } }>(
-      b.socket,
+    await waitFor(
+      async () => {
+        if (all.some((client) => client.teamSnapshots.length === 0)) {
+          return null;
+        }
+        const keys = all.map((client) => snapshotKey(client.teamSnapshots.at(-1)!));
+        return keys.every((key) => key === keys[0]) ? true : null;
+      },
+      5000,
+      'post-move snapshot convergence',
+      50,
+    );
+
+    const movedBack = await ack<{ success: boolean; data: PregameTeamSnapshot }>(
+      host.socket,
+      TEAM_ASSIGN_EVENT,
+      { playerId: c.id, teamId: 'blue' },
+    );
+    assert.ok(movedBack.success);
+    assert.equal(movedBack.data.assignments.find((e) => e.playerId === c.id)?.teamId, 'blue');
+
+    // Unassigned → full team: leave one player unassigned via 1v1 + third joiner path
+    await ack(host.socket, TEAM_CONFIGURE_EVENT, {
+      gameId: GUESSING_CHALLENGE_GAME_ID,
+      mode: '1v1',
+    });
+    // After mode shrink, extras may be unassigned; assign an unassigned id into full blue.
+    const snap1v1 = await ack<{ success: boolean; data: { snapshot: PregameTeamSnapshot | null } }>(
+      host.socket,
       TEAM_SYNC_EVENT,
     );
-    assert.ok(syncB.success);
-    assert.equal(syncB.data.snapshot?.assignments.find((e) => e.playerId === c.id)?.teamId, 'red');
+    assert.ok(snap1v1.success);
+    const unassigned = snap1v1.data.snapshot?.unassignedPlayerIds[0];
+    assert.ok(unassigned, 'expected an unassigned player after 1v1 shrink');
+    const before = snapshotKey(snap1v1.data.snapshot!);
+    const rejected = await ack<{ success: boolean; error?: { code: string } }>(
+      host.socket,
+      TEAM_ASSIGN_EVENT,
+      { playerId: unassigned, teamId: 'blue' },
+    );
+    assert.equal(rejected.success, false);
+    assert.equal(rejected.error?.code, 'TEAM_FULL');
+    const after = await ack<{ success: boolean; data: { snapshot: PregameTeamSnapshot | null } }>(
+      host.socket,
+      TEAM_SYNC_EVENT,
+    );
+    assert.ok(after.success);
+    assert.equal(snapshotKey(after.data.snapshot!), before);
 
-    host.socket.disconnect();
-    b.socket.disconnect();
-    c.socket.disconnect();
+    for (const client of all) {
+      client.socket.disconnect();
+    }
   });
 
   await runTest('non-host assign rejected', async () => {

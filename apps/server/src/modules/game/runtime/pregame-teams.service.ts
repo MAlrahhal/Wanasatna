@@ -216,12 +216,29 @@ export function assignPlayerToTeam(options: {
     return teamError('PLAYER_NOT_ELIGIBLE', 'هذا اللاعب غير مؤهل للتوزيع.');
   }
 
+  const onBlue = state.blue.includes(options.playerId);
+  const onRed = state.red.includes(options.playerId);
+  const alreadyOnTarget =
+    (options.teamId === 'blue' && onBlue) || (options.teamId === 'red' && onRed);
+  if (alreadyOnTarget) {
+    return { success: true, data: toPregameTeamSnapshot(state, options.eligiblePlayerIds) };
+  }
+
   const blue = state.blue.filter((id) => id !== options.playerId);
   const red = state.red.filter((id) => id !== options.playerId);
   const target = options.teamId === 'blue' ? blue : red;
+  const other = options.teamId === 'blue' ? red : blue;
+  const movingFromOtherTeam =
+    (options.teamId === 'blue' && onRed) || (options.teamId === 'red' && onBlue);
 
   if (target.length >= state.capacityPerTeam) {
-    return teamError('TEAM_FULL', 'هذا الفريق ممتلئ.');
+    // Deliberate UX: cross-team move into a full team swaps with the last seat.
+    // Unassigned → full team still rejects with TEAM_FULL (no silent overflow).
+    if (!movingFromOtherTeam || target.length === 0) {
+      return teamError('TEAM_FULL', 'هذا الفريق ممتلئ.');
+    }
+    const displaced = target.pop()!;
+    other.push(displaced);
   }
 
   target.push(options.playerId);
