@@ -11,6 +11,8 @@ import {
   resolveGuessingChallengeMode,
 } from './state.js';
 import { getGuessingChallengeState, setGuessingChallengeState } from './store.js';
+import { getPregameTeams, toTeamMaps } from '../../runtime/pregame-teams-store.js';
+import { validatePregameTeamsForStart } from '../../runtime/pregame-teams.service.js';
 
 function resolveMatchPlayers(shell: NonNullable<ReturnType<typeof getGameShellByRoomId>>) {
   const participantIds = new Set(
@@ -51,7 +53,22 @@ export function ensureGuessingChallengeMatchState(
     return null;
   }
 
-  const match = createMatchState(roomId, matchPlayers, content.settings, mode);
+  const playerIds = matchPlayers.map((player) => player.id);
+  const teamValidation = validatePregameTeamsForStart({
+    roomId,
+    gameId: GUESSING_CHALLENGE_GAME_ID,
+    mode,
+    eligiblePlayerIds: playerIds,
+  });
+
+  if (!teamValidation.success) {
+    return null;
+  }
+
+  const pregame = getPregameTeams(roomId);
+  const teamAssignment = pregame ? toTeamMaps(pregame) : teamValidation.data;
+
+  const match = createMatchState(roomId, matchPlayers, content.settings, mode, teamAssignment);
   setGuessingChallengeState(roomId, match);
   return match;
 }

@@ -50,6 +50,14 @@ import {
   TIMING_CHALLENGE_DEFAULT_MIN_SECONDS,
   TIMING_CHALLENGE_DEFAULT_ROUNDS,
   TIMING_CHALLENGE_GAME_ID,
+  TEAM_ASSIGN_EVENT,
+  TEAM_CONFIGURE_EVENT,
+  TEAM_RANDOMIZE_EVENT,
+  TEAM_SNAPSHOT_EVENT,
+  TEAM_SYNC_EVENT,
+  getGameTeamCapability,
+  type PregameTeamSnapshot,
+  type TeamId,
 } from '@wanasatna/shared';
 import { emitGameShellWithAck } from '@/lib/game-shell/emit';
 import { getGameShellErrorMessage } from '@/lib/game-shell/error-messages';
@@ -112,6 +120,10 @@ type RoomContextValue = {
   leaveRoom: (redirectTo?: string) => Promise<void>;
   isWaitingForNextMatch: boolean;
   activeMatchParticipantIds: string[] | null;
+  teamSnapshot: PregameTeamSnapshot | null;
+  configureTeams: (gameId: string, mode: string) => Promise<void>;
+  assignPlayerTeam: (playerId: string, teamId: TeamId) => Promise<void>;
+  randomizeTeams: () => Promise<void>;
 };
 
 const RoomContext = createContext<RoomContextValue | null>(null);
@@ -201,6 +213,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   );
   const [guessingChallengeMode, setGuessingChallengeMode] =
     useState<GuessingChallengeMode>('1v1');
+  const [teamSnapshot, setTeamSnapshot] = useState<PregameTeamSnapshot | null>(null);
   const [activeGameShell, setActiveGameShell] = useState<GameShellState | null>(null);
   // Latest shell for socket callbacks: listener closures must never act on a
   // stale shell snapshot (e.g. suppressing /game navigation for a player who
@@ -369,6 +382,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       setPlayers([]);
       setSelectedGameId(null);
       setSelectedRoundCategoryId(null);
+      setTeamSnapshot(null);
 
       if (payload.roomId) {
         router.push('/');
@@ -411,12 +425,17 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       setActiveGameShell(payload.state);
     };
 
+    const onTeamSnapshot = (payload: PregameTeamSnapshot) => {
+      setTeamSnapshot(payload);
+    };
+
     socket.on(ROOM_PLAYERS_SNAPSHOT_EVENT, onPlayersSnapshot);
     socket.on(HOST_CHANGED_EVENT, onHostChanged);
     socket.on(ROOM_UPDATED_EVENT, onRoomUpdated);
     socket.on(PLAYER_KICKED_EVENT, onPlayerKicked);
     socket.on(GAME_SHELL_NAVIGATE_EVENT, onGameShellNavigate);
     socket.on(GAME_SHELL_STATE_EVENT, onGameShellState);
+    socket.on(TEAM_SNAPSHOT_EVENT, onTeamSnapshot);
 
     removeSocketListenersRef.current = () => {
       socket.off(ROOM_PLAYERS_SNAPSHOT_EVENT, onPlayersSnapshot);
@@ -425,6 +444,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       socket.off(PLAYER_KICKED_EVENT, onPlayerKicked);
       socket.off(GAME_SHELL_NAVIGATE_EVENT, onGameShellNavigate);
       socket.off(GAME_SHELL_STATE_EVENT, onGameShellState);
+      socket.off(TEAM_SNAPSHOT_EVENT, onTeamSnapshot);
       removeSocketListenersRef.current = null;
     };
   }, [applyHostChange, applyPlayersSnapshot, router]);
@@ -598,7 +618,8 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         response.error.code === 'RECONNECT_INVALID_TOKEN' ||
         response.error.code === 'PLAYER_NOT_FOUND' ||
         response.error.code === 'RECONNECT_EXPIRED' ||
-        response.error.code === 'ROOM_NOT_FOUND'
+        response.error.code === 'ROOM_NOT_FOUND' ||
+        response.error.code === 'ROOM_CLOSED'
       ) {
         removeRoomReconnectCredential(intent.roomCode);
       }
@@ -709,6 +730,21 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (status !== 'connected') {
+      return;
+    }
+
+    void (async () => {
+      const sync = await emitGameShellWithAck<{ snapshot: PregameTeamSnapshot | null }>(
+        TEAM_SYNC_EVENT,
+      );
+      if (sync.success) {
+        setTeamSnapshot(sync.data.snapshot);
+      }
+    })();
+  }, [status]);
+
   const lockRoom = useCallback(async () => {
     const response = await emitWithAck<{ roomId: string; isLocked: boolean }>(LOCK_ROOM_EVENT);
 
@@ -736,6 +772,35 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const configureTeams = useCallback(
+    async (gameId: string, mode: string) => {
+      if (!getGameTeamCapability(gameId)) {
+        setTeamSnapshot(null);
+        return;
+      }
+
+      const response = await emitGameShellWithAck<PregameTeamSnapshot>(TEAM_CONFIGURE_EVENT, {
+        gameId,
+        mode,
+      });
+
+      if (response.success) {
+        setTeamSnapshot(response.data);
+        setErrorMessage(null);
+        return;
+      }
+
+      // Non-hosts / unbound sockets: pull current snapshot if any.
+      const sync = await emitGameShellWithAck<{ snapshot: PregameTeamSnapshot | null }>(
+        TEAM_SYNC_EVENT,
+      );
+      if (sync.success) {
+        setTeamSnapshot(sync.data.snapshot);
+      }
+    },
+    [],
+  );
+
   const selectGame = useCallback(
     (gameId: string) => {
       if (!isHost) {
@@ -745,9 +810,59 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       setSelectedGameId(gameId);
       writeSelectedGameId(gameId);
       setSelectedRoundCategoryId(getDefaultRoundCategoryId(gameId));
+
+      if (getGameTeamCapability(gameId)) {
+        const mode =
+          gameId === GUESSING_CHALLENGE_GAME_ID ? guessingChallengeMode : '1v1';
+        void configureTeams(gameId, mode);
+      } else {
+        setTeamSnapshot(null);
+      }
+    },
+    [configureTeams, guessingChallengeMode, isHost],
+  );
+
+  const setGuessingChallengeModeAndTeams = useCallback(
+    (mode: GuessingChallengeMode) => {
+      setGuessingChallengeMode(mode);
+      if (selectedGameId === GUESSING_CHALLENGE_GAME_ID && isHost) {
+        void configureTeams(GUESSING_CHALLENGE_GAME_ID, mode);
+      }
+    },
+    [configureTeams, isHost, selectedGameId],
+  );
+
+  const assignPlayerTeam = useCallback(
+    async (playerId: string, teamId: TeamId) => {
+      if (!isHost) {
+        return;
+      }
+      const response = await emitGameShellWithAck<PregameTeamSnapshot>(TEAM_ASSIGN_EVENT, {
+        playerId,
+        teamId,
+      });
+      if (response.success) {
+        setTeamSnapshot(response.data);
+        setErrorMessage(null);
+        return;
+      }
+      setErrorMessage(getGameShellErrorMessage(response.error.code, response.error.message));
     },
     [isHost],
   );
+
+  const randomizeTeams = useCallback(async () => {
+    if (!isHost) {
+      return;
+    }
+    const response = await emitGameShellWithAck<PregameTeamSnapshot>(TEAM_RANDOMIZE_EVENT);
+    if (response.success) {
+      setTeamSnapshot(response.data);
+      setErrorMessage(null);
+      return;
+    }
+    setErrorMessage(getGameShellErrorMessage(response.error.code, response.error.message));
+  }, [isHost]);
 
   const selectRoundCategory = useCallback(
     (categoryId: string) => {
@@ -759,7 +874,6 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     },
     [isHost],
   );
-
   const startGame = useCallback(async () => {
     if (!isHost) {
       return;
@@ -831,6 +945,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     setPlayers([]);
     setSelectedGameId(null);
     setSelectedRoundCategoryId(null);
+    setTeamSnapshot(null);
     setActiveGameShell(null);
     activeGameShellRef.current = null;
 
@@ -850,7 +965,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       timingChallengeSettings,
       setTimingChallengeSettings,
       guessingChallengeMode,
-      setGuessingChallengeMode,
+      setGuessingChallengeMode: setGuessingChallengeModeAndTeams,
       lockRoom,
       unlockRoom,
       kickPlayer,
@@ -860,9 +975,15 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       leaveRoom,
       isWaitingForNextMatch: isWaitingForNextMatchValue,
       activeMatchParticipantIds,
+      teamSnapshot,
+      configureTeams,
+      assignPlayerTeam,
+      randomizeTeams,
     }),
     [
       activeMatchParticipantIds,
+      assignPlayerTeam,
+      configureTeams,
       errorMessage,
       isHost,
       isWaitingForNextMatchValue,
@@ -871,15 +992,17 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       lockRoom,
       player,
       players,
+      randomizeTeams,
       room,
       selectGame,
       selectRoundCategory,
       selectedGameId,
       selectedRoundCategoryId,
-      setGuessingChallengeMode,
+      setGuessingChallengeModeAndTeams,
       setTimingChallengeSettings,
       startGame,
       status,
+      teamSnapshot,
       timingChallengeSettings,
       guessingChallengeMode,
       unlockRoom,

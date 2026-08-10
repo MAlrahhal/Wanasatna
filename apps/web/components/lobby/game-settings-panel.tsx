@@ -8,6 +8,8 @@ import { EmptyState } from './empty-state';
 import { LobbyPanel } from './lobby-ui';
 import { GuessingChallengeSettingsPanel } from './guessing-challenge-settings-panel';
 import { TimingChallengeSettingsPanel } from './timing-challenge-settings-panel';
+import { TeamAssignmentPanel } from './team-assignment-panel';
+import { getGameTeamCapability } from '@wanasatna/shared';
 
 type GameSettingsPanelProps = {
   selectedGame: LobbyGame | null;
@@ -21,10 +23,16 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
     setTimingChallengeSettings,
     guessingChallengeMode,
     setGuessingChallengeMode,
+    teamSnapshot,
+    assignPlayerTeam,
+    randomizeTeams,
+    players,
   } = useRoom();
   const catalogEntry = selectedGame ? getGameCatalogEntry(selectedGame.id) : null;
   const isTimingChallenge = selectedGame?.id === TIMING_CHALLENGE_GAME_ID;
   const isGuessingChallenge = selectedGame?.id === GUESSING_CHALLENGE_GAME_ID;
+  const showsTeams =
+    Boolean(teamSnapshot) || Boolean(selectedGame && getGameTeamCapability(selectedGame.id));
 
   return (
     <LobbyPanel
@@ -89,6 +97,18 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
               ))}
             </div>
           )}
+
+          {showsTeams ? (
+            <TeamAssignmentPanel
+              snapshot={teamSnapshot}
+              players={players}
+              isHost={isHost}
+              onAssign={assignPlayerTeam}
+              onRandomize={() => {
+                void randomizeTeams();
+              }}
+            />
+          ) : null}
         </div>
       )}
     </LobbyPanel>

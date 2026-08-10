@@ -29,6 +29,8 @@
     "test:fresh-join": "tsx tests/fresh-join.integration.test.ts",
     "test:hardening": "tsx tests/qa-hardening.integration.test.ts",
     "test:room-lifecycle": "tsx tests/room-lifecycle.integration.test.ts",
+    "test:pregame-teams": "tsx tests/pregame-teams.unit.test.ts",
+    "test:pregame-teams:integration": "tsx tests/pregame-teams.integration.test.ts",
     "test:restart-game": "tsx tests/restart-game.integration.test.ts",
     "test:server": "cross-env WANASATNA_TEST_MODE=1 PORT=4001 CLIENT_ORIGIN=http://localhost:3000 tsx src/index.ts",
     "test:all": "pnpm run test:unit && pnpm run test:multiplayer && pnpm run test:lifecycle && pnpm run test:reconnect && pnpm run test:fresh-join && pnpm run test:hardening && pnpm run test:room-lifecycle && pnpm run test:restart-game"

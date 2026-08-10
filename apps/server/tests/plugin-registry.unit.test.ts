@@ -75,7 +75,7 @@ test('guessing-challenge resolves in server registry', () => {
   assert.ok(plugin);
   assert.equal(plugin.id, 'guessing-challenge');
   assert.equal(plugin.minPlayers, 2);
-  assert.equal(plugin.maxPlayers, 2);
+  assert.equal(plugin.maxPlayers, 4);
 });
 
 test('lobby/plugin canonical IDs include production games', () => {

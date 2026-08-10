@@ -11,6 +11,7 @@ import {
   GAME_SHELL_SYNC_EVENT,
   GUESSING_CHALLENGE_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
+  getGameTeamCapability,
 } from '@wanasatna/shared';
 import {
   cancelGameShellCountdown,
@@ -35,6 +36,12 @@ import { abortActiveMatch } from './runtime/abort-active-match.js';
 import { setRoomRoundCategory } from './runtime/round-category-store.js';
 import { applyGuessingChallengeLobbySettings } from './plugins/guessing-challenge/socket.handlers.js';
 import { applyTimingChallengeLobbySettings } from './plugins/timing-challenge/socket.handlers.js';
+import { getGuessingChallengeRoomMode } from './plugins/guessing-challenge/mode-store.js';
+import {
+  loadConnectedLobbyPlayerIds,
+  validatePregameTeamsForStart,
+  clearTeamsIfGameChanged,
+} from './runtime/pregame-teams.service.js';
 import { logGameShellDiagnostic } from './game.diagnostics.js';
 import { broadcastRoomPlayersSnapshot } from '../room/room.utils.js';
 import {
@@ -325,6 +332,25 @@ export function registerGameShellStartFromLobbyHandler(io: Server, socket: Socke
             });
             return;
           }
+
+          const mode =
+            validation.data.guessingChallenge?.mode ??
+            getGuessingChallengeRoomMode(roomId!) ??
+            '1v1';
+          const connectedIds = await loadConnectedLobbyPlayerIds(roomId!);
+          const teamValidation = validatePregameTeamsForStart({
+            roomId: roomId!,
+            gameId: GUESSING_CHALLENGE_GAME_ID,
+            mode,
+            eligiblePlayerIds: connectedIds,
+          });
+
+          if (!teamValidation.success) {
+            sendGameResponse(callback, teamValidation);
+            return;
+          }
+        } else if (!getGameTeamCapability(validation.data.gameId)) {
+          clearTeamsIfGameChanged(roomId!, validation.data.gameId);
         }
 
         const response = await startGameShellFromLobby(

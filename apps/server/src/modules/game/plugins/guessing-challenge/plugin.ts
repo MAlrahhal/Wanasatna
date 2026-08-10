@@ -18,6 +18,7 @@ import {
   GUESSING_CHALLENGE_REJECT_CARD_EVENT,
   GUESSING_CHALLENGE_USE_RED_CARD_EVENT,
   GUESSING_CHALLENGE_USE_YELLOW_CARD_EVENT,
+  GUESSING_CHALLENGE_TEAM_CAPABILITY,
   contentValidationToPluginError,
   validateGameStartContent,
 } from '@wanasatna/shared';
@@ -27,13 +28,18 @@ import {
   requiredPlayerCountForMode,
   resolveGuessingChallengeMode,
 } from './state.js';
+import { getPregameTeams, toTeamMaps } from '../../runtime/pregame-teams-store.js';
 
 const metadata = {
   id: GUESSING_CHALLENGE_GAME_ID,
   title: 'تحدي التخمين',
   description: 'اعرف هويتك قبل خصمك',
   iconLabel: 'ت',
-} satisfies Pick<GamePluginDefinition, 'id' | 'title' | 'description' | 'iconLabel'>;
+  teamCapability: GUESSING_CHALLENGE_TEAM_CAPABILITY,
+} satisfies Pick<
+  GamePluginDefinition,
+  'id' | 'title' | 'description' | 'iconLabel' | 'teamCapability'
+>;
 
 export function buildGuessingChallengePluginDefinition(
   content: LoadedGameContent,
@@ -89,7 +95,9 @@ export function buildGuessingChallengePluginDefinition(
     createInitialState: (context, pluginSettings) => {
       const roomMode = getGuessingChallengeRoomMode(context.roomId);
       const mode = resolveGuessingChallengeMode(settings, roomMode ?? pluginSettings?.mode);
-      return createMatchState(context.roomId, context.players, settings, mode);
+      const pregame = getPregameTeams(context.roomId);
+      const teamAssignment = pregame ? toTeamMaps(pregame) : undefined;
+      return createMatchState(context.roomId, context.players, settings, mode, teamAssignment);
     },
     serializeState: (state) => state,
     deserializeState: (payload) => payload as GuessingChallengeMatchState,

@@ -8,6 +8,8 @@ export type GamePluginMetadata = {
   iconLabel: string;
   minPlayers?: number;
   maxPlayers?: number;
+  /** When set, lobby shows Team Assignment for this game. */
+  teamCapability?: import('../teams/types.js').GameTeamCapability;
 };
 
 export type GamePluginSettingsField = {

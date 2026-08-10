@@ -2,6 +2,7 @@ import type { Server } from 'socket.io';
 import { registerAllGameContent } from '../content/index.js';
 import { registerAllGamePlugins } from './plugins/index.js';
 import { listRegisteredGames, registerPluginSocketHandlers } from './runtime/index.js';
+import { registerPregameTeamHandlers } from './pregame-teams.socket.js';
 import {
   registerGameShellCancelCountdownHandler,
   registerGameShellEndHandler,
@@ -13,7 +14,6 @@ import {
   registerGameShellStartFromLobbyHandler,
   registerGameShellSyncHandler,
 } from './game.socket.handlers.js';
-
 let pluginsBootstrapped = false;
 
 function ensureGameRuntimeRegistered(): void {
@@ -44,6 +44,7 @@ export function registerGameSockets(io: Server): void {
     registerGameShellResetHandler(io, socket);
     registerGameShellStartFromLobbyHandler(io, socket);
     registerGameShellReturnToLobbyHandler(io, socket);
+    registerPregameTeamHandlers(io, socket);
     registerPluginSocketHandlers(io, socket);
   });
 }

@@ -207,6 +207,10 @@ export function createMatchState(
   players: GameShellPlayer[],
   settings: GameContentSettings,
   modeOverride?: GuessingChallengeMode,
+  teamAssignment?: {
+    teamByPlayerId: Record<string, GuessingChallengeTeamId>;
+    seatByPlayerId: Record<string, GuessingChallengeSeat>;
+  },
 ): GuessingChallengeMatchState {
   const mode = modeOverride ?? resolveGuessingChallengeMode(settings);
   const expected = requiredPlayerCountForMode(mode);
@@ -216,7 +220,14 @@ export function createMatchState(
   }
 
   const playerIds = players.map((player) => player.id);
-  const { teamByPlayerId, seatByPlayerId } = assignTeams(playerIds, mode);
+  const { teamByPlayerId, seatByPlayerId } = teamAssignment ?? assignTeams(playerIds, mode);
+
+  for (const playerId of playerIds) {
+    if (!teamByPlayerId[playerId] || seatByPlayerId[playerId] === undefined) {
+      throw new Error('Guessing Challenge team assignment is incomplete.');
+    }
+  }
+
   const startingTeamId: GuessingChallengeTeamId = 'blue';
   const round = createRoundState(roomId, teamByPlayerId, startingTeamId, []);
 

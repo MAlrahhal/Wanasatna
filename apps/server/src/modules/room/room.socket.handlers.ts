@@ -20,6 +20,11 @@ import { getGameShellByRoomId } from '../game/game.service.js';
 import { ensureGameShellLifecycleProgress } from '../game/game.lifecycle.js';
 import { evaluatePlayerRecovery } from '../game/runtime/player-recovery.js';
 import {
+  onRoomDeleted,
+  onRoomPlayerRemoved,
+  onRoomRosterJoined,
+} from '../game/runtime/pregame-teams-room-hooks.js';
+import {
   createRoom,
   handlePlayerDisconnect,
   joinRoom,
@@ -104,6 +109,7 @@ export function registerJoinRoomHandler(io: Server, socket: Socket): void {
           });
 
           await broadcastRoomPlayersSnapshot(io, response.data.room.id);
+          await onRoomRosterJoined(io, response.data.room.id);
         } else {
           console.info('[room-join]', {
             stage: 'failed',
@@ -151,7 +157,10 @@ export function registerLeaveRoomHandler(io: Server, socket: Socket): void {
             }
 
             await broadcastRoomPlayersSnapshot(io, roomId!);
+            await onRoomPlayerRemoved(io, roomId!, playerId!, false);
             await evaluatePlayerRecovery(io, roomId!);
+          } else {
+            onRoomDeleted(roomId!);
           }
         }
 
@@ -199,7 +208,10 @@ export function registerKickPlayerHandler(io: Server, socket: Socket): void {
 
           if (!response.data.roomDeleted) {
             await broadcastRoomPlayersSnapshot(io, roomId!);
+            await onRoomPlayerRemoved(io, roomId!, response.data.kickedPlayerId, false);
             await evaluatePlayerRecovery(io, roomId!);
+          } else {
+            onRoomDeleted(roomId!);
           }
         }
 

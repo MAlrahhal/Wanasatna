@@ -760,6 +760,198 @@ async function main(): Promise<void> {
     await disconnectAll([host, c]);
   });
 
+  await runTest('26 rapid sequential join B/C/D converges', async () => {
+    const host = await createHost('مضيف');
+    const [b, c, d] = await Promise.all([
+      joinPlayer(host.roomCode, 'لاعب-ب'),
+      joinPlayer(host.roomCode, 'لاعب-ج'),
+      joinPlayer(host.roomCode, 'لاعب-د'),
+    ]);
+
+    await waitForRosterConvergence([host, b, c, d], 4, 'rapid four');
+    const ids = new Set((await syncRoom(host)).map((p) => p.id));
+    assert.ok(ids.has(host.id) && ids.has(b.id) && ids.has(c.id) && ids.has(d.id));
+    await disconnectAll([host, b, c, d]);
+  });
+
+  await runTest('27 six-player roster converges on every client', async () => {
+    const host = await createHost('مضيف');
+    const extras = await Promise.all(
+      ['ب', 'ج', 'د', 'ه', 'و'].map((suffix) => joinPlayer(host.roomCode, `لاعب-${suffix}`)),
+    );
+    const all = [host, ...extras];
+    await waitForRosterConvergence(all, 6, 'six');
+    for (const client of all) {
+      const players = await syncRoom(client);
+      assert.equal(players.length, 6);
+      assert.equal(players.filter((p) => p.isHost).length, 1);
+      assert.equal(players.find((p) => p.isHost)?.id, host.id);
+    }
+    await disconnectAll(all);
+  });
+
+  await runTest('28 host disconnect keeps host identity until leave/expire', async () => {
+    const host = await createHost('مضيف');
+    const b = await joinPlayer(host.roomCode, 'لاعب-ب');
+    await waitForRosterConvergence([host, b], 2, 'pair');
+
+    await disconnectClient(host);
+    await waitFor(
+      async () => {
+        const players = await syncRoom(b);
+        const hostRow = players.find((p) => p.id === host.id);
+        return hostRow?.status === 'DISCONNECTED' && hostRow.isHost ? true : null;
+      },
+      5000,
+      'host disconnected still host',
+      100,
+    );
+
+    const players = await syncRoom(b);
+    assert.equal(players.find((p) => p.isHost)?.id, host.id);
+    assert.equal(players.filter((p) => p.isHost).length, 1);
+    await disconnectAll([b]);
+  });
+
+  await runTest('29 dual-tab same credential: newest wins, no duplicate', async () => {
+    const host = await createHost('مضيف');
+    const b = await joinPlayer(host.roomCode, 'لاعب-ب');
+    await waitForRosterConvergence([host, b], 2, 'pair');
+
+    const tab1 = b.socket;
+    const tab2 = await connectClient();
+    const tab2Client = emptyClient('لاعب-ب-tab2');
+    tab2Client.socket = tab2;
+    tab2Client.id = b.id;
+    tab2Client.roomId = b.roomId;
+    tab2Client.roomCode = b.roomCode;
+    tab2Client.reconnectToken = b.reconnectToken;
+    trackClientEvents(tab2Client);
+
+    const recon = await ack<{ success: boolean }>(tab2, 'reconnect', {
+      playerId: b.id,
+      roomId: b.roomId,
+      roomCode: b.roomCode,
+      reconnectToken: b.reconnectToken,
+    });
+    assert.ok(recon.success, 'second tab reconnect succeeds');
+
+    await waitFor(
+      async () => {
+        const players = await syncRoom(host);
+        const matches = players.filter((p) => p.id === b.id);
+        return matches.length === 1 && matches[0]?.status === 'CONNECTED' ? true : null;
+      },
+      5000,
+      'single B connected',
+      100,
+    );
+
+    // Old tab transport ends — must not mark B DISCONNECTED.
+    tab1.disconnect();
+    await sleep(400);
+
+    const afterOldGone = await syncRoom(host);
+    assert.equal(afterOldGone.filter((p) => p.id === b.id).length, 1);
+    assert.equal(afterOldGone.find((p) => p.id === b.id)?.status, 'CONNECTED');
+
+    await disconnectAll([host, tab2Client]);
+  });
+
+  await runTest('30 reconnect expired rejects and clears seat when alone', async () => {
+    const host = await createHost('مضيف');
+    const b = await joinPlayer(host.roomCode, 'لاعب-ب');
+    await waitForRosterConvergence([host, b], 2, 'pair');
+
+    await disconnectClient(b);
+
+    const { prisma } = await import('../src/lib/prisma.js');
+    await prisma.player.update({
+      where: { id: b.id },
+      data: { lastSeenAt: new Date(Date.now() - 4 * 60 * 1000) },
+    });
+
+    const socket = await connectClient();
+    const expired = await ack<{
+      success: boolean;
+      error?: { code: string };
+    }>(socket, 'reconnect', {
+      playerId: b.id,
+      roomId: b.roomId,
+      roomCode: b.roomCode,
+      reconnectToken: b.reconnectToken,
+    });
+    assert.equal(expired.success, false);
+    assert.equal(expired.error?.code, 'RECONNECT_EXPIRED');
+
+    await waitFor(
+      async () => {
+        const players = await syncRoom(host);
+        return !players.some((p) => p.id === b.id) ? true : null;
+      },
+      5000,
+      'expired B removed from active roster',
+      100,
+    );
+
+    socket.disconnect();
+    await disconnectAll([host]);
+  });
+
+  await runTest('31 lock metadata converges via room-updated', async () => {
+    const host = await createHost('مضيف');
+    const b = await joinPlayer(host.roomCode, 'لاعب-ب');
+    await waitForRosterConvergence([host, b], 2, 'pair');
+
+    let bLocked: boolean | null = null;
+    b.socket.on('room-updated', (payload: { isLocked: boolean }) => {
+      bLocked = payload.isLocked;
+    });
+
+    const lockRes = await ack<{ success: boolean; data?: { isLocked: boolean } }>(
+      host.socket,
+      'lock-room',
+    );
+    assert.ok(lockRes.success);
+    assert.equal(lockRes.data?.isLocked, true);
+
+    await waitFor(async () => (bLocked === true ? true : null), 5000, 'B sees lock', 50);
+
+    const unlockRes = await ack<{ success: boolean; data?: { isLocked: boolean } }>(
+      host.socket,
+      'unlock-room',
+    );
+    assert.ok(unlockRes.success);
+    assert.equal(unlockRes.data?.isLocked, false);
+    await waitFor(async () => (bLocked === false ? true : null), 5000, 'B sees unlock', 50);
+
+    await disconnectAll([host, b]);
+  });
+
+  await runTest('32 socket rebind via room-sync after listener reattach', async () => {
+    const host = await createHost('مضيف');
+    const b = await joinPlayer(host.roomCode, 'لاعب-ب');
+    await waitForRosterConvergence([host, b], 2, 'pair');
+
+    // Simulate provider remount: drop snapshot listeners, reattach once, sync.
+    host.socket.removeAllListeners('room-players-snapshot');
+    trackClientEvents(host);
+
+    const c = await joinPlayer(host.roomCode, 'لاعب-ج');
+    await waitFor(
+      async () => (host.rosterPlayers.some((p) => p.id === c.id) ? true : null),
+      5000,
+      'host snapshot after reattach sees C',
+      100,
+    );
+
+    const synced = await syncRoom(host);
+    assert.equal(synced.length, 3);
+    assert.ok(synced.some((p) => p.id === c.id));
+    await waitForRosterConvergence([host, b, c], 3, 'post-remount');
+    await disconnectAll([host, b, c]);
+  });
+
   console.log(`\n${passed} passed, ${failed} failed`);
   process.exit(failed > 0 ? 1 : 0);
 }

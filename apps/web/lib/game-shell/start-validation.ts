@@ -1,4 +1,5 @@
-import type { GuessingChallengeMode } from '@wanasatna/shared';
+import type { GuessingChallengeMode, PregameTeamSnapshot } from '@wanasatna/shared';
+import { getGameTeamCapability } from '@wanasatna/shared';
 import { getClientGamePlugin } from '@/lib/game-plugins/registry';
 import { registerAllClientGamePlugins } from '@/plugins';
 
@@ -9,6 +10,7 @@ export function getGameStartPlayerRequirementReason(
   gameId: string | null,
   activeParticipantCount: number,
   mode?: GuessingChallengeMode,
+  teamSnapshot?: PregameTeamSnapshot | null,
 ): string | null {
   if (!gameId) {
     return null;
@@ -23,10 +25,21 @@ export function getGameStartPlayerRequirementReason(
       if (activeParticipantCount !== 4) {
         return 'تحدي التخمين (2 ضد 2) يلزم 4 لاعبين.';
       }
-      return null;
-    }
-    if (activeParticipantCount !== 2) {
+    } else if (activeParticipantCount !== 2) {
       return 'تحدي التخمين (1 ضد 1) يلزم لاعبان.';
+    }
+
+    const capability = getGameTeamCapability(gameId);
+    if (capability) {
+      const capacity = capability.capacityByMode[resolvedMode] ?? 1;
+      if (!teamSnapshot || teamSnapshot.mode !== resolvedMode) {
+        return 'يجب تجهيز توزيع الفرق قبل البدء.';
+      }
+      const blue = teamSnapshot.assignments.filter((entry) => entry.teamId === 'blue').length;
+      const red = teamSnapshot.assignments.filter((entry) => entry.teamId === 'red').length;
+      if (blue !== capacity || red !== capacity || teamSnapshot.unassignedPlayerIds.length > 0) {
+        return 'وزّع كل اللاعبين على الفريقين قبل البدء.';
+      }
     }
     return null;
   }

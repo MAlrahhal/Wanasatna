@@ -21,6 +21,10 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   PLAYER_ALREADY_COMPLETED: 'هذا اللاعب أنهى دوره بالفعل.',
   NOT_IMPOSTOR: 'فقط برا السالفة يمكنه التخمين.',
   INVALID_OPTION: 'الخيار المختار غير صالح.',
+  TEAM_NOT_SUPPORTED: 'هذه اللعبة لا تدعم توزيع الفرق.',
+  TEAM_FULL: 'هذا الفريق ممتلئ.',
+  INVALID_TEAM_ASSIGNMENT: 'توزيع الفرق غير مكتمل أو غير صالح.',
+  PLAYER_NOT_ELIGIBLE: 'هذا اللاعب غير مؤهل لتوزيع الفرق.',
 };
 
 export function getGameShellErrorMessage(code: GameErrorCode, fallback?: string): string {

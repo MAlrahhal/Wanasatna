@@ -1,5 +1,6 @@
 export * from './plugin/index.js';
 export * from './plugins/index.js';
+export * from './teams/index.js';
 export * from './constants.js';
 export * from './enums.js';
 export * from './errors.js';

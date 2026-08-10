@@ -18,7 +18,11 @@ export type GameErrorCode =
   | 'INVALID_TARGET'
   | 'PLAYER_ALREADY_COMPLETED'
   | 'NOT_IMPOSTOR'
-  | 'INVALID_OPTION';
+  | 'INVALID_OPTION'
+  | 'TEAM_NOT_SUPPORTED'
+  | 'TEAM_FULL'
+  | 'INVALID_TEAM_ASSIGNMENT'
+  | 'PLAYER_NOT_ELIGIBLE';
 
 export type GameError = {
   code: GameErrorCode;

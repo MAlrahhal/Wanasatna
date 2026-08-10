@@ -19,6 +19,7 @@ export function LobbyStartGamePanel() {
     isWaitingForNextMatch,
     timingChallengeSettings,
     guessingChallengeMode,
+    teamSnapshot,
   } = useRoom();
   const [isStarting, setIsStarting] = useState(false);
   const startingRef = useRef(false);
@@ -49,6 +50,7 @@ export function LobbyStartGamePanel() {
       selectedGameId,
       activeParticipantCount,
       selectedGameId === GUESSING_CHALLENGE_GAME_ID ? guessingChallengeMode : undefined,
+      teamSnapshot,
     );
 
     if (playerRequirementReason) {
@@ -70,6 +72,7 @@ export function LobbyStartGamePanel() {
     isWaitingForNextMatch,
     selectedGameId,
     status,
+    teamSnapshot,
     timingChallengeSettings.maxSeconds,
     timingChallengeSettings.minSeconds,
   ]);
