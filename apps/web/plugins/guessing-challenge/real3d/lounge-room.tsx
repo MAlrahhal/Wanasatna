@@ -58,8 +58,8 @@ export function LoungeRoom() {
         <meshStandardMaterial color="#2e1065" roughness={1} />
       </mesh>
 
-      {/* Neon W — emissive boxes */}
-      <NeonW position={[0, 2.55, -4.28]} />
+      {/* Neon W — far upper-left corner (not above opponent head / name) */}
+      <NeonW position={[-3.25, 2.95, -4.28]} />
 
       {/* Left shelf + props */}
       <group position={[-3.4, 0.9, -3.6]}>

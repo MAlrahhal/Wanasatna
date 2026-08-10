@@ -207,6 +207,9 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   // joined the next match after waiting out the previous one).
   const activeGameShellRef = useRef<GameShellState | null>(null);
   const removeSocketListenersRef = useRef<(() => void) | null>(null);
+  /** Guards stale room-sync ACK from regressing a newer join snapshot roster. */
+  const lastRosterSnapshotAtRef = useRef(0);
+  const lastRosterIdsRef = useRef<Set<string>>(new Set());
 
   const isHost = player?.isHost ?? false;
 
@@ -235,6 +238,8 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const applyPlayersSnapshot = useCallback((payload: RoomPlayersSnapshotPayload) => {
+    lastRosterSnapshotAtRef.current = Date.now();
+    lastRosterIdsRef.current = new Set(payload.players.map((entry) => entry.id));
     setPlayers(toLobbyPlayers(payload.players));
   }, []);
 
@@ -266,7 +271,23 @@ export function RoomProvider({ children }: { children: ReactNode }) {
 
       setRoom(normalizedRoom);
       setPlayer(data.player);
-      setPlayers(toLobbyPlayers(data.players));
+
+      // Guard against stale room-sync ACK overwriting a newer join snapshot.
+      // If we recently received a larger authoritative snapshot, do not regress
+      // the roster from a sync payload that is missing those players.
+      const nextPlayers = toLobbyPlayers(data.players);
+      const nextIds = new Set(nextPlayers.map((entry) => entry.id));
+      const snapshotAgeMs = Date.now() - lastRosterSnapshotAtRef.current;
+      const wouldRegress =
+        snapshotAgeMs < 2500 &&
+        lastRosterIdsRef.current.size > nextIds.size &&
+        [...nextIds].every((id) => lastRosterIdsRef.current.has(id));
+
+      if (!wouldRegress) {
+        lastRosterIdsRef.current = nextIds;
+        setPlayers(nextPlayers);
+      }
+
       applySessionFromData(data);
       setStatus('connected');
       setErrorMessage(null);

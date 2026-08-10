@@ -648,6 +648,118 @@ async function main(): Promise<void> {
     await disconnectAll([host, b]);
   });
 
+  await runTest('21 A+B+C roster converges on every client', async () => {
+    const host = await createHost('مضيف');
+    const b = await joinPlayer(host.roomCode, 'لاعب-ب');
+    await waitForRosterConvergence([host, b], 2, 'A+B');
+    const c = await joinPlayer(host.roomCode, 'لاعب-ج');
+    await waitForRosterConvergence([host, b, c], 3, 'A+B+C');
+
+    for (const client of [host, b, c]) {
+      const players = await syncRoom(client);
+      assert.equal(players.length, 3, `${client.name} roster size`);
+      assert.equal(rosterKey(players), rosterKey(host.rosterPlayers));
+      assert.ok(players.every((p) => p.status === 'CONNECTED'));
+    }
+    await disconnectAll([host, b, c]);
+  });
+
+  await runTest('22 A+B+C+D roster converges on every client', async () => {
+    const host = await createHost('مضيف');
+    const b = await joinPlayer(host.roomCode, 'لاعب-ب');
+    const c = await joinPlayer(host.roomCode, 'لاعب-ج');
+    const d = await joinPlayer(host.roomCode, 'لاعب-د');
+    await waitForRosterConvergence([host, b, c, d], 4, 'A+B+C+D');
+
+    const keys = await Promise.all(
+      [host, b, c, d].map(async (client) => rosterKey(await syncRoom(client))),
+    );
+    assert.ok(keys.every((key) => key === keys[0]));
+    await disconnectAll([host, b, c, d]);
+  });
+
+  await runTest('23 stale in-flight room-sync ACK cannot miss concurrent joiner', async () => {
+    const host = await createHost('مضيف');
+    const b = await joinPlayer(host.roomCode, 'لاعب-ب');
+    await waitForRosterConvergence([host, b], 2, 'pre');
+
+    // Start host sync BEFORE C joins; resolve AFTER C's join snapshot.
+    const syncStarted = ack<{
+      success: boolean;
+      data?: { players: RosterPlayer[] };
+    }>(host.socket, ROOM_SYNC_EVENT, {});
+
+    await sleep(30);
+    const c = await joinPlayer(host.roomCode, 'لاعب-ج');
+
+    await waitFor(
+      async () => (host.rosterPlayers.some((p) => p.id === c.id) ? true : null),
+      5000,
+      'host snapshot sees C',
+      50,
+    );
+
+    const syncRes = await syncStarted;
+    assert.ok(syncRes.success);
+    assert.ok(syncRes.data);
+    assert.equal(syncRes.data.players.length, 3, 'sync ACK must include C');
+    assert.ok(syncRes.data.players.some((p) => p.id === c.id));
+
+    await waitForRosterConvergence([host, b, c], 3, 'post stale-sync race');
+    await disconnectAll([host, b, c]);
+  });
+
+  await runTest('24 C disconnect/reconnect preserves 4-player roster shape', async () => {
+    const host = await createHost('مضيف');
+    const b = await joinPlayer(host.roomCode, 'لاعب-ب');
+    const c = await joinPlayer(host.roomCode, 'لاعب-ج');
+    const d = await joinPlayer(host.roomCode, 'لاعب-د');
+    await waitForRosterConvergence([host, b, c, d], 4, 'full');
+
+    await disconnectClient(c);
+    await waitFor(
+      async () => {
+        const players = await syncRoom(host);
+        return players.find((p) => p.id === c.id)?.status === 'DISCONNECTED' ? true : null;
+      },
+      5000,
+      'C disconnected',
+      100,
+    );
+
+    await reconnectClient(c);
+    await waitForRosterConvergence([host, b, c, d], 4, 'C reconnected');
+    const players = await syncRoom(host);
+    assert.equal(players.find((p) => p.id === c.id)?.status, 'CONNECTED');
+    await disconnectAll([host, b, c, d]);
+  });
+
+  await runTest('25 explicit leave removes player for remaining clients', async () => {
+    const host = await createHost('مضيف');
+    const b = await joinPlayer(host.roomCode, 'لاعب-ب');
+    const c = await joinPlayer(host.roomCode, 'لاعب-ج');
+    await waitForRosterConvergence([host, b, c], 3, 'three');
+
+    const leaveRes = await ack<{ success: boolean }>(b.socket, 'leave-room');
+    assert.ok(leaveRes.success);
+    b.socket.disconnect();
+
+    await waitFor(
+      async () => {
+        const players = await syncRoom(host);
+        return players.length === 2 && !players.some((p) => p.id === b.id) ? true : null;
+      },
+      5000,
+      'B left',
+      100,
+    );
+
+    const cView = await syncRoom(c);
+    assert.equal(cView.length, 2);
+    assert.ok(!cView.some((p) => p.id === b.id));
+    await disconnectAll([host, c]);
+  });
+
   console.log(`\n${passed} passed, ${failed} failed`);
   process.exit(failed > 0 ? 1 : 0);
 }

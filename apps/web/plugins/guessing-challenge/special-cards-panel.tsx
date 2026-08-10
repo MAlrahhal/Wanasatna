@@ -99,7 +99,7 @@ export function GuessingChallengeSpecialCardsPanel({
   return (
     <div className={cn('pointer-events-none', className)}>
       <div
-        className="pointer-events-auto absolute inset-x-2 bottom-3 flex items-end justify-between gap-3 sm:inset-x-4 sm:bottom-4"
+        className="pointer-events-auto absolute inset-x-2 top-[20%] flex items-start justify-between gap-3 sm:inset-x-5 sm:top-[22%] md:top-[24%]"
         data-testid="gc-special-cards-panel"
       >
         <PhysicalMiniCard

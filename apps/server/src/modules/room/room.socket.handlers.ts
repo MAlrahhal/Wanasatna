@@ -9,6 +9,7 @@ import {
   LOCK_ROOM_EVENT,
   PLAYER_KICKED_EVENT,
   RECONNECT_EVENT,
+  ROOM_PLAYERS_SNAPSHOT_EVENT,
   ROOM_SYNC_EVENT,
   ROOM_UPDATED_EVENT,
   UNLOCK_ROOM_EVENT,
@@ -36,7 +37,12 @@ import {
   sendInternalError,
   sendResponse,
 } from './room.socket.utils.js';
-import { broadcastRoomPlayersSnapshot, getPlayerChannel, getRoomChannel } from './room.utils.js';
+import {
+  broadcastRoomPlayersSnapshot,
+  getPlayerChannel,
+  getRoomChannel,
+  loadActiveRoomPlayers,
+} from './room.utils.js';
 
 export function registerCreateRoomHandler(socket: Socket): void {
   socket.on(
@@ -335,7 +341,7 @@ export function registerReconnectHandler(io: Server, socket: Socket): void {
   );
 }
 
-export function registerRoomSyncHandler(io: Server, socket: Socket): void {
+export function registerRoomSyncHandler(_io: Server, socket: Socket): void {
   socket.on(
     ROOM_SYNC_EVENT,
     async (_payload: unknown, callback?: (response: RoomActionResponse<unknown>) => void) => {
@@ -355,13 +361,35 @@ export function registerRoomSyncHandler(io: Server, socket: Socket): void {
         const response = await syncBoundRoomSession(playerId!, roomId!);
 
         if (response.success) {
+          // CRITICAL: Reload roster immediately before ACK.
+          // Concurrent joins can make the roster from syncBoundRoomSession stale by
+          // the time we respond. Never ACK a roster older than the live room state.
+          // Do NOT room-broadcast on sync — join/leave/disconnect already broadcast;
+          // broadcasting here raced and could also stomp clients with ordering issues.
+          if (process.env.WANASATNA_TEST_MODE === '1') {
+            // Widen the race window so integration tests can land a join between the
+            // early sync read and this final reload (production has no artificial delay).
+            await new Promise((resolve) => setTimeout(resolve, 80));
+          }
+          const freshPlayers = await loadActiveRoomPlayers(
+            roomId!,
+            response.data.room.hostPlayerId,
+          );
+          response.data = {
+            ...response.data,
+            players: freshPlayers,
+          };
+
           console.info('[room-sync]', {
             stage: 'bound-sync',
             roomId,
             playerId,
-            playerCount: response.data.players.length,
+            playerCount: freshPlayers.length,
           });
-          await broadcastRoomPlayersSnapshot(io, roomId!);
+
+          // Deliver the same authoritative roster to THIS socket as a snapshot event
+          // so listeners stay consistent with the ACK without broadcasting stale data.
+          socket.emit(ROOM_PLAYERS_SNAPSHOT_EVENT, { players: freshPlayers });
         }
 
         sendResponse(callback, response);

@@ -77,26 +77,27 @@ function TeammateSeat({
       </group>
       <Html
         center
-        position={[0, 0.08, 0.62]}
-        distanceFactor={7}
+        position={[0, 2.48, 0.12]}
+        distanceFactor={7.5}
         style={{ pointerEvents: 'none', userSelect: 'none' }}
-        zIndexRange={[5, 0]}
+        zIndexRange={[40, 20]}
+        occlude={false}
       >
         <div
           data-testid="gc-teammate-character"
-          data-name-anchor="below-seat"
+          data-name-anchor="above-head"
           dir="rtl"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.35rem',
-            padding: '0.2rem 0.55rem',
+            padding: '0.22rem 0.6rem',
             borderRadius: '999px',
-            background: 'rgba(15,23,42,0.72)',
-            border: '1px solid rgba(255,255,255,0.18)',
+            background: 'rgba(15,23,42,0.78)',
+            border: '1px solid rgba(255,255,255,0.2)',
             color: '#f8fafc',
             fontWeight: 700,
-            fontSize: '0.72rem',
+            fontSize: '0.74rem',
             whiteSpace: 'nowrap',
           }}
         >

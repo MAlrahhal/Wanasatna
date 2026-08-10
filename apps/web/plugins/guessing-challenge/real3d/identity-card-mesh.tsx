@@ -1,8 +1,6 @@
 'use client';
 
-import { Html } from '@react-three/drei';
-import { useFrame } from '@react-three/fiber';
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 
 export type IdentityCardMeshProps = {
@@ -14,11 +12,56 @@ export type IdentityCardMeshProps = {
   flipKey?: string;
   reduceMotion?: boolean;
   testId?: string;
-  children?: ReactNode;
 };
 
+function buildCardTexture(
+  text: string,
+  label: string | undefined,
+  highlight: boolean,
+): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 360;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    return new THREE.CanvasTexture(canvas);
+  }
+
+  ctx.fillStyle = highlight ? '#ecfdf5' : '#f8fafc';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.strokeStyle = highlight ? '#86efac' : '#cbd5e1';
+  ctx.lineWidth = 14;
+  ctx.strokeRect(18, 18, canvas.width - 36, canvas.height - 36);
+
+  ctx.fillStyle = highlight ? '#14532d' : '#0f172a';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.direction = 'rtl';
+
+  if (label) {
+    ctx.font = '600 28px Segoe UI, Tahoma, Arial, sans-serif';
+    ctx.globalAlpha = 0.55;
+    ctx.fillText(label, canvas.width / 2, 78);
+    ctx.globalAlpha = 1;
+  }
+
+  const mainSize =
+    text === '؟؟؟' ? 120 : Math.min(96, Math.floor(420 / Math.max(1, text.length * 0.55)));
+  ctx.font = '800 ' + String(mainSize) + 'px Segoe UI, Tahoma, Arial, sans-serif';
+  ctx.fillText(text || '-', canvas.width / 2, label ? 200 : 180);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 4;
+  texture.needsUpdate = true;
+  return texture;
+}
+
 /**
- * Physical white identity card — Arabic text sits ON the card face via Drei Html.
+ * Physical white identity card — identity word painted ON the card face.
+ * Drei Html+transform was blank in production (occlusion / nested transforms).
+ * Unlit canvas texture on both faces so lighting cannot wash the word out.
  */
 export function IdentityCardMesh({
   text,
@@ -27,80 +70,53 @@ export function IdentityCardMesh({
   width = 0.55,
   height = 0.38,
   flipKey = '',
-  reduceMotion = false,
   testId = 'gc-identity-card-mesh',
-  children,
 }: IdentityCardMeshProps) {
-  const group = useRef<THREE.Group>(null);
-  const flipProgress = useRef(1);
-  const prevKey = useRef(flipKey);
+  const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null);
 
   useEffect(() => {
-    if (prevKey.current && prevKey.current !== flipKey) {
-      flipProgress.current = reduceMotion ? 1 : 0;
-      if (group.current && reduceMotion) {
-        group.current.rotation.y = 0;
-      }
+    if (typeof document === 'undefined') {
+      return;
     }
-    prevKey.current = flipKey;
-  }, [flipKey, reduceMotion]);
+    const next = buildCardTexture(text, label, highlight);
+    setTexture(next);
+    return () => {
+      next.dispose();
+    };
+  }, [text, label, highlight, flipKey]);
 
-  useFrame((_, delta) => {
-    if (!group.current || reduceMotion || flipProgress.current >= 1) return;
-    flipProgress.current = Math.min(1, flipProgress.current + delta * 2.4);
-    group.current.rotation.y = flipProgress.current * Math.PI * 2;
-    if (flipProgress.current >= 1) {
-      group.current.rotation.y = 0;
-    }
-  });
+  const faceW = width * 0.92;
+  const faceH = height * 0.88;
+  const faceZ = 0.0155;
 
   return (
-    <group ref={group}>
+    <group userData={{ testId, identityText: text, flipKey }}>
       <mesh castShadow>
         <boxGeometry args={[width, height, 0.028]} />
         <meshStandardMaterial
-          color={highlight ? '#ecfdf5' : '#f8fafc'}
-          emissive={highlight ? '#86efac' : '#e2e8f0'}
-          emissiveIntensity={highlight ? 0.18 : 0.04}
-          roughness={0.55}
-          metalness={0.05}
+          color={highlight ? '#ecfdf5' : '#f1f5f9'}
+          roughness={0.7}
+          metalness={0.04}
         />
       </mesh>
-      {/* Soft border rim */}
-      <mesh position={[0, 0, 0.001]}>
-        <boxGeometry args={[width * 0.92, height * 0.88, 0.01]} />
-        <meshStandardMaterial color={highlight ? '#d1fae5' : '#f1f5f9'} roughness={0.7} />
+      {/* Front face (+Z) — primary camera view */}
+      <mesh position={[0, 0, faceZ]} name={testId}>
+        <planeGeometry args={[faceW, faceH]} />
+        {texture ? (
+          <meshBasicMaterial map={texture} toneMapped={false} />
+        ) : (
+          <meshBasicMaterial color={highlight ? '#ecfdf5' : '#f8fafc'} />
+        )}
       </mesh>
-      <Html
-        center
-        transform
-        position={[0, 0, 0.02]}
-        distanceFactor={1.85}
-        style={{ pointerEvents: 'none', userSelect: 'none' }}
-        zIndexRange={[12, 0]}
-      >
-        <div
-          data-testid={testId}
-          data-identity-key={flipKey}
-          dir="rtl"
-          style={{
-            width: `${width * 9.2}rem`,
-            textAlign: 'center',
-            color: highlight ? '#14532d' : '#0f172a',
-            fontWeight: 800,
-            lineHeight: 1.15,
-            pointerEvents: 'none',
-          }}
-        >
-          {label ? (
-            <div style={{ fontSize: '0.55rem', opacity: 0.55, fontWeight: 600 }}>{label}</div>
-          ) : null}
-          <div style={{ fontSize: text === '؟؟؟' ? '1.35rem' : '0.95rem', marginTop: label ? 2 : 0 }}>
-            {text}
-          </div>
-          {children}
-        </div>
-      </Html>
+      {/* Back face (−Z) — if card tilts away, word still reads */}
+      <mesh position={[0, 0, -faceZ]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[faceW, faceH]} />
+        {texture ? (
+          <meshBasicMaterial map={texture} toneMapped={false} />
+        ) : (
+          <meshBasicMaterial color={highlight ? '#ecfdf5' : '#f8fafc'} />
+        )}
+      </mesh>
     </group>
   );
 }
