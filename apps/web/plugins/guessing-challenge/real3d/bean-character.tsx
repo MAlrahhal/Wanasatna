@@ -1,5 +1,6 @@
 'use client';
 
+import { Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type ReactNode } from 'react';
 import * as THREE from 'three';
@@ -17,6 +18,8 @@ export type BeanCharacterProps = {
   holdHand?: 'both' | 'left' | 'right';
   reduceMotion?: boolean;
   scale?: number;
+  /** Small name badge parented to the head (world-space via Html). */
+  nameBadge?: ReactNode;
 };
 
 const TINTS: Record<
@@ -55,18 +58,21 @@ export function BeanCharacter({
   holdHand = 'both',
   reduceMotion = false,
   scale = 1,
+  nameBadge = null,
 }: BeanCharacterProps) {
   const root = useRef<THREE.Group>(null);
   const body = useRef<THREE.Group>(null);
   const head = useRef<THREE.Group>(null);
   const breath = useRef(0);
   const colors = useMemo(() => TINTS[teamTint], [teamTint]);
+  // Remote head vertical: negate pitch so mouse/camera UP → head looks UP.
+  const headPitch = -lookPitch;
 
   useFrame((_, delta) => {
     if (reduceMotion) {
       if (head.current) {
         head.current.rotation.y = lookYaw * 0.35;
-        head.current.rotation.x = lookPitch * 0.25;
+        head.current.rotation.x = headPitch * 0.25;
       }
       // Body stays mostly forward — only tiny look sway.
       if (body.current) {
@@ -98,7 +104,7 @@ export function BeanCharacter({
       );
       head.current.rotation.x = THREE.MathUtils.damp(
         head.current.rotation.x,
-        lookPitch * 0.28,
+        headPitch * 0.28,
         7,
         delta,
       );
@@ -144,7 +150,7 @@ export function BeanCharacter({
           <meshStandardMaterial color={colors.pants} />
         </mesh>
 
-        {/* Head */}
+        {/* Head — name badge parented here (~0.2 above head top) */}
         <group ref={head} position={[0, 0.72, 0.02]}>
           <mesh castShadow>
             <sphereGeometry args={[0.26, 18, 14]} />
@@ -172,6 +178,23 @@ export function BeanCharacter({
             <sphereGeometry args={[0.028, 8, 6]} />
             <meshStandardMaterial color="#0f172a" />
           </mesh>
+          {nameBadge ? (
+            <Html
+              position={[0, 0.32, 0]}
+              occlude={false}
+              zIndexRange={[40, 20]}
+              style={{
+                pointerEvents: 'none',
+                userSelect: 'none',
+                direction: 'ltr',
+                // Explicit centering — Drei `center` breaks under page dir=rtl.
+                transform: 'translate(-50%, -100%)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {nameBadge}
+            </Html>
+          ) : null}
         </group>
 
         {/* Left arm + mitt */}

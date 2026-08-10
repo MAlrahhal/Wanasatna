@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import * as THREE from 'three';
 
 export type IdentityCardMeshProps = {
@@ -14,54 +14,66 @@ export type IdentityCardMeshProps = {
   testId?: string;
 };
 
-function buildCardTexture(
+const FONT_STACK =
+  '"Segoe UI", "Noto Naskh Arabic", "Noto Sans Arabic", Tahoma, Arial, sans-serif';
+
+function paintCard(
+  canvas: HTMLCanvasElement,
   text: string,
   label: string | undefined,
   highlight: boolean,
-): THREE.CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 360;
-  const ctx = canvas.getContext('2d');
+): void {
+  const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) {
-    return new THREE.CanvasTexture(canvas);
+    return;
   }
 
-  ctx.fillStyle = highlight ? '#ecfdf5' : '#f8fafc';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = highlight ? '#ecfdf5' : '#ffffff';
+  ctx.fillRect(0, 0, w, h);
 
-  ctx.strokeStyle = highlight ? '#86efac' : '#cbd5e1';
-  ctx.lineWidth = 14;
-  ctx.strokeRect(18, 18, canvas.width - 36, canvas.height - 36);
+  ctx.strokeStyle = highlight ? '#22c55e' : '#94a3b8';
+  ctx.lineWidth = 16;
+  ctx.strokeRect(14, 14, w - 28, h - 28);
 
   ctx.fillStyle = highlight ? '#14532d' : '#0f172a';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.direction = 'rtl';
 
   if (label) {
-    ctx.font = '600 28px Segoe UI, Tahoma, Arial, sans-serif';
+    ctx.font = `600 30px ${FONT_STACK}`;
     ctx.globalAlpha = 0.55;
-    ctx.fillText(label, canvas.width / 2, 78);
+    ctx.direction = 'rtl';
+    ctx.fillText(label, w / 2, 70);
     ctx.globalAlpha = 1;
   }
 
-  const mainSize =
-    text === '؟؟؟' ? 120 : Math.min(96, Math.floor(420 / Math.max(1, text.length * 0.55)));
-  ctx.font = '800 ' + String(mainSize) + 'px Segoe UI, Tahoma, Arial, sans-serif';
-  ctx.fillText(text || '-', canvas.width / 2, label ? 200 : 180);
+  const display = text.trim() || '؟؟؟';
+  const size =
+    display === '؟؟؟' ? 150 : Math.min(120, Math.floor(500 / Math.max(1, display.length * 0.5)));
+  ctx.font = `800 ${size}px ${FONT_STACK}`;
+  ctx.direction = 'rtl';
+  ctx.fillText(display, w / 2, label ? 205 : 185);
+}
 
+function createTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 360;
   const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 4;
+  texture.colorSpace = THREE.NoColorSpace;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = false;
   texture.needsUpdate = true;
   return texture;
 }
 
 /**
- * Physical white identity card — identity word painted ON the card face.
- * Drei Html+transform was blank in production (occlusion / nested transforms).
- * Unlit canvas texture on both faces so lighting cannot wash the word out.
+ * Physical identity card — word painted ON the face via CanvasTexture.
+ * (Drei Html was clipped / flipped / RTL-offset in the real browser.)
  */
 export function IdentityCardMesh({
   text,
@@ -72,49 +84,65 @@ export function IdentityCardMesh({
   flipKey = '',
   testId = 'gc-identity-card-mesh',
 }: IdentityCardMeshProps) {
-  const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null);
+  const [texture] = useState(() => (typeof document !== 'undefined' ? createTexture() : null));
+  const display = (text || '').trim() || '؟؟؟';
+  const paintKey = `${display}|${label ?? ''}|${highlight}|${flipKey}`;
 
-  useEffect(() => {
-    if (typeof document === 'undefined') {
+  useLayoutEffect(() => {
+    if (!texture) {
       return;
     }
-    const next = buildCardTexture(text, label, highlight);
-    setTexture(next);
-    return () => {
-      next.dispose();
+    const canvas = texture.image as HTMLCanvasElement;
+    const run = () => {
+      paintCard(canvas, display, label, highlight);
+      texture.needsUpdate = true;
     };
-  }, [text, label, highlight, flipKey]);
+    run();
+    const fonts = typeof document !== 'undefined' ? document.fonts?.ready : null;
+    let raf = 0;
+    if (fonts) {
+      void fonts.then(() => {
+        run();
+        raf = window.requestAnimationFrame(run);
+      });
+    } else {
+      raf = window.requestAnimationFrame(run);
+    }
+    return () => {
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, [texture, paintKey, display, label, highlight]);
 
-  const faceW = width * 0.92;
-  const faceH = height * 0.88;
-  const faceZ = 0.0155;
+  useLayoutEffect(() => {
+    return () => {
+      texture?.dispose();
+    };
+  }, [texture]);
+
+  const faceColor = highlight ? '#ecfdf5' : '#ffffff';
+  const faceW = width * 0.94;
+  const faceH = height * 0.9;
 
   return (
-    <group userData={{ testId, identityText: text, flipKey }}>
-      <mesh castShadow>
-        <boxGeometry args={[width, height, 0.028]} />
-        <meshStandardMaterial
-          color={highlight ? '#ecfdf5' : '#f1f5f9'}
-          roughness={0.7}
-          metalness={0.04}
-        />
+    <group userData={{ testId, identityText: display, flipKey }}>
+      <mesh>
+        <boxGeometry args={[width, height, 0.024]} />
+        <meshBasicMaterial color={faceColor} />
       </mesh>
-      {/* Front face (+Z) — primary camera view */}
-      <mesh position={[0, 0, faceZ]} name={testId}>
+      <mesh position={[0, 0, 0.013]} name={testId} userData={{ testId, identityText: display }}>
         <planeGeometry args={[faceW, faceH]} />
         {texture ? (
           <meshBasicMaterial map={texture} toneMapped={false} />
         ) : (
-          <meshBasicMaterial color={highlight ? '#ecfdf5' : '#f8fafc'} />
+          <meshBasicMaterial color={faceColor} />
         )}
       </mesh>
-      {/* Back face (−Z) — if card tilts away, word still reads */}
-      <mesh position={[0, 0, -faceZ]} rotation={[0, Math.PI, 0]}>
+      <mesh position={[0, 0, -0.013]} rotation={[0, Math.PI, 0]}>
         <planeGeometry args={[faceW, faceH]} />
         {texture ? (
           <meshBasicMaterial map={texture} toneMapped={false} />
         ) : (
-          <meshBasicMaterial color={highlight ? '#ecfdf5' : '#f8fafc'} />
+          <meshBasicMaterial color={faceColor} />
         )}
       </mesh>
     </group>

@@ -1,6 +1,5 @@
 'use client';
 
-import { Html } from '@react-three/drei';
 import type { GuessingChallengeVisibleIdentity } from '@wanasatna/shared';
 import { resolveIdentityCardText } from '../identity-display';
 import { BeanCharacter, type BeanTeamTint } from './bean-character';
@@ -34,9 +33,54 @@ const DOT_COLORS: Record<'blue' | 'red' | 'opponent', string> = {
   opponent: '#c4b5fd',
 };
 
+function NameBadge({
+  name,
+  teamDot,
+  testId,
+  nameTestId,
+}: {
+  name: string;
+  teamDot: 'blue' | 'red' | 'opponent';
+  testId: string;
+  nameTestId: string;
+}) {
+  return (
+    <div
+      data-testid={testId}
+      data-name-anchor="above-head"
+      dir="rtl"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '0.3rem',
+        padding: '0.16rem 0.48rem',
+        borderRadius: '999px',
+        background: 'rgba(15,23,42,0.78)',
+        border: '1px solid rgba(255,255,255,0.2)',
+        color: '#f8fafc',
+        fontWeight: 700,
+        fontSize: '0.68rem',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <span
+        aria-hidden
+        style={{
+          width: '0.42rem',
+          height: '0.42rem',
+          borderRadius: '999px',
+          background: DOT_COLORS[teamDot],
+          flexShrink: 0,
+        }}
+      />
+      <span data-testid={nameTestId}>{name}</span>
+    </div>
+  );
+}
+
 /**
  * Bean character seated in orange armchair.
- * Name label is anchored ABOVE the head — never on the identity card.
+ * Name badge is parented to the head bone (not a floating room-space label).
  */
 export function LowPolyOpponent({
   name,
@@ -60,7 +104,7 @@ export function LowPolyOpponent({
   const identityKey = identity?.value ?? '';
 
   return (
-    <group position={position} rotation={[0, rotationY, 0]} data-seat-facing="forward">
+    <group position={position} rotation={[0, rotationY, 0]} userData={{ seatFacing: 'forward' }}>
       <OrangeArmchair />
 
       <group position={[0, 0.4, 0.06]}>
@@ -71,6 +115,9 @@ export function LowPolyOpponent({
           reduceMotion={reduceMotion}
           reachToward={reachToward}
           holdHand={holdHand}
+          nameBadge={
+            <NameBadge name={name} teamDot={teamDot} testId={testId} nameTestId={nameTestId} />
+          }
           holdCard={
             holdOwnCard ? (
               <IdentityCardMesh
@@ -85,47 +132,6 @@ export function LowPolyOpponent({
           }
         />
       </group>
-
-      {/* Name ABOVE head (head top ≈ 1.93) — clear of held identity card */}
-      <Html
-        center
-        position={[0, 2.48, 0.12]}
-        distanceFactor={7.5}
-        style={{ pointerEvents: 'none', userSelect: 'none' }}
-        zIndexRange={[40, 20]}
-        occlude={false}
-      >
-        <div
-          data-testid={testId}
-          data-name-anchor="above-head"
-          dir="rtl"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.35rem',
-            padding: '0.22rem 0.6rem',
-            borderRadius: '999px',
-            background: 'rgba(15,23,42,0.78)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: '#f8fafc',
-            fontWeight: 700,
-            fontSize: '0.74rem',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          <span
-            aria-hidden
-            style={{
-              width: '0.5rem',
-              height: '0.5rem',
-              borderRadius: '999px',
-              background: DOT_COLORS[teamDot],
-              flexShrink: 0,
-            }}
-          />
-          <span data-testid={nameTestId}>{name}</span>
-        </div>
-      </Html>
     </group>
   );
 }

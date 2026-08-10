@@ -91,7 +91,8 @@ export function FirstPersonHands({
         </group>
 
         {/* Self identity card between hands */}
-        <group position={[0, 0.08, 0.12]} rotation={[-0.25, 0, 0]}>
+        <pointLight intensity={0.85} distance={2.2} color="#fff7ed" position={[0, 0.2, 0.35]} />
+        <group position={[0, 0.08, 0.12]} rotation={[Math.PI + 0.2, 0, 0]}>
           <IdentityCardMesh
             text={cardText}
             label={revealed ? 'كنت' : `${selfName} · هويتك`}

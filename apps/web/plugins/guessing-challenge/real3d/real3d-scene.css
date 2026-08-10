@@ -2,11 +2,17 @@
   height: min(62vh, 480px);
   min-height: 240px;
   border-radius: 1.5rem;
-  overflow: hidden;
+  /* visible so Drei Html(transform) card text is not clipped */
+  overflow: visible;
   border: 1px solid rgba(167, 139, 250, 0.35);
   background: #2e1065;
   touch-action: none;
   width: 100%;
+}
+
+.gc-real3d-canvas-shell canvas {
+  border-radius: 1.5rem;
+  display: block;
 }
 
 @media (max-width: 639px) {
