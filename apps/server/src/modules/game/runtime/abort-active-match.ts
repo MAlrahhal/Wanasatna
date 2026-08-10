@@ -1,7 +1,7 @@
 import type { Server } from 'socket.io';
 import type { GameShellAbortReason } from '@wanasatna/shared';
 import { prisma } from '../../../lib/prisma.js';
-import { broadcastRoomPlayersSnapshot } from '../../room/room.utils.js';
+import { broadcastRoomPlayersSnapshot, loadActiveRoomPlayers } from '../../room/room.utils.js';
 import { deleteGameShell, getGameShellByRoomId } from '../game.service.js';
 import { cleanupGameShellRuntime, navigateRoomToLobby } from '../game.lifecycle.js';
 import { clearPlayerRecoveryForTeardown } from './player-recovery.js';
@@ -46,11 +46,14 @@ export async function abortActiveMatch(
 
   const room = await prisma.room.findUnique({
     where: { id: roomId },
-    select: { code: true },
+    select: { code: true, hostPlayerId: true },
   });
 
-  // End GAME only — room membership is untouched. Rebroadcast roster so every
-  // client converging on /lobby shares the same authoritative players list.
+  // End GAME only — room membership is untouched. Roster must come from ACTIVE
+  // Room players (not matchParticipantIds). Rebroadcast so every client
+  // converging on /lobby shares the same authoritative list.
+  const roster = room ? await loadActiveRoomPlayers(roomId, room.hostPlayerId) : [];
+
   await broadcastRoomPlayersSnapshot(io, roomId);
 
   navigateRoomToLobby(io, roomId, {
@@ -63,6 +66,7 @@ export async function abortActiveMatch(
     stage: 'end-game-to-lobby',
     roomId,
     reason,
+    playerCount: roster.length,
   });
 
   return true;

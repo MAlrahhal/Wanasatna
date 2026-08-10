@@ -250,11 +250,32 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     return response;
   }, []);
 
-  const applyPlayersSnapshot = useCallback((payload: RoomPlayersSnapshotPayload) => {
+  const applyRosterPlayers = useCallback((nextPlayers: LobbyPlayer[]) => {
+    const nextIds = new Set(nextPlayers.map((entry) => entry.id));
+    const snapshotAgeMs = Date.now() - lastRosterSnapshotAtRef.current;
+    // Reject a smaller roster that is a subset of a roster we applied moments ago.
+    // Covers both session ACK and snapshot-event paths (End Game remount races).
+    const wouldRegress =
+      lastRosterIdsRef.current.size > 0 &&
+      snapshotAgeMs < 2500 &&
+      lastRosterIdsRef.current.size > nextIds.size &&
+      [...nextIds].every((id) => lastRosterIdsRef.current.has(id));
+
+    if (wouldRegress) {
+      return;
+    }
+
     lastRosterSnapshotAtRef.current = Date.now();
-    lastRosterIdsRef.current = new Set(payload.players.map((entry) => entry.id));
-    setPlayers(toLobbyPlayers(payload.players));
+    lastRosterIdsRef.current = nextIds;
+    setPlayers(nextPlayers);
   }, []);
+
+  const applyPlayersSnapshot = useCallback(
+    (payload: RoomPlayersSnapshotPayload) => {
+      applyRosterPlayers(toLobbyPlayers(payload.players));
+    },
+    [applyRosterPlayers],
+  );
 
   const applyHostChange = useCallback((payload: HostChangedPayload) => {
     setRoom((current) =>
@@ -285,21 +306,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       setRoom(normalizedRoom);
       setPlayer(data.player);
 
-      // Guard against stale room-sync ACK overwriting a newer join snapshot.
-      // If we recently received a larger authoritative snapshot, do not regress
-      // the roster from a sync payload that is missing those players.
-      const nextPlayers = toLobbyPlayers(data.players);
-      const nextIds = new Set(nextPlayers.map((entry) => entry.id));
-      const snapshotAgeMs = Date.now() - lastRosterSnapshotAtRef.current;
-      const wouldRegress =
-        snapshotAgeMs < 2500 &&
-        lastRosterIdsRef.current.size > nextIds.size &&
-        [...nextIds].every((id) => lastRosterIdsRef.current.has(id));
-
-      if (!wouldRegress) {
-        lastRosterIdsRef.current = nextIds;
-        setPlayers(nextPlayers);
-      }
+      applyRosterPlayers(toLobbyPlayers(data.players));
 
       applySessionFromData(data);
       setStatus('connected');
@@ -326,7 +333,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         router.replace(nextUrl, { scroll: false });
       }
     },
-    [router],
+    [applyRosterPlayers, router],
   );
 
   const handleFailure = useCallback((code: RoomErrorCode, fallback?: string) => {
@@ -700,31 +707,65 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   connectToRoomRef.current = connectToRoom;
 
   useEffect(() => {
+    const resumeOwner = Symbol('room-provider-resume');
+    let cancelled = false;
+
     setRoomSessionResumeListener((data) => {
       applyRoomSession(data);
-    });
+    }, resumeOwner);
 
     void (async () => {
-      await connectToRoom();
-      const attemptAfterConnect = connectionAttemptRef.current;
+      const storedSession = readRoomSession();
+      const entryIntent = resolveRoomEntryIntent(searchParamsRef.current, storedSession);
 
-      // After /game → /lobby (or any remount), force an authoritative rebind/sync so
-      // React roster state cannot diverge from server socket membership.
-      if (!readRoomSession()) {
+      // /game → /lobby remount (and /lobby ↔ /game): when identity already exists,
+      // prefer bound room-sync over a full reconnect. Reconnect force-disconnects
+      // sibling sockets and rebroadcasts — that race was collapsing Host's roster.
+      if (entryIntent.type === 'reconnect') {
+        const ready = await ensureSocketReady(() => cancelled);
+
+        if (cancelled || !ready) {
+          return;
+        }
+
+        const synced = await rebindRoomSocketFromStoredSession();
+
+        if (cancelled) {
+          return;
+        }
+
+        if (synced) {
+          applyRoomSession(synced);
+          const restoredGameId = readSelectedGameId();
+          setSelectedGameId(restoredGameId);
+          setSelectedRoundCategoryId(getDefaultRoundCategoryId(restoredGameId));
+          await redirectIfActiveGameShell(synced.player.id);
+          return;
+        }
+      }
+
+      if (cancelled) {
+        return;
+      }
+
+      await connectToRoom();
+
+      if (cancelled || !readRoomSession()) {
         return;
       }
 
       const synced = await rebindRoomSocketFromStoredSession();
 
-      if (synced && connectionAttemptRef.current === attemptAfterConnect) {
+      if (!cancelled && synced) {
         applyRoomSession(synced);
       }
     })();
 
     return () => {
+      cancelled = true;
       connectionAttemptRef.current += 1;
       removeSocketListenersRef.current?.();
-      setRoomSessionResumeListener(null);
+      setRoomSessionResumeListener(null, resumeOwner);
     };
     // Connect once on mount; URL params are read via searchParamsRef.
     // eslint-disable-next-line react-hooks/exhaustive-deps

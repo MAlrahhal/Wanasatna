@@ -12,10 +12,30 @@ import { getRoomSocket, waitForRoomSocketConnection } from '@/lib/room/socket';
 type SessionListener = (data: RoomSessionData) => void;
 
 let sessionListener: SessionListener | null = null;
+let sessionListenerOwner: symbol | null = null;
 let resumeInFlight: Promise<RoomSessionData | null> | null = null;
 
-export function setRoomSessionResumeListener(listener: SessionListener | null): void {
+/**
+ * Register the active RoomProvider's session resume listener.
+ * Pass the same owner symbol when clearing so a remounting Lobby provider is
+ * not wiped by a lagging Game provider unmount (/game → /lobby).
+ */
+export function setRoomSessionResumeListener(
+  listener: SessionListener | null,
+  owner?: symbol,
+): void {
+  if (listener === null) {
+    if (owner && sessionListenerOwner !== owner) {
+      return;
+    }
+
+    sessionListener = null;
+    sessionListenerOwner = null;
+    return;
+  }
+
   sessionListener = listener;
+  sessionListenerOwner = owner ?? null;
 }
 
 function emitWithAck<T>(event: string, payload: unknown): Promise<RoomActionResponse<T>> {

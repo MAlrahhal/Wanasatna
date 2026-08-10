@@ -3,7 +3,7 @@ import { PlayerStatus, Prisma, RoomStatus, SessionType } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
 import type { RoomActionResponse, RoomSessionData } from '@wanasatna/shared';
 import { validateCreateRoomPayload } from '../room.validators.js';
-import { generateUniqueRoomCode, mapRoomSession } from '../room.utils.js';
+import { generateUniqueRoomCode, loadActiveRoomPlayers, mapRoomSession } from '../room.utils.js';
 import { generateReconnectToken, hashReconnectToken } from '../reconnect-token.js';
 import { serviceError } from './shared-room.service.js';
 
@@ -70,10 +70,15 @@ export async function createRoom(payload: unknown): Promise<RoomActionResponse<R
       });
     });
 
-    logCreateRoomDiagnostic('success', { callbackErrorCode: 'none' });
+    const players = await loadActiveRoomPlayers(room.id, room.hostPlayerId);
+
+    logCreateRoomDiagnostic('success', {
+      callbackErrorCode: 'none',
+      playerCount: players.length,
+    });
     return {
       success: true,
-      data: mapRoomSession(room, room.hostPlayer, undefined, reconnectToken),
+      data: mapRoomSession(room, room.hostPlayer, players, reconnectToken),
     };
   } catch (error) {
     const prismaCode =
