@@ -75,6 +75,7 @@ export function trackClientEvents(client: TestClient): void {
   client.socket.on(
     'room-players-snapshot',
     (payload: {
+      roomId?: string;
       players: Array<{ id: string; name: string; status: string; isHost: boolean }>;
     }) => {
       client.roster.length = 0;

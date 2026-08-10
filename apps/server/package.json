@@ -34,6 +34,7 @@
     "test:restart-game": "tsx tests/restart-game.integration.test.ts",
     "test:game-shell-lifecycle": "tsx tests/game-shell-lifecycle.integration.test.ts",
     "test:endgame-roster": "tsx tests/endgame-roster.integration.test.ts",
+    "test:cross-room-identity": "tsx tests/cross-room-identity.integration.test.ts",
     "test:server": "cross-env WANASATNA_TEST_MODE=1 PORT=4001 CLIENT_ORIGIN=http://localhost:3000 tsx src/index.ts",
     "test:all": "pnpm run test:unit && pnpm run test:multiplayer && pnpm run test:lifecycle && pnpm run test:reconnect && pnpm run test:fresh-join && pnpm run test:hardening && pnpm run test:room-lifecycle && pnpm run test:restart-game && pnpm run test:game-shell-lifecycle && pnpm run test:endgame-roster"
   },

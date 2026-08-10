@@ -408,7 +408,10 @@ export function registerRoomSyncHandler(_io: Server, socket: Socket): void {
 
           // Deliver the same authoritative roster to THIS socket as a snapshot event
           // so listeners stay consistent with the ACK without broadcasting stale data.
-          socket.emit(ROOM_PLAYERS_SNAPSHOT_EVENT, { players: freshPlayers });
+          socket.emit(ROOM_PLAYERS_SNAPSHOT_EVENT, {
+            roomId: roomId!,
+            players: freshPlayers,
+          });
         }
 
         sendResponse(callback, response);

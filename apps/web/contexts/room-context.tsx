@@ -63,6 +63,7 @@ import { emitGameShellWithAck } from '@/lib/game-shell/emit';
 import { getGameShellErrorMessage } from '@/lib/game-shell/error-messages';
 import { hasClientGamePlugin } from '@/lib/game-plugins/registry';
 import { normalizeRoomDates, toLobbyPlayers } from '@/lib/room/map-player';
+import { leaveActiveRoom } from '@/lib/room/navigation-guard';
 import {
   beginNewRoomIdentity,
   buildLobbyUrl,
@@ -250,11 +251,12 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     return response;
   }, []);
 
-  const applyRosterPlayers = useCallback((nextPlayers: LobbyPlayer[]) => {
+  const roomIdRef = useRef<string | null>(null);
+
+  const applyRosterPlayersFromSession = useCallback((nextPlayers: LobbyPlayer[]) => {
     const nextIds = new Set(nextPlayers.map((entry) => entry.id));
     const snapshotAgeMs = Date.now() - lastRosterSnapshotAtRef.current;
-    // Reject a smaller roster that is a subset of a roster we applied moments ago.
-    // Covers both session ACK and snapshot-event paths (End Game remount races).
+    // Guard only session/sync ACKs — never block authoritative leave/kick snapshots.
     const wouldRegress =
       lastRosterIdsRef.current.size > 0 &&
       snapshotAgeMs < 2500 &&
@@ -270,12 +272,18 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     setPlayers(nextPlayers);
   }, []);
 
-  const applyPlayersSnapshot = useCallback(
-    (payload: RoomPlayersSnapshotPayload) => {
-      applyRosterPlayers(toLobbyPlayers(payload.players));
-    },
-    [applyRosterPlayers],
-  );
+  const applyPlayersSnapshot = useCallback((payload: RoomPlayersSnapshotPayload) => {
+    const currentRoomId = roomIdRef.current ?? readRoomSession()?.roomId ?? null;
+
+    // Ignore snapshots from a room this tab is no longer bound to.
+    if (payload.roomId && currentRoomId && payload.roomId !== currentRoomId) {
+      return;
+    }
+
+    lastRosterSnapshotAtRef.current = Date.now();
+    lastRosterIdsRef.current = new Set(payload.players.map((entry) => entry.id));
+    setPlayers(toLobbyPlayers(payload.players));
+  }, []);
 
   const applyHostChange = useCallback((payload: HostChangedPayload) => {
     setRoom((current) =>
@@ -302,11 +310,18 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   const applyRoomSession = useCallback(
     (data: RoomSessionData) => {
       const normalizedRoom = normalizeRoomDates(data.room);
+      const urlCode = searchParamsRef.current.get('code')?.trim() ?? '';
+
+      // Never apply Room A session while URL explicitly targets Room B.
+      if (urlCode && normalizedRoom.code !== urlCode) {
+        return;
+      }
 
       setRoom(normalizedRoom);
+      roomIdRef.current = normalizedRoom.id;
       setPlayer(data.player);
 
-      applyRosterPlayers(toLobbyPlayers(data.players));
+      applyRosterPlayersFromSession(toLobbyPlayers(data.players));
 
       applySessionFromData(data);
       setStatus('connected');
@@ -333,7 +348,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         router.replace(nextUrl, { scroll: false });
       }
     },
-    [applyRosterPlayers, router],
+    [applyRosterPlayersFromSession, router],
   );
 
   const handleFailure = useCallback((code: RoomErrorCode, fallback?: string) => {
@@ -382,6 +397,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     const onPlayerKicked = (payload: PlayerKickedPayload) => {
       setRoomSessionResumeListener(null);
       beginNewRoomIdentity();
+      roomIdRef.current = null;
       setStatus('error');
       setErrorMessage('تم طردك من الغرفة.');
       setRoom(null);
@@ -715,7 +731,20 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     }, resumeOwner);
 
     void (async () => {
-      const storedSession = readRoomSession();
+      let storedSession = readRoomSession();
+      const urlCode = searchParamsRef.current.get('code')?.trim() ?? '';
+
+      // Cross-room navigation: leave the old room on the server before adopting
+      // the new URL intent. Never let Room A session win over Room B's code.
+      if (urlCode && storedSession && storedSession.roomCode !== urlCode) {
+        await leaveActiveRoom();
+        roomIdRef.current = null;
+        if (cancelled) {
+          return;
+        }
+        storedSession = readRoomSession();
+      }
+
       const entryIntent = resolveRoomEntryIntent(searchParamsRef.current, storedSession);
 
       // /game → /lobby remount (and /lobby ↔ /game): when identity already exists,
@@ -770,6 +799,38 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     // Connect once on mount; URL params are read via searchParamsRef.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Soft-nav /lobby?code=A → /lobby?code=B does not remount RoomProvider.
+  // Detect URL room changes and leave the old room before resolving new intent.
+  const urlRoomCode = searchParams.get('code')?.trim() ?? '';
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      const storedSession = readRoomSession();
+      if (!urlRoomCode || !storedSession || storedSession.roomCode === urlRoomCode) {
+        return;
+      }
+
+      await leaveActiveRoom();
+      roomIdRef.current = null;
+      setRoom(null);
+      setPlayer(null);
+      setPlayers([]);
+      setActiveGameShell(null);
+      activeGameShellRef.current = null;
+
+      if (cancelled) {
+        return;
+      }
+
+      await connectToRoomRef.current();
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [urlRoomCode]);
 
   useEffect(() => {
     if (status !== 'connected') {
@@ -981,6 +1042,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     removeSocketListenersRef.current?.();
     setRoomSessionResumeListener(null);
     beginNewRoomIdentity(leavingRoomCode);
+    roomIdRef.current = null;
     setRoom(null);
     setPlayer(null);
     setPlayers([]);

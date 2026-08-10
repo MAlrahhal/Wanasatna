@@ -32,6 +32,7 @@ export type RoomUpdatedPayload = {
 };
 
 export type RoomPlayersSnapshotPayload = {
+  roomId: string;
   players: RoomPlayerData[];
 };
 

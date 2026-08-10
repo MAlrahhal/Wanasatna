@@ -81,6 +81,12 @@ test('join intent used for a different room code', () => {
   assert.deepEqual(intent, { type: 'join', roomCode: '999999', playerName: 'خالد' });
 });
 
+test('code-only URL for Room B must not reconnect Room A session', () => {
+  saveRoomReconnectCredential(credential);
+  const intent = resolveRoomEntryIntent(params({ code: '999999' }), session);
+  assert.deepEqual(intent, { type: 'none' });
+});
+
 test('join intent used when no stored session or credential', () => {
   storage.removeItem('wanasatna:reconnect:318429');
   const intent = resolveRoomEntryIntent(params({ code: '318429', name: 'خالد' }), null);

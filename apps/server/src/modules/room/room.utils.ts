@@ -109,7 +109,10 @@ export async function broadcastRoomPlayersSnapshot(io: Server, roomId: string): 
   }
 
   const players = await loadActiveRoomPlayers(roomId, room.hostPlayerId);
-  io.to(getRoomChannel(roomId)).emit(ROOM_PLAYERS_SNAPSHOT_EVENT, { players });
+  io.to(getRoomChannel(roomId)).emit(ROOM_PLAYERS_SNAPSHOT_EVENT, {
+    roomId,
+    players,
+  });
 }
 
 export function isActivePlayerStatus(status: PlayerStatus): boolean {

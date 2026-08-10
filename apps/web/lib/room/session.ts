@@ -121,11 +121,33 @@ export function resolveRoomEntryIntent(
   const action = params.get('action');
   const playerName = params.get('name')?.trim() ?? '';
   const roomCode = params.get('code')?.trim() ?? '';
-  const credential = findRoomReconnectCredential(roomCodeForCredential ?? roomCode);
 
   if (action === 'create' && playerName) {
     return { type: 'create', playerName };
   }
+
+  // Cross-room URL must never resurrect another room's session/reconnect identity.
+  // Example bug: /lobby?code=B while sessionStorage still holds Room A → reconnect A
+  // and rewrite the URL back to A.
+  const sessionConflictsWithUrl = Boolean(
+    roomCode && storedSession && storedSession.roomCode !== roomCode,
+  );
+
+  if (sessionConflictsWithUrl) {
+    if (playerName) {
+      return { type: 'join', roomCode, playerName };
+    }
+
+    const targetCredential = findRoomReconnectCredential(roomCode);
+
+    if (targetCredential) {
+      return reconnectIntentFromCredential(targetCredential);
+    }
+
+    return { type: 'none' };
+  }
+
+  const credential = findRoomReconnectCredential(roomCodeForCredential ?? roomCode);
 
   if (roomCode && credential?.roomCode === roomCode) {
     return reconnectIntentFromCredential(credential);
