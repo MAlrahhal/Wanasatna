@@ -22,6 +22,7 @@ export type GuessingChallengePlayingScreenProps = {
   onSubmitGuess: (guess: string) => void;
   onUseYellow: () => void;
   onUseRed: () => void;
+  onRejectCard?: () => void;
   onLookChange?: (yaw: number, pitch: number) => void;
 };
 
@@ -35,6 +36,7 @@ export function GuessingChallengePlayingScreen({
   onSubmitGuess,
   onUseYellow,
   onUseRed,
+  onRejectCard,
   onLookChange,
 }: GuessingChallengePlayingScreenProps) {
   const [showGuessForm, setShowGuessForm] = useState(false);
@@ -147,6 +149,7 @@ export function GuessingChallengePlayingScreen({
             activationMessage={activationMessage}
             onUseYellow={onUseYellow}
             onUseRed={onUseRed}
+            onRejectCard={onRejectCard}
           />
         </div>
 

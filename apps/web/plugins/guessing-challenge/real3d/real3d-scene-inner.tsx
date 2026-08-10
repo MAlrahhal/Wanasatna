@@ -14,7 +14,8 @@ import { LowPolyOpponent } from './low-poly-opponent';
 import './real3d-scene.css';
 
 const YAW_1V1 = (38 * Math.PI) / 180;
-const YAW_2V2 = (45 * Math.PI) / 180;
+/** Wider yaw so local player can look sideways at teammate. */
+const YAW_2V2 = (55 * Math.PI) / 180;
 const PITCH_LIMIT = (18 * Math.PI) / 180;
 
 function usePrefersReducedMotion(): boolean {
@@ -51,17 +52,19 @@ function TeammateSeat({
   selfSeat: 0 | 1;
   reduceMotion: boolean;
 }) {
-  // Seat beside local player, same row as camera — facing opponents (world -Z).
+  // Beside the camera (same depth), NOT in front — facing opponents (-Z).
   // selfSeat 0 → teammate on +x (right); selfSeat 1 → -x (left).
-  // Keep clear of look-down frustum under the camera (no local third-person body).
-  const x = selfSeat === 0 ? 0.78 : -0.78;
+  // Looking sideways shows a side profile; body never faces the local camera.
+  // no local third-person body
+  const x = selfSeat === 0 ? 1.1 : -1.1;
   const tint = selfTeam === 'red' ? 'red' : 'blue';
   const teamDot = selfTeam === 'red' ? 'red' : 'blue';
 
   return (
     <group
-      position={[x, 0, 0.55]}
-      rotation={[0, 0, 0]}
+      position={[x, 0, 1.4]}
+      // Face opponents (-Z). Without π, the bean stares into the local camera.
+      rotation={[0, Math.PI, 0]}
       userData={{ testId: 'gc-teammate-seat', facing: 'opponents' }}
     >
       <OrangeArmchair />
@@ -181,8 +184,8 @@ function SceneContent({
         <group userData={{ testId: 'gc-opponent-pair' }}>
           {/* Shared identity card between opponents — held by inner hands */}
           <group
-            position={[0, 1.02, -2.2]}
-            rotation={[-0.2, 0, 0]}
+            position={[0, 1.05, -1.95]}
+            rotation={[-0.18, 0, 0]}
             userData={{ sharedCard: true }}
           >
             <IdentityCardMesh
@@ -191,8 +194,8 @@ function SceneContent({
               highlight={props.opponentHighlight}
               flipKey={props.opponentIdentity?.value ?? ''}
               reduceMotion={reduceMotion}
-              width={0.7}
-              height={0.46}
+              width={0.78}
+              height={0.5}
               testId="gc-opponent-identity"
             />
           </group>
@@ -208,8 +211,8 @@ function SceneContent({
             lookPitch={opponents[0].lookPitch ?? 0}
             highlight={props.opponentHighlight}
             reduceMotion={reduceMotion}
-            position={[-0.58, 0, -2.5]}
-            rotationY={0.12}
+            position={[-0.62, 0, -2.2]}
+            rotationY={0.1}
             testId="gc-opponent-character-0"
           />
           {/* Right opponent — LEFT (inner) hand toward shared card */}
@@ -224,8 +227,8 @@ function SceneContent({
             lookPitch={opponents[1].lookPitch ?? 0}
             highlight={props.opponentHighlight}
             reduceMotion={reduceMotion}
-            position={[0.58, 0, -2.5]}
-            rotationY={-0.12}
+            position={[0.62, 0, -2.2]}
+            rotationY={-0.1}
             testId="gc-opponent-character-1"
           />
         </group>
@@ -240,9 +243,9 @@ function SceneContent({
           lookYaw={opponents[0]?.lookYaw ?? 0}
           lookPitch={opponents[0]?.lookPitch ?? 0}
           highlight={props.opponentHighlight}
-          labelPrefix={revealed ? `${opponents[0]?.name ?? props.opponentName} كان` : 'هوية الخصم'}
+          labelPrefix={revealed ? `${opponents[0]?.name ?? props.opponentName} كان` : undefined}
           reduceMotion={reduceMotion}
-          position={[0, 0, -2.55]}
+          position={[0, 0, -2.15]}
           rotationY={0}
         />
       )}
@@ -272,9 +275,7 @@ export function Real3DSceneInner(props: GuessingChallengeSceneProps) {
   const opponentCardText = resolveIdentityCardText(props.opponentIdentity, false);
   const selfCardText = revealed
     ? resolveIdentityCardText(props.selfIdentity, false)
-    : props.selfHidden
-      ? '؟؟؟'
-      : resolveIdentityCardText(props.selfIdentity, false);
+    : '';
 
   if (canvasFailed) {
     return (

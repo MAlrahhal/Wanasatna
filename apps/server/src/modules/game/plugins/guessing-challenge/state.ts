@@ -569,6 +569,47 @@ export function confirmSpecialCard(
 }
 
 /**
+ * Reject a pending team card confirmation.
+ * Clears pending state for both teammates; card remains AVAILABLE (not consumed).
+ */
+export function rejectSpecialCard(
+  getMatch: () => GuessingChallengeMatchState | null,
+  setMatch: (match: GuessingChallengeMatchState) => void,
+  shell: GameShellState,
+  playerId: string,
+):
+  | { ok: true; match: GuessingChallengeMatchState }
+  | { ok: false; message: string; match: GuessingChallengeMatchState | null } {
+  const match = getMatch();
+
+  if (!match || match.round.gamePhase !== 'playing') {
+    return { ok: false, message: 'انتهت هذه الجولة.', match };
+  }
+
+  const teamId = match.teamByPlayerId[playerId];
+  if (!teamId) {
+    return { ok: false, message: 'لست مشاركاً في هذه المباراة.', match };
+  }
+
+  const confirm = match.round.cardConfirm;
+  if (!confirm || confirm.teamId !== teamId) {
+    return { ok: false, message: 'لا يوجد طلب بطاقة معلّق.', match };
+  }
+
+  const teammates = getConnectedTeamPlayerIds(match, shell, teamId);
+  if (!teammates.includes(playerId)) {
+    return { ok: false, message: 'تعذر رفض البطاقة.', match };
+  }
+
+  const nextMatch = withRound(match, {
+    ...clearCardConfirm(match.round),
+    identityChangedNoticeTeamId: null,
+  });
+  setMatch(nextMatch);
+  return { ok: true, match: nextMatch };
+}
+
+/**
  * Atomic final-guess handling. Correct guess claims winner once (team-based).
  * Wrong guess passes turn (and ends yellow sequence).
  */

@@ -369,9 +369,16 @@ export function registerRoomSyncHandler(_io: Server, socket: Socket): void {
           if (process.env.WANASATNA_TEST_MODE === '1') {
             // Widen the race window so integration tests can land a join between the
             // early sync read and this final reload (production has no artificial delay).
-            await new Promise((resolve) => setTimeout(resolve, 80));
+            await new Promise((resolve) => setTimeout(resolve, 250));
           }
-          const freshPlayers = await loadActiveRoomPlayers(
+          // Always re-read immediately before ACK (and once more after a tick) so a
+          // concurrent join committed during syncBoundRoomSession is not missed.
+          let freshPlayers = await loadActiveRoomPlayers(
+            roomId!,
+            response.data.room.hostPlayerId,
+          );
+          await new Promise<void>((resolve) => setImmediate(resolve));
+          freshPlayers = await loadActiveRoomPlayers(
             roomId!,
             response.data.room.hostPlayerId,
           );

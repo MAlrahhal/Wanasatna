@@ -129,7 +129,7 @@ test('C/D/E/F/G playing screen wires GameplayScene + side special cards + matchM
   assert.match(specialPanel, /تم الاستخدام/);
   assert.match(specialPanel, /البطاقة الصفراء/);
   assert.match(specialPanel, /تمنح فريقك 3 أسئلة متتالية/);
-  assert.match(specialPanel, /تغيّر هوية الفريق الخصم إلى هوية جديدة من نفس الفئة/);
+  assert.match(specialPanel, /تغيّر هوية الخصم إلى هوية جديدة من نفس الفئة/);
   assert.match(specialPanel, /بانتظار موافقة شريكك/);
   assert.match(specialPanel, /استخدام البطاقة/);
   assert.match(specialPanel, /data-compact="true"/);
@@ -138,7 +138,10 @@ test('C/D/E/F/G playing screen wires GameplayScene + side special cards + matchM
   assert.match(specialPanel, /playSoftCardRequestPing/);
   assert.match(specialPanel, /gc-once-per-match-warning/);
   assert.match(specialPanel, /عرض البطاقة/);
-  assert.match(specialPanel, /وافق على الاستخدام/);
+  assert.match(specialPanel, /يريد استخدام/);
+  assert.match(specialPanel, /موافقة/);
+  assert.match(specialPanel, /رفض/);
+  assert.match(specialPanel, /gc-reject-card-use/);
   assert.doesNotMatch(specialPanel, /بدلاً من سؤال واحد/);
   assert.doesNotMatch(specialPanel, /عشوائية/);
 
@@ -261,24 +264,31 @@ test('2v2 seating faces opponents; shared card + name anchors', () => {
 
   assert.match(inner, /userData=\{\{ testId: 'gc-teammate-seat'/);
   assert.match(inner, /userData=\{\{ testId: 'gc-opponent-pair' \}\}/);
-  assert.match(inner, /position=\{\[x, 0, 0\.55\]\}/);
-  assert.match(inner, /selfSeat === 0 \? 0\.78 : -0\.78/);
+  assert.match(inner, /position=\{\[x, 0, 1\.4\]\}/);
+  assert.match(inner, /selfSeat === 0 \? 1\.1 : -1\.1/);
+  assert.match(inner, /Math\.PI/);
+  assert.match(inner, /-2\.15/);
+  assert.match(bean, /lookYaw \* 0\.62/);
+  assert.match(bean, /-lookPitch \* 0\.45/);
+  assert.match(hands, /blank=\{!revealed\}/);
   assert.match(inner, /sharedCard: true/);
   assert.match(inner, /holdHand="right"/);
   assert.match(inner, /holdHand="left"/);
   assert.match(opponent, /data-name-anchor="above-head"/);
   assert.match(inner, /data-name-anchor="above-head"/);
   assert.match(bean, /nameBadge/);
-  assert.match(bean, /headPitch = -lookPitch/);
   const lounge = readPlugin('real3d/lounge-room.tsx');
   assert.match(lounge, /position=\{\[-3\.25, 2\.95, -4\.28\]\}/);
   const cardMesh = readPlugin('real3d/identity-card-mesh.tsx');
   assert.match(cardMesh, /CanvasTexture|createTexture/);
   assert.match(cardMesh, /meshBasicMaterial/);
   assert.match(cardMesh, /paintCard/);
+  assert.match(cardMesh, /blank/);
   assert.doesNotMatch(cardMesh, /from '@react-three\/drei'/);
   const specialPanel = readPlugin('special-cards-panel.tsx');
-  assert.match(specialPanel, /top-\[20%\]/);
+  assert.match(specialPanel, /createPortal/);
+  assert.match(specialPanel, /gc-reject-card-use/);
+  assert.match(specialPanel, /top-\[18%\]/);
   assert.doesNotMatch(specialPanel, /bottom-3/);
   assert.doesNotMatch(opponent, /data-seat-facing=/);
   assert.doesNotMatch(inner, /data-facing=/);

@@ -14,6 +14,7 @@ import {
   GUESSING_CHALLENGE_SET_CATEGORY_EVENT,
   GUESSING_CHALLENGE_SUBMIT_FINAL_GUESS_EVENT,
   GUESSING_CHALLENGE_SYNC_EVENT,
+  GUESSING_CHALLENGE_REJECT_CARD_EVENT,
   GUESSING_CHALLENGE_USE_RED_CARD_EVENT,
   GUESSING_CHALLENGE_USE_YELLOW_CARD_EVENT,
 } from '@wanasatna/shared';
@@ -197,6 +198,10 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
     void runAction(GUESSING_CHALLENGE_USE_RED_CARD_EVENT);
   }, [runAction]);
 
+  const rejectCard = useCallback(() => {
+    void runAction(GUESSING_CHALLENGE_REJECT_CARD_EVENT);
+  }, [runAction]);
+
   const continueFromRoundResults = useCallback(() => {
     void runAction(GUESSING_CHALLENGE_CONTINUE_ROUND_RESULTS_EVENT);
   }, [runAction]);
@@ -229,6 +234,7 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
     submitFinalGuess,
     useYellowCard,
     useRedCard,
+    rejectCard,
     continueFromRoundResults,
     setNextRoundCategory,
     emitLook,

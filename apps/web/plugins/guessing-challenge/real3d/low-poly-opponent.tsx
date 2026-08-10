@@ -18,7 +18,7 @@ export type SeatedOpponentProps = {
   reachToward?: [number, number, number] | null;
   holdHand?: 'both' | 'left' | 'right';
   highlight?: boolean;
-  labelPrefix?: string;
+  labelPrefix?: string | undefined;
   reduceMotion?: boolean;
   position?: [number, number, number];
   /** World-space body yaw. Keep near 0 so characters face opponents, not camera. */
@@ -59,15 +59,16 @@ function NameBadge({
         border: '1px solid rgba(255,255,255,0.2)',
         color: '#f8fafc',
         fontWeight: 700,
-        fontSize: '0.68rem',
+        fontSize: '0.62rem',
         whiteSpace: 'nowrap',
+        lineHeight: 1.1,
       }}
     >
       <span
         aria-hidden
         style={{
-          width: '0.42rem',
-          height: '0.42rem',
+          width: '0.38rem',
+          height: '0.38rem',
           borderRadius: '999px',
           background: DOT_COLORS[teamDot],
           flexShrink: 0,
@@ -93,9 +94,9 @@ export function LowPolyOpponent({
   reachToward = null,
   holdHand = 'both',
   highlight = false,
-  labelPrefix = 'هوية الخصم',
+  labelPrefix,
   reduceMotion = false,
-  position = [0, 0, -2.55],
+  position = [0, 0, -2.15],
   rotationY = 0,
   testId = 'gc-opponent-character',
   nameTestId = 'gc-opponent-name',

@@ -20,8 +20,8 @@ type FirstPersonHandsProps = {
  * Orange sleeves + white gloves holding self ??? / revealed card in camera foreground.
  */
 export function FirstPersonHands({
-  selfName,
-  selfHidden,
+  selfName: _selfName,
+  selfHidden: _selfHidden,
   selfIdentity,
   revealed,
   selfHighlight = false,
@@ -44,16 +44,12 @@ export function FirstPersonHands({
     }
   });
 
-  const cardText = revealed
-    ? resolveIdentityCardText(selfIdentity, false)
-    : selfHidden
-      ? '؟؟؟'
-      : resolveIdentityCardText(selfIdentity, false);
+  const cardText = revealed ? resolveIdentityCardText(selfIdentity, false) : '';
 
   return (
     <group ref={group}>
-      {/* Local space in front of camera */}
-      <group position={[0, -0.42, -0.85]} rotation={[-0.15, 0, 0]}>
+      {/* Local space in front of camera — slightly lower so it does not dominate */}
+      <group position={[0, -0.48, -0.9]} rotation={[-0.12, 0, 0]}>
         {/* Left sleeve + glove */}
         <group position={[0.28, -0.02, 0.05]} rotation={[0.35, 0.25, 0.45]}>
           <mesh position={[0, 0, -0.12]} castShadow>
@@ -92,14 +88,15 @@ export function FirstPersonHands({
 
         {/* Self identity card between hands */}
         <pointLight intensity={0.85} distance={2.2} color="#fff7ed" position={[0, 0.2, 0.35]} />
-        <group position={[0, 0.08, 0.12]} rotation={[Math.PI + 0.2, 0, 0]}>
+        <group position={[0, 0.06, 0.1]} rotation={[Math.PI + 0.2, 0, 0]}>
           <IdentityCardMesh
             text={cardText}
-            label={revealed ? 'كنت' : `${selfName} · هويتك`}
+            blank={!revealed}
+            label={revealed ? 'كنت' : undefined}
             highlight={selfHighlight && revealed}
-            width={0.48}
-            height={0.32}
-            flipKey={revealed ? 'revealed' : 'hidden'}
+            width={0.42}
+            height={0.28}
+            flipKey={revealed ? 'revealed' : 'blank'}
             reduceMotion={reduceMotion}
             testId={revealed ? 'gc-self-identity-revealed' : 'gc-self-identity'}
           />

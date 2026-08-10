@@ -65,14 +65,16 @@ export function BeanCharacter({
   const head = useRef<THREE.Group>(null);
   const breath = useRef(0);
   const colors = useMemo(() => TINTS[teamTint], [teamTint]);
-  // Remote head vertical: negate pitch so mouse/camera UP → head looks UP.
-  const headPitch = -lookPitch;
+  // Network look: +yaw = look left, +pitch = look up (matches LookControls emit).
+  // Bean face is on +Z. +rot.y → turn left; -rot.x → tip back (look up).
+  const headYaw = lookYaw * 0.62;
+  const headPitch = -lookPitch * 0.45;
 
   useFrame((_, delta) => {
     if (reduceMotion) {
       if (head.current) {
-        head.current.rotation.y = lookYaw * 0.35;
-        head.current.rotation.x = headPitch * 0.25;
+        head.current.rotation.y = headYaw;
+        head.current.rotation.x = headPitch;
       }
       // Body stays mostly forward — only tiny look sway.
       if (body.current) {
@@ -98,14 +100,14 @@ export function BeanCharacter({
     if (head.current) {
       head.current.rotation.y = THREE.MathUtils.damp(
         head.current.rotation.y,
-        lookYaw * 0.42,
-        7,
+        headYaw,
+        8,
         delta,
       );
       head.current.rotation.x = THREE.MathUtils.damp(
         head.current.rotation.x,
-        headPitch * 0.28,
-        7,
+        headPitch,
+        8,
         delta,
       );
     }
@@ -180,9 +182,9 @@ export function BeanCharacter({
           </mesh>
           {nameBadge ? (
             <Html
-              position={[0, 0.32, 0]}
+              position={[0, 0.22, 0.04]}
               occlude={false}
-              zIndexRange={[40, 20]}
+              zIndexRange={[20, 0]}
               style={{
                 pointerEvents: 'none',
                 userSelect: 'none',

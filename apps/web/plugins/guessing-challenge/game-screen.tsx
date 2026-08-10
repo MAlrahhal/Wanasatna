@@ -39,6 +39,7 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
     submitFinalGuess,
     useYellowCard,
     useRedCard,
+    rejectCard,
     continueFromRoundResults,
     setNextRoundCategory,
     emitLook,
@@ -186,6 +187,7 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
       onSubmitGuess={submitFinalGuess}
       onUseYellow={useYellowCard}
       onUseRed={useRedCard}
+      onRejectCard={rejectCard}
       onLookChange={emitLook}
     />
   );

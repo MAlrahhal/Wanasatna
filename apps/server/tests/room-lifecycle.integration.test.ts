@@ -689,7 +689,7 @@ async function main(): Promise<void> {
       data?: { players: RosterPlayer[] };
     }>(host.socket, ROOM_SYNC_EVENT, {});
 
-    await sleep(30);
+    await sleep(10);
     const c = await joinPlayer(host.roomCode, 'لاعب-ج');
 
     await waitFor(

@@ -226,6 +226,11 @@ export const GUESSING_CHALLENGE_USE_RED_CARD_EVENT = pluginActionEvent(
   GUESSING_CHALLENGE_GAME_ID,
   'use-red-card',
 );
+/** Reject a pending 2v2 team card confirmation (returns card to AVAILABLE). */
+export const GUESSING_CHALLENGE_REJECT_CARD_EVENT = pluginActionEvent(
+  GUESSING_CHALLENGE_GAME_ID,
+  'reject-card',
+);
 export const GUESSING_CHALLENGE_CONTINUE_ROUND_RESULTS_EVENT = pluginActionEvent(
   GUESSING_CHALLENGE_GAME_ID,
   'continue-round-results',

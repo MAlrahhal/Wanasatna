@@ -16,6 +16,7 @@ import {
   GUESSING_CHALLENGE_SET_CATEGORY_EVENT,
   GUESSING_CHALLENGE_SUBMIT_FINAL_GUESS_EVENT,
   GUESSING_CHALLENGE_SYNC_EVENT,
+  GUESSING_CHALLENGE_REJECT_CARD_EVENT,
   GUESSING_CHALLENGE_USE_RED_CARD_EVENT,
   GUESSING_CHALLENGE_USE_YELLOW_CARD_EVENT,
   isActiveMatchParticipant,
@@ -46,6 +47,7 @@ import {
   clearLookThrottleForRoom,
   confirmSpecialCard,
   endQuestionTurn,
+  rejectSpecialCard,
   resetPlayerLook,
 } from './state.js';
 import {
@@ -343,6 +345,49 @@ export function registerGuessingChallengeSocketHandlers(io: Server, socket: Sock
       shell,
       playerId!,
       'red',
+    );
+
+    if (!result.ok) {
+      sendGameResponse(callback, invalidActionError(result.message));
+      return;
+    }
+
+    broadcastPhaseChanged(io, roomId!);
+    respondWithView(callback, roomId!, playerId!);
+  });
+
+  socket.on(GUESSING_CHALLENGE_REJECT_CARD_EVENT, (_payload: unknown, callback) => {
+    const contextError = getGameSocketContext(socket);
+
+    if (contextError) {
+      sendGameResponse(callback, contextError);
+      return;
+    }
+
+    const { roomId, playerId } = socket.data;
+
+    if (recoveryBlockedResponse(roomId!, callback)) {
+      return;
+    }
+
+    const shell = getGameShellByRoomId(roomId!);
+    if (!shell || shell.gameId !== GUESSING_CHALLENGE_GAME_ID || shell.phase !== 'PLAYING') {
+      sendGameResponse(callback, gameNotReadyError());
+      return;
+    }
+
+    if (!isActiveMatchParticipant(shell, playerId!)) {
+      sendGameResponse(callback, notParticipantError());
+      return;
+    }
+
+    ensureGuessingChallengeMatchStateWithTimer(io, roomId!);
+
+    const result = rejectSpecialCard(
+      () => getGuessingChallengeState(roomId!),
+      (next) => setGuessingChallengeState(roomId!, next),
+      shell,
+      playerId!,
     );
 
     if (!result.ok) {

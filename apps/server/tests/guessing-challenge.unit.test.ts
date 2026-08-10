@@ -26,6 +26,7 @@ import {
   assignTeams,
   buildGuessingChallengePlayerView,
   confirmSpecialCard,
+  rejectSpecialCard,
   createInitialTeamCards,
   createInitialTeamScores,
   endQuestionTurn,
@@ -584,6 +585,46 @@ test('2v2 card confirm 1/2 does not activate; 2/2 activates once', () => {
 
   const third = confirmCard(match, shell, 'p1', 'yellow');
   assert.equal(third.ok, false);
+});
+
+test('2v2 reject clears pending confirm; card stays available', () => {
+  let match = makeMatch2v2();
+  const shell = makeShell(['p1', 'p2', 'p3', 'p4']);
+
+  const first = confirmCard(match, shell, 'p1', 'yellow');
+  assert.equal(first.ok, true);
+  if (!first.ok) return;
+  match = first.match;
+  assert.ok(match.round.cardConfirm);
+  assert.equal(match.teamCards.blue.yellowUsed, false);
+
+  const rejected = rejectSpecialCard(
+    () => match,
+    (next) => {
+      match = next;
+    },
+    shell,
+    'p3',
+  );
+  assert.equal(rejected.ok, true);
+  if (!rejected.ok) return;
+  match = rejected.match;
+  assert.equal(match.round.cardConfirm, null);
+  assert.equal(match.teamCards.blue.yellowUsed, false);
+
+  const viewP1 = buildGuessingChallengePlayerView(match, 'p1', shell);
+  const viewP3 = buildGuessingChallengePlayerView(match, 'p3', shell);
+  assert.equal(viewP1.cardConfirmStatus, null);
+  assert.equal(viewP3.cardConfirmStatus, null);
+  assert.equal(viewP1.self.yellowCardAvailable, true);
+  assert.equal(viewP3.self.yellowCardAvailable, true);
+
+  // Can request again after reject.
+  const again = confirmCard(match, shell, 'p1', 'yellow');
+  assert.equal(again.ok, true);
+  if (!again.ok) return;
+  assert.equal(again.activated, false);
+  assert.ok(again.match.round.cardConfirm);
 });
 
 test('2v2 either teammate may act on team turn', () => {

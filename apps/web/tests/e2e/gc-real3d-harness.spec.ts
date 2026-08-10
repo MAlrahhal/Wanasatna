@@ -11,7 +11,7 @@ import path from 'node:path';
 const OUT = path.join(__dirname, '../../../test-results/gc-visual');
 
 test.describe('GC Real3D harness visuals', () => {
-  test('1v1 scene renders room, opponent, identity text, self ???', async ({ page }) => {
+  test('1v1 scene renders room, opponent, identity text, blank self card', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', (err) => errors.push(err.message));
     page.on('console', (msg) => {
@@ -28,7 +28,8 @@ test.describe('GC Real3D harness visuals', () => {
     await expect(page.getByTestId('gc-opponent-identity-text')).toHaveText('برجر', {
       timeout: 10_000,
     });
-    await expect(page.getByTestId('gc-self-identity-text')).toHaveText('؟؟؟');
+    // Local card is blank before reveal (no ؟؟؟).
+    await expect(page.getByTestId('gc-self-identity-text')).toHaveText('');
     await expect(page.getByTestId('gc-opponent-name')).toHaveText('علي');
 
     await page.screenshot({
@@ -59,7 +60,7 @@ test.describe('GC Real3D harness visuals', () => {
     await expect(page.getByTestId('gc-opponent-identity-text')).toHaveText('برجر', {
       timeout: 10_000,
     });
-    await expect(page.getByTestId('gc-self-identity-text')).toHaveText('؟؟؟');
+    await expect(page.getByTestId('gc-self-identity-text')).toHaveText('');
 
     // Three name badges: 2 opponents + teammate
     await expect(page.getByTestId('gc-opponent-character-0')).toBeVisible();

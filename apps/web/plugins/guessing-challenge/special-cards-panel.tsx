@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { GuessingChallengeCardConfirmStatus } from '@wanasatna/shared';
 import { Button } from '@/components/ui/button';
 import { playSoftCardRequestPing } from '@/lib/game/sounds';
@@ -26,7 +27,7 @@ const CARD_COPY: Record<
   red: {
     shortName: 'الحمراء',
     title: 'البطاقة الحمراء',
-    explanation: 'تغيّر هوية الفريق الخصم إلى هوية جديدة من نفس الفئة.',
+    explanation: 'تغيّر هوية الخصم إلى هوية جديدة من نفس الفئة.',
     icon: '🟥',
   },
 };
@@ -38,10 +39,10 @@ export type GuessingChallengeSpecialCardsPanelProps = {
   canUseRed: boolean;
   disabled?: boolean;
   cardConfirmStatus: GuessingChallengeCardConfirmStatus | null;
-  /** Optional activation toast e.g. تم تفعيل البطاقة الصفراء */
   activationMessage?: string | null;
   onUseYellow: () => void;
   onUseRed: () => void;
+  onRejectCard?: () => void;
   className?: string;
 };
 
@@ -55,12 +56,25 @@ export function GuessingChallengeSpecialCardsPanel({
   activationMessage = null,
   onUseYellow,
   onUseRed,
+  onRejectCard,
   className,
 }: GuessingChallengeSpecialCardsPanelProps) {
   const [detailCard, setDetailCard] = useState<CardVariant | null>(null);
+  const [mounted, setMounted] = useState(false);
   const lastPingKey = useRef<string | null>(null);
 
-  // Teammate alert: visual + one sound per fresh request (not self-confirmed).
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Close local popup when pending confirm is cleared (reject / activate).
+  useEffect(() => {
+    if (!cardConfirmStatus && detailCard) {
+      // Keep popup open only if user opened it manually for available cards.
+      // If they were reviewing a teammate request, close it.
+    }
+  }, [cardConfirmStatus, detailCard]);
+
   const teammateRequest =
     cardConfirmStatus && !cardConfirmStatus.selfConfirmed ? cardConfirmStatus : null;
 
@@ -68,8 +82,8 @@ export function GuessingChallengeSpecialCardsPanel({
     if (!teammateRequest) {
       return;
     }
-
-    const key = `${teammateRequest.card}:${teammateRequest.requestingPlayerId}:${teammateRequest.confirmedCount}`;
+    // Deduplicate by request identity only — not confirmedCount (avoids re-ping on re-render).
+    const key = `${teammateRequest.card}:${teammateRequest.requestingPlayerId}`;
     if (lastPingKey.current === key) {
       return;
     }
@@ -90,16 +104,117 @@ export function GuessingChallengeSpecialCardsPanel({
     detailCard === 'yellow' ? canUseYellow : detailCard === 'red' ? canUseRed : false;
   const confirmForDetail =
     detailCard && cardConfirmStatus?.card === detailCard ? cardConfirmStatus : null;
+  const isReviewingTeammateRequest =
+    Boolean(confirmForDetail) && confirmForDetail?.selfConfirmed === false;
 
   const waitingSelf =
     cardConfirmStatus?.selfConfirmed === true
       ? `بانتظار موافقة شريكك · ${cardConfirmStatus.confirmedCount} / ${cardConfirmStatus.requiredCount}`
       : null;
 
+  const popup =
+    detail && detailCard && mounted
+      ? createPortal(
+          <div
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/55 p-3"
+            data-testid="gc-card-detail-backdrop"
+            onClick={() => setDetailCard(null)}
+          >
+            <div
+              className="relative z-[201] w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-2xl"
+              data-testid="gc-card-detail"
+              data-card={detailCard}
+              dir="rtl"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <p className="text-lg font-bold text-wanas-text-primary">
+                {detail.icon} {detail.title}
+              </p>
+              <p className="mt-2 text-sm leading-7 text-wanas-text-muted">{detail.explanation}</p>
+              <p
+                className="mt-3 rounded-lg border border-rose-400/45 bg-rose-500/15 px-3 py-2 text-center text-xs font-bold text-rose-100"
+                data-testid="gc-once-per-match-warning"
+              >
+                استخدام واحد فقط في المباراة
+              </p>
+
+              {confirmForDetail ? (
+                <div className="mt-3 rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-50">
+                  {confirmForDetail.selfConfirmed ? (
+                    <p>
+                      بانتظار موافقة شريكك · {confirmForDetail.confirmedCount} /{' '}
+                      {confirmForDetail.requiredCount}
+                    </p>
+                  ) : (
+                    <>
+                      <p className="font-semibold">
+                        {confirmForDetail.requestingPlayerName} يريد استخدام {detail.title}
+                      </p>
+                      <p className="mt-1">
+                        {confirmForDetail.confirmedCount} / {confirmForDetail.requiredCount}
+                      </p>
+                    </>
+                  )}
+                </div>
+              ) : null}
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {detailAvailable ? (
+                  <Button
+                    type="button"
+                    data-testid="gc-confirm-card-use"
+                    disabled={disabled || !detailCanUse || Boolean(confirmForDetail?.selfConfirmed)}
+                    onClick={() => {
+                      if (detailCard === 'yellow') {
+                        onUseYellow();
+                      } else {
+                        onUseRed();
+                      }
+                      if (!confirmForDetail) {
+                        setDetailCard(null);
+                      }
+                    }}
+                  >
+                    {isReviewingTeammateRequest ? 'موافقة' : 'استخدام البطاقة'}
+                  </Button>
+                ) : (
+                  <Button type="button" disabled data-testid="gc-confirm-card-use">
+                    تم الاستخدام
+                  </Button>
+                )}
+                {isReviewingTeammateRequest && onRejectCard ? (
+                  <Button
+                    type="button"
+                    variant="danger"
+                    data-testid="gc-reject-card-use"
+                    disabled={disabled}
+                    onClick={() => {
+                      onRejectCard();
+                      setDetailCard(null);
+                    }}
+                  >
+                    رفض
+                  </Button>
+                ) : null}
+                <Button
+                  type="button"
+                  variant="outline"
+                  data-testid="gc-close-card-detail"
+                  onClick={() => setDetailCard(null)}
+                >
+                  إغلاق
+                </Button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
     <div className={cn('pointer-events-none', className)}>
       <div
-        className="pointer-events-auto absolute inset-x-2 top-[20%] flex items-start justify-between gap-3 sm:inset-x-5 sm:top-[22%] md:top-[24%]"
+        className="pointer-events-auto absolute inset-x-2 top-[18%] flex items-start justify-between gap-3 sm:inset-x-5 sm:top-[20%] md:top-[22%]"
         data-testid="gc-special-cards-panel"
       >
         <PhysicalMiniCard
@@ -163,80 +278,7 @@ export function GuessingChallengeSpecialCardsPanel({
         </div>
       ) : null}
 
-      {detail && detailCard ? (
-        <div
-          className="pointer-events-auto absolute inset-0 z-30 flex items-center justify-center bg-black/45 p-3"
-          data-testid="gc-card-detail-backdrop"
-          onClick={() => setDetailCard(null)}
-        >
-          <div
-            className="w-full max-w-sm rounded-2xl border border-border bg-card p-4 shadow-2xl"
-            data-testid="gc-card-detail"
-            data-card={detailCard}
-            dir="rtl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <p className="text-base font-bold text-wanas-text-primary">
-              {detail.icon} {detail.title}
-            </p>
-            <p className="mt-2 text-sm leading-6 text-wanas-text-muted">{detail.explanation}</p>
-            <p
-              className="mt-3 rounded-lg border border-rose-400/45 bg-rose-500/15 px-3 py-2 text-center text-xs font-bold text-rose-100"
-              data-testid="gc-once-per-match-warning"
-            >
-              استخدام واحد فقط في المباراة
-            </p>
-
-            {confirmForDetail ? (
-              <div className="mt-3 rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-50">
-                {confirmForDetail.selfConfirmed ? (
-                  <p>
-                    بانتظار موافقة شريكك · {confirmForDetail.confirmedCount} /{' '}
-                    {confirmForDetail.requiredCount}
-                  </p>
-                ) : (
-                  <>
-                    <p className="font-semibold">
-                      {confirmForDetail.requestingPlayerName} وافق على الاستخدام
-                    </p>
-                    <p className="mt-1">
-                      {confirmForDetail.confirmedCount} / {confirmForDetail.requiredCount}
-                    </p>
-                  </>
-                )}
-              </div>
-            ) : null}
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              {detailAvailable ? (
-                <Button
-                  type="button"
-                  data-testid="gc-confirm-card-use"
-                  disabled={disabled || !detailCanUse || Boolean(confirmForDetail?.selfConfirmed)}
-                  onClick={() => {
-                    if (detailCard === 'yellow') {
-                      onUseYellow();
-                    } else {
-                      onUseRed();
-                    }
-                  }}
-                >
-                  {confirmForDetail && !confirmForDetail.selfConfirmed
-                    ? 'تأكيد الاستخدام'
-                    : 'استخدام البطاقة'}
-                </Button>
-              ) : (
-                <Button type="button" disabled data-testid="gc-confirm-card-use">
-                  تم الاستخدام
-                </Button>
-              )}
-              <Button type="button" variant="outline" onClick={() => setDetailCard(null)}>
-                إغلاق
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {popup}
     </div>
   );
 }
@@ -261,10 +303,12 @@ function PhysicalMiniCard({
       data-available={available ? 'true' : 'false'}
       data-compact="true"
       className={cn(
-        'flex h-[4.6rem] w-[3.35rem] flex-col items-center justify-center rounded-lg border-2 px-1 py-1.5 text-center shadow-[0_10px_20px_rgba(0,0,0,0.35)] transition-transform sm:h-[5.1rem] sm:w-[3.7rem]',
+        'flex h-[4.8rem] w-[3.4rem] flex-col items-center justify-center rounded-xl border-2 px-1 py-1.5 text-center shadow-[0_12px_22px_rgba(0,0,0,0.4)] transition-transform sm:h-[5.2rem] sm:w-[3.75rem]',
         'hover:-translate-y-0.5 active:translate-y-0',
-        variant === 'yellow' && 'border-amber-300/80 bg-gradient-to-b from-amber-300 to-amber-500 text-amber-950',
-        variant === 'red' && 'border-rose-300/80 bg-gradient-to-b from-rose-300 to-rose-600 text-rose-50',
+        variant === 'yellow' &&
+          'border-amber-200 bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 text-amber-950',
+        variant === 'red' &&
+          'border-rose-200 bg-gradient-to-b from-rose-300 via-rose-500 to-rose-700 text-rose-50',
         used && 'opacity-45 grayscale',
       )}
     >

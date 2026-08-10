@@ -130,7 +130,8 @@ export function LookControls({
       pitch.current += (targetPitch.current - pitch.current) * DAMPING;
     }
 
-    euler.current.set(pitch.current, yaw.current, 0, 'YXZ');
+    // Stored +pitch = look up; Three.js +rot.x looks down, so negate on apply.
+    euler.current.set(-pitch.current, yaw.current, 0, 'YXZ');
     camera.quaternion.setFromEuler(euler.current);
 
     const cb = onLookChangeRef.current;
