@@ -14,7 +14,7 @@ import {
 
 export function registerRoomSockets(io: Server): void {
   io.on('connection', (socket) => {
-    registerCreateRoomHandler(socket);
+    registerCreateRoomHandler(io, socket);
     registerJoinRoomHandler(io, socket);
     registerLeaveRoomHandler(io, socket);
     registerKickPlayerHandler(io, socket);

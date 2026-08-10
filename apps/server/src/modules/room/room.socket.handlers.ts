@@ -49,12 +49,34 @@ import {
   loadActiveRoomPlayers,
 } from './room.utils.js';
 
-export function registerCreateRoomHandler(socket: Socket): void {
+export function registerCreateRoomHandler(io: Server, socket: Socket): void {
   socket.on(
     CREATE_ROOM_EVENT,
     async (payload: unknown, callback?: (response: CreateRoomResponse) => void) => {
       try {
         console.info('[create-room]', { stage: 'socket-handler-received' });
+
+        // Fresh Create is a hard identity boundary: terminate any prior RoomPlayer
+        // bound to this socket before creating a new host.
+        if (socket.data.playerId && socket.data.roomId) {
+          const priorPlayerId = socket.data.playerId as string;
+          const priorRoomId = socket.data.roomId as string;
+          const priorLeave = await leaveRoom(priorPlayerId, priorRoomId);
+          await clearSocketSession(socket);
+
+          if (priorLeave.success && !priorLeave.data.roomDeleted) {
+            if (priorLeave.data.hostChanged) {
+              io.to(getRoomChannel(priorRoomId)).emit(HOST_CHANGED_EVENT, priorLeave.data.hostChanged);
+            }
+            await broadcastRoomPlayersSnapshot(io, priorRoomId);
+            await onRoomPlayerRemoved(io, priorRoomId, priorPlayerId, false);
+          } else if (priorLeave.success && priorLeave.data.roomDeleted) {
+            await onRoomDeleted(priorRoomId);
+          }
+        } else if (socket.data.playerId || socket.data.roomId) {
+          await clearSocketSession(socket);
+        }
+
         const response = await createRoom(payload);
 
         if (response.success) {
@@ -93,6 +115,27 @@ export function registerJoinRoomHandler(io: Server, socket: Socket): void {
     JOIN_ROOM_EVENT,
     async (payload: unknown, callback?: (response: RoomActionResponse<unknown>) => void) => {
       try {
+        // Fresh Join is a hard identity boundary: terminate any prior RoomPlayer
+        // bound to this socket before joining the requested room.
+        if (socket.data.playerId && socket.data.roomId) {
+          const priorPlayerId = socket.data.playerId as string;
+          const priorRoomId = socket.data.roomId as string;
+          const priorLeave = await leaveRoom(priorPlayerId, priorRoomId);
+          await clearSocketSession(socket);
+
+          if (priorLeave.success && !priorLeave.data.roomDeleted) {
+            if (priorLeave.data.hostChanged) {
+              io.to(getRoomChannel(priorRoomId)).emit(HOST_CHANGED_EVENT, priorLeave.data.hostChanged);
+            }
+            await broadcastRoomPlayersSnapshot(io, priorRoomId);
+            await onRoomPlayerRemoved(io, priorRoomId, priorPlayerId, false);
+          } else if (priorLeave.success && priorLeave.data.roomDeleted) {
+            await onRoomDeleted(priorRoomId);
+          }
+        } else if (socket.data.playerId || socket.data.roomId) {
+          await clearSocketSession(socket);
+        }
+
         const response = await joinRoom(payload);
 
         if (response.success) {

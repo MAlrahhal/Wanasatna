@@ -6,9 +6,9 @@ import {
 import { getRoomErrorMessage } from '@/lib/room/error-messages';
 import {
   findRoomReconnectCredential,
-  removeRoomReconnectCredential,
+  purgeLegacyLocalStorageRoomIdentity,
 } from '@/lib/room/reconnect-credential';
-import { clearRoomSession, readRoomSession } from '@/lib/room/session';
+import { readRoomSession, resetRoomParticipationIdentity } from '@/lib/room/session';
 import { disconnectRoomSocket, getRoomSocket, waitForRoomSocketConnection } from '@/lib/room/socket';
 
 type LeaveRoomResponse = { roomDeleted: boolean; hostChanged: unknown | null };
@@ -46,20 +46,20 @@ function emitWithAck<T>(
 }
 
 /**
- * Leave the active room and destroy local identity.
- * Clears storage immediately so cross-room navigation cannot keep Room A
- * authoritative while a leave ACK is in flight.
+ * Leave the active room and destroy local Room participation identity immediately.
+ *
+ * Client identity is cleared BEFORE the leave ACK so Create/Join cannot reuse it.
+ * Does not touch future Account/Auth identity.
  */
 export async function leaveActiveRoom(): Promise<{ success: boolean }> {
+  purgeLegacyLocalStorageRoomIdentity();
+
   const session = readRoomSession();
   const roomCode = session?.roomCode ?? null;
   const credential = roomCode ? findRoomReconnectCredential(roomCode) : null;
 
   // Immediate client isolation — before any network wait.
-  clearRoomSession();
-  if (roomCode) {
-    removeRoomReconnectCredential(roomCode);
-  }
+  resetRoomParticipationIdentity(roomCode ?? undefined);
 
   let success = false;
 
@@ -72,6 +72,7 @@ export async function leaveActiveRoom(): Promise<{ success: boolean }> {
     }
 
     // Rebind briefly so the server leave is authorized after a remount/reload.
+    // Do not apply the reconnect ACK to local storage — identity stays dead.
     if (session && credential) {
       await emitWithAck(
         RECONNECT_EVENT,
@@ -89,9 +90,12 @@ export async function leaveActiveRoom(): Promise<{ success: boolean }> {
     success = response.success;
   } catch {
     success = false;
+  } finally {
+    // Guarantee no residual RoomPlayer identity survives leave (including races
+    // where a transient reconnect ACK could have been applied elsewhere).
+    resetRoomParticipationIdentity(roomCode ?? undefined);
   }
 
-  disconnectRoomSocket();
   return { success };
 }
 

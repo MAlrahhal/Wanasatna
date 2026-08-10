@@ -25,11 +25,20 @@ class MemoryStorage {
   removeItem(key: string): void {
     this.store.delete(key);
   }
+
+  clear(): void {
+    this.store.clear();
+  }
 }
 
-const storage = new MemoryStorage();
-(globalThis as unknown as { window: { localStorage: Storage } }).window = {
-  localStorage: storage as unknown as Storage,
+const localStorage = new MemoryStorage();
+const sessionStorage = new MemoryStorage();
+
+(globalThis as unknown as {
+  window: { localStorage: Storage; sessionStorage: Storage };
+}).window = {
+  localStorage: localStorage as unknown as Storage,
+  sessionStorage: sessionStorage as unknown as Storage,
 };
 
 let passed = 0;
@@ -70,10 +79,11 @@ test('explicit create overrides stored session', () => {
   assert.deepEqual(intent, { type: 'create', playerName: 'محمد' });
 });
 
-test('stored credential matching URL code wins over join', () => {
+test('typed join always wins over stored credential (hard Join boundary)', () => {
+  sessionStorage.clear();
   saveRoomReconnectCredential(credential);
-  const intent = resolveRoomEntryIntent(params({ code: '318429', name: 'خالد' }), session);
-  assert.equal(intent.type, 'reconnect');
+  const intent = resolveRoomEntryIntent(params({ code: '318429', name: 'عبدالله' }), session);
+  assert.deepEqual(intent, { type: 'join', roomCode: '318429', playerName: 'عبدالله' });
 });
 
 test('join intent used for a different room code', () => {
@@ -82,24 +92,27 @@ test('join intent used for a different room code', () => {
 });
 
 test('code-only URL for Room B must not reconnect Room A session', () => {
+  sessionStorage.clear();
   saveRoomReconnectCredential(credential);
   const intent = resolveRoomEntryIntent(params({ code: '999999' }), session);
   assert.deepEqual(intent, { type: 'none' });
 });
 
 test('join intent used when no stored session or credential', () => {
-  storage.removeItem('wanasatna:reconnect:318429');
+  sessionStorage.clear();
   const intent = resolveRoomEntryIntent(params({ code: '318429', name: 'خالد' }), null);
   assert.deepEqual(intent, { type: 'join', roomCode: '318429', playerName: 'خالد' });
 });
 
-test('code-only URL reconnects with stored credential', () => {
+test('code-only URL reconnects with stored credential (refresh path)', () => {
+  sessionStorage.clear();
   saveRoomReconnectCredential(credential);
   const intent = resolveRoomEntryIntent(params({ code: '318429' }), null);
   assert.equal(intent.type, 'reconnect');
 });
 
 test('no params and no session resolves to none', () => {
+  sessionStorage.clear();
   const intent = resolveRoomEntryIntent(params({}), null);
   assert.deepEqual(intent, { type: 'none' });
 });
@@ -116,9 +129,7 @@ test('URL normalization strips name and action after success', () => {
 });
 
 test('sticky create URL still resolves to create and would override stored session', () => {
-  // Documents the production race: if action=create remains after success,
-  // resolveRoomEntryIntent prefers create over the stored session. applyRoomSession
-  // must sync the URL synchronously so transport resume never sees this intent.
+  sessionStorage.clear();
   saveRoomReconnectCredential(credential);
   const intent = resolveRoomEntryIntent(
     params({ action: 'create', name: 'محمد' }),

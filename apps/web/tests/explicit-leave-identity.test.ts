@@ -9,7 +9,7 @@ import {
   saveRoomReconnectCredential,
 } from '../lib/room/reconnect-credential';
 import {
-  beginNewRoomIdentity,
+  resetRoomParticipationIdentity,
   resolveRoomEntryIntent,
   writeRoomSession,
   type RoomSession,
@@ -28,6 +28,14 @@ class MemoryStorage {
 
   removeItem(key: string): void {
     this.store.delete(key);
+  }
+
+  get length(): number {
+    return this.store.size;
+  }
+
+  key(index: number): string | null {
+    return [...this.store.keys()][index] ?? null;
   }
 
   clear(): void {
@@ -60,6 +68,11 @@ const sessionStorage = new MemoryStorage();
   sessionStorage: sessionStorage as unknown as Storage,
 };
 
+// disconnectRoomSocket is a no-op without a real socket singleton in unit tests.
+(globalThis as unknown as { window: { location?: { href: string } } }).window.location = {
+  href: 'http://localhost/',
+};
+
 function seedIdentity(session: RoomSession, token: string): void {
   writeRoomSession(session);
   saveRoomReconnectCredential({
@@ -84,7 +97,7 @@ test('explicit leave without roomCode arg still clears reconnect credential', ()
     'token-khaled',
   );
 
-  beginNewRoomIdentity();
+  resetRoomParticipationIdentity();
 
   assert.equal(readRoomReconnectCredential('318429'), null);
 
@@ -113,7 +126,7 @@ test('خالد → leave → عبدالله → leave → سارة uses fresh jo
     },
     'token-1',
   );
-  beginNewRoomIdentity(roomCode);
+  resetRoomParticipationIdentity(roomCode);
   assert.equal(readRoomReconnectCredential(roomCode), null);
 
   const joinAbdullah = resolveRoomEntryIntent(
@@ -134,7 +147,7 @@ test('خالد → leave → عبدالله → leave → سارة uses fresh jo
     },
     'token-2',
   );
-  beginNewRoomIdentity();
+  resetRoomParticipationIdentity();
   assert.equal(readRoomReconnectCredential(roomCode), null);
   assert.notEqual('id-khaled', 'id-abdullah');
 
@@ -148,7 +161,7 @@ test('خالد → leave → عبدالله → leave → سارة uses fresh jo
   }
 });
 
-test('refresh/disconnect path still prefers reconnect credential', () => {
+test('refresh/disconnect path still prefers reconnect credential for code-only URL', () => {
   localStorage.clear();
   sessionStorage.clear();
 
@@ -159,10 +172,7 @@ test('refresh/disconnect path still prefers reconnect credential', () => {
     reconnectToken: 'token-alive',
   });
 
-  const intent = resolveRoomEntryIntent(
-    new URLSearchParams({ code: '318429', name: 'عبدالله' }),
-    null,
-  );
+  const intent = resolveRoomEntryIntent(new URLSearchParams({ code: '318429' }), null);
   assert.equal(intent.type, 'reconnect');
   if (intent.type === 'reconnect') {
     assert.equal(intent.playerId, 'id-khaled');

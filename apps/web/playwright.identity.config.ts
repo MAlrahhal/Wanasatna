@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/e2e',
-  testMatch: 'identity-forensics.spec.ts',
+  testMatch: /(?:identity-forensics|production-identity-failure|room-identity-contract)\.spec\.ts/,
   timeout: 240_000,
   expect: { timeout: 30_000 },
   fullyParallel: false,

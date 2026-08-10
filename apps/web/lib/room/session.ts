@@ -1,6 +1,8 @@
 import { disconnectRoomSocket } from '@/lib/room/socket';
 import {
+  clearActiveRoomReconnectCredential,
   findRoomReconnectCredential,
+  purgeLegacyLocalStorageRoomIdentity,
   removeRoomReconnectCredential,
   type RoomReconnectCredential,
 } from '@/lib/room/reconnect-credential';
@@ -11,6 +13,8 @@ export const ROOM_SESSION_STORAGE_KEYS = {
   playerName: 'wanasatna:playerName',
   roomCode: 'wanasatna:roomCode',
   selectedGameId: 'wanasatna:selectedGameId',
+  /** Bumps on each fresh room entry so late ACKs from a prior intent are ignored. */
+  entryGeneration: 'wanasatna:roomEntryGeneration',
 } as const;
 
 const PLAYER_ID_KEY = ROOM_SESSION_STORAGE_KEYS.playerId;
@@ -18,7 +22,13 @@ const ROOM_ID_KEY = ROOM_SESSION_STORAGE_KEYS.roomId;
 const PLAYER_NAME_KEY = ROOM_SESSION_STORAGE_KEYS.playerName;
 const ROOM_CODE_KEY = ROOM_SESSION_STORAGE_KEYS.roomCode;
 const SELECTED_GAME_KEY = ROOM_SESSION_STORAGE_KEYS.selectedGameId;
+const ENTRY_GENERATION_KEY = ROOM_SESSION_STORAGE_KEYS.entryGeneration;
 
+/**
+ * Ephemeral RoomPlayer participation for the current tab.
+ * This is NOT a User/Account identity and must not outlive explicit Leave
+ * or a fresh Create / different-room Join.
+ */
 export type RoomSession = {
   playerId: string;
   roomId: string;
@@ -87,6 +97,24 @@ export function writeSelectedGameId(gameId: string | null): void {
   window.sessionStorage.removeItem(SELECTED_GAME_KEY);
 }
 
+export function bumpRoomEntryGeneration(): number {
+  if (typeof window === 'undefined') {
+    return 0;
+  }
+
+  const next = (Number(window.sessionStorage.getItem(ENTRY_GENERATION_KEY) ?? '0') || 0) + 1;
+  window.sessionStorage.setItem(ENTRY_GENERATION_KEY, String(next));
+  return next;
+}
+
+export function readRoomEntryGeneration(): number {
+  if (typeof window === 'undefined') {
+    return 0;
+  }
+
+  return Number(window.sessionStorage.getItem(ENTRY_GENERATION_KEY) ?? '0') || 0;
+}
+
 export function buildLobbyUrl(roomCode: string): string {
   return `/lobby?code=${encodeURIComponent(roomCode)}`;
 }
@@ -113,6 +141,14 @@ function reconnectIntentFromCredential(
   };
 }
 
+/**
+ * Resolve how this tab should enter a room.
+ *
+ * Contract:
+ * - Create / Join with an explicit display name → always fresh RoomPlayer
+ * - Same-room code-only URL (refresh) → reconnect when resume credential matches
+ * - Never reconnect Room A while URL targets Room B
+ */
 export function resolveRoomEntryIntent(
   params: Pick<URLSearchParams, 'get'>,
   storedSession: RoomSession | null,
@@ -122,22 +158,23 @@ export function resolveRoomEntryIntent(
   const playerName = params.get('name')?.trim() ?? '';
   const roomCode = params.get('code')?.trim() ?? '';
 
+  // CASE 1 — Create is always a hard identity boundary.
   if (action === 'create' && playerName) {
     return { type: 'create', playerName };
   }
 
+  // CASE 2 — Explicit Join (typed name) is always a hard identity boundary.
+  // Typed display name must win; never resurrect another RoomPlayer via resume.
+  if (roomCode && playerName) {
+    return { type: 'join', roomCode, playerName };
+  }
+
   // Cross-room URL must never resurrect another room's session/reconnect identity.
-  // Example bug: /lobby?code=B while sessionStorage still holds Room A → reconnect A
-  // and rewrite the URL back to A.
   const sessionConflictsWithUrl = Boolean(
     roomCode && storedSession && storedSession.roomCode !== roomCode,
   );
 
   if (sessionConflictsWithUrl) {
-    if (playerName) {
-      return { type: 'join', roomCode, playerName };
-    }
-
     const targetCredential = findRoomReconnectCredential(roomCode);
 
     if (targetCredential) {
@@ -147,6 +184,7 @@ export function resolveRoomEntryIntent(
     return { type: 'none' };
   }
 
+  // CASE 3 — Same-room refresh / temporary disconnect (code-only URL).
   const credential = findRoomReconnectCredential(roomCodeForCredential ?? roomCode);
 
   if (roomCode && credential?.roomCode === roomCode) {
@@ -161,11 +199,7 @@ export function resolveRoomEntryIntent(
     }
   }
 
-  if (roomCode && playerName) {
-    return { type: 'join', roomCode, playerName };
-  }
-
-  if (storedSession) {
+  if (storedSession && !roomCode) {
     const sessionCredential = findRoomReconnectCredential(storedSession.roomCode);
 
     if (sessionCredential && sessionCredential.playerId === storedSession.playerId) {
@@ -176,22 +210,35 @@ export function resolveRoomEntryIntent(
   return { type: 'none' };
 }
 
-export function beginNewRoomIdentity(roomCode?: string): void {
-  // Read session before clearing so explicit leave always drops the room-scoped
-  // reconnect credential even when callers omit roomCode (e.g. leaveActiveRoom).
+/**
+ * Destroy local Room participation identity only.
+ *
+ * Does NOT clear future Account/Auth identity (tokens, userId, profile).
+ * Room leave ≠ account logout.
+ */
+export function resetRoomParticipationIdentity(roomCode?: string): void {
+  purgeLegacyLocalStorageRoomIdentity();
+
   const codeToClear = (roomCode ?? readRoomSession()?.roomCode)?.trim() || null;
 
   clearRoomSession();
 
   if (codeToClear) {
     removeRoomReconnectCredential(codeToClear);
+  } else {
+    clearActiveRoomReconnectCredential();
   }
 
   disconnectRoomSocket();
 }
 
+/** @deprecated Prefer resetRoomParticipationIdentity — kept as a thin alias. */
+export function beginNewRoomIdentity(roomCode?: string): void {
+  resetRoomParticipationIdentity(roomCode);
+}
+
 export function resetWanasatnaRoomSession(): void {
-  beginNewRoomIdentity();
+  resetRoomParticipationIdentity();
 }
 
 export function shouldClearSessionOnReconnectFailure(code: string): boolean {

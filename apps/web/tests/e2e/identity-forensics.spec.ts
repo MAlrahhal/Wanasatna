@@ -32,16 +32,16 @@ async function dumpIdentity(page: Page): Promise<IdentityDump> {
     };
 
     const reconnectKeys: string[] = [];
-    for (let i = 0; i < localStorage.length; i += 1) {
-      const key = localStorage.key(i);
-      if (key?.startsWith('wanasatna:reconnect:')) {
+    for (let i = 0; i < sessionStorage.length; i += 1) {
+      const key = sessionStorage.key(i);
+      if (key === 'wanasatna:active-room-resume' || key?.startsWith('wanasatna:reconnect:')) {
         reconnectKeys.push(key);
       }
     }
 
     let reconnectForUrlCode: IdentityDump['reconnectForUrlCode'] = null;
     if (code) {
-      const raw = localStorage.getItem(`wanasatna:reconnect:${code}`);
+      const raw = sessionStorage.getItem('wanasatna:active-room-resume');
       if (raw) {
         try {
           const parsed = JSON.parse(raw) as {
@@ -49,11 +49,13 @@ async function dumpIdentity(page: Page): Promise<IdentityDump> {
             roomCode?: string;
             roomId?: string;
           };
-          reconnectForUrlCode = {
-            playerId: parsed.playerId ?? null,
-            roomCode: parsed.roomCode ?? null,
-            roomId: parsed.roomId ?? null,
-          };
+          if (parsed.roomCode === code) {
+            reconnectForUrlCode = {
+              playerId: parsed.playerId ?? null,
+              roomCode: parsed.roomCode ?? null,
+              roomId: parsed.roomId ?? null,
+            };
+          }
         } catch {
           reconnectForUrlCode = null;
         }
@@ -107,7 +109,8 @@ test.describe('Identity forensics — cross-room leakage', () => {
 
     expect(dumpA1.session.roomCode).toBe(roomA);
     expect(dumpA1.session.playerName).toBe('Khaled');
-    expect(dumpA1.reconnectKeys.some((k) => k.endsWith(roomA))).toBe(true);
+    expect(dumpA1.reconnectKeys).toContain('wanasatna:active-room-resume');
+    expect(dumpA1.reconnectForUrlCode?.roomCode).toBe(roomA);
 
     // Explicit leave Room A
     await leaveRoom(playerX);
@@ -118,7 +121,8 @@ test.describe('Identity forensics — cross-room leakage', () => {
 
     expect(dumpAfterLeave.session.playerId).toBeNull();
     expect(dumpAfterLeave.session.roomCode).toBeNull();
-    expect(dumpAfterLeave.reconnectKeys.some((k) => k.endsWith(roomA))).toBe(false);
+    expect(dumpAfterLeave.reconnectKeys).not.toContain('wanasatna:active-room-resume');
+    expect(dumpAfterLeave.reconnectForUrlCode).toBeNull();
 
     const roomB = await enterLobbyCreate(hostB, 'HostB');
     await enterLobbyJoin(playerX, roomB, 'Abdullah');
@@ -184,7 +188,7 @@ test.describe('Identity forensics — cross-room leakage', () => {
     // B credential cannot silently reconnect to A or join B namelessly.
     expect(dump.session.roomCode).not.toBe(roomA);
     expect(dump.session.playerName).not.toBe('Khaled');
-    expect(dump.reconnectKeys.some((key) => key.endsWith(roomA))).toBe(false);
+    expect(dump.reconnectForUrlCode?.roomCode === roomA).toBeFalsy();
     await expect(hostA.getByText('Khaled')).toHaveCount(0);
 
     await ctxA.close();

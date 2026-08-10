@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { HOME_ROOM_ACTIONS_ID } from '@/lib/public/routes';
+import { leaveActiveRoom } from '@/lib/room/navigation-guard';
+import { readRoomSession, resetRoomParticipationIdentity } from '@/lib/room/session';
 
 type FieldErrors = {
   playerName?: boolean;
@@ -98,7 +100,18 @@ export function useRoomActions() {
 
     setErrorMessage(null);
     setFieldErrors({});
-    void navigateToLobby(`/lobby?action=create&name=${encodeURIComponent(trimmedName)}`, 'create');
+    // Hard Create boundary: typed name wins; prior RoomPlayer must not survive.
+    void (async () => {
+      if (readRoomSession()) {
+        await leaveActiveRoom();
+      } else {
+        resetRoomParticipationIdentity();
+      }
+      await navigateToLobby(
+        `/lobby?action=create&name=${encodeURIComponent(trimmedName)}`,
+        'create',
+      );
+    })();
   }, [isCreating, isJoining, navigateToLobby, playerName, scrollToRoomActions]);
 
   const handleJoinRoom = useCallback(() => {
@@ -149,10 +162,18 @@ export function useRoomActions() {
 
     setErrorMessage(null);
     setFieldErrors({});
-    void navigateToLobby(
-      `/lobby?code=${encodeURIComponent(trimmedCode)}&name=${encodeURIComponent(trimmedName)}`,
-      'join',
-    );
+    // Hard Join boundary: typed name + room code win; prior RoomPlayer must not survive.
+    void (async () => {
+      if (readRoomSession()) {
+        await leaveActiveRoom();
+      } else {
+        resetRoomParticipationIdentity();
+      }
+      await navigateToLobby(
+        `/lobby?code=${encodeURIComponent(trimmedCode)}&name=${encodeURIComponent(trimmedName)}`,
+        'join',
+      );
+    })();
   }, [isCreating, isJoining, joinCode, navigateToLobby, playerName, scrollToRoomActions]);
 
   const handlePlayerNameChange = useCallback(
