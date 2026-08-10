@@ -17,12 +17,15 @@ export type SeatedOpponentProps = {
   lookYaw?: number;
   lookPitch?: number;
   reachToward?: [number, number, number] | null;
+  holdHand?: 'both' | 'left' | 'right';
   highlight?: boolean;
   labelPrefix?: string;
   reduceMotion?: boolean;
   position?: [number, number, number];
+  /** World-space body yaw. Keep near 0 so characters face opponents, not camera. */
   rotationY?: number;
   testId?: string;
+  nameTestId?: string;
 };
 
 const DOT_COLORS: Record<'blue' | 'red' | 'opponent', string> = {
@@ -32,8 +35,8 @@ const DOT_COLORS: Record<'blue' | 'red' | 'opponent', string> = {
 };
 
 /**
- * Bean character seated in orange armchair, holding identity card in hands.
- * Name label sits BELOW the character (not floating above head).
+ * Bean character seated in orange armchair.
+ * Name label is anchored BELOW the seat — never on the identity card.
  */
 export function LowPolyOpponent({
   name,
@@ -44,27 +47,30 @@ export function LowPolyOpponent({
   lookYaw = 0,
   lookPitch = 0,
   reachToward = null,
+  holdHand = 'both',
   highlight = false,
   labelPrefix = 'هوية الخصم',
   reduceMotion = false,
   position = [0, 0, -2.55],
   rotationY = 0,
   testId = 'gc-opponent-character',
+  nameTestId = 'gc-opponent-name',
 }: SeatedOpponentProps) {
   const text = resolveIdentityCardText(identity, false);
   const identityKey = identity?.value ?? '';
 
   return (
-    <group position={position} rotation={[0, rotationY, 0]}>
+    <group position={position} rotation={[0, rotationY, 0]} data-seat-facing="forward">
       <OrangeArmchair />
 
-      <group position={[0, 0.42, 0.08]}>
+      <group position={[0, 0.4, 0.06]}>
         <BeanCharacter
           teamTint={teamTint}
           lookYaw={lookYaw}
           lookPitch={lookPitch}
           reduceMotion={reduceMotion}
           reachToward={reachToward}
+          holdHand={holdHand}
           holdCard={
             holdOwnCard ? (
               <IdentityCardMesh
@@ -80,41 +86,43 @@ export function LowPolyOpponent({
         />
       </group>
 
-      {/* Name below character */}
+      {/* Fixed name anchor below seat / torso — away from card */}
       <Html
         center
-        position={[0, -0.05, 0.35]}
-        distanceFactor={6.5}
+        position={[0, 0.08, 0.62]}
+        distanceFactor={7}
         style={{ pointerEvents: 'none', userSelect: 'none' }}
-        zIndexRange={[8, 0]}
+        zIndexRange={[5, 0]}
       >
         <div
           data-testid={testId}
+          data-name-anchor="below-seat"
           dir="rtl"
           style={{
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
-            justifyContent: 'center',
             gap: '0.35rem',
-            minWidth: '6rem',
+            padding: '0.2rem 0.55rem',
+            borderRadius: '999px',
+            background: 'rgba(15,23,42,0.72)',
+            border: '1px solid rgba(255,255,255,0.18)',
             color: '#f8fafc',
             fontWeight: 700,
-            fontSize: '0.78rem',
-            textShadow: '0 1px 4px rgba(0,0,0,0.55)',
+            fontSize: '0.72rem',
+            whiteSpace: 'nowrap',
           }}
         >
           <span
             aria-hidden
             style={{
-              width: '0.55rem',
-              height: '0.55rem',
+              width: '0.5rem',
+              height: '0.5rem',
               borderRadius: '999px',
               background: DOT_COLORS[teamDot],
-              boxShadow: `0 0 6px ${DOT_COLORS[teamDot]}`,
               flexShrink: 0,
             }}
           />
-          <span data-testid="gc-opponent-name">{name}</span>
+          <span data-testid={nameTestId}>{name}</span>
         </div>
       </Html>
     </group>

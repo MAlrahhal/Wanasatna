@@ -3,11 +3,13 @@
  * Temporary assets live under /public/sounds and can be replaced later.
  */
 
-export type GameSoundId = 'timer-start';
+export type GameSoundId = 'timer-start' | 'card-request';
 
 const SOUND_SRC: Record<GameSoundId, string> = {
   // TEMPORARY development cue — replace with final production SFX later.
   'timer-start': '/sounds/timer-start.wav',
+  // Soft reuse of the same asset at lower volume for teammate card-confirm pings.
+  'card-request': '/sounds/timer-start.wav',
 };
 
 let unlocked = false;
@@ -80,7 +82,7 @@ export function playGameSound(id: GameSoundId): void {
 
   try {
     audio.src = src;
-    audio.volume = 1;
+    audio.volume = id === 'card-request' ? 0.35 : 1;
     audio.currentTime = 0;
     const playPromise = audio.play();
 
@@ -91,5 +93,41 @@ export function playGameSound(id: GameSoundId): void {
     }
   } catch {
     // Never break gameplay for sound failures.
+  }
+}
+
+/** Soft teammate card-request ping. Prefer Web Audio beep; fall back to quiet game sound. */
+export function playSoftCardRequestPing(): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    const AudioCtx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) {
+      playGameSound('card-request');
+      return;
+    }
+
+    const ctx = new AudioCtx();
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.value = 880;
+    gain.gain.value = 0.0001;
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    const now = ctx.currentTime;
+    gain.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+    oscillator.start(now);
+    oscillator.stop(now + 0.2);
+    oscillator.onended = () => {
+      void ctx.close().catch(() => undefined);
+    };
+  } catch {
+    playGameSound('card-request');
   }
 }

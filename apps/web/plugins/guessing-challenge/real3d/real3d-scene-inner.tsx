@@ -51,52 +51,67 @@ function TeammateSeat({
   selfSeat: 0 | 1;
   reduceMotion: boolean;
 }) {
-  // selfSeat 0 → teammate on +x (right of camera); selfSeat 1 → -x
-  const x = selfSeat === 0 ? 1.15 : -1.15;
+  // Seat beside local player, same row as camera — facing opponents (world -Z).
+  // selfSeat 0 → teammate on +x (right); selfSeat 1 → -x (left).
+  // Keep clear of look-down frustum under the camera (no local third-person body).
+  const x = selfSeat === 0 ? 1.45 : -1.45;
   const tint = selfTeam === 'red' ? 'red' : 'blue';
+  const teamDot = selfTeam === 'red' ? 'red' : 'blue';
 
   return (
-    <group position={[x, 0, 0.35]} rotation={[0, selfSeat === 0 ? -0.55 : 0.55, 0]}>
+    <group
+      position={[x, 0, 1.2]}
+      rotation={[0, 0, 0]}
+      data-testid="gc-teammate-seat"
+      data-facing="opponents"
+    >
       <OrangeArmchair />
-      <group position={[0, 0.42, 0.08]}>
+      <group position={[0, 0.4, 0.06]}>
         <BeanCharacter
           teamTint={tint}
           lookYaw={teammate.lookYaw ?? 0}
           lookPitch={teammate.lookPitch ?? 0}
           reduceMotion={reduceMotion}
+          holdHand="both"
         />
       </group>
       <Html
         center
-        position={[0, -0.05, 0.35]}
-        distanceFactor={6.5}
+        position={[0, 0.08, 0.62]}
+        distanceFactor={7}
         style={{ pointerEvents: 'none', userSelect: 'none' }}
-        zIndexRange={[8, 0]}
+        zIndexRange={[5, 0]}
       >
         <div
           data-testid="gc-teammate-character"
+          data-name-anchor="below-seat"
           dir="rtl"
           style={{
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
             gap: '0.35rem',
+            padding: '0.2rem 0.55rem',
+            borderRadius: '999px',
+            background: 'rgba(15,23,42,0.72)',
+            border: '1px solid rgba(255,255,255,0.18)',
             color: '#f8fafc',
             fontWeight: 700,
-            fontSize: '0.78rem',
-            textShadow: '0 1px 4px rgba(0,0,0,0.55)',
+            fontSize: '0.72rem',
+            whiteSpace: 'nowrap',
           }}
         >
           <span
             aria-hidden
             style={{
-              width: '0.55rem',
-              height: '0.55rem',
+              width: '0.5rem',
+              height: '0.5rem',
               borderRadius: '999px',
               background: tint === 'blue' ? '#38bdf8' : '#fb7185',
               flexShrink: 0,
             }}
           />
           <span>{teammate.name}</span>
+          <span aria-hidden>{teamDot === 'blue' ? '🔵' : '🔴'}</span>
         </div>
       </Html>
     </group>
@@ -170,46 +185,50 @@ function SceneContent({
 
       {/* Opponents */}
       {is2v2 && opponents.length >= 2 ? (
-        <group>
-          {/* Shared identity card between two opponents */}
-          <group position={[0, 1.15, -2.35]} rotation={[-0.25, 0, 0]}>
+        <group data-testid="gc-opponent-pair">
+          {/* Shared identity card between opponents — held by inner hands */}
+          <group position={[0, 1.02, -2.2]} rotation={[-0.2, 0, 0]} data-shared-card="true">
             <IdentityCardMesh
               text={resolveIdentityCardText(props.opponentIdentity, false)}
-              label={revealed ? 'كانوا' : 'هوية الخصوم'}
+              label={revealed ? 'كانوا' : undefined}
               highlight={props.opponentHighlight}
               flipKey={props.opponentIdentity?.value ?? ''}
               reduceMotion={reduceMotion}
-              width={0.62}
-              height={0.42}
+              width={0.7}
+              height={0.46}
               testId="gc-opponent-identity"
             />
           </group>
+          {/* Left opponent — RIGHT (inner) hand toward shared card */}
           <LowPolyOpponent
             name={opponents[0].name}
             holdOwnCard={false}
-            reachToward={[0.35, 0.45, 0.55]}
+            holdHand="right"
+            reachToward={[0.42, 0.48, 0.42]}
             teamTint={oppTint}
             teamDot={oppDot}
             lookYaw={opponents[0].lookYaw ?? 0}
             lookPitch={opponents[0].lookPitch ?? 0}
             highlight={props.opponentHighlight}
             reduceMotion={reduceMotion}
-            position={[-0.75, 0, -2.45]}
-            rotationY={0.28}
+            position={[-0.58, 0, -2.5]}
+            rotationY={0.12}
             testId="gc-opponent-character-0"
           />
+          {/* Right opponent — LEFT (inner) hand toward shared card */}
           <LowPolyOpponent
             name={opponents[1].name}
             holdOwnCard={false}
-            reachToward={[-0.35, 0.45, 0.55]}
+            holdHand="left"
+            reachToward={[-0.42, 0.48, 0.42]}
             teamTint={oppTint}
             teamDot={oppDot}
             lookYaw={opponents[1].lookYaw ?? 0}
             lookPitch={opponents[1].lookPitch ?? 0}
             highlight={props.opponentHighlight}
             reduceMotion={reduceMotion}
-            position={[0.75, 0, -2.45]}
-            rotationY={-0.28}
+            position={[0.58, 0, -2.5]}
+            rotationY={-0.12}
             testId="gc-opponent-character-1"
           />
         </group>
@@ -218,6 +237,7 @@ function SceneContent({
           name={opponents[0]?.name ?? props.opponentName}
           identity={props.opponentIdentity}
           holdOwnCard
+          holdHand="both"
           teamTint={oppTint}
           teamDot={oppDot}
           lookYaw={opponents[0]?.lookYaw ?? 0}
@@ -226,10 +246,11 @@ function SceneContent({
           labelPrefix={revealed ? `${opponents[0]?.name ?? props.opponentName} كان` : 'هوية الخصم'}
           reduceMotion={reduceMotion}
           position={[0, 0, -2.55]}
+          rotationY={0}
         />
       )}
 
-      {/* Teammate (2v2) */}
+      {/* Teammate (2v2) — beside local seat, facing opponents; never under camera */}
       {is2v2 && props.teammate ? (
         <TeammateSeat
           teammate={props.teammate}
@@ -261,7 +282,7 @@ export function Real3DSceneInner(props: GuessingChallengeSceneProps) {
         <Canvas
           shadows
           dpr={[1, 1.5]}
-          camera={{ position: [0, 1.35, 1.65], fov: 55, near: 0.1, far: 40 }}
+          camera={{ position: [0, 1.35, 1.65], fov: 55, near: 0.15, far: 40 }}
           gl={{ antialias: true, powerPreference: 'high-performance' }}
           onCreated={({ gl }) => {
             gl.setClearColor('#2e1065');

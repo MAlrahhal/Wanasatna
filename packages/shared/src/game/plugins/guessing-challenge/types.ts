@@ -135,6 +135,9 @@ export type GuessingChallengeCardConfirmStatus = {
   requiredCount: number;
   selfConfirmed: boolean;
   message: string;
+  /** First teammate who opened the confirmation request. */
+  requestingPlayerId: string;
+  requestingPlayerName: string;
 };
 
 export type GuessingChallengePlayerView = {

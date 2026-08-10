@@ -126,11 +126,21 @@ test('C/D/E/F/G playing screen wires GameplayScene + side special cards + matchM
   assert.match(specialPanel, /gc-card-detail/);
   assert.match(specialPanel, /gc-confirm-card-use/);
   assert.match(specialPanel, /استخدام واحد فقط في المباراة/);
-  assert.match(specialPanel, /تم استخدامها/);
+  assert.match(specialPanel, /تم الاستخدام/);
   assert.match(specialPanel, /البطاقة الصفراء/);
-  assert.match(specialPanel, /تمنح فريقك 3 أسئلة متتالية بدلاً من سؤال واحد/);
-  assert.match(specialPanel, /تغيّر هوية الفريق الخصم إلى هوية جديدة عشوائية من نفس الفئة/);
-  assert.match(specialPanel, /بانتظار موافقة زميلك/);
+  assert.match(specialPanel, /تمنح فريقك 3 أسئلة متتالية/);
+  assert.match(specialPanel, /تغيّر هوية الفريق الخصم إلى هوية جديدة من نفس الفئة/);
+  assert.match(specialPanel, /بانتظار موافقة شريكك/);
+  assert.match(specialPanel, /استخدام البطاقة/);
+  assert.match(specialPanel, /data-compact="true"/);
+  assert.match(specialPanel, /gc-teammate-card-request/);
+  assert.match(specialPanel, /تحتاج موافقتك/);
+  assert.match(specialPanel, /playSoftCardRequestPing/);
+  assert.match(specialPanel, /gc-once-per-match-warning/);
+  assert.match(specialPanel, /عرض البطاقة/);
+  assert.match(specialPanel, /وافق على الاستخدام/);
+  assert.doesNotMatch(specialPanel, /بدلاً من سؤال واحد/);
+  assert.doesNotMatch(specialPanel, /عشوائية/);
 
   assert.match(scene, /gc-first-person-scene/);
   assert.match(scene, /gc-opponent-identity/);
@@ -241,6 +251,38 @@ test('I primary actions remain DOM outside canvas', () => {
   const playing = readPlugin('playing-screen.tsx');
   assert.match(playing, /gc-primary-actions/);
   assert.match(playing, /GameplayScene/);
+});
+
+test('2v2 seating faces opponents; shared card + name anchors', () => {
+  const inner = readPlugin('real3d/real3d-scene-inner.tsx');
+  const opponent = readPlugin('real3d/low-poly-opponent.tsx');
+  const bean = readPlugin('real3d/bean-character.tsx');
+  const hands = readPlugin('real3d/first-person-hands.tsx');
+
+  assert.match(inner, /data-facing="opponents"/);
+  assert.match(inner, /gc-teammate-seat/);
+  assert.match(inner, /selfSeat === 0 \? 1\.45 : -1\.45/);
+  assert.match(inner, /position=\{\[x, 0, 1\.2\]\}/);
+  assert.match(inner, /data-shared-card="true"/);
+  assert.match(inner, /holdHand="right"/);
+  assert.match(inner, /holdHand="left"/);
+  assert.match(inner, /gc-opponent-pair/);
+  assert.doesNotMatch(inner, /rotation=\{\[0, selfSeat === 0 \? -0\.55/);
+  assert.match(opponent, /data-name-anchor="below-seat"/);
+  assert.match(opponent, /data-seat-facing="forward"/);
+  assert.match(bean, /holdHand/);
+  assert.match(bean, /lookYaw \* 0\.05/);
+  assert.match(hands, /FirstPersonHands|gc-self-identity/);
+  assert.doesNotMatch(inner, /selfAvatar|LocalAvatar/);
+  assert.match(inner, /no local third-person body/);
+});
+
+test('card request sound helper exists once-per-request', () => {
+  const sounds = readFileSync(join(root, 'lib/game/sounds.ts'), 'utf8');
+  const panel = readPlugin('special-cards-panel.tsx');
+  assert.match(sounds, /playSoftCardRequestPing/);
+  assert.match(panel, /lastPingKey/);
+  assert.match(panel, /playSoftCardRequestPing\(\)/);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

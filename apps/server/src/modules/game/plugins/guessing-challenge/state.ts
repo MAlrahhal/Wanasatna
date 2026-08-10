@@ -685,16 +685,20 @@ function buildCardConfirmStatus(
   const requiredCount = Math.max(1, getConnectedTeamPlayerIds(match, shell, teamId).length);
   const confirmedCount = confirm.confirmedPlayerIds.length;
   const selfConfirmed = confirm.confirmedPlayerIds.includes(playerId);
-  const cardLabel = confirm.card === 'yellow' ? 'الصفراء' : 'الحمراء';
+  const requestingPlayerId = confirm.confirmedPlayerIds[0] ?? playerId;
+  const requestingPlayerName = match.playerNames[requestingPlayerId] ?? 'زميلك';
+  const cardTitle = confirm.card === 'yellow' ? 'البطاقة الصفراء' : 'البطاقة الحمراء';
 
   return {
     card: confirm.card,
     confirmedCount,
     requiredCount,
     selfConfirmed,
+    requestingPlayerId,
+    requestingPlayerName,
     message: selfConfirmed
-      ? `بانتظار تأكيد الزميل للبطاقة ${cardLabel} (${confirmedCount}/${requiredCount})`
-      : `زميلك يطلب تأكيد البطاقة ${cardLabel} (${confirmedCount}/${requiredCount})`,
+      ? `بانتظار موافقة شريكك (${confirmedCount}/${requiredCount})`
+      : `${requestingPlayerName} يريد استخدام ${cardTitle}`,
   };
 }
 

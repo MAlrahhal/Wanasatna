@@ -570,6 +570,8 @@ test('2v2 card confirm 1/2 does not activate; 2/2 activates once', () => {
   assert.equal(view.cardConfirmStatus?.confirmedCount, 1);
   assert.equal(view.cardConfirmStatus?.requiredCount, 2);
   assert.equal(view.cardConfirmStatus?.selfConfirmed, false);
+  assert.ok(view.cardConfirmStatus?.requestingPlayerName);
+  assert.match(view.cardConfirmStatus?.message ?? '', /يريد استخدام/);
 
   const second = confirmCard(match, shell, 'p3', 'yellow');
   assert.equal(second.ok, true);

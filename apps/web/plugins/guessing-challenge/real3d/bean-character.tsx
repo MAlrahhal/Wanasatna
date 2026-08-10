@@ -13,6 +13,8 @@ export type BeanCharacterProps = {
   holdCard?: ReactNode;
   /** Offset for arm reach toward a shared card (2v2). */
   reachToward?: [number, number, number] | null;
+  /** Which hand(s) extend toward the card. */
+  holdHand?: 'both' | 'left' | 'right';
   reduceMotion?: boolean;
   scale?: number;
 };
@@ -50,6 +52,7 @@ export function BeanCharacter({
   lookPitch = 0,
   holdCard = null,
   reachToward = null,
+  holdHand = 'both',
   reduceMotion = false,
   scale = 1,
 }: BeanCharacterProps) {
@@ -65,22 +68,23 @@ export function BeanCharacter({
         head.current.rotation.y = lookYaw * 0.35;
         head.current.rotation.x = lookPitch * 0.25;
       }
+      // Body stays mostly forward — only tiny look sway.
       if (body.current) {
-        body.current.rotation.y = lookYaw * 0.12;
+        body.current.rotation.y = lookYaw * 0.04;
       }
       return;
     }
 
     breath.current += delta;
-    const inhale = Math.sin(breath.current * 1.6) * 0.018;
+    const inhale = Math.sin(breath.current * 1.6) * 0.012;
     if (root.current) {
       root.current.position.y = inhale;
     }
     if (body.current) {
-      body.current.scale.y = 1 + inhale * 0.35;
+      body.current.scale.y = 1 + inhale * 0.25;
       body.current.rotation.y = THREE.MathUtils.damp(
         body.current.rotation.y,
-        lookYaw * 0.12,
+        lookYaw * 0.05,
         6,
         delta,
       );
@@ -88,7 +92,7 @@ export function BeanCharacter({
     if (head.current) {
       head.current.rotation.y = THREE.MathUtils.damp(
         head.current.rotation.y,
-        lookYaw * 0.38,
+        lookYaw * 0.42,
         7,
         delta,
       );
@@ -101,13 +105,13 @@ export function BeanCharacter({
     }
   });
 
+  const restLeft: [number, number, number] = [-0.2, 0.12, 0.28];
+  const restRight: [number, number, number] = [0.2, 0.12, 0.28];
   const reach = reachToward ?? [0, 0.42, 0.42];
-  const leftArmTarget: [number, number, number] = reachToward
-    ? [reach[0] - 0.08, reach[1], reach[2]]
-    : [-0.22, 0.38, 0.38];
-  const rightArmTarget: [number, number, number] = reachToward
-    ? [reach[0] + 0.08, reach[1], reach[2]]
-    : [0.22, 0.38, 0.38];
+  const leftArmTarget: [number, number, number] =
+    holdHand === 'right' ? restLeft : holdHand === 'left' ? reach : reachToward ? [reach[0] - 0.08, reach[1], reach[2]] : [-0.22, 0.38, 0.38];
+  const rightArmTarget: [number, number, number] =
+    holdHand === 'left' ? restRight : holdHand === 'right' ? reach : reachToward ? [reach[0] + 0.08, reach[1], reach[2]] : [0.22, 0.38, 0.38];
 
   return (
     <group ref={root} scale={scale}>

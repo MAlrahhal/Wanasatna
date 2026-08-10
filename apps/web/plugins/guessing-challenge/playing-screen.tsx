@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { GuessingChallengePlayerView } from '@wanasatna/shared';
 import { GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
@@ -39,6 +39,28 @@ export function GuessingChallengePlayingScreen({
 }: GuessingChallengePlayingScreenProps) {
   const [showGuessForm, setShowGuessForm] = useState(false);
   const [guess, setGuess] = useState('');
+  const [activationMessage, setActivationMessage] = useState<string | null>(null);
+  const prevYellow = useRef(view.self.yellowCardAvailable);
+  const prevRed = useRef(view.self.redCardAvailable);
+
+  useEffect(() => {
+    if (prevYellow.current && !view.self.yellowCardAvailable) {
+      setActivationMessage('تم تفعيل البطاقة الصفراء');
+    }
+    if (prevRed.current && !view.self.redCardAvailable) {
+      setActivationMessage('تم تفعيل البطاقة الحمراء');
+    }
+    prevYellow.current = view.self.yellowCardAvailable;
+    prevRed.current = view.self.redCardAvailable;
+  }, [view.self.yellowCardAvailable, view.self.redCardAvailable]);
+
+  useEffect(() => {
+    if (!activationMessage) {
+      return;
+    }
+    const timer = window.setTimeout(() => setActivationMessage(null), 3200);
+    return () => window.clearTimeout(timer);
+  }, [activationMessage]);
 
   const mappedTeammate = useMemo(() => {
     if (!view.teammate) {
@@ -93,7 +115,7 @@ export function GuessingChallengePlayingScreen({
           </p>
         ) : null}
 
-        <div className="relative">
+        <div className="relative overflow-hidden rounded-[1.5rem]">
           <GameplayScene
             mode="playing"
             matchMode={view.mode}
@@ -115,13 +137,14 @@ export function GuessingChallengePlayingScreen({
           />
 
           <GuessingChallengeSpecialCardsPanel
-            className="absolute right-2 top-2 z-10 w-[6.5rem] sm:w-28"
+            className="absolute inset-0 z-10"
             yellowAvailable={view.self.yellowCardAvailable}
             redAvailable={view.self.redCardAvailable}
             canUseYellow={view.canUseYellow}
             canUseRed={view.canUseRed}
             disabled={isSubmittingAction || showGuessForm}
             cardConfirmStatus={view.cardConfirmStatus}
+            activationMessage={activationMessage}
             onUseYellow={onUseYellow}
             onUseRed={onUseRed}
           />
