@@ -24,42 +24,43 @@ async function dumpIdentity(page: Page): Promise<IdentityDump> {
     const url = window.location.href;
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
+    const raw = sessionStorage.getItem('wanasatna:active-room-session');
+    let parsed: {
+      playerId?: string;
+      roomId?: string;
+      playerName?: string;
+      roomCode?: string;
+    } | null = null;
+    if (raw) {
+      try {
+        parsed = JSON.parse(raw) as typeof parsed;
+      } catch {
+        parsed = null;
+      }
+    }
+
     const session = {
-      playerId: sessionStorage.getItem('wanasatna:playerId'),
-      roomId: sessionStorage.getItem('wanasatna:roomId'),
-      playerName: sessionStorage.getItem('wanasatna:playerName'),
-      roomCode: sessionStorage.getItem('wanasatna:roomCode'),
+      playerId: parsed?.playerId ?? null,
+      roomId: parsed?.roomId ?? null,
+      playerName: parsed?.playerName ?? null,
+      roomCode: parsed?.roomCode ?? null,
     };
 
     const reconnectKeys: string[] = [];
     for (let i = 0; i < sessionStorage.length; i += 1) {
       const key = sessionStorage.key(i);
-      if (key === 'wanasatna:active-room-resume' || key?.startsWith('wanasatna:reconnect:')) {
+      if (key === 'wanasatna:active-room-session' || key === 'wanasatna:active-room-resume') {
         reconnectKeys.push(key);
       }
     }
 
     let reconnectForUrlCode: IdentityDump['reconnectForUrlCode'] = null;
-    if (code) {
-      const raw = sessionStorage.getItem('wanasatna:active-room-resume');
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw) as {
-            playerId?: string;
-            roomCode?: string;
-            roomId?: string;
-          };
-          if (parsed.roomCode === code) {
-            reconnectForUrlCode = {
-              playerId: parsed.playerId ?? null,
-              roomCode: parsed.roomCode ?? null,
-              roomId: parsed.roomId ?? null,
-            };
-          }
-        } catch {
-          reconnectForUrlCode = null;
-        }
-      }
+    if (code && parsed?.roomCode === code) {
+      reconnectForUrlCode = {
+        playerId: parsed.playerId ?? null,
+        roomCode: parsed.roomCode ?? null,
+        roomId: parsed.roomId ?? null,
+      };
     }
 
     const lobbyCodeText =
@@ -109,7 +110,7 @@ test.describe('Identity forensics — cross-room leakage', () => {
 
     expect(dumpA1.session.roomCode).toBe(roomA);
     expect(dumpA1.session.playerName).toBe('Khaled');
-    expect(dumpA1.reconnectKeys).toContain('wanasatna:active-room-resume');
+    expect(dumpA1.reconnectKeys).toContain('wanasatna:active-room-session');
     expect(dumpA1.reconnectForUrlCode?.roomCode).toBe(roomA);
 
     // Explicit leave Room A
@@ -121,7 +122,7 @@ test.describe('Identity forensics — cross-room leakage', () => {
 
     expect(dumpAfterLeave.session.playerId).toBeNull();
     expect(dumpAfterLeave.session.roomCode).toBeNull();
-    expect(dumpAfterLeave.reconnectKeys).not.toContain('wanasatna:active-room-resume');
+    expect(dumpAfterLeave.reconnectKeys).not.toContain('wanasatna:active-room-session');
     expect(dumpAfterLeave.reconnectForUrlCode).toBeNull();
 
     const roomB = await enterLobbyCreate(hostB, 'HostB');

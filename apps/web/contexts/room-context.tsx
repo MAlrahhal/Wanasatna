@@ -14,34 +14,19 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { LobbyPlayer } from '@/lib/lobby/types';
 import { getRoomErrorMessage } from '@/lib/room/error-messages';
 import {
-  CREATE_ROOM_EVENT,
   GAME_SHELL_NAVIGATE_EVENT,
   GAME_SHELL_START_FROM_LOBBY_EVENT,
   GAME_SHELL_SYNC_EVENT,
-  HOST_CHANGED_EVENT,
-  JOIN_ROOM_EVENT,
   KICK_PLAYER_EVENT,
   LOCK_ROOM_EVENT,
-  PLAYER_KICKED_EVENT,
-  RECONNECT_EVENT,
-  ROOM_PLAYERS_SNAPSHOT_EVENT,
-  ROOM_UPDATED_EVENT,
   UNLOCK_ROOM_EVENT,
   GAME_SHELL_STATE_EVENT,
   isActiveMatchParticipant,
   isWaitingForNextMatch,
   type GameShellNavigatePayload,
   type GameShellState,
-  type HostChangedPayload,
-  type PlayerKickedPayload,
-  type ReconnectResponse,
-  type RoomActionResponse,
   type RoomData,
-  type RoomErrorCode,
   type RoomPlayerData,
-  type RoomPlayersSnapshotPayload,
-  type RoomSessionData,
-  type RoomUpdatedPayload,
   type GuessingChallengeMode,
   type TimingChallengeSettings,
   GUESSING_CHALLENGE_GAME_ID,
@@ -62,40 +47,20 @@ import { emitGameShellWithAck } from '@/lib/game-shell/emit';
 import { getGameShellErrorMessage } from '@/lib/game-shell/error-messages';
 import { hasClientGamePlugin } from '@/lib/game-plugins/registry';
 import { normalizeRoomDates, toLobbyPlayers } from '@/lib/room/map-player';
-import { leaveActiveRoom } from '@/lib/room/navigation-guard';
 import {
-  beginNewRoomIdentity,
   buildLobbyUrl,
-  bumpRoomEntryGeneration,
-  clearRoomSession,
   lobbyUrlNeedsNormalization,
-  readRoomSession,
   readSelectedGameId,
-  resetRoomParticipationIdentity,
-  resolveRoomEntryIntent,
-  shouldClearSessionOnReconnectFailure,
-  STALE_ROOM_SESSION_MESSAGE,
   toCanonicalLobbySearchParams,
-  writeRoomSession,
   writeSelectedGameId,
 } from '@/lib/room/session';
+import { getRoomSocket } from '@/lib/room/socket';
+import { emitRoomAck } from '@/lib/room-v2/emit';
 import {
-  allowRoomResume,
-  isRoomResumeSuspended,
-  readRoomParticipationEpoch,
-  suspendRoomResume,
-} from '@/lib/room/participation';
-import {
-  findRoomReconnectCredential,
-  purgeLegacyLocalStorageRoomIdentity,
-  removeRoomReconnectCredential,
-  saveRoomReconnectCredential,
-} from '@/lib/room/reconnect-credential';
-import { disconnectRoomSocket, getRoomSocket, waitForRoomSocketConnection } from '@/lib/room/socket';
-import {
-  rebindRoomSocketFromStoredSession,
-  setRoomSessionResumeListener,
-} from '@/lib/room/socket-resume';
+  getRoomSessionManager,
+  type RoomManagerState,
+} from '@/lib/room-v2/manager';
+import type { RoomLifecycleStatus } from '@/lib/room-v2/types';
 import { getDefaultRoundCategoryId } from '@/lib/game/round-categories';
 import { registerAllClientGamePlugins } from '@/plugins';
 
@@ -138,80 +103,57 @@ type RoomContextValue = {
 
 const RoomContext = createContext<RoomContextValue | null>(null);
 
-function isRoomActionResponse<T>(value: unknown): value is RoomActionResponse<T> {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'success' in value &&
-    typeof (value as { success: unknown }).success === 'boolean'
-  );
+function mapManagerStatus(status: RoomLifecycleStatus): ConnectionStatus {
+  switch (status) {
+    case 'entering':
+    case 'recovering':
+      return 'connecting';
+    case 'active':
+      return 'connected';
+    case 'error':
+      return 'error';
+    case 'leaving':
+    case 'idle':
+    default:
+      return 'idle';
+  }
 }
 
-function emitWithAck<T>(
-  event: string,
-  payload?: unknown,
-): Promise<RoomActionResponse<T>> {
-  const socket = getRoomSocket();
-
-  return new Promise((resolve) => {
-    socket.timeout(10000).emit(event, payload ?? {}, (error: unknown, response?: RoomActionResponse<T>) => {
-      // Socket.IO timeout acks are (err, value). If a transport path delivers the
-      // payload as the first argument, accept it instead of treating it as failure.
-      const resolved = isRoomActionResponse<T>(response)
-        ? response
-        : isRoomActionResponse<T>(error)
-          ? error
-          : undefined;
-
-      if (!resolved) {
-        resolve({
-          success: false,
-          error: {
-            code: 'CONNECTION_FAILED',
-            message: getRoomErrorMessage('CONNECTION_FAILED'),
-          },
-        });
-        return;
-      }
-
-      resolve(resolved);
-    });
-  });
+function applyManagerStateToReact(
+  state: RoomManagerState,
+  setters: {
+    setStatus: (status: ConnectionStatus) => void;
+    setErrorMessage: (message: string | null) => void;
+    setRoom: (room: RoomData | null) => void;
+    setPlayer: (player: RoomPlayerData | null) => void;
+    setPlayers: (players: LobbyPlayer[]) => void;
+  },
+) {
+  setters.setStatus(mapManagerStatus(state.status));
+  setters.setErrorMessage(state.errorMessage);
+  setters.setRoom(state.snapshot.room ? normalizeRoomDates(state.snapshot.room) : null);
+  setters.setPlayer(state.snapshot.player);
+  setters.setPlayers(toLobbyPlayers(state.snapshot.players));
 }
 
-function applySessionFromData(data: RoomSessionData) {
-  writeRoomSession({
-    playerId: data.player.id,
-    roomId: data.room.id,
-    playerName: data.player.name,
-    roomCode: data.room.code,
-  });
-
-  if (data.reconnectToken) {
-    saveRoomReconnectCredential({
-      playerId: data.player.id,
-      roomId: data.room.id,
-      roomCode: data.room.code,
-      reconnectToken: data.reconnectToken,
-    });
+function isReusableActiveSession(state: RoomManagerState, roomCode?: string): boolean {
+  if (state.status !== 'active' || !state.snapshot.room || !state.session) {
+    return false;
   }
 
-  allowRoomResume();
-}
+  if (roomCode && state.session.roomCode !== roomCode) {
+    return false;
+  }
 
-/** Exactly-one in-flight Create per tab (survives Strict Mode remount races). */
-let createInFlightToken: string | null = null;
+  return true;
+}
 
 export function RoomProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const connectionAttemptRef = useRef(0);
   const searchParamsRef = useRef<Pick<URLSearchParams, 'get' | 'has' | 'toString'>>(searchParams);
   const pathnameRef = useRef(pathname);
-  const connectToRoomRef = useRef<(options?: { resumeStoredSessionOnly?: boolean }) => Promise<void>>(
-    async () => undefined,
-  );
 
   const [status, setStatus] = useState<ConnectionStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -232,14 +174,8 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   // joined the next match after waiting out the previous one).
   const activeGameShellRef = useRef<GameShellState | null>(null);
   const removeSocketListenersRef = useRef<(() => void) | null>(null);
-  /** Guards stale leave/kick snapshot bookkeeping (not a shrink-blocking heuristic). */
-  const lastRosterIdsRef = useRef<Set<string>>(new Set());
-  /** Fresh Create/Join generation — late Room A ACKs must not apply after Room B entry. */
-  const entryGenerationRef = useRef(0);
-  const expectedRoomCodeRef = useRef<string | null>(null);
+  const playerIdRef = useRef<string | null>(null);
 
-  // Sync Next search params into the ref, except while connected with a sticky
-  // create/join URL that we already canonically replaced to /lobby?code=.
   if (
     !(
       status === 'connected' &&
@@ -250,6 +186,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     searchParamsRef.current = searchParams;
   }
   pathnameRef.current = pathname;
+  playerIdRef.current = player?.id ?? null;
 
   const isHost = player?.isHost ?? false;
 
@@ -277,56 +214,6 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     return response;
   }, []);
 
-  const roomIdRef = useRef<string | null>(null);
-
-  const applyRosterPlayersFromSession = useCallback((nextPlayers: LobbyPlayer[]) => {
-    // Legitimate roster shrink (leave/kick/expiry) must always apply.
-    lastRosterIdsRef.current = new Set(nextPlayers.map((entry) => entry.id));
-    setPlayers(nextPlayers);
-  }, []);
-
-  const applyPlayersSnapshot = useCallback((payload: RoomPlayersSnapshotPayload) => {
-    if (isRoomResumeSuspended()) {
-      return;
-    }
-
-    const currentRoomId = roomIdRef.current ?? readRoomSession()?.roomId ?? null;
-
-    // Ignore snapshots from a room this tab is no longer bound to.
-    if (payload.roomId && currentRoomId && payload.roomId !== currentRoomId) {
-      return;
-    }
-
-    lastRosterIdsRef.current = new Set(payload.players.map((entry) => entry.id));
-    setPlayers(toLobbyPlayers(payload.players));
-  }, []);
-
-  const applyHostChange = useCallback((payload: HostChangedPayload) => {
-    if (isRoomResumeSuspended()) {
-      return;
-    }
-
-    setRoom((current) =>
-      current ? { ...current, hostPlayerId: payload.hostPlayerId } : current,
-    );
-
-    setPlayer((current) =>
-      current
-        ? {
-            ...current,
-            isHost: current.id === payload.hostPlayerId,
-          }
-        : current,
-    );
-
-    setPlayers((current) =>
-      current.map((entry) => ({
-        ...entry,
-        isHost: entry.id === payload.hostPlayerId,
-      })),
-    );
-  }, []);
-
   const canonicalizeActiveLobbyUrl = useCallback(
     (roomCode: string) => {
       if (pathnameRef.current === '/game') {
@@ -349,70 +236,14 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     [router],
   );
 
-  const applyRoomSession = useCallback(
-    (data: RoomSessionData, options?: { entryGeneration?: number; participationEpoch?: number }) => {
-      // Fresh Create/Join pass entryGeneration — those must apply after Leave.
-      // Resume/sync without a generation stay blocked while Leave is in effect.
-      const isFreshEntry =
-        options?.entryGeneration !== undefined &&
-        options.entryGeneration === entryGenerationRef.current;
-
-      if (!isFreshEntry && isRoomResumeSuspended()) {
-        return;
-      }
-
-      if (
-        options?.participationEpoch !== undefined &&
-        options.participationEpoch !== readRoomParticipationEpoch()
-      ) {
-        return;
-      }
-
-      if (
-        options?.entryGeneration !== undefined &&
-        options.entryGeneration !== entryGenerationRef.current
-      ) {
-        return;
-      }
-
-      const normalizedRoom = normalizeRoomDates(data.room);
-      const urlCode = searchParamsRef.current.get('code')?.trim() ?? '';
-      const expectedCode = expectedRoomCodeRef.current;
-      const stickyCreate = searchParamsRef.current.get('action') === 'create';
-
-      // Never apply Room A while URL targets Room B. Sticky create may have no code yet.
-      if (urlCode && !stickyCreate && normalizedRoom.code !== urlCode) {
-        return;
-      }
-
-      if (expectedCode && normalizedRoom.code !== expectedCode) {
-        return;
-      }
-
-      setRoom(normalizedRoom);
-      roomIdRef.current = normalizedRoom.id;
-      setPlayer(data.player);
-
-      applyRosterPlayersFromSession(toLobbyPlayers(data.players));
-
-      applySessionFromData(data);
-      setStatus('connected');
-      setErrorMessage(null);
-
-      canonicalizeActiveLobbyUrl(normalizedRoom.code);
-    },
-    [applyRosterPlayersFromSession, canonicalizeActiveLobbyUrl],
-  );
-
-  const handleFailure = useCallback((code: RoomErrorCode, fallback?: string) => {
-    setStatus('error');
-    setErrorMessage(getRoomErrorMessage(code, fallback));
-  }, []);
-
   const redirectIfActiveGameShell = useCallback(
     async (playerId?: string) => {
+      if (pathnameRef.current === '/game') {
+        return;
+      }
+
       const response = await syncActiveGameShell();
-      const resolvedPlayerId = playerId ?? player?.id;
+      const resolvedPlayerId = playerId ?? playerIdRef.current;
 
       if (
         response.success &&
@@ -424,8 +255,54 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         router.push('/game');
       }
     },
-    [player?.id, router, syncActiveGameShell],
+    [router, syncActiveGameShell],
   );
+
+  const clearLocalGameUi = useCallback(() => {
+    setSelectedGameId(null);
+    setSelectedRoundCategoryId(null);
+    setTeamSnapshot(null);
+    setActiveGameShell(null);
+    activeGameShellRef.current = null;
+  }, []);
+
+  const restoreSelectedGame = useCallback(() => {
+    const restoredGameId = readSelectedGameId();
+    setSelectedGameId(restoredGameId);
+    setSelectedRoundCategoryId(getDefaultRoundCategoryId(restoredGameId));
+  }, []);
+
+  // Sync React state from Room Client Core V2.
+  useEffect(() => {
+    const manager = getRoomSessionManager();
+    return manager.subscribe((state) => {
+      applyManagerStateToReact(state, {
+        setStatus,
+        setErrorMessage,
+        setRoom,
+        setPlayer,
+        setPlayers,
+      });
+    });
+  }, []);
+
+  // Self-kick / leave terminal — manager owns PLAYER_KICKED; provider only reacts.
+  useEffect(() => {
+    const manager = getRoomSessionManager();
+    manager.setTerminalHandler((reason) => {
+      if (reason !== 'kick') {
+        return;
+      }
+
+      clearLocalGameUi();
+      setErrorMessage('تم طردك من الغرفة.');
+      router.replace('/');
+    });
+
+    return () => {
+      manager.setTerminalHandler(null);
+    };
+  }, [clearLocalGameUi, router]);
 
   const registerSocketListeners = useCallback(() => {
     const socket = getRoomSocket();
@@ -433,49 +310,16 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     // Remove only the handlers this provider registered previously. Other
     // providers (e.g. GameShellProvider) share this socket, so removing an
     // event without naming our handler would wipe their listeners too.
+    // Core room events (players snapshot, host, lock, kick) stay on the manager.
     removeSocketListenersRef.current?.();
-
-    const onPlayersSnapshot = (payload: RoomPlayersSnapshotPayload) => {
-      applyPlayersSnapshot(payload);
-    };
-
-    const onHostChanged = (payload: HostChangedPayload) => {
-      applyHostChange(payload);
-    };
-
-    const onRoomUpdated = (payload: RoomUpdatedPayload) => {
-      setRoom((current) => (current ? { ...current, isLocked: payload.isLocked } : current));
-    };
-
-    const onPlayerKicked = (payload: PlayerKickedPayload) => {
-      setRoomSessionResumeListener(null);
-      suspendRoomResume();
-      beginNewRoomIdentity();
-      roomIdRef.current = null;
-      setStatus('error');
-      setErrorMessage('تم طردك من الغرفة.');
-      setRoom(null);
-      setPlayer(null);
-      setPlayers([]);
-      setSelectedGameId(null);
-      setSelectedRoundCategoryId(null);
-      setTeamSnapshot(null);
-
-      if (payload.roomId) {
-        router.push('/');
-      }
-    };
 
     const onGameShellNavigate = (payload: GameShellNavigatePayload) => {
       if (payload.path === '/game') {
-        const session = readRoomSession();
+        const currentPlayerId = playerIdRef.current;
 
-        // Suppress only for players waiting out a currently active match.
-        // Reads the latest shell via ref so a finished match or a new match
-        // that includes this player can never be blocked by a stale closure.
         if (
-          session?.playerId &&
-          isWaitingForNextMatch(activeGameShellRef.current, session.playerId)
+          currentPlayerId &&
+          isWaitingForNextMatch(activeGameShellRef.current, currentPlayerId)
         ) {
           return;
         }
@@ -506,429 +350,128 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       setTeamSnapshot(payload);
     };
 
-    socket.on(ROOM_PLAYERS_SNAPSHOT_EVENT, onPlayersSnapshot);
-    socket.on(HOST_CHANGED_EVENT, onHostChanged);
-    socket.on(ROOM_UPDATED_EVENT, onRoomUpdated);
-    socket.on(PLAYER_KICKED_EVENT, onPlayerKicked);
     socket.on(GAME_SHELL_NAVIGATE_EVENT, onGameShellNavigate);
     socket.on(GAME_SHELL_STATE_EVENT, onGameShellState);
     socket.on(TEAM_SNAPSHOT_EVENT, onTeamSnapshot);
 
     removeSocketListenersRef.current = () => {
-      socket.off(ROOM_PLAYERS_SNAPSHOT_EVENT, onPlayersSnapshot);
-      socket.off(HOST_CHANGED_EVENT, onHostChanged);
-      socket.off(ROOM_UPDATED_EVENT, onRoomUpdated);
-      socket.off(PLAYER_KICKED_EVENT, onPlayerKicked);
       socket.off(GAME_SHELL_NAVIGATE_EVENT, onGameShellNavigate);
       socket.off(GAME_SHELL_STATE_EVENT, onGameShellState);
       socket.off(TEAM_SNAPSHOT_EVENT, onTeamSnapshot);
       removeSocketListenersRef.current = null;
     };
-  }, [applyHostChange, applyPlayersSnapshot, router]);
+  }, [router]);
 
-  const ensureSocketReady = useCallback(
-    async (
-      isStale: () => boolean,
-      options?: { suppressFailureUi?: boolean },
-    ): Promise<boolean> => {
-      registerSocketListeners();
-
-      const activeSocket = getRoomSocket();
-
-      try {
-        if (!activeSocket.connected) {
-          activeSocket.connect();
-          await waitForRoomSocketConnection(activeSocket);
-        }
-      } catch {
-        if (!isStale() && !options?.suppressFailureUi) {
-          handleFailure('CONNECTION_FAILED');
-        }
-        return false;
-      }
-
-      return !isStale();
-    },
-    [handleFailure, registerSocketListeners],
-  );
-
-  const connectToRoom = useCallback(async (options?: { resumeStoredSessionOnly?: boolean }) => {
-    const attemptId = ++connectionAttemptRef.current;
-    const isStale = () => connectionAttemptRef.current !== attemptId;
-    const resumeStoredSessionOnly = options?.resumeStoredSessionOnly === true;
-
-    // Transport resume must not flash the lobby into a loading/error state.
-    if (!resumeStoredSessionOnly) {
-      setStatus('connecting');
-      setErrorMessage(null);
-    }
-
-    if (!(await ensureSocketReady(isStale, { suppressFailureUi: resumeStoredSessionOnly }))) {
-      return;
-    }
-
-    const storedSession = readRoomSession();
-    let intent = resumeStoredSessionOnly
-      ? ({ type: 'none' } as const)
-      : resolveRoomEntryIntent(searchParamsRef.current, storedSession);
-
-    if (resumeStoredSessionOnly && storedSession) {
-      const credential = findRoomReconnectCredential(storedSession.roomCode);
-
-      if (credential && credential.playerId === storedSession.playerId) {
-        intent = {
-          type: 'reconnect',
-          playerId: credential.playerId,
-          roomId: credential.roomId,
-          roomCode: credential.roomCode,
-          reconnectToken: credential.reconnectToken,
-        };
-      }
-    }
-
-    if (intent.type === 'create') {
-      const createToken = `create:${intent.playerName}`;
-      if (createInFlightToken === createToken) {
-        return;
-      }
-      createInFlightToken = createToken;
-
-      purgeLegacyLocalStorageRoomIdentity();
-      const entryGeneration = bumpRoomEntryGeneration();
-      entryGenerationRef.current = entryGeneration;
-      expectedRoomCodeRef.current = null;
-      resetRoomParticipationIdentity();
-      // New Create is a fresh participation — do not keep Leave's resume suspend.
-      allowRoomResume();
-
-      try {
-        if (!(await ensureSocketReady(isStale))) {
-          return;
-        }
-
-        const response = await emitWithAck<RoomSessionData>(CREATE_ROOM_EVENT, {
-          playerName: intent.playerName,
-        });
-
-        if (isStale()) {
-          return;
-        }
-
-        if (response.success) {
-          expectedRoomCodeRef.current = response.data.room.code;
-          applyRoomSession(response.data, { entryGeneration });
-          const restoredGameId = readSelectedGameId();
-          setSelectedGameId(restoredGameId);
-          setSelectedRoundCategoryId(getDefaultRoundCategoryId(restoredGameId));
-          await redirectIfActiveGameShell(response.data.player.id);
-          return;
-        }
-
-        handleFailure(response.error.code);
-        return;
-      } finally {
-        if (createInFlightToken === createToken) {
-          createInFlightToken = null;
-        }
-      }
-    }
-
-    if (intent.type === 'join') {
-      purgeLegacyLocalStorageRoomIdentity();
-      const entryGeneration = bumpRoomEntryGeneration();
-      entryGenerationRef.current = entryGeneration;
-      expectedRoomCodeRef.current = intent.roomCode;
-      resetRoomParticipationIdentity();
-      allowRoomResume();
-
-      if (!(await ensureSocketReady(isStale))) {
-        return;
-      }
-
-      const response = await emitWithAck<RoomSessionData>(JOIN_ROOM_EVENT, {
-        roomCode: intent.roomCode,
-        playerName: intent.playerName,
-      });
-
-      if (isStale()) {
-        return;
-      }
-
-      if (response.success) {
-        applyRoomSession(response.data, { entryGeneration });
-        await redirectIfActiveGameShell(response.data.player.id);
-        return;
-      }
-
-      handleFailure(response.error.code);
-      return;
-    }
-
-    if (intent.type === 'reconnect') {
-      expectedRoomCodeRef.current = intent.roomCode;
-      const response = (await emitWithAck<RoomSessionData>(RECONNECT_EVENT, {
-        playerId: intent.playerId,
-        roomId: intent.roomId,
-        roomCode: intent.roomCode,
-        reconnectToken: intent.reconnectToken,
-      })) as ReconnectResponse;
-
-      if (isStale()) {
-        return;
-      }
-
-      console.info('[room-entry]', {
-        intent: 'reconnect',
-        success: response.success,
-        errorCode: response.success ? undefined : response.error.code,
-      });
-
-      if (response.success) {
-        applyRoomSession(response.data);
-        const restoredGameId = readSelectedGameId();
-        setSelectedGameId(restoredGameId);
-        setSelectedRoundCategoryId(getDefaultRoundCategoryId(restoredGameId));
-        await redirectIfActiveGameShell(response.data.player.id);
-        return;
-      }
-
-      // Transport resume should not destroy an already-rendered lobby on transient errors.
-      // Module-level rebind already attempted; avoid wiping a live lobby UI here.
-      if (resumeStoredSessionOnly) {
-        return;
-      }
-
-      if (response.hostChanged) {
-        applyHostChange(response.hostChanged);
-      }
-
-      if (
-        response.error.code === 'RECONNECT_INVALID_TOKEN' ||
-        response.error.code === 'PLAYER_NOT_FOUND' ||
-        response.error.code === 'RECONNECT_EXPIRED' ||
-        response.error.code === 'ROOM_NOT_FOUND' ||
-        response.error.code === 'ROOM_CLOSED'
-      ) {
-        removeRoomReconnectCredential(intent.roomCode);
-      }
-
-      if (shouldClearSessionOnReconnectFailure(response.error.code)) {
-        clearRoomSession();
-        disconnectRoomSocket();
-      }
-
-      const fallbackName =
-        searchParamsRef.current.get('name')?.trim() ||
-        storedSession?.playerName?.trim() ||
-        '';
-
-      // Stale credential / deleted identity: try a fresh join when the room may still exist.
-      const canFallbackJoin =
-        Boolean(fallbackName && intent.roomCode) &&
-        (response.error.code === 'RECONNECT_INVALID_TOKEN' ||
-          response.error.code === 'PLAYER_NOT_FOUND' ||
-          response.error.code === 'RECONNECT_EXPIRED');
-
-      if (canFallbackJoin) {
-        const entryGeneration = bumpRoomEntryGeneration();
-        entryGenerationRef.current = entryGeneration;
-        expectedRoomCodeRef.current = intent.roomCode;
-        resetRoomParticipationIdentity();
-
-        if (!(await ensureSocketReady(isStale))) {
-          return;
-        }
-
-        const joinResponse = await emitWithAck<RoomSessionData>(JOIN_ROOM_EVENT, {
-          roomCode: intent.roomCode,
-          playerName: fallbackName,
-        });
-
-        if (isStale()) {
-          return;
-        }
-
-        if (joinResponse.success) {
-          applyRoomSession(joinResponse.data, { entryGeneration });
-          await redirectIfActiveGameShell(joinResponse.data.player.id);
-          return;
-        }
-
-        handleFailure(joinResponse.error.code);
-        return;
-      }
-
-      const reconnectMessage =
-        response.error.code === 'CONNECTION_FAILED' ||
-        response.error.code === 'RECONNECT_EXPIRED' ||
-        response.error.code === 'RECONNECT_INVALID_TOKEN' ||
-        response.error.code === 'PLAYER_NOT_FOUND'
-          ? STALE_ROOM_SESSION_MESSAGE
-          : undefined;
-
-      handleFailure(response.error.code, reconnectMessage ?? response.error.message);
-      return;
-    }
-
-    if (isStale()) {
-      return;
-    }
-
-    if (resumeStoredSessionOnly) {
-      return;
-    }
-
-    setStatus('error');
-    setErrorMessage('تعذر الاتصال بالغرفة. استخدم رابط الانضمام أو أنشئ غرفة جديدة.');
-  }, [
-    applyHostChange,
-    applyRoomSession,
-    ensureSocketReady,
-    handleFailure,
-    redirectIfActiveGameShell,
-  ]);
-
-  connectToRoomRef.current = connectToRoom;
-
-  useEffect(() => {
-    const resumeOwner = Symbol('room-provider-resume');
-    let cancelled = false;
-
-    setRoomSessionResumeListener((data) => {
-      if (isRoomResumeSuspended()) {
-        return;
-      }
-      applyRoomSession(data);
-    }, resumeOwner);
-
-    void (async () => {
-      purgeLegacyLocalStorageRoomIdentity();
-
-      let storedSession = readRoomSession();
-      const urlCode = searchParamsRef.current.get('code')?.trim() ?? '';
-
-      // Cross-room navigation: leave the old room only when URL has no resume
-      // credential for the target code. Poisoned session.roomCode must not
-      // destroy a still-valid Room B resume on refresh.
-      if (urlCode && storedSession && storedSession.roomCode !== urlCode) {
-        const urlCredential = findRoomReconnectCredential(urlCode);
-        if (urlCredential) {
-          storedSession = {
-            playerId: urlCredential.playerId,
-            roomId: urlCredential.roomId,
-            playerName: storedSession.playerName,
-            roomCode: urlCredential.roomCode,
-          };
-          writeRoomSession(storedSession);
-        } else {
-          await leaveActiveRoom();
-          roomIdRef.current = null;
-          if (cancelled) {
-            return;
-          }
-          storedSession = readRoomSession();
-        }
-      }
-
-      const entryIntent = resolveRoomEntryIntent(searchParamsRef.current, storedSession);
-
-      // /game → /lobby remount (and /lobby ↔ /game): when identity already exists,
-      // prefer bound room-sync over a full reconnect. Reconnect force-disconnects
-      // sibling sockets and rebroadcasts — that race was collapsing Host's roster.
-      if (entryIntent.type === 'reconnect') {
-        const ready = await ensureSocketReady(() => cancelled);
-
-        if (cancelled || !ready) {
-          return;
-        }
-
-        const synced = await rebindRoomSocketFromStoredSession();
-
-        if (cancelled) {
-          return;
-        }
-
-        if (synced) {
-          applyRoomSession(synced);
-          const restoredGameId = readSelectedGameId();
-          setSelectedGameId(restoredGameId);
-          setSelectedRoundCategoryId(getDefaultRoundCategoryId(restoredGameId));
-          await redirectIfActiveGameShell(synced.player.id);
-          return;
-        }
-      }
-
-      if (cancelled) {
-        return;
-      }
-
-      await connectToRoom();
-
-      if (cancelled || !readRoomSession()) {
-        return;
-      }
-
-      const synced = await rebindRoomSocketFromStoredSession();
-
-      if (!cancelled && synced) {
-        applyRoomSession(synced);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      connectionAttemptRef.current += 1;
-      removeSocketListenersRef.current?.();
-      setRoomSessionResumeListener(null, resumeOwner);
-    };
-    // Connect once on mount; URL params are read via searchParamsRef.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Soft-nav /lobby?code=A → /lobby?code=B does not remount RoomProvider.
-  // Detect URL room changes and leave the old room before resolving new intent.
   const urlRoomCode = searchParams.get('code')?.trim() ?? '';
   const urlAction = searchParams.get('action')?.trim() ?? '';
   const urlHasName = searchParams.has('name');
 
+  // Bind lobby URL /game resume to manager — never create/join from effects.
   useEffect(() => {
     let cancelled = false;
+    const manager = getRoomSessionManager();
 
     void (async () => {
-      const storedSession = readRoomSession();
-      if (!urlRoomCode || !storedSession || storedSession.roomCode === urlRoomCode) {
+      const legacyIntent = urlAction === 'create' || urlHasName;
+      const state = manager.getState();
+
+      if (legacyIntent) {
+        const sessionCode = state.session?.roomCode;
+        if (sessionCode) {
+          canonicalizeActiveLobbyUrl(sessionCode);
+          if (!isReusableActiveSession(state, sessionCode)) {
+            await manager.resumeSameRoom(sessionCode);
+            if (cancelled) {
+              return;
+            }
+            restoreSelectedGame();
+            await redirectIfActiveGameShell(manager.getState().snapshot.player?.id);
+          }
+          return;
+        }
+
+        if (urlRoomCode) {
+          router.replace(`/?code=${encodeURIComponent(urlRoomCode)}`);
+        } else {
+          router.replace('/');
+        }
         return;
       }
 
-      // Soft-nav to a room that already has a resume credential is reconnect,
-      // not leave (covers poisoned session.roomCode while URL stays on Room B).
-      if (findRoomReconnectCredential(urlRoomCode)) {
-        writeRoomSession({
-          ...storedSession,
-          roomCode: urlRoomCode,
-        });
+      if (pathname === '/game') {
+        if (!state.session) {
+          router.replace('/');
+          return;
+        }
+
+        if (isReusableActiveSession(state)) {
+          return;
+        }
+
+        await manager.resumeSameRoom();
+        if (!cancelled) {
+          restoreSelectedGame();
+        }
         return;
       }
 
-      await leaveActiveRoom();
-      roomIdRef.current = null;
-      setRoom(null);
-      setPlayer(null);
-      setPlayers([]);
-      setActiveGameShell(null);
-      activeGameShellRef.current = null;
+      if (urlRoomCode) {
+        if (state.session?.roomCode === urlRoomCode) {
+          if (isReusableActiveSession(state, urlRoomCode)) {
+            await redirectIfActiveGameShell(state.snapshot.player?.id);
+            return;
+          }
 
-      if (cancelled) {
+          await manager.resumeSameRoom(urlRoomCode);
+          if (cancelled) {
+            return;
+          }
+          restoreSelectedGame();
+          await redirectIfActiveGameShell(manager.getState().snapshot.player?.id);
+          return;
+        }
+
+        // Different room in URL than active session: clear participation, invite-only Home.
+        if (state.session) {
+          await manager.leave();
+          if (cancelled) {
+            return;
+          }
+        }
+        router.replace(`/?code=${encodeURIComponent(urlRoomCode)}`);
         return;
       }
 
-      await connectToRoomRef.current();
+      // /lobby with no code: recover bound session or send home.
+      if (state.session?.roomCode) {
+        canonicalizeActiveLobbyUrl(state.session.roomCode);
+        if (!isReusableActiveSession(state, state.session.roomCode)) {
+          await manager.resumeSameRoom(state.session.roomCode);
+          if (cancelled) {
+            return;
+          }
+          restoreSelectedGame();
+          await redirectIfActiveGameShell(manager.getState().snapshot.player?.id);
+        }
+        return;
+      }
+
+      router.replace('/');
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [urlRoomCode]);
+  }, [
+    canonicalizeActiveLobbyUrl,
+    pathname,
+    redirectIfActiveGameShell,
+    restoreSelectedGame,
+    router,
+    urlAction,
+    urlHasName,
+    urlRoomCode,
+  ]);
 
   // Keep canonical `/lobby?code=` after successful entry even if Next reconciles
   // sticky action=create / name= query params back into the address bar.
@@ -942,8 +485,6 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     }
   }, [status, room?.code, urlAction, urlHasName, urlRoomCode, canonicalizeActiveLobbyUrl]);
 
-  // Keep searchParamsRef aligned with the latest Next search params unless we just
-  // canonically replaced them to code-only while Next still reports sticky intent.
   useEffect(() => {
     if (
       status === 'connected' &&
@@ -955,10 +496,14 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     searchParamsRef.current = searchParams;
   }, [searchParams, status, room?.code]);
 
+  // Game-shell + team listeners only while connected (manager owns room core events).
   useEffect(() => {
     if (status !== 'connected') {
+      removeSocketListenersRef.current?.();
       return;
     }
+
+    registerSocketListeners();
 
     void (async () => {
       const sync = await emitGameShellWithAck<{ snapshot: PregameTeamSnapshot | null }>(
@@ -968,10 +513,14 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         setTeamSnapshot(sync.data.snapshot);
       }
     })();
-  }, [status]);
+
+    return () => {
+      removeSocketListenersRef.current?.();
+    };
+  }, [registerSocketListeners, status]);
 
   const lockRoom = useCallback(async () => {
-    const response = await emitWithAck<{ roomId: string; isLocked: boolean }>(LOCK_ROOM_EVENT);
+    const response = await emitRoomAck<{ roomId: string; isLocked: boolean }>(LOCK_ROOM_EVENT);
 
     if (!response.success) {
       setErrorMessage(getRoomErrorMessage(response.error.code));
@@ -979,7 +528,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const unlockRoom = useCallback(async () => {
-    const response = await emitWithAck<{ roomId: string; isLocked: boolean }>(UNLOCK_ROOM_EVENT);
+    const response = await emitRoomAck<{ roomId: string; isLocked: boolean }>(UNLOCK_ROOM_EVENT);
 
     if (!response.success) {
       setErrorMessage(getRoomErrorMessage(response.error.code));
@@ -987,7 +536,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const kickPlayer = useCallback(async (targetPlayerId: string) => {
-    const response = await emitWithAck<{ kickedPlayerId: string; roomDeleted: boolean }>(
+    const response = await emitRoomAck<{ kickedPlayerId: string; roomDeleted: boolean }>(
       KICK_PLAYER_EVENT,
       { playerId: targetPlayerId },
     );
@@ -1099,6 +648,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     },
     [isHost],
   );
+
   const startGame = useCallback(async () => {
     if (!isHost) {
       return;
@@ -1148,33 +698,17 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     timingChallengeSettings,
   ]);
 
-  const leaveRoom = useCallback(async (redirectTo = '/') => {
-    // Detach listeners before tearing down so a manager reconnect cannot race
-    // and re-apply a just-invalidated identity.
-    removeSocketListenersRef.current?.();
-    setRoomSessionResumeListener(null);
-    suspendRoomResume();
-    entryGenerationRef.current = bumpRoomEntryGeneration();
-    createInFlightToken = null;
+  const leaveRoom = useCallback(
+    async (redirectTo = '/') => {
+      removeSocketListenersRef.current?.();
+      clearLocalGameUi();
+      setErrorMessage(null);
 
-    // Immediate client isolation — Room identity is dead before leave ACK.
-    roomIdRef.current = null;
-    expectedRoomCodeRef.current = null;
-    setRoom(null);
-    setPlayer(null);
-    setPlayers([]);
-    setSelectedGameId(null);
-    setSelectedRoundCategoryId(null);
-    setTeamSnapshot(null);
-    setActiveGameShell(null);
-    activeGameShellRef.current = null;
-    setStatus('idle');
-    setErrorMessage(null);
-
-    await leaveActiveRoom();
-
-    router.push(redirectTo);
-  }, [router]);
+      await getRoomSessionManager().leave();
+      router.replace(redirectTo);
+    },
+    [clearLocalGameUi, router],
+  );
 
   const value = useMemo<RoomContextValue>(
     () => ({

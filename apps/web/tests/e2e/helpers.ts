@@ -54,8 +54,12 @@ async function invokeSkipViaTestHook(page: Page): Promise<boolean> {
   });
 }
 
+/** Create via real Home UI — never `/lobby?action=create`. */
 export async function enterLobbyCreate(page: Page, playerName: string): Promise<string> {
-  await page.goto(`/lobby?action=create&name=${encodeURIComponent(playerName)}`);
+  await page.goto('/');
+  const section = page.locator('#start-play');
+  await section.locator('#create-name').fill(playerName);
+  await section.getByRole('button', { name: 'إنشاء غرفة' }).click();
   await page.waitForURL(/\/lobby\?code=\d+/, { timeout: 30_000 });
   const url = new URL(page.url());
   const code = url.searchParams.get('code');
@@ -68,10 +72,13 @@ export async function enterLobbyCreate(page: Page, playerName: string): Promise<
   return code;
 }
 
+/** Join via real Home UI — never command query params. */
 export async function enterLobbyJoin(page: Page, roomCode: string, playerName: string): Promise<void> {
-  await page.goto(
-    `/lobby?code=${encodeURIComponent(roomCode)}&name=${encodeURIComponent(playerName)}`,
-  );
+  await page.goto('/');
+  const section = page.locator('#start-play');
+  await section.locator('#join-name').fill(playerName);
+  await section.locator('#join-code').fill(roomCode);
+  await section.getByRole('button', { name: 'انضم الآن' }).click();
   await page.waitForURL(new RegExp(`/lobby\\?code=${roomCode}$`), { timeout: 30_000 });
   await expect(page.getByText(playerName).first()).toBeVisible({ timeout: 30_000 });
 }

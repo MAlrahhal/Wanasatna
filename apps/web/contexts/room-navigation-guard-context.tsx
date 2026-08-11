@@ -4,8 +4,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { useRouter } from 'next/navigation';
 import { useOptionalRoom } from '@/contexts/room-context';
 import { RoomNavigationGuardDialog } from '@/components/room/room-navigation-guard-dialog';
-import { leaveActiveRoom, shouldGuardNavigation } from '@/lib/room/navigation-guard';
-import { readRoomSession } from '@/lib/room/session';
+import { shouldGuardNavigation } from '@/lib/room/navigation-guard';
+import { getRoomSessionManager, readPersistedActiveRoomSession } from '@/lib/room-v2';
 
 type RoomNavigationGuardContextValue = {
   hasActiveRoomSession: boolean;
@@ -22,7 +22,7 @@ export function RoomNavigationGuardProvider({ children }: { children: ReactNode 
   const [isLeaving, setIsLeaving] = useState(false);
 
   const syncStoredSession = useCallback(() => {
-    setStoredSessionActive(readRoomSession() !== null);
+    setStoredSessionActive(readPersistedActiveRoomSession() !== null);
   }, []);
 
   useEffect(() => {
@@ -56,11 +56,11 @@ export function RoomNavigationGuardProvider({ children }: { children: ReactNode 
     setIsLeaving(true);
 
     try {
-      if (optionalRoom?.status === 'connected' && optionalRoom.room) {
+      if (optionalRoom?.leaveRoom) {
         await optionalRoom.leaveRoom(pendingHref);
       } else {
-        await leaveActiveRoom();
-        router.push(pendingHref);
+        await getRoomSessionManager().leave();
+        router.replace(pendingHref);
       }
     } finally {
       setIsLeaving(false);

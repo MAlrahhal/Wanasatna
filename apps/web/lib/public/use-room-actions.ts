@@ -1,10 +1,9 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { HOME_ROOM_ACTIONS_ID } from '@/lib/public/routes';
-import { leaveActiveRoom } from '@/lib/room/navigation-guard';
-import { readRoomSession, resetRoomParticipationIdentity } from '@/lib/room/session';
+import { getRoomSessionManager } from '@/lib/room-v2';
 
 type FieldErrors = {
   playerName?: boolean;
@@ -19,59 +18,45 @@ function resetSubmissionFlags(
   setIsJoining(false);
 }
 
+/**
+ * Home Create/Join — V2: network completes HERE, then navigate to canonical lobby URL.
+ * Lobby never executes create/join commands.
+ */
 export function useRoomActions() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [playerName, setPlayerName] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
-  const navigationRef = useRef<'create' | 'join' | null>(null);
+  const inFlightRef = useRef(false);
 
   const scrollToRoomActions = useCallback(() => {
     document.getElementById(HOME_ROOM_ACTIONS_ID)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, []);
 
+  // Deep-link: /?code=B prefill join code (declarative invite data, not a command).
   useEffect(() => {
-    resetSubmissionFlags(setIsCreating, setIsJoining);
-    navigationRef.current = null;
+    const code = searchParams.get('code')?.trim() ?? '';
+    if (/^\d{6}$/.test(code)) {
+      setJoinCode(code);
+    }
+  }, [searchParams]);
 
+  useEffect(() => {
     function handleRestore() {
       resetSubmissionFlags(setIsCreating, setIsJoining);
-      navigationRef.current = null;
+      inFlightRef.current = false;
     }
 
     window.addEventListener('pageshow', handleRestore);
     return () => window.removeEventListener('pageshow', handleRestore);
   }, []);
 
-  const navigateToLobby = useCallback(
-    async (url: string, mode: 'create' | 'join') => {
-      if (navigationRef.current) {
-        return;
-      }
-
-      navigationRef.current = mode;
-      if (mode === 'create') {
-        setIsCreating(true);
-      } else {
-        setIsJoining(true);
-      }
-
-      try {
-        await router.push(url);
-      } catch {
-        setErrorMessage('تعذر الانتقال إلى الغرفة. يرجى المحاولة مرة أخرى.');
-        resetSubmissionFlags(setIsCreating, setIsJoining);
-        navigationRef.current = null;
-      }
-    },
-    [router],
-  );
-
   const handleCreateRoom = useCallback(() => {
-    if (isCreating || isJoining || navigationRef.current) {
+    if (isCreating || isJoining || inFlightRef.current) {
       return;
     }
 
@@ -100,22 +85,29 @@ export function useRoomActions() {
 
     setErrorMessage(null);
     setFieldErrors({});
-    // Hard Create boundary: typed name wins; prior RoomPlayer must not survive.
+    inFlightRef.current = true;
+    setIsCreating(true);
+
     void (async () => {
-      if (readRoomSession()) {
-        await leaveActiveRoom();
-      } else {
-        resetRoomParticipationIdentity();
+      try {
+        const result = await getRoomSessionManager().create(trimmedName);
+        if (!result.success) {
+          setErrorMessage(result.error.message);
+          return;
+        }
+
+        router.replace(`/lobby?code=${encodeURIComponent(result.data.roomCode)}`);
+      } catch {
+        setErrorMessage('تعذر إنشاء الغرفة. حاول مرة أخرى.');
+      } finally {
+        inFlightRef.current = false;
+        resetSubmissionFlags(setIsCreating, setIsJoining);
       }
-      await navigateToLobby(
-        `/lobby?action=create&name=${encodeURIComponent(trimmedName)}`,
-        'create',
-      );
     })();
-  }, [isCreating, isJoining, navigateToLobby, playerName, scrollToRoomActions]);
+  }, [isCreating, isJoining, playerName, router, scrollToRoomActions]);
 
   const handleJoinRoom = useCallback(() => {
-    if (isCreating || isJoining || navigationRef.current) {
+    if (isCreating || isJoining || inFlightRef.current) {
       return;
     }
 
@@ -162,19 +154,26 @@ export function useRoomActions() {
 
     setErrorMessage(null);
     setFieldErrors({});
-    // Hard Join boundary: typed name + room code win; prior RoomPlayer must not survive.
+    inFlightRef.current = true;
+    setIsJoining(true);
+
     void (async () => {
-      if (readRoomSession()) {
-        await leaveActiveRoom();
-      } else {
-        resetRoomParticipationIdentity();
+      try {
+        const result = await getRoomSessionManager().join(trimmedCode, trimmedName);
+        if (!result.success) {
+          setErrorMessage(result.error.message);
+          return;
+        }
+
+        router.replace(`/lobby?code=${encodeURIComponent(result.data.roomCode)}`);
+      } catch {
+        setErrorMessage('تعذر الانضمام إلى الغرفة. حاول مرة أخرى.');
+      } finally {
+        inFlightRef.current = false;
+        resetSubmissionFlags(setIsCreating, setIsJoining);
       }
-      await navigateToLobby(
-        `/lobby?code=${encodeURIComponent(trimmedCode)}&name=${encodeURIComponent(trimmedName)}`,
-        'join',
-      );
     })();
-  }, [isCreating, isJoining, joinCode, navigateToLobby, playerName, scrollToRoomActions]);
+  }, [isCreating, isJoining, joinCode, playerName, router, scrollToRoomActions]);
 
   const handlePlayerNameChange = useCallback(
     (value: string) => {

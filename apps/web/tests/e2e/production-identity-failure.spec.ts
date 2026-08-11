@@ -28,17 +28,21 @@ async function leaveLobby(page: Page): Promise<void> {
 }
 
 async function dumpStorage(page: Page) {
-  return page.evaluate(() => ({
-    url: location.href,
-    session: {
-      playerId: sessionStorage.getItem('wanasatna:playerId'),
-      playerName: sessionStorage.getItem('wanasatna:playerName'),
-      roomCode: sessionStorage.getItem('wanasatna:roomCode'),
-    },
-    localReconnectKeys: Object.keys(localStorage).filter((k) =>
-      k.startsWith('wanasatna:reconnect:'),
-    ),
-  }));
+  return page.evaluate(() => {
+    const raw = sessionStorage.getItem('wanasatna:active-room-session');
+    const parsed = raw ? (JSON.parse(raw) as Record<string, string>) : null;
+    return {
+      url: location.href,
+      session: {
+        playerId: parsed?.playerId ?? null,
+        playerName: parsed?.playerName ?? null,
+        roomCode: parsed?.roomCode ?? null,
+      },
+      localReconnectKeys: Object.keys(localStorage).filter((k) =>
+        k.startsWith('wanasatna:reconnect:'),
+      ),
+    };
+  });
 }
 
 test.describe('Production identity failure reproduction', () => {

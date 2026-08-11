@@ -32,13 +32,17 @@ async function leaveLobby(page: Page): Promise<void> {
 }
 
 async function readSession(page: Page) {
-  return page.evaluate(() => ({
-    playerId: sessionStorage.getItem('wanasatna:playerId'),
-    playerName: sessionStorage.getItem('wanasatna:playerName'),
-    roomCode: sessionStorage.getItem('wanasatna:roomCode'),
-    resume: sessionStorage.getItem('wanasatna:active-room-resume'),
-    legacyKeys: Object.keys(localStorage).filter((k) => k.startsWith('wanasatna:reconnect:')),
-  }));
+  return page.evaluate(() => {
+    const raw = sessionStorage.getItem('wanasatna:active-room-session');
+    const parsed = raw ? (JSON.parse(raw) as Record<string, string>) : null;
+    return {
+      playerId: parsed?.playerId ?? null,
+      playerName: parsed?.playerName ?? null,
+      roomCode: parsed?.roomCode ?? null,
+      resume: raw,
+      legacyKeys: Object.keys(localStorage).filter((k) => k.startsWith('wanasatna:reconnect:')),
+    };
+  });
 }
 
 async function seedLegacyLocalStorage(page: Page, roomCode: string) {
@@ -290,11 +294,14 @@ test.describe('Room identity contract (browser A–J)', () => {
     expect(roomB).not.toBe(roomA);
     await expect(page.getByText('خلود').first()).toBeVisible();
 
-    // Poison storage mid-session as a late Room A write would.
-    await page.evaluate((roomACode) => {
-      sessionStorage.setItem('wanasatna:playerName', 'محمد');
-      sessionStorage.setItem('wanasatna:roomCode', roomACode);
-    }, roomA);
+    // Poison display name mid-session — Room code/id remain authoritative for resume.
+    await page.evaluate(() => {
+      const raw = sessionStorage.getItem('wanasatna:active-room-session');
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Record<string, string>;
+      parsed.playerName = 'محمد';
+      sessionStorage.setItem('wanasatna:active-room-session', JSON.stringify(parsed));
+    });
 
     // UI authority remains Room B until a scoped payload applies.
     await expect(page.getByText('خلود').first()).toBeVisible();

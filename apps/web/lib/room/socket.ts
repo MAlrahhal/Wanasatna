@@ -3,30 +3,16 @@ import { io, type Socket } from 'socket.io-client';
 import { getServerUrl } from '@/lib/config/server-url';
 
 let socket: Socket | null = null;
-let resumeHookInstalled = false;
 
-function onManagerReconnect(): void {
-  // Lazy import avoids a circular dependency with socket-resume.ts.
-  void import('@/lib/room/socket-resume').then(({ rebindRoomSocketFromStoredSession }) => {
-    void rebindRoomSocketFromStoredSession();
-  });
-}
-
-function installResumeHook(activeSocket: Socket): void {
-  if (resumeHookInstalled) {
-    return;
-  }
-
-  activeSocket.io.on('reconnect', onManagerReconnect);
-  resumeHookInstalled = true;
-}
-
+/**
+ * Socket.IO singleton. Room identity is owned by RoomSessionManager (V2),
+ * not by this module.
+ */
 export function getRoomSocket(): Socket {
   if (!socket) {
     socket = io(getServerUrl(), {
       autoConnect: false,
     });
-    installResumeHook(socket);
   }
 
   return socket;
@@ -69,8 +55,6 @@ export function disconnectRoomSocket(): void {
     return;
   }
 
-  socket.io.off('reconnect', onManagerReconnect);
-  resumeHookInstalled = false;
   socket.removeAllListeners();
   socket.disconnect();
   socket = null;

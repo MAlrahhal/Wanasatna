@@ -1,0 +1,627 @@
+import {
+  CREATE_ROOM_EVENT,
+  JOIN_ROOM_EVENT,
+  LEAVE_ROOM_EVENT,
+  RECONNECT_EVENT,
+  ROOM_PLAYERS_SNAPSHOT_EVENT,
+  ROOM_SYNC_EVENT,
+  HOST_CHANGED_EVENT,
+  ROOM_UPDATED_EVENT,
+  PLAYER_KICKED_EVENT,
+  type HostChangedPayload,
+  type PlayerKickedPayload,
+  type RoomData,
+  type RoomPlayerData,
+  type RoomPlayersSnapshotPayload,
+  type RoomSessionData,
+  type RoomUpdatedPayload,
+} from '@wanasatna/shared';
+import { getRoomErrorMessage } from '@/lib/room/error-messages';
+import { disconnectRoomSocket, getRoomSocket, waitForRoomSocketConnection } from '@/lib/room/socket';
+import { roomV2Diag } from '@/lib/room-v2/diagnostics';
+import { emitRoomAck } from '@/lib/room-v2/emit';
+import {
+  clearPersistedActiveRoomSession,
+  purgeLegacyRoomStorage,
+  readPersistedActiveRoomSession,
+  writePersistedActiveRoomSession,
+} from '@/lib/room-v2/storage';
+import type {
+  ActiveRoomSession,
+  RoomLifecycleStatus,
+  RoomV2Result,
+} from '@/lib/room-v2/types';
+
+export type RoomRuntimeSnapshot = {
+  room: RoomData | null;
+  player: RoomPlayerData | null;
+  players: RoomPlayerData[];
+};
+
+export type RoomManagerState = {
+  status: RoomLifecycleStatus;
+  errorMessage: string | null;
+  session: ActiveRoomSession | null;
+  snapshot: RoomRuntimeSnapshot;
+  generation: number;
+};
+
+type Listener = (state: RoomManagerState) => void;
+
+function emptySnapshot(): RoomRuntimeSnapshot {
+  return { room: null, player: null, players: [] };
+}
+
+function sessionFromAck(
+  data: RoomSessionData,
+  previous: ActiveRoomSession | null,
+): ActiveRoomSession | null {
+  const reconnectToken = data.reconnectToken ?? previous?.reconnectToken;
+  if (!reconnectToken) {
+    return null;
+  }
+
+  return {
+    roomId: data.room.id,
+    roomCode: data.room.code,
+    playerId: data.player.id,
+    playerName: data.player.name,
+    reconnectToken,
+  };
+}
+
+function normalizeRoom(room: RoomData): RoomData {
+  return {
+    ...room,
+    createdAt:
+      typeof room.createdAt === 'string' || room.createdAt instanceof Date
+        ? room.createdAt
+        : new Date(room.createdAt as string),
+  };
+}
+
+/**
+ * Browser-runtime owner of guest Room participation.
+ * Not React. Survives route remounts. One instance per tab.
+ */
+class RoomSessionManager {
+  private generation = 0;
+  private status: RoomLifecycleStatus = 'idle';
+  private errorMessage: string | null = null;
+  private session: ActiveRoomSession | null = null;
+  private snapshot: RoomRuntimeSnapshot = emptySnapshot();
+  private listeners = new Set<Listener>();
+  private coreListenersBound = false;
+  private enterInFlight: 'create' | 'join' | null = null;
+  private onTerminal: ((reason: 'kick' | 'closed' | 'leave') => void) | null = null;
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      purgeLegacyRoomStorage();
+      this.session = readPersistedActiveRoomSession();
+      if (this.session) {
+        this.status = 'idle';
+      }
+    }
+  }
+
+  getState(): RoomManagerState {
+    return {
+      status: this.status,
+      errorMessage: this.errorMessage,
+      session: this.session,
+      snapshot: this.snapshot,
+      generation: this.generation,
+    };
+  }
+
+  subscribe(listener: Listener): () => void {
+    this.listeners.add(listener);
+    listener(this.getState());
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  setTerminalHandler(handler: ((reason: 'kick' | 'closed' | 'leave') => void) | null): void {
+    this.onTerminal = handler;
+  }
+
+  bumpGeneration(): number {
+    this.generation += 1;
+    return this.generation;
+  }
+
+  private notify(): void {
+    const state = this.getState();
+    for (const listener of this.listeners) {
+      listener(state);
+    }
+  }
+
+  private setSession(session: ActiveRoomSession | null): void {
+    this.session = session;
+    if (session) {
+      writePersistedActiveRoomSession(session);
+      roomV2Diag('SESSION_SET', {
+        roomCode: session.roomCode,
+        roomId: session.roomId,
+        playerId: session.playerId,
+        generation: this.generation,
+      });
+    } else {
+      clearPersistedActiveRoomSession();
+      roomV2Diag('SESSION_CLEAR', { generation: this.generation });
+    }
+  }
+
+  private clearLocalParticipation(): void {
+    this.setSession(null);
+    this.snapshot = emptySnapshot();
+    this.errorMessage = null;
+  }
+
+  private applySessionData(data: RoomSessionData, gen: number): boolean {
+    if (gen !== this.generation) {
+      roomV2Diag('STALE_OPERATION_DROPPED', {
+        roomId: data.room.id,
+        roomCode: data.room.code,
+        generation: this.generation,
+      });
+      return false;
+    }
+
+    const next = sessionFromAck(data, this.session);
+    if (!next) {
+      this.status = 'error';
+      this.errorMessage = getRoomErrorMessage('INTERNAL_ERROR');
+      this.notify();
+      return false;
+    }
+
+    this.setSession(next);
+    this.snapshot = {
+      room: normalizeRoom(data.room),
+      player: data.player,
+      players: data.players,
+    };
+    this.status = 'active';
+    this.errorMessage = null;
+    this.notify();
+    return true;
+  }
+
+  private async ensureSocket(): Promise<boolean> {
+    const socket = getRoomSocket();
+    if (!socket.connected) {
+      socket.connect();
+      try {
+        await waitForRoomSocketConnection(socket, 10_000);
+      } catch {
+        return false;
+      }
+    }
+    this.bindCoreListeners();
+    return true;
+  }
+
+  private bindCoreListeners(): void {
+    if (this.coreListenersBound) {
+      return;
+    }
+
+    const socket = getRoomSocket();
+
+    socket.on(ROOM_PLAYERS_SNAPSHOT_EVENT, (payload: RoomPlayersSnapshotPayload) => {
+      if (!this.session || payload.roomId !== this.session.roomId) {
+        roomV2Diag('FOREIGN_SNAPSHOT_DROPPED', {
+          roomId: payload.roomId,
+          generation: this.generation,
+        });
+        return;
+      }
+
+      this.snapshot = {
+        ...this.snapshot,
+        players: payload.players,
+        player:
+          payload.players.find((p) => p.id === this.session?.playerId) ?? this.snapshot.player,
+      };
+      this.notify();
+    });
+
+    socket.on(HOST_CHANGED_EVENT, (payload: HostChangedPayload) => {
+      if (!this.session || payload.roomId !== this.session.roomId) {
+        return;
+      }
+
+      if (this.snapshot.room) {
+        this.snapshot = {
+          ...this.snapshot,
+          room: { ...this.snapshot.room, hostPlayerId: payload.hostPlayerId },
+          player: this.snapshot.player
+            ? {
+                ...this.snapshot.player,
+                isHost: this.snapshot.player.id === payload.hostPlayerId,
+              }
+            : null,
+          players: this.snapshot.players.map((p) => ({
+            ...p,
+            isHost: p.id === payload.hostPlayerId,
+          })),
+        };
+        this.notify();
+      }
+    });
+
+    socket.on(ROOM_UPDATED_EVENT, (payload: RoomUpdatedPayload) => {
+      if (!this.session || payload.roomId !== this.session.roomId || !this.snapshot.room) {
+        return;
+      }
+
+      this.snapshot = {
+        ...this.snapshot,
+        room: { ...this.snapshot.room, isLocked: payload.isLocked },
+      };
+      this.notify();
+    });
+
+    socket.on(PLAYER_KICKED_EVENT, (payload: PlayerKickedPayload) => {
+      if (!this.session || payload.roomId !== this.session.roomId) {
+        return;
+      }
+
+      if (payload.playerId !== this.session.playerId) {
+        this.snapshot = {
+          ...this.snapshot,
+          players: this.snapshot.players.filter((p) => p.id !== payload.playerId),
+        };
+        this.notify();
+        return;
+      }
+
+      const gen = this.bumpGeneration();
+      void gen;
+      this.clearLocalParticipation();
+      this.status = 'idle';
+      this.notify();
+      this.onTerminal?.('kick');
+    });
+
+    socket.io.on('reconnect', () => {
+      roomV2Diag('SOCKET_RECONNECTED', {
+        roomCode: this.session?.roomCode,
+        generation: this.generation,
+      });
+      if (this.session && this.status !== 'leaving') {
+        void this.resumeSameRoom();
+      }
+    });
+
+    socket.on('disconnect', () => {
+      roomV2Diag('SOCKET_DISCONNECTED', {
+        roomCode: this.session?.roomCode,
+        generation: this.generation,
+      });
+      if (this.session && this.status !== 'leaving') {
+        this.status = 'recovering';
+        this.notify();
+      }
+    });
+
+    this.coreListenersBound = true;
+  }
+
+  async create(playerName: string): Promise<RoomV2Result<{ roomCode: string }>> {
+    if (this.enterInFlight) {
+      return {
+        success: false,
+        error: { code: 'CONNECTION_FAILED', message: getRoomErrorMessage('CONNECTION_FAILED') },
+      };
+    }
+
+    this.enterInFlight = 'create';
+    const gen = this.bumpGeneration();
+    this.clearLocalParticipation();
+    this.status = 'entering';
+    this.notify();
+    roomV2Diag('CREATE_START', { generation: gen });
+
+    try {
+      if (!(await this.ensureSocket())) {
+        this.status = 'error';
+        this.errorMessage = getRoomErrorMessage('CONNECTION_FAILED');
+        this.notify();
+        return {
+          success: false,
+          error: { code: 'CONNECTION_FAILED', message: this.errorMessage },
+        };
+      }
+
+      const response = await emitRoomAck<RoomSessionData>(CREATE_ROOM_EVENT, { playerName });
+
+      if (gen !== this.generation) {
+        roomV2Diag('STALE_OPERATION_DROPPED', { generation: this.generation });
+        return {
+          success: false,
+          error: { code: 'CONNECTION_FAILED', message: getRoomErrorMessage('CONNECTION_FAILED') },
+        };
+      }
+
+      if (!response.success) {
+        this.status = 'error';
+        this.errorMessage = getRoomErrorMessage(
+          response.error.code as Parameters<typeof getRoomErrorMessage>[0],
+          response.error.message,
+        );
+        this.notify();
+        return { success: false, error: { code: response.error.code, message: this.errorMessage } };
+      }
+
+      if (!this.applySessionData(response.data, gen)) {
+        return {
+          success: false,
+          error: { code: 'INTERNAL_ERROR', message: getRoomErrorMessage('INTERNAL_ERROR') },
+        };
+      }
+
+      roomV2Diag('CREATE_SUCCESS', {
+        roomCode: response.data.room.code,
+        roomId: response.data.room.id,
+        playerId: response.data.player.id,
+        generation: gen,
+      });
+
+      return { success: true, data: { roomCode: response.data.room.code } };
+    } finally {
+      this.enterInFlight = null;
+    }
+  }
+
+  async join(roomCode: string, playerName: string): Promise<RoomV2Result<{ roomCode: string }>> {
+    if (this.enterInFlight) {
+      return {
+        success: false,
+        error: { code: 'CONNECTION_FAILED', message: getRoomErrorMessage('CONNECTION_FAILED') },
+      };
+    }
+
+    this.enterInFlight = 'join';
+    const gen = this.bumpGeneration();
+    this.clearLocalParticipation();
+    this.status = 'entering';
+    this.notify();
+    roomV2Diag('JOIN_START', { roomCode, generation: gen });
+
+    try {
+      if (!(await this.ensureSocket())) {
+        this.status = 'error';
+        this.errorMessage = getRoomErrorMessage('CONNECTION_FAILED');
+        this.notify();
+        return {
+          success: false,
+          error: { code: 'CONNECTION_FAILED', message: this.errorMessage },
+        };
+      }
+
+      const response = await emitRoomAck<RoomSessionData>(JOIN_ROOM_EVENT, {
+        roomCode,
+        playerName,
+      });
+
+      if (gen !== this.generation) {
+        roomV2Diag('STALE_OPERATION_DROPPED', { generation: this.generation });
+        return {
+          success: false,
+          error: { code: 'CONNECTION_FAILED', message: getRoomErrorMessage('CONNECTION_FAILED') },
+        };
+      }
+
+      if (!response.success) {
+        this.status = 'error';
+        this.errorMessage = getRoomErrorMessage(
+          response.error.code as Parameters<typeof getRoomErrorMessage>[0],
+          response.error.message,
+        );
+        this.notify();
+        return { success: false, error: { code: response.error.code, message: this.errorMessage } };
+      }
+
+      if (!this.applySessionData(response.data, gen)) {
+        return {
+          success: false,
+          error: { code: 'INTERNAL_ERROR', message: getRoomErrorMessage('INTERNAL_ERROR') },
+        };
+      }
+
+      roomV2Diag('JOIN_SUCCESS', {
+        roomCode: response.data.room.code,
+        roomId: response.data.room.id,
+        playerId: response.data.player.id,
+        generation: gen,
+      });
+
+      return { success: true, data: { roomCode: response.data.room.code } };
+    } finally {
+      this.enterInFlight = null;
+    }
+  }
+
+  /**
+   * Same-room resume after hard refresh or transport reconnect.
+   * Does nothing if already active with matching bound snapshot.
+   */
+  async resumeSameRoom(expectedRoomCode?: string): Promise<RoomV2Result<ActiveRoomSession>> {
+    const stored = this.session ?? readPersistedActiveRoomSession();
+    if (!stored) {
+      return {
+        success: false,
+        error: { code: 'PLAYER_NOT_FOUND', message: getRoomErrorMessage('PLAYER_NOT_FOUND') },
+      };
+    }
+
+    if (expectedRoomCode && stored.roomCode !== expectedRoomCode) {
+      this.bumpGeneration();
+      this.clearLocalParticipation();
+      this.status = 'idle';
+      this.notify();
+      return {
+        success: false,
+        error: { code: 'ROOM_NOT_FOUND', message: getRoomErrorMessage('ROOM_NOT_FOUND') },
+      };
+    }
+
+    const gen = this.bumpGeneration();
+    this.session = stored;
+    this.status = 'recovering';
+    this.notify();
+    roomV2Diag('RESUME_START', {
+      roomCode: stored.roomCode,
+      roomId: stored.roomId,
+      playerId: stored.playerId,
+      generation: gen,
+    });
+
+    if (!(await this.ensureSocket())) {
+      this.status = 'error';
+      this.errorMessage = getRoomErrorMessage('CONNECTION_FAILED');
+      this.notify();
+      return {
+        success: false,
+        error: { code: 'CONNECTION_FAILED', message: this.errorMessage },
+      };
+    }
+
+    // Prefer bound sync when socket already authenticated to this room.
+    const synced = await emitRoomAck<RoomSessionData>(ROOM_SYNC_EVENT, {});
+    if (gen === this.generation && synced.success && synced.data.room.id === stored.roomId) {
+      this.applySessionData(synced.data, gen);
+      roomV2Diag('RESUME_SUCCESS', {
+        roomCode: stored.roomCode,
+        roomId: stored.roomId,
+        playerId: stored.playerId,
+        generation: gen,
+      });
+      return { success: true, data: stored };
+    }
+
+    const response = await emitRoomAck<RoomSessionData>(RECONNECT_EVENT, {
+      playerId: stored.playerId,
+      roomId: stored.roomId,
+      roomCode: stored.roomCode,
+      reconnectToken: stored.reconnectToken,
+    });
+
+    if (gen !== this.generation) {
+      roomV2Diag('STALE_OPERATION_DROPPED', { generation: this.generation });
+      return {
+        success: false,
+        error: { code: 'CONNECTION_FAILED', message: getRoomErrorMessage('CONNECTION_FAILED') },
+      };
+    }
+
+    if (!response.success) {
+      this.clearLocalParticipation();
+      this.status = 'error';
+      this.errorMessage = getRoomErrorMessage(
+        response.error.code as Parameters<typeof getRoomErrorMessage>[0],
+        response.error.message,
+      );
+      this.notify();
+      return { success: false, error: { code: response.error.code, message: this.errorMessage } };
+    }
+
+    this.applySessionData(response.data, gen);
+    roomV2Diag('RESUME_SUCCESS', {
+      roomCode: response.data.room.code,
+      roomId: response.data.room.id,
+      playerId: response.data.player.id,
+      generation: gen,
+    });
+    return { success: true, data: this.session! };
+  }
+
+  /**
+   * Explicit Leave: clear local identity immediately, then best-effort server leave.
+   * Captures old identity before clear so Leave cannot target a newer Room.
+   */
+  async leave(): Promise<void> {
+    const old = this.session;
+    this.bumpGeneration();
+    this.status = 'leaving';
+    this.clearLocalParticipation();
+    this.notify();
+    roomV2Diag('LEAVE', {
+      roomCode: old?.roomCode,
+      roomId: old?.roomId,
+      playerId: old?.playerId,
+      generation: this.generation,
+    });
+
+    // Best-effort server leave using captured identity only.
+    // If the socket is unbound (hard navigation), rebind the OLD seat then leave.
+    try {
+      if (old) {
+        const socket = getRoomSocket();
+        if (!socket.connected) {
+          socket.connect();
+          try {
+            await waitForRoomSocketConnection(socket, 2_000);
+          } catch {
+            /* best effort */
+          }
+          await emitRoomAck(
+            RECONNECT_EVENT,
+            {
+              playerId: old.playerId,
+              roomId: old.roomId,
+              roomCode: old.roomCode,
+              reconnectToken: old.reconnectToken,
+            },
+            2_000,
+          );
+        }
+        await emitRoomAck(LEAVE_ROOM_EVENT, {}, 2_000);
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      disconnectRoomSocket();
+      this.coreListenersBound = false;
+      this.status = 'idle';
+      this.notify();
+      this.onTerminal?.('leave');
+    }
+  }
+
+  /** Apply authoritative RoomSessionData from external game-shell sync paths. */
+  adoptAuthoritativeSession(data: RoomSessionData): void {
+    if (!this.session || data.room.id !== this.session.roomId) {
+      roomV2Diag('FOREIGN_SNAPSHOT_DROPPED', {
+        roomId: data.room.id,
+        generation: this.generation,
+      });
+      return;
+    }
+
+    this.applySessionData(data, this.generation);
+  }
+
+  isEnterInFlight(): boolean {
+    return this.enterInFlight !== null;
+  }
+}
+
+let singleton: RoomSessionManager | null = null;
+
+export function getRoomSessionManager(): RoomSessionManager {
+  if (!singleton) {
+    singleton = new RoomSessionManager();
+  }
+  return singleton;
+}
+
+/** Test-only reset. */
+export function __resetRoomSessionManagerForTests(): void {
+  singleton = null;
+}

@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { buildLobbyUrl, readRoomSession } from '@/lib/room/session';
+import { buildLobbyUrl } from '@/lib/room/session';
 import { isRoomRoute } from '@/lib/room/navigation-guard';
+import { readPersistedActiveRoomSession } from '@/lib/room-v2';
 import { cn } from '@/lib/utils';
 
 export function ActiveRoomBanner() {
@@ -12,7 +13,7 @@ export function ActiveRoomBanner() {
   const [roomCode, setRoomCode] = useState<string | null>(null);
 
   useEffect(() => {
-    const session = readRoomSession();
+    const session = readPersistedActiveRoomSession();
     setRoomCode(session?.roomCode ?? null);
   }, [pathname]);
 

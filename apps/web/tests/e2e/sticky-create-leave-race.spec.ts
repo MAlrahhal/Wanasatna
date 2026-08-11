@@ -32,15 +32,19 @@ async function leaveLobby(page: Page): Promise<void> {
 }
 
 async function readIdentity(page: Page) {
-  return page.evaluate(() => ({
-    url: location.href,
-    playerId: sessionStorage.getItem('wanasatna:playerId'),
-    playerName: sessionStorage.getItem('wanasatna:playerName'),
-    roomCode: sessionStorage.getItem('wanasatna:roomCode'),
-    roomId: sessionStorage.getItem('wanasatna:roomId'),
-    hasActionCreate: new URLSearchParams(location.search).get('action') === 'create',
-    hasNameParam: new URLSearchParams(location.search).has('name'),
-  }));
+  return page.evaluate(() => {
+    const raw = sessionStorage.getItem('wanasatna:active-room-session');
+    const parsed = raw ? (JSON.parse(raw) as Record<string, string>) : null;
+    return {
+      url: location.href,
+      playerId: parsed?.playerId ?? null,
+      playerName: parsed?.playerName ?? null,
+      roomCode: parsed?.roomCode ?? null,
+      roomId: parsed?.roomId ?? null,
+      hasActionCreate: new URLSearchParams(location.search).get('action') === 'create',
+      hasNameParam: new URLSearchParams(location.search).has('name'),
+    };
+  });
 }
 
 test.describe('Sticky create URL + leave race', () => {
@@ -181,8 +185,12 @@ test.describe('Sticky create URL + leave race', () => {
     expect(roomB).not.toBe(roomA);
 
     await page.evaluate((oldCode) => {
-      sessionStorage.setItem('wanasatna:playerName', 'محمد');
-      sessionStorage.setItem('wanasatna:roomCode', oldCode);
+      const raw = sessionStorage.getItem('wanasatna:active-room-session');
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Record<string, string>;
+      parsed.playerName = 'محمد';
+      parsed.roomCode = oldCode;
+      sessionStorage.setItem('wanasatna:active-room-session', JSON.stringify(parsed));
     }, roomA);
 
     await expect(page.getByText('خلود').first()).toBeVisible();
