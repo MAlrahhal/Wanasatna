@@ -25,15 +25,16 @@ async function dumpIdentity(page: Page): Promise<IdentityDump> {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
     const raw = sessionStorage.getItem('wanasatna:active-room-session');
-    let parsed: {
+    type SessionFields = {
       playerId?: string;
       roomId?: string;
       playerName?: string;
       roomCode?: string;
-    } | null = null;
+    };
+    let parsed: SessionFields | null = null;
     if (raw) {
       try {
-        parsed = JSON.parse(raw) as typeof parsed;
+        parsed = JSON.parse(raw) as SessionFields;
       } catch {
         parsed = null;
       }

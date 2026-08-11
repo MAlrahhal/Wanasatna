@@ -117,10 +117,44 @@ class RoomSessionManager {
 
   subscribe(listener: Listener): () => void {
     this.listeners.add(listener);
+    // Immediate current snapshot — Provider must not start as null after ACTIVE create.
     listener(this.getState());
     return () => {
       this.listeners.delete(listener);
     };
+  }
+
+  /**
+   * If memory is empty (cross-bundle first touch), adopt the persisted ActiveRoomSession.
+   * Does not mark ACTIVE — caller decides reuse vs resume.
+   */
+  rehydrateFromStorageIfNeeded(): void {
+    if (this.session) {
+      return;
+    }
+
+    const persisted = readPersistedActiveRoomSession();
+    if (!persisted) {
+      return;
+    }
+
+    this.session = persisted;
+    if (this.status === 'idle') {
+      this.notify();
+    }
+  }
+
+  /** True when this tab already holds a live bound Room for the URL code (fresh Create/Join). */
+  hasLiveActiveRoom(roomCode?: string): boolean {
+    if (this.status !== 'active' || !this.session || !this.snapshot.room) {
+      return false;
+    }
+
+    if (roomCode && this.session.roomCode !== roomCode) {
+      return false;
+    }
+
+    return true;
   }
 
   setTerminalHandler(handler: ((reason: 'kick' | 'closed' | 'leave') => void) | null): void {
@@ -483,6 +517,9 @@ class RoomSessionManager {
     });
 
     if (!(await this.ensureSocket())) {
+      // Keep persisted session — Lobby must not treat this as "no session" → Home.
+      this.session = stored;
+      writePersistedActiveRoomSession(stored);
       this.status = 'error';
       this.errorMessage = getRoomErrorMessage('CONNECTION_FAILED');
       this.notify();
@@ -521,7 +558,10 @@ class RoomSessionManager {
     }
 
     if (!response.success) {
-      this.clearLocalParticipation();
+      // Matching-code resume failure must NOT erase ActiveRoomSession — that caused
+      // Lobby bootstrap to redirect `/?code=` after a successful Create.
+      this.session = stored;
+      writePersistedActiveRoomSession(stored);
       this.status = 'error';
       this.errorMessage = getRoomErrorMessage(
         response.error.code as Parameters<typeof getRoomErrorMessage>[0],
@@ -614,14 +654,33 @@ class RoomSessionManager {
 
 let singleton: RoomSessionManager | null = null;
 
+const MANAGER_GLOBAL_KEY = '__wanasatna_room_session_manager_v2__';
+
+type ManagerGlobal = typeof globalThis & {
+  [MANAGER_GLOBAL_KEY]?: RoomSessionManager;
+};
+
+/**
+ * One browser-runtime owner across App Router client bundles (Home vs (room) layout).
+ * Never reuse an SSR-constructed instance on the client.
+ */
 export function getRoomSessionManager(): RoomSessionManager {
-  if (!singleton) {
-    singleton = new RoomSessionManager();
+  if (typeof window === 'undefined') {
+    return new RoomSessionManager();
   }
+
+  const g = globalThis as ManagerGlobal;
+  if (!g[MANAGER_GLOBAL_KEY]) {
+    g[MANAGER_GLOBAL_KEY] = new RoomSessionManager();
+  }
+  singleton = g[MANAGER_GLOBAL_KEY]!;
   return singleton;
 }
 
 /** Test-only reset. */
 export function __resetRoomSessionManagerForTests(): void {
   singleton = null;
+  if (typeof window !== 'undefined') {
+    delete (globalThis as ManagerGlobal)[MANAGER_GLOBAL_KEY];
+  }
 }

@@ -39,7 +39,8 @@ export function useRoomActions() {
 
   // Deep-link: /?code=B prefill join code (declarative invite data, not a command).
   useEffect(() => {
-    const code = searchParams.get('code')?.trim() ?? '';
+    const raw = searchParams.get('code')?.trim() ?? '';
+    const code = raw.replace(/\D/g, '');
     if (/^\d{6}$/.test(code)) {
       setJoinCode(code);
     }

@@ -59,7 +59,7 @@ import { emitRoomAck } from '@/lib/room-v2/emit';
 import {
   getRoomSessionManager,
   type RoomManagerState,
-} from '@/lib/room-v2/manager';
+} from '@/lib/room-v2';
 import type { RoomLifecycleStatus } from '@/lib/room-v2/types';
 import { getDefaultRoundCategoryId } from '@/lib/game/round-categories';
 import { registerAllClientGamePlugins } from '@/plugins';
@@ -146,6 +146,11 @@ function isReusableActiveSession(state: RoomManagerState, roomCode?: string): bo
   }
 
   return true;
+}
+
+/** Canonical 6-digit Room code — UI formatting must never participate in identity. */
+function canonicalizeRoomCode(raw: string): string {
+  return raw.replace(/\D/g, '');
 }
 
 export function RoomProvider({ children }: { children: ReactNode }) {
@@ -362,7 +367,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     };
   }, [router]);
 
-  const urlRoomCode = searchParams.get('code')?.trim() ?? '';
+  const urlRoomCode = canonicalizeRoomCode(searchParams.get('code')?.trim() ?? '');
   const urlAction = searchParams.get('action')?.trim() ?? '';
   const urlHasName = searchParams.has('name');
 
@@ -372,8 +377,11 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     const manager = getRoomSessionManager();
 
     void (async () => {
+      // Cross-bundle first paint may have empty memory; storage is authoritative.
+      manager.rehydrateFromStorageIfNeeded();
+
       const legacyIntent = urlAction === 'create' || urlHasName;
-      const state = manager.getState();
+      let state = manager.getState();
 
       if (legacyIntent) {
         const sessionCode = state.session?.roomCode;
@@ -399,12 +407,14 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       }
 
       if (pathname === '/game') {
+        manager.rehydrateFromStorageIfNeeded();
+        state = manager.getState();
         if (!state.session) {
           router.replace('/');
           return;
         }
 
-        if (isReusableActiveSession(state)) {
+        if (manager.hasLiveActiveRoom() || isReusableActiveSession(state)) {
           return;
         }
 
@@ -416,18 +426,31 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       }
 
       if (urlRoomCode) {
-        if (state.session?.roomCode === urlRoomCode) {
-          if (isReusableActiveSession(state, urlRoomCode)) {
+        state = manager.getState();
+        const sessionCode = state.session?.roomCode
+          ? canonicalizeRoomCode(state.session.roomCode)
+          : '';
+
+        if (sessionCode === urlRoomCode) {
+          // Fresh Create/Join: socket already bound — never resume, never redirect Home.
+          if (manager.hasLiveActiveRoom(urlRoomCode) || isReusableActiveSession(state, urlRoomCode)) {
             await redirectIfActiveGameShell(state.snapshot.player?.id);
             return;
           }
 
-          await manager.resumeSameRoom(urlRoomCode);
+          const resumed = await manager.resumeSameRoom(urlRoomCode);
           if (cancelled) {
             return;
           }
-          restoreSelectedGame();
-          await redirectIfActiveGameShell(manager.getState().snapshot.player?.id);
+
+          if (resumed.success) {
+            restoreSelectedGame();
+            await redirectIfActiveGameShell(manager.getState().snapshot.player?.id);
+            return;
+          }
+
+          // Matching session failed to resume — stay on Lobby with error.
+          // Do NOT redirect `/?code=` (that was the production Create→Home bounce).
           return;
         }
 
@@ -443,6 +466,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       }
 
       // /lobby with no code: recover bound session or send home.
+      state = manager.getState();
       if (state.session?.roomCode) {
         canonicalizeActiveLobbyUrl(state.session.roomCode);
         if (!isReusableActiveSession(state, state.session.roomCode)) {

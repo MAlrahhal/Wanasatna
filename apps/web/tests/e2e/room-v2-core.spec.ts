@@ -121,4 +121,40 @@ test.describe('Room Client Core V2', () => {
 
     await ctx.close();
   });
+
+  test('PROD BLOCKER: leave A then Create خلود must STAY on Lobby (no /?code= bounce)', async ({
+    browser,
+  }) => {
+    test.setTimeout(240_000);
+    const ctxA = await browser.newContext({ locale: 'ar-SA' });
+    const ctxB = await browser.newContext({ locale: 'ar-SA' });
+    const a = await ctxA.newPage();
+    const b = await ctxB.newPage();
+
+    const roomA = await enterLobbyCreate(a, 'محمد');
+    await enterLobbyJoin(b, roomA, 'خالد');
+    await waitForRoster(a, ['محمد', 'خالد']);
+
+    await leaveLobby(b);
+    await leaveLobby(a);
+
+    const roomB = await enterLobbyCreate(a, 'خلود');
+    expect(roomB).not.toBe(roomA);
+
+    // Stabilize — must NOT bounce Home with invite prefill.
+    await a.waitForTimeout(2500);
+    expect(a.url()).toMatch(new RegExp(`/lobby\\?code=${roomB}$`));
+    expect(a.url()).not.toMatch(/\/\?code=/);
+    expect((await readV2Session(a)).hasActionCreate).toBe(false);
+    expect((await readV2Session(a)).playerName).toBe('خلود');
+    expect((await readV2Session(a)).roomCode).toBe(roomB);
+    await expect(a.getByText('خلود').first()).toBeVisible();
+    await expect(a.getByText('محمد')).toHaveCount(0);
+
+    await enterLobbyJoin(b, roomB, 'عبدالله');
+    await waitForRoster(a, ['خلود', 'عبدالله']);
+
+    await ctxA.close();
+    await ctxB.close();
+  });
 });

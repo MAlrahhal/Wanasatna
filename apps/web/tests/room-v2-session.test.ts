@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import {
   ACTIVE_ROOM_SESSION_KEY,
   clearPersistedActiveRoomSession,
+  getRoomSessionManager,
   purgeLegacyRoomStorage,
   readPersistedActiveRoomSession,
   writePersistedActiveRoomSession,
@@ -105,7 +106,38 @@ test('invalid persisted JSON yields null', () => {
   assert.equal(readPersistedActiveRoomSession(), null);
 });
 
-test('manager reset helper exists', () => {
+test('legacy purge never deletes V2 active-room-session', () => {
+  sessionStorage.clear();
+  writePersistedActiveRoomSession(sample);
+  sessionStorage.setItem('wanasatna:playerId', 'legacy');
+  purgeLegacyRoomStorage();
+  assert.deepEqual(readPersistedActiveRoomSession(), sample);
+  assert.equal(sessionStorage.getItem('wanasatna:playerId'), null);
+});
+
+test('manager rehydrate + subscribe delivers current session immediately', () => {
+  __resetRoomSessionManagerForTests();
+  sessionStorage.clear();
+  writePersistedActiveRoomSession(sample);
+
+  const manager = getRoomSessionManager();
+  manager.rehydrateFromStorageIfNeeded();
+
+  let seen: string | null = null;
+  const unsub = manager.subscribe((state) => {
+    seen = state.session?.playerName ?? null;
+  });
+  assert.equal(seen, 'خلود');
+  assert.equal(manager.getState().session?.roomCode, '123456');
+  unsub();
+  __resetRoomSessionManagerForTests();
+});
+
+test('globalThis manager singleton is stable across getRoomSessionManager calls', () => {
+  __resetRoomSessionManagerForTests();
+  const a = getRoomSessionManager();
+  const b = getRoomSessionManager();
+  assert.equal(a, b);
   __resetRoomSessionManagerForTests();
 });
 

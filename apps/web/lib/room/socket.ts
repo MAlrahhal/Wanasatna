@@ -2,20 +2,25 @@ import { io, type Socket } from 'socket.io-client';
 
 import { getServerUrl } from '@/lib/config/server-url';
 
-let socket: Socket | null = null;
+const SOCKET_GLOBAL_KEY = '__wanasatna_room_socket_v2__';
+
+type SocketGlobal = typeof globalThis & {
+  [SOCKET_GLOBAL_KEY]?: Socket | null;
+};
 
 /**
- * Socket.IO singleton. Room identity is owned by RoomSessionManager (V2),
- * not by this module.
+ * Socket.IO singleton on globalThis so App Router client bundles share one instance.
+ * Room identity is owned by RoomSessionManager (V2), not by this module.
  */
 export function getRoomSocket(): Socket {
-  if (!socket) {
-    socket = io(getServerUrl(), {
+  const g = globalThis as SocketGlobal;
+  if (!g[SOCKET_GLOBAL_KEY]) {
+    g[SOCKET_GLOBAL_KEY] = io(getServerUrl(), {
       autoConnect: false,
     });
   }
 
-  return socket;
+  return g[SOCKET_GLOBAL_KEY]!;
 }
 
 export function waitForRoomSocketConnection(activeSocket: Socket, timeoutMs = 10000): Promise<void> {
@@ -51,11 +56,13 @@ export function waitForRoomSocketConnection(activeSocket: Socket, timeoutMs = 10
 }
 
 export function disconnectRoomSocket(): void {
-  if (!socket) {
+  const g = globalThis as SocketGlobal;
+  const active = g[SOCKET_GLOBAL_KEY];
+  if (!active) {
     return;
   }
 
-  socket.removeAllListeners();
-  socket.disconnect();
-  socket = null;
+  active.removeAllListeners();
+  active.disconnect();
+  g[SOCKET_GLOBAL_KEY] = null;
 }
