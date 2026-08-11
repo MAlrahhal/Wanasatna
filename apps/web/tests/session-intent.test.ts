@@ -7,6 +7,7 @@ import {
   buildLobbyUrl,
   lobbyUrlNeedsNormalization,
   resolveRoomEntryIntent,
+  writeRoomSession,
   type RoomSession,
 } from '../lib/room/session';
 import { saveRoomReconnectCredential } from '../lib/room/reconnect-credential';
@@ -74,16 +75,42 @@ const credential = {
   reconnectToken: 'token-abc',
 };
 
-test('explicit create overrides stored session', () => {
-  const intent = resolveRoomEntryIntent(params({ action: 'create', name: 'محمد' }), session);
-  assert.deepEqual(intent, { type: 'create', playerName: 'محمد' });
-});
-
-test('typed join always wins over stored credential (hard Join boundary)', () => {
+test('sticky create URL after success prefers reconnect when name matches', () => {
   sessionStorage.clear();
   saveRoomReconnectCredential(credential);
-  const intent = resolveRoomEntryIntent(params({ code: '318429', name: 'عبدالله' }), session);
-  assert.deepEqual(intent, { type: 'join', roomCode: '318429', playerName: 'عبدالله' });
+  writeRoomSession(session);
+  const intent = resolveRoomEntryIntent(
+    params({ action: 'create', name: 'خالد' }),
+    session,
+  );
+  assert.equal(intent.type, 'reconnect');
+});
+
+test('sticky create URL with mismatched session name stays fresh create', () => {
+  sessionStorage.clear();
+  saveRoomReconnectCredential(credential);
+  writeRoomSession(session);
+  const intent = resolveRoomEntryIntent(
+    params({ action: 'create', name: 'خلود' }),
+    session,
+  );
+  assert.deepEqual(intent, { type: 'create', playerName: 'خلود' });
+});
+
+test('sticky join URL for same room prefers reconnect over fresh join', () => {
+  sessionStorage.clear();
+  saveRoomReconnectCredential(credential);
+  const intent = resolveRoomEntryIntent(
+    params({ code: '318429', name: 'عبدالله' }),
+    session,
+  );
+  assert.equal(intent.type, 'reconnect');
+});
+
+test('explicit create overrides stored session', () => {
+  sessionStorage.clear();
+  const intent = resolveRoomEntryIntent(params({ action: 'create', name: 'محمد' }), null);
+  assert.deepEqual(intent, { type: 'create', playerName: 'محمد' });
 });
 
 test('join intent used for a different room code', () => {
@@ -128,14 +155,15 @@ test('URL normalization strips name and action after success', () => {
   assert.equal(buildLobbyUrl('318429'), '/lobby?code=318429');
 });
 
-test('sticky create URL still resolves to create and would override stored session', () => {
+test('sticky create URL with active matching session reconnects (create intent consumed)', () => {
   sessionStorage.clear();
   saveRoomReconnectCredential(credential);
+  writeRoomSession(session);
   const intent = resolveRoomEntryIntent(
-    params({ action: 'create', name: 'محمد' }),
+    params({ action: 'create', name: 'خالد' }),
     session,
   );
-  assert.deepEqual(intent, { type: 'create', playerName: 'محمد' });
+  assert.equal(intent.type, 'reconnect');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

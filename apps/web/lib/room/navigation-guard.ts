@@ -8,7 +8,12 @@ import {
   findRoomReconnectCredential,
   purgeLegacyLocalStorageRoomIdentity,
 } from '@/lib/room/reconnect-credential';
-import { readRoomSession, resetRoomParticipationIdentity } from '@/lib/room/session';
+import { suspendRoomResume } from '@/lib/room/participation';
+import {
+  clearLocalRoomParticipationStorage,
+  readRoomSession,
+  resetRoomParticipationIdentity,
+} from '@/lib/room/session';
 import { disconnectRoomSocket, getRoomSocket, waitForRoomSocketConnection } from '@/lib/room/socket';
 
 type LeaveRoomResponse = { roomDeleted: boolean; hostChanged: unknown | null };
@@ -49,6 +54,7 @@ function emitWithAck<T>(
  * Leave the active room and destroy local Room participation identity immediately.
  *
  * Client identity is cleared BEFORE the leave ACK so Create/Join cannot reuse it.
+ * Prefer leaving on the still-bound socket (no reconnect) to avoid Room A resurrection noise.
  * Does not touch future Account/Auth identity.
  */
 export async function leaveActiveRoom(): Promise<{ success: boolean }> {
@@ -57,33 +63,33 @@ export async function leaveActiveRoom(): Promise<{ success: boolean }> {
   const session = readRoomSession();
   const roomCode = session?.roomCode ?? null;
   const credential = roomCode ? findRoomReconnectCredential(roomCode) : null;
+  const socket = getRoomSocket();
+  const wasConnected = socket.connected;
 
-  // Immediate client isolation — before any network wait.
-  resetRoomParticipationIdentity(roomCode ?? undefined);
+  // Immediate client isolation — storage cleared, resume blocked, socket kept if bound.
+  suspendRoomResume();
+  clearLocalRoomParticipationStorage(roomCode ?? undefined);
 
   let success = false;
 
   try {
-    const socket = getRoomSocket();
-
-    if (!socket.connected) {
+    if (!wasConnected) {
       socket.connect();
       await waitForRoomSocketConnection(socket, 2000);
-    }
 
-    // Rebind briefly so the server leave is authorized after a remount/reload.
-    // Do not apply the reconnect ACK to local storage — identity stays dead.
-    if (session && credential) {
-      await emitWithAck(
-        RECONNECT_EVENT,
-        {
-          playerId: credential.playerId,
-          roomId: credential.roomId,
-          roomCode: credential.roomCode,
-          reconnectToken: credential.reconnectToken,
-        },
-        2000,
-      );
+      // Only rebind when the socket was already down (e.g. remount/reload leave).
+      if (session && credential) {
+        await emitWithAck(
+          RECONNECT_EVENT,
+          {
+            playerId: credential.playerId,
+            roomId: credential.roomId,
+            roomCode: credential.roomCode,
+            reconnectToken: credential.reconnectToken,
+          },
+          2000,
+        );
+      }
     }
 
     const response = await emitWithAck<LeaveRoomResponse>(LEAVE_ROOM_EVENT, {}, 2000);
@@ -91,9 +97,9 @@ export async function leaveActiveRoom(): Promise<{ success: boolean }> {
   } catch {
     success = false;
   } finally {
-    // Guarantee no residual RoomPlayer identity survives leave (including races
-    // where a transient reconnect ACK could have been applied elsewhere).
+    // Teardown socket + guarantee no residual RoomPlayer identity.
     resetRoomParticipationIdentity(roomCode ?? undefined);
+    suspendRoomResume();
   }
 
   return { success };

@@ -75,9 +75,16 @@ import {
   resolveRoomEntryIntent,
   shouldClearSessionOnReconnectFailure,
   STALE_ROOM_SESSION_MESSAGE,
+  toCanonicalLobbySearchParams,
   writeRoomSession,
   writeSelectedGameId,
 } from '@/lib/room/session';
+import {
+  allowRoomResume,
+  isRoomResumeSuspended,
+  readRoomParticipationEpoch,
+  suspendRoomResume,
+} from '@/lib/room/participation';
 import {
   findRoomReconnectCredential,
   purgeLegacyLocalStorageRoomIdentity,
@@ -188,7 +195,12 @@ function applySessionFromData(data: RoomSessionData) {
       reconnectToken: data.reconnectToken,
     });
   }
+
+  allowRoomResume();
 }
+
+/** Exactly-one in-flight Create per tab (survives Strict Mode remount races). */
+let createInFlightToken: string | null = null;
 
 export function RoomProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -200,9 +212,6 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   const connectToRoomRef = useRef<(options?: { resumeStoredSessionOnly?: boolean }) => Promise<void>>(
     async () => undefined,
   );
-
-  searchParamsRef.current = searchParams;
-  pathnameRef.current = pathname;
 
   const [status, setStatus] = useState<ConnectionStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -228,6 +237,19 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   /** Fresh Create/Join generation — late Room A ACKs must not apply after Room B entry. */
   const entryGenerationRef = useRef(0);
   const expectedRoomCodeRef = useRef<string | null>(null);
+
+  // Sync Next search params into the ref, except while connected with a sticky
+  // create/join URL that we already canonically replaced to /lobby?code=.
+  if (
+    !(
+      status === 'connected' &&
+      room?.code &&
+      lobbyUrlNeedsNormalization(searchParams, room.code)
+    )
+  ) {
+    searchParamsRef.current = searchParams;
+  }
+  pathnameRef.current = pathname;
 
   const isHost = player?.isHost ?? false;
 
@@ -264,6 +286,10 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const applyPlayersSnapshot = useCallback((payload: RoomPlayersSnapshotPayload) => {
+    if (isRoomResumeSuspended()) {
+      return;
+    }
+
     const currentRoomId = roomIdRef.current ?? readRoomSession()?.roomId ?? null;
 
     // Ignore snapshots from a room this tab is no longer bound to.
@@ -276,6 +302,10 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const applyHostChange = useCallback((payload: HostChangedPayload) => {
+    if (isRoomResumeSuspended()) {
+      return;
+    }
+
     setRoom((current) =>
       current ? { ...current, hostPlayerId: payload.hostPlayerId } : current,
     );
@@ -297,8 +327,47 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const canonicalizeActiveLobbyUrl = useCallback(
+    (roomCode: string) => {
+      if (pathnameRef.current === '/game') {
+        return;
+      }
+
+      if (!lobbyUrlNeedsNormalization(searchParamsRef.current, roomCode)) {
+        return;
+      }
+
+      const nextUrl = buildLobbyUrl(roomCode);
+      searchParamsRef.current = toCanonicalLobbySearchParams(roomCode);
+
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(window.history.state, '', nextUrl);
+      }
+
+      router.replace(nextUrl, { scroll: false });
+    },
+    [router],
+  );
+
   const applyRoomSession = useCallback(
-    (data: RoomSessionData, options?: { entryGeneration?: number }) => {
+    (data: RoomSessionData, options?: { entryGeneration?: number; participationEpoch?: number }) => {
+      // Fresh Create/Join pass entryGeneration — those must apply after Leave.
+      // Resume/sync without a generation stay blocked while Leave is in effect.
+      const isFreshEntry =
+        options?.entryGeneration !== undefined &&
+        options.entryGeneration === entryGenerationRef.current;
+
+      if (!isFreshEntry && isRoomResumeSuspended()) {
+        return;
+      }
+
+      if (
+        options?.participationEpoch !== undefined &&
+        options.participationEpoch !== readRoomParticipationEpoch()
+      ) {
+        return;
+      }
+
       if (
         options?.entryGeneration !== undefined &&
         options.entryGeneration !== entryGenerationRef.current
@@ -309,9 +378,10 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       const normalizedRoom = normalizeRoomDates(data.room);
       const urlCode = searchParamsRef.current.get('code')?.trim() ?? '';
       const expectedCode = expectedRoomCodeRef.current;
+      const stickyCreate = searchParamsRef.current.get('action') === 'create';
 
-      // Never apply Room A session while URL / entry intent targets Room B.
-      if (urlCode && normalizedRoom.code !== urlCode) {
+      // Never apply Room A while URL targets Room B. Sticky create may have no code yet.
+      if (urlCode && !stickyCreate && normalizedRoom.code !== urlCode) {
         return;
       }
 
@@ -329,28 +399,9 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       setStatus('connected');
       setErrorMessage(null);
 
-      const isOnGameRoute = pathnameRef.current === '/game';
-      const nextUrl = buildLobbyUrl(normalizedRoom.code);
-
-      // Synchronously clear create/join intent from the URL + ref before any
-      // socket "reconnect" handler re-enters connectToRoom. Async router.replace
-      // alone can leave action=create sticky long enough to wipe the new session.
-      if (
-        !isOnGameRoute &&
-        lobbyUrlNeedsNormalization(searchParamsRef.current, normalizedRoom.code)
-      ) {
-        const nextParams = new URLSearchParams();
-        nextParams.set('code', normalizedRoom.code);
-        searchParamsRef.current = nextParams;
-
-        if (typeof window !== 'undefined') {
-          window.history.replaceState(window.history.state, '', nextUrl);
-        }
-
-        router.replace(nextUrl, { scroll: false });
-      }
+      canonicalizeActiveLobbyUrl(normalizedRoom.code);
     },
-    [applyRosterPlayersFromSession, router],
+    [applyRosterPlayersFromSession, canonicalizeActiveLobbyUrl],
   );
 
   const handleFailure = useCallback((code: RoomErrorCode, fallback?: string) => {
@@ -398,6 +449,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
 
     const onPlayerKicked = (payload: PlayerKickedPayload) => {
       setRoomSessionResumeListener(null);
+      suspendRoomResume();
       beginNewRoomIdentity();
       roomIdRef.current = null;
       setStatus('error');
@@ -534,51 +586,51 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    // TEMP diagnostic — no secrets/tokens.
-    console.info('[room-entry]', {
-      intent: intent.type,
-      resumeStoredSessionOnly,
-      hasStoredSession: Boolean(storedSession),
-      url: searchParamsRef.current.toString(),
-    });
-
     if (intent.type === 'create') {
+      const createToken = `create:${intent.playerName}`;
+      if (createInFlightToken === createToken) {
+        return;
+      }
+      createInFlightToken = createToken;
+
       purgeLegacyLocalStorageRoomIdentity();
       const entryGeneration = bumpRoomEntryGeneration();
       entryGenerationRef.current = entryGeneration;
       expectedRoomCodeRef.current = null;
       resetRoomParticipationIdentity();
+      // New Create is a fresh participation — do not keep Leave's resume suspend.
+      allowRoomResume();
 
-      if (!(await ensureSocketReady(isStale))) {
+      try {
+        if (!(await ensureSocketReady(isStale))) {
+          return;
+        }
+
+        const response = await emitWithAck<RoomSessionData>(CREATE_ROOM_EVENT, {
+          playerName: intent.playerName,
+        });
+
+        if (isStale()) {
+          return;
+        }
+
+        if (response.success) {
+          expectedRoomCodeRef.current = response.data.room.code;
+          applyRoomSession(response.data, { entryGeneration });
+          const restoredGameId = readSelectedGameId();
+          setSelectedGameId(restoredGameId);
+          setSelectedRoundCategoryId(getDefaultRoundCategoryId(restoredGameId));
+          await redirectIfActiveGameShell(response.data.player.id);
+          return;
+        }
+
+        handleFailure(response.error.code);
         return;
+      } finally {
+        if (createInFlightToken === createToken) {
+          createInFlightToken = null;
+        }
       }
-
-      const response = await emitWithAck<RoomSessionData>(CREATE_ROOM_EVENT, {
-        playerName: intent.playerName,
-      });
-
-      if (isStale()) {
-        return;
-      }
-
-      console.info('[room-entry]', {
-        intent: 'create',
-        success: response.success,
-        errorCode: response.success ? undefined : response.error.code,
-      });
-
-      if (response.success) {
-        expectedRoomCodeRef.current = response.data.room.code;
-        applyRoomSession(response.data, { entryGeneration });
-        const restoredGameId = readSelectedGameId();
-        setSelectedGameId(restoredGameId);
-        setSelectedRoundCategoryId(getDefaultRoundCategoryId(restoredGameId));
-        await redirectIfActiveGameShell(response.data.player.id);
-        return;
-      }
-
-      handleFailure(response.error.code);
-      return;
     }
 
     if (intent.type === 'join') {
@@ -587,6 +639,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       entryGenerationRef.current = entryGeneration;
       expectedRoomCodeRef.current = intent.roomCode;
       resetRoomParticipationIdentity();
+      allowRoomResume();
 
       if (!(await ensureSocketReady(isStale))) {
         return;
@@ -742,6 +795,9 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     setRoomSessionResumeListener((data) => {
+      if (isRoomResumeSuspended()) {
+        return;
+      }
       applyRoomSession(data);
     }, resumeOwner);
 
@@ -751,15 +807,27 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       let storedSession = readRoomSession();
       const urlCode = searchParamsRef.current.get('code')?.trim() ?? '';
 
-      // Cross-room navigation: leave the old room on the server before adopting
-      // the new URL intent. Never let Room A session win over Room B's code.
+      // Cross-room navigation: leave the old room only when URL has no resume
+      // credential for the target code. Poisoned session.roomCode must not
+      // destroy a still-valid Room B resume on refresh.
       if (urlCode && storedSession && storedSession.roomCode !== urlCode) {
-        await leaveActiveRoom();
-        roomIdRef.current = null;
-        if (cancelled) {
-          return;
+        const urlCredential = findRoomReconnectCredential(urlCode);
+        if (urlCredential) {
+          storedSession = {
+            playerId: urlCredential.playerId,
+            roomId: urlCredential.roomId,
+            playerName: storedSession.playerName,
+            roomCode: urlCredential.roomCode,
+          };
+          writeRoomSession(storedSession);
+        } else {
+          await leaveActiveRoom();
+          roomIdRef.current = null;
+          if (cancelled) {
+            return;
+          }
+          storedSession = readRoomSession();
         }
-        storedSession = readRoomSession();
       }
 
       const entryIntent = resolveRoomEntryIntent(searchParamsRef.current, storedSession);
@@ -820,12 +888,25 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   // Soft-nav /lobby?code=A → /lobby?code=B does not remount RoomProvider.
   // Detect URL room changes and leave the old room before resolving new intent.
   const urlRoomCode = searchParams.get('code')?.trim() ?? '';
+  const urlAction = searchParams.get('action')?.trim() ?? '';
+  const urlHasName = searchParams.has('name');
+
   useEffect(() => {
     let cancelled = false;
 
     void (async () => {
       const storedSession = readRoomSession();
       if (!urlRoomCode || !storedSession || storedSession.roomCode === urlRoomCode) {
+        return;
+      }
+
+      // Soft-nav to a room that already has a resume credential is reconnect,
+      // not leave (covers poisoned session.roomCode while URL stays on Room B).
+      if (findRoomReconnectCredential(urlRoomCode)) {
+        writeRoomSession({
+          ...storedSession,
+          roomCode: urlRoomCode,
+        });
         return;
       }
 
@@ -848,6 +929,31 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [urlRoomCode]);
+
+  // Keep canonical `/lobby?code=` after successful entry even if Next reconciles
+  // sticky action=create / name= query params back into the address bar.
+  useEffect(() => {
+    if (status !== 'connected' || !room?.code) {
+      return;
+    }
+
+    if (urlAction === 'create' || urlHasName || (urlRoomCode && urlRoomCode !== room.code)) {
+      canonicalizeActiveLobbyUrl(room.code);
+    }
+  }, [status, room?.code, urlAction, urlHasName, urlRoomCode, canonicalizeActiveLobbyUrl]);
+
+  // Keep searchParamsRef aligned with the latest Next search params unless we just
+  // canonically replaced them to code-only while Next still reports sticky intent.
+  useEffect(() => {
+    if (
+      status === 'connected' &&
+      room?.code &&
+      lobbyUrlNeedsNormalization(searchParams, room.code)
+    ) {
+      return;
+    }
+    searchParamsRef.current = searchParams;
+  }, [searchParams, status, room?.code]);
 
   useEffect(() => {
     if (status !== 'connected') {
@@ -1047,6 +1153,9 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     // and re-apply a just-invalidated identity.
     removeSocketListenersRef.current?.();
     setRoomSessionResumeListener(null);
+    suspendRoomResume();
+    entryGenerationRef.current = bumpRoomEntryGeneration();
+    createInFlightToken = null;
 
     // Immediate client isolation — Room identity is dead before leave ACK.
     roomIdRef.current = null;

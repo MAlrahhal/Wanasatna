@@ -6,6 +6,7 @@ import {
 } from '@wanasatna/shared';
 
 import { findRoomReconnectCredential } from '@/lib/room/reconnect-credential';
+import { isRoomResumeSuspended } from '@/lib/room/participation';
 import { readRoomSession } from '@/lib/room/session';
 import { getRoomSocket, waitForRoomSocketConnection } from '@/lib/room/socket';
 
@@ -74,11 +75,19 @@ function emitWithAck<T>(event: string, payload: unknown): Promise<RoomActionResp
  * Safe across RoomProvider remount gaps (/lobby ↔ /game) and manager reconnects.
  */
 export async function rebindRoomSocketFromStoredSession(): Promise<RoomSessionData | null> {
+  if (isRoomResumeSuspended()) {
+    return null;
+  }
+
   if (resumeInFlight) {
     return resumeInFlight;
   }
 
   resumeInFlight = (async () => {
+    if (isRoomResumeSuspended()) {
+      return null;
+    }
+
     const storedSession = readRoomSession();
 
     if (!storedSession) {
@@ -102,8 +111,16 @@ export async function rebindRoomSocketFromStoredSession(): Promise<RoomSessionDa
       return null;
     }
 
+    if (isRoomResumeSuspended() || !readRoomSession()) {
+      return null;
+    }
+
     // Prefer lightweight sync when the server still has this socket bound.
     const syncResponse = await emitWithAck<RoomSessionData>(ROOM_SYNC_EVENT, {});
+
+    if (isRoomResumeSuspended() || !readRoomSession()) {
+      return null;
+    }
 
     if (syncResponse.success) {
       sessionListener?.(syncResponse.data);
@@ -117,6 +134,10 @@ export async function rebindRoomSocketFromStoredSession(): Promise<RoomSessionDa
       roomCode: credential.roomCode,
       reconnectToken: credential.reconnectToken,
     });
+
+    if (isRoomResumeSuspended() || !readRoomSession()) {
+      return null;
+    }
 
     if (reconnectResponse.success) {
       sessionListener?.(reconnectResponse.data);

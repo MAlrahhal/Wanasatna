@@ -129,6 +129,16 @@ export function lobbyUrlNeedsNormalization(
   return currentCode !== roomCode || hasIntentParams;
 }
 
+/**
+ * Canonical active-room URL: `/lobby?code=XXXXXX`
+ * After Create/Join success, one-shot intent params must not remain authoritative.
+ */
+export function toCanonicalLobbySearchParams(roomCode: string): URLSearchParams {
+  const nextParams = new URLSearchParams();
+  nextParams.set('code', roomCode);
+  return nextParams;
+}
+
 function reconnectIntentFromCredential(
   credential: RoomReconnectCredential,
 ): Extract<RoomEntryIntent, { type: 'reconnect' }> {
@@ -145,7 +155,7 @@ function reconnectIntentFromCredential(
  * Resolve how this tab should enter a room.
  *
  * Contract:
- * - Create / Join with an explicit display name → always fresh RoomPlayer
+ * - Fresh Create / Join → new RoomPlayer (unless sticky intent was already consumed)
  * - Same-room code-only URL (refresh) → reconnect when resume credential matches
  * - Never reconnect Room A while URL targets Room B
  */
@@ -158,14 +168,27 @@ export function resolveRoomEntryIntent(
   const playerName = params.get('name')?.trim() ?? '';
   const roomCode = params.get('code')?.trim() ?? '';
 
-  // CASE 1 — Create is always a hard identity boundary.
+  // Sticky create URL after success: only treat as consumed when the typed
+  // create name matches the active RoomPlayer (same intent already applied).
+  // Mismatched / legacy poisoned sessions must not block a fresh Create.
   if (action === 'create' && playerName) {
+    if (storedSession && storedSession.playerName === playerName) {
+      const sessionCredential = findRoomReconnectCredential(storedSession.roomCode);
+      if (sessionCredential && sessionCredential.playerId === storedSession.playerId) {
+        return reconnectIntentFromCredential(sessionCredential);
+      }
+    }
     return { type: 'create', playerName };
   }
 
-  // CASE 2 — Explicit Join (typed name) is always a hard identity boundary.
-  // Typed display name must win; never resurrect another RoomPlayer via resume.
+  // Sticky join URL (code+name) after success for the SAME room → reconnect.
   if (roomCode && playerName) {
+    if (storedSession && storedSession.roomCode === roomCode) {
+      const sessionCredential = findRoomReconnectCredential(storedSession.roomCode);
+      if (sessionCredential && sessionCredential.playerId === storedSession.playerId) {
+        return reconnectIntentFromCredential(sessionCredential);
+      }
+    }
     return { type: 'join', roomCode, playerName };
   }
 
@@ -211,12 +234,10 @@ export function resolveRoomEntryIntent(
 }
 
 /**
- * Destroy local Room participation identity only.
- *
- * Does NOT clear future Account/Auth identity (tokens, userId, profile).
- * Room leave ≠ account logout.
+ * Clear Room participation storage without disconnecting the socket.
+ * Used by Leave so an already-bound socket can emit leave before teardown.
  */
-export function resetRoomParticipationIdentity(roomCode?: string): void {
+export function clearLocalRoomParticipationStorage(roomCode?: string): void {
   purgeLegacyLocalStorageRoomIdentity();
 
   const codeToClear = (roomCode ?? readRoomSession()?.roomCode)?.trim() || null;
@@ -228,7 +249,16 @@ export function resetRoomParticipationIdentity(roomCode?: string): void {
   } else {
     clearActiveRoomReconnectCredential();
   }
+}
 
+/**
+ * Destroy local Room participation identity only.
+ *
+ * Does NOT clear future Account/Auth identity (tokens, userId, profile).
+ * Room leave ≠ account logout.
+ */
+export function resetRoomParticipationIdentity(roomCode?: string): void {
+  clearLocalRoomParticipationStorage(roomCode);
   disconnectRoomSocket();
 }
 
