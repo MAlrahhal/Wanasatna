@@ -17,6 +17,8 @@ export function getRoomSocket(): Socket {
   if (!g[SOCKET_GLOBAL_KEY]) {
     g[SOCKET_GLOBAL_KEY] = io(getServerUrl(), {
       autoConnect: false,
+      // True transport drops while in-room should recover; Leave disables this first.
+      reconnection: true,
     });
   }
 
@@ -55,11 +57,22 @@ export function waitForRoomSocketConnection(activeSocket: Socket, timeoutMs = 10
   });
 }
 
+/**
+ * Tear down the singleton for Explicit Leave.
+ * Must disable Manager auto-reconnect — otherwise a zombie reconnect after Leave
+ * races the next Create/Join and can bounce Lobby back Home.
+ */
 export function disconnectRoomSocket(): void {
   const g = globalThis as SocketGlobal;
   const active = g[SOCKET_GLOBAL_KEY];
   if (!active) {
     return;
+  }
+
+  try {
+    active.io.reconnection(false);
+  } catch {
+    /* ignore */
   }
 
   active.removeAllListeners();

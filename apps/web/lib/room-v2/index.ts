@@ -16,3 +16,10 @@ export {
   type RoomManagerState,
   type RoomRuntimeSnapshot,
 } from '@/lib/room-v2/manager';
+export {
+  getContinuityLog,
+  getReconnectEmitCount,
+  getRuntimeId,
+  recordContinuity,
+  resetReconnectEmitCount,
+} from '@/lib/room-v2/continuity';

@@ -1,6 +1,7 @@
-import type { RoomActionResponse } from '@wanasatna/shared';
+import { RECONNECT_EVENT, type RoomActionResponse } from '@wanasatna/shared';
 import { getRoomErrorMessage } from '@/lib/room/error-messages';
 import { getRoomSocket } from '@/lib/room/socket';
+import { bumpReconnectEmitCount } from '@/lib/room-v2/continuity';
 
 function isRoomActionResponse<T>(value: unknown): value is RoomActionResponse<T> {
   return (
@@ -17,6 +18,10 @@ export function emitRoomAck<T>(
   timeoutMs = 10_000,
 ): Promise<RoomActionResponse<T>> {
   const socket = getRoomSocket();
+
+  if (event === RECONNECT_EVENT) {
+    bumpReconnectEmitCount();
+  }
 
   return new Promise((resolve) => {
     socket.timeout(timeoutMs).emit(event, payload ?? {}, (error: unknown, response?: RoomActionResponse<T>) => {

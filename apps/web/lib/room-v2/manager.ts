@@ -18,6 +18,11 @@ import {
 } from '@wanasatna/shared';
 import { getRoomErrorMessage } from '@/lib/room/error-messages';
 import { disconnectRoomSocket, getRoomSocket, waitForRoomSocketConnection } from '@/lib/room/socket';
+import {
+  ensureManagerInstanceId,
+  getRuntimeId,
+  recordContinuity,
+} from '@/lib/room-v2/continuity';
 import { roomV2Diag } from '@/lib/room-v2/diagnostics';
 import { emitRoomAck } from '@/lib/room-v2/emit';
 import {
@@ -31,6 +36,10 @@ import type {
   RoomLifecycleStatus,
   RoomV2Result,
 } from '@/lib/room-v2/types';
+
+function canonicalizeRoomCode(raw: string): string {
+  return raw.replace(/\D/g, '');
+}
 
 export type RoomRuntimeSnapshot = {
   room: RoomData | null;
@@ -85,6 +94,8 @@ function normalizeRoom(room: RoomData): RoomData {
  * Not React. Survives route remounts. One instance per tab.
  */
 class RoomSessionManager {
+  /** Stable id for continuity probes across Home → Lobby. */
+  __instanceId?: string;
   private generation = 0;
   private status: RoomLifecycleStatus = 'idle';
   private errorMessage: string | null = null;
@@ -93,9 +104,12 @@ class RoomSessionManager {
   private listeners = new Set<Listener>();
   private coreListenersBound = false;
   private enterInFlight: 'create' | 'join' | null = null;
+  private resumeInFlight: Promise<RoomV2Result<ActiveRoomSession>> | null = null;
   private onTerminal: ((reason: 'kick' | 'closed' | 'leave') => void) | null = null;
+  private onSocketManagerReconnect: (() => void) | null = null;
 
   constructor() {
+    ensureManagerInstanceId(this);
     if (typeof window !== 'undefined') {
       purgeLegacyRoomStorage();
       this.session = readPersistedActiveRoomSession();
@@ -125,21 +139,26 @@ class RoomSessionManager {
   }
 
   /**
-   * If memory is empty (cross-bundle first touch), adopt the persisted ActiveRoomSession.
+   * Adopt persisted ActiveRoomSession when memory is empty OR diverged from storage.
    * Does not mark ACTIVE — caller decides reuse vs resume.
    */
   rehydrateFromStorageIfNeeded(): void {
-    if (this.session) {
-      return;
-    }
-
     const persisted = readPersistedActiveRoomSession();
     if (!persisted) {
       return;
     }
 
+    // Stale in-memory session from a prior Room must never block the Create/Join write.
+    if (
+      this.session &&
+      this.session.roomId === persisted.roomId &&
+      this.session.playerId === persisted.playerId
+    ) {
+      return;
+    }
+
     this.session = persisted;
-    if (this.status === 'idle') {
+    if (this.status === 'idle' || this.status === 'error') {
       this.notify();
     }
   }
@@ -150,11 +169,14 @@ class RoomSessionManager {
       return false;
     }
 
-    if (roomCode && this.session.roomCode !== roomCode) {
+    if (
+      roomCode &&
+      canonicalizeRoomCode(this.session.roomCode) !== canonicalizeRoomCode(roomCode)
+    ) {
       return false;
     }
 
-    return true;
+    return getRoomSocket().connected;
   }
 
   setTerminalHandler(handler: ((reason: 'kick' | 'closed' | 'leave') => void) | null): void {
@@ -227,6 +249,12 @@ class RoomSessionManager {
 
   private async ensureSocket(): Promise<boolean> {
     const socket = getRoomSocket();
+    try {
+      // Leave disables Manager reconnection; re-enable for live participation.
+      socket.io.reconnection(true);
+    } catch {
+      /* ignore */
+    }
     if (!socket.connected) {
       socket.connect();
       try {
@@ -322,7 +350,7 @@ class RoomSessionManager {
       this.onTerminal?.('kick');
     });
 
-    socket.io.on('reconnect', () => {
+    this.onSocketManagerReconnect = () => {
       roomV2Diag('SOCKET_RECONNECTED', {
         roomCode: this.session?.roomCode,
         generation: this.generation,
@@ -330,7 +358,8 @@ class RoomSessionManager {
       if (this.session && this.status !== 'leaving') {
         void this.resumeSameRoom();
       }
-    });
+    };
+    socket.io.on('reconnect', this.onSocketManagerReconnect);
 
     socket.on('disconnect', () => {
       roomV2Diag('SOCKET_DISCONNECTED', {
@@ -360,6 +389,11 @@ class RoomSessionManager {
     this.status = 'entering';
     this.notify();
     roomV2Diag('CREATE_START', { generation: gen });
+    recordContinuity('CREATE_START', {
+      socketId: getRoomSocket().id ?? null,
+      managerId: this.__instanceId ?? null,
+      status: this.status,
+    });
 
     try {
       if (!(await this.ensureSocket())) {
@@ -405,6 +439,14 @@ class RoomSessionManager {
         playerId: response.data.player.id,
         generation: gen,
       });
+      recordContinuity('CREATE_SUCCESS', {
+        socketId: getRoomSocket().id ?? null,
+        managerId: this.__instanceId ?? null,
+        roomCode: response.data.room.code,
+        playerId: response.data.player.id,
+        status: this.status,
+        detail: `runtime=${getRuntimeId()}`,
+      });
 
       return { success: true, data: { roomCode: response.data.room.code } };
     } finally {
@@ -426,6 +468,12 @@ class RoomSessionManager {
     this.status = 'entering';
     this.notify();
     roomV2Diag('JOIN_START', { roomCode, generation: gen });
+    recordContinuity('JOIN_START', {
+      socketId: getRoomSocket().id ?? null,
+      managerId: this.__instanceId ?? null,
+      roomCode,
+      status: this.status,
+    });
 
     try {
       if (!(await this.ensureSocket())) {
@@ -474,6 +522,14 @@ class RoomSessionManager {
         playerId: response.data.player.id,
         generation: gen,
       });
+      recordContinuity('JOIN_SUCCESS', {
+        socketId: getRoomSocket().id ?? null,
+        managerId: this.__instanceId ?? null,
+        roomCode: response.data.room.code,
+        playerId: response.data.player.id,
+        status: this.status,
+        detail: `runtime=${getRuntimeId()}`,
+      });
 
       return { success: true, data: { roomCode: response.data.room.code } };
     } finally {
@@ -483,9 +539,24 @@ class RoomSessionManager {
 
   /**
    * Same-room resume after hard refresh or transport reconnect.
-   * Does nothing if already active with matching bound snapshot.
+   * Does nothing if already active with matching bound snapshot (fresh soft-nav).
+   * Concurrent callers share one in-flight resume (React Strict Mode / double mount).
    */
   async resumeSameRoom(expectedRoomCode?: string): Promise<RoomV2Result<ActiveRoomSession>> {
+    if (this.resumeInFlight) {
+      return this.resumeInFlight;
+    }
+
+    this.resumeInFlight = this.runResumeSameRoom(expectedRoomCode).finally(() => {
+      this.resumeInFlight = null;
+    });
+    return this.resumeInFlight;
+  }
+
+  private async runResumeSameRoom(
+    expectedRoomCode?: string,
+  ): Promise<RoomV2Result<ActiveRoomSession>> {
+    this.rehydrateFromStorageIfNeeded();
     const stored = this.session ?? readPersistedActiveRoomSession();
     if (!stored) {
       return {
@@ -494,7 +565,10 @@ class RoomSessionManager {
       };
     }
 
-    if (expectedRoomCode && stored.roomCode !== expectedRoomCode) {
+    if (
+      expectedRoomCode &&
+      canonicalizeRoomCode(stored.roomCode) !== canonicalizeRoomCode(expectedRoomCode)
+    ) {
       this.bumpGeneration();
       this.clearLocalParticipation();
       this.status = 'idle';
@@ -503,6 +577,24 @@ class RoomSessionManager {
         success: false,
         error: { code: 'ROOM_NOT_FOUND', message: getRoomErrorMessage('ROOM_NOT_FOUND') },
       };
+    }
+
+    // Fresh Create/Join soft-nav: socket already bound — ZERO reconnects.
+    if (
+      this.status === 'active' &&
+      this.snapshot.room &&
+      this.session &&
+      canonicalizeRoomCode(this.session.roomCode) === canonicalizeRoomCode(stored.roomCode) &&
+      getRoomSocket().connected
+    ) {
+      recordContinuity('RESUME_SKIPPED_LIVE', {
+        socketId: getRoomSocket().id ?? null,
+        managerId: this.__instanceId ?? null,
+        roomCode: stored.roomCode,
+        playerId: stored.playerId,
+        status: this.status,
+      });
+      return { success: true, data: this.session };
     }
 
     const gen = this.bumpGeneration();
@@ -514,6 +606,13 @@ class RoomSessionManager {
       roomId: stored.roomId,
       playerId: stored.playerId,
       generation: gen,
+    });
+    recordContinuity('RESUME_START', {
+      socketId: getRoomSocket().id ?? null,
+      managerId: this.__instanceId ?? null,
+      roomCode: stored.roomCode,
+      playerId: stored.playerId,
+      status: this.status,
     });
 
     if (!(await this.ensureSocket())) {
@@ -538,6 +637,13 @@ class RoomSessionManager {
         roomId: stored.roomId,
         playerId: stored.playerId,
         generation: gen,
+      });
+      recordContinuity('RESUME_SUCCESS_SYNC', {
+        socketId: getRoomSocket().id ?? null,
+        managerId: this.__instanceId ?? null,
+        roomCode: stored.roomCode,
+        playerId: stored.playerId,
+        status: this.status,
       });
       return { success: true, data: stored };
     }
@@ -568,6 +674,14 @@ class RoomSessionManager {
         response.error.message,
       );
       this.notify();
+      recordContinuity('RESUME_FAILED', {
+        socketId: getRoomSocket().id ?? null,
+        managerId: this.__instanceId ?? null,
+        roomCode: stored.roomCode,
+        playerId: stored.playerId,
+        status: this.status,
+        detail: response.error.code,
+      });
       return { success: false, error: { code: response.error.code, message: this.errorMessage } };
     }
 
@@ -578,16 +692,24 @@ class RoomSessionManager {
       playerId: response.data.player.id,
       generation: gen,
     });
+    recordContinuity('RESUME_SUCCESS_RECONNECT', {
+      socketId: getRoomSocket().id ?? null,
+      managerId: this.__instanceId ?? null,
+      roomCode: response.data.room.code,
+      playerId: response.data.player.id,
+      status: this.status,
+    });
     return { success: true, data: this.session! };
   }
 
   /**
    * Explicit Leave: clear local identity immediately, then best-effort server leave.
    * Captures old identity before clear so Leave cannot target a newer Room.
+   * Generation-guarded: a superseding Create/Join must not be torn down by Leave.finally.
    */
   async leave(): Promise<void> {
     const old = this.session;
-    this.bumpGeneration();
+    const leaveGen = this.bumpGeneration();
     this.status = 'leaving';
     this.clearLocalParticipation();
     this.notify();
@@ -595,13 +717,28 @@ class RoomSessionManager {
       roomCode: old?.roomCode,
       roomId: old?.roomId,
       playerId: old?.playerId,
-      generation: this.generation,
+      generation: leaveGen,
+    });
+    recordContinuity('LEAVE_START', {
+      socketId: getRoomSocket().id ?? null,
+      managerId: this.__instanceId ?? null,
+      roomCode: old?.roomCode,
+      playerId: old?.playerId,
+      status: this.status,
     });
 
     // Best-effort server leave using captured identity only.
     // If the socket is unbound (hard navigation), rebind the OLD seat then leave.
     try {
       if (old) {
+        if (this.generation !== leaveGen) {
+          roomV2Diag('STALE_OPERATION_DROPPED', {
+            generation: this.generation,
+            detail: 'leave-superseded-before-server',
+          });
+          return;
+        }
+
         const socket = getRoomSocket();
         if (!socket.connected) {
           socket.connect();
@@ -609,6 +746,9 @@ class RoomSessionManager {
             await waitForRoomSocketConnection(socket, 2_000);
           } catch {
             /* best effort */
+          }
+          if (this.generation !== leaveGen) {
+            return;
           }
           await emitRoomAck(
             RECONNECT_EVENT,
@@ -621,16 +761,54 @@ class RoomSessionManager {
             2_000,
           );
         }
+
+        if (this.generation !== leaveGen) {
+          roomV2Diag('STALE_OPERATION_DROPPED', {
+            generation: this.generation,
+            detail: 'leave-superseded-before-leave-ack',
+          });
+          return;
+        }
+
         await emitRoomAck(LEAVE_ROOM_EVENT, {}, 2_000);
       }
     } catch {
       /* ignore */
     } finally {
+      // A newer Create/Join bumped generation — do NOT disconnect their live socket.
+      if (this.generation !== leaveGen) {
+        roomV2Diag('STALE_OPERATION_DROPPED', {
+          generation: this.generation,
+          detail: 'leave-finally-superseded',
+        });
+        recordContinuity('LEAVE_SUPERSEDED', {
+          socketId: getRoomSocket().id ?? null,
+          managerId: this.__instanceId ?? null,
+          detail: `leaveGen=${leaveGen},current=${this.generation}`,
+        });
+        return;
+      }
+
+      const socket = getRoomSocket();
+      if (this.onSocketManagerReconnect) {
+        try {
+          socket.io.off('reconnect', this.onSocketManagerReconnect);
+        } catch {
+          /* ignore */
+        }
+        this.onSocketManagerReconnect = null;
+      }
+
       disconnectRoomSocket();
       this.coreListenersBound = false;
       this.status = 'idle';
       this.notify();
       this.onTerminal?.('leave');
+      recordContinuity('LEAVE_DONE', {
+        socketId: null,
+        managerId: this.__instanceId ?? null,
+        status: this.status,
+      });
     }
   }
 

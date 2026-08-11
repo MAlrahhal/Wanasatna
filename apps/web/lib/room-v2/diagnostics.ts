@@ -15,7 +15,9 @@ type RoomV2DiagEvent =
 
 const ENABLED =
   typeof process !== 'undefined' &&
-  (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_ROOM_V2_DIAG === '1');
+  (process.env.NODE_ENV === 'development' ||
+    process.env.NEXT_PUBLIC_ROOM_V2_DIAG === '1' ||
+    process.env.NEXT_PUBLIC_ROOM_V2_DIAG === 'true');
 
 export function roomV2Diag(
   event: RoomV2DiagEvent,

@@ -3,7 +3,9 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { HOME_ROOM_ACTIONS_ID } from '@/lib/public/routes';
+import { getRuntimeId, recordContinuity } from '@/lib/room-v2/continuity';
 import { getRoomSessionManager } from '@/lib/room-v2';
+import { getRoomSocket } from '@/lib/room/socket';
 
 type FieldErrors = {
   playerName?: boolean;
@@ -45,6 +47,13 @@ export function useRoomActions() {
       setJoinCode(code);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    recordContinuity('HOME_READY', {
+      socketId: getRoomSocket().id ?? null,
+      detail: `runtime=${getRuntimeId()}`,
+    });
+  }, []);
 
   useEffect(() => {
     function handleRestore() {
