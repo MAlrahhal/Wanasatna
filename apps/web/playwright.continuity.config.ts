@@ -10,7 +10,7 @@ const WEB_URL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3002';
 export default defineConfig({
   testDir: './tests/e2e',
   testMatch:
-    /(?:room-v2-core|home-lobby-continuity)\.spec\.ts/,
+    /(?:room-v2-core|home-lobby-continuity|leave-fresh-entry)\.spec\.ts/,
   timeout: 240_000,
   expect: { timeout: 30_000 },
   fullyParallel: false,

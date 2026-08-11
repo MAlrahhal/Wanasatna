@@ -63,6 +63,7 @@ import {
 } from '@/lib/room-v2';
 import type { RoomLifecycleStatus } from '@/lib/room-v2/types';
 import { getDefaultRoundCategoryId } from '@/lib/game/round-categories';
+import { replaceHomeClean } from '@/lib/public/home-url';
 import { registerAllClientGamePlugins } from '@/plugins';
 
 const DEFAULT_TIMING_CHALLENGE_SETTINGS: TimingChallengeSettings = {
@@ -305,7 +306,8 @@ export function RoomProvider({ children }: { children: ReactNode }) {
 
       clearLocalGameUi();
       setErrorMessage('تم طردك من الغرفة.');
-      router.replace('/');
+      getRoomSessionManager().markExplicitLeaveHome();
+      replaceHomeClean(router);
     });
 
     return () => {
@@ -387,13 +389,18 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       const legacyIntent = urlAction === 'create' || urlHasName;
       let state = manager.getState();
 
+      // Live Create/Join must never be treated as post-Leave invite suppression.
+      if (manager.hasLiveActiveRoom() || state.status === 'active') {
+        manager.clearExplicitLeaveHome();
+      }
+
       recordContinuity('LOBBY_BOOTSTRAP', {
         socketId: getRoomSocket().id ?? null,
         managerId: (manager as { __instanceId?: string }).__instanceId ?? null,
         roomCode: urlRoomCode || state.session?.roomCode || null,
         playerId: state.session?.playerId ?? null,
         status: state.status,
-        detail: `runtime=${getRuntimeId()};path=${pathname};urlCode=${urlRoomCode || ''}`,
+        detail: `runtime=${getRuntimeId()};path=${pathname};urlCode=${urlRoomCode || ''};suppress=${manager.shouldSuppressInvitePrefill()}`,
       });
 
       if (legacyIntent) {
@@ -414,7 +421,11 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         }
 
         if (urlRoomCode) {
-          router.replace(`/?code=${encodeURIComponent(urlRoomCode)}`);
+          if (manager.shouldSuppressInvitePrefill()) {
+            replaceHomeClean(router);
+          } else {
+            router.replace(`/?code=${encodeURIComponent(urlRoomCode)}`);
+          }
         } else {
           router.replace('/');
         }
@@ -441,6 +452,44 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       }
 
       if (urlRoomCode) {
+        if (cancelled) {
+          return;
+        }
+
+        // Stale-effect guard: Leave→Home→Create can leave an old bootstrap IIFE running
+        // with a closed-over urlRoomCode for Room A. That effect must not leave() Room B.
+        const locationCode = canonicalizeRoomCode(
+          typeof window !== 'undefined'
+            ? (new URL(window.location.href).searchParams.get('code') ?? '')
+            : urlRoomCode,
+        );
+        if (locationCode && locationCode !== urlRoomCode) {
+          state = manager.getState();
+          const liveCode = state.session?.roomCode
+            ? canonicalizeRoomCode(state.session.roomCode)
+            : '';
+          if (
+            liveCode &&
+            (manager.hasLiveActiveRoom(liveCode) || state.status === 'active')
+          ) {
+            manager.clearExplicitLeaveHome();
+            canonicalizeActiveLobbyUrl(liveCode);
+            recordContinuity('LOBBY_BOOTSTRAP_STALE', {
+              roomCode: urlRoomCode,
+              detail: `canonicalize-live;effect=${urlRoomCode};live=${liveCode};loc=${locationCode}`,
+            });
+            return;
+          }
+          recordContinuity('LOBBY_BOOTSTRAP_STALE', {
+            roomCode: urlRoomCode,
+            detail: `effectCode=${urlRoomCode};locationCode=${locationCode}`,
+          });
+          return;
+        }
+        if (pathname !== '/lobby' && pathname !== '/game') {
+          return;
+        }
+
         state = manager.getState();
         const sessionCode = state.session?.roomCode
           ? canonicalizeRoomCode(state.session.roomCode)
@@ -449,6 +498,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         if (sessionCode === urlRoomCode) {
           // Fresh Create/Join: socket already bound — never resume, never redirect Home.
           if (manager.hasLiveActiveRoom(urlRoomCode) || isReusableActiveSession(state, urlRoomCode)) {
+            manager.clearExplicitLeaveHome();
             recordContinuity('LOBBY_REUSE_LIVE', {
               socketId: getRoomSocket().id ?? null,
               managerId: (manager as { __instanceId?: string }).__instanceId ?? null,
@@ -481,26 +531,74 @@ export function RoomProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // Different room in URL than active session: clear participation, invite-only Home.
+        // Live Room B must not be destroyed by a stale effect for Room A.
+        if (
+          manager.hasLiveActiveRoom() ||
+          (state.status === 'active' && sessionCode && sessionCode !== urlRoomCode)
+        ) {
+          manager.clearExplicitLeaveHome();
+          if (sessionCode) {
+            const nextUrl = `/lobby?code=${encodeURIComponent(sessionCode)}`;
+            if (typeof window !== 'undefined') {
+              window.history.replaceState(window.history.state, '', nextUrl);
+            }
+            router.push(nextUrl);
+          }
+          recordContinuity('LOBBY_BOOTSTRAP_STALE', {
+            roomCode: urlRoomCode,
+            detail: `refuse-leave-live;session=${sessionCode}`,
+          });
+          return;
+        }
+
+        // Explicit Leave must never become an invite to the room just left.
+        if (
+          manager.shouldSuppressInvitePrefill() &&
+          !manager.hasLiveActiveRoom() &&
+          state.status !== 'active'
+        ) {
+          replaceHomeClean(router);
+          return;
+        }
+
+        // Different room in URL than active session / no session on lobby code URL.
         if (state.session) {
+          if (cancelled) {
+            return;
+          }
           await manager.leave();
           if (cancelled) {
             return;
           }
         }
+
+        // Genuine shared /lobby?code= link without a session → invite Home prefill only.
+        if (manager.shouldSuppressInvitePrefill()) {
+          replaceHomeClean(router);
+          return;
+        }
         router.replace(`/?code=${encodeURIComponent(urlRoomCode)}`);
         return;
       }
 
-      // /lobby with no code: recover bound session or send home.
+      // /lobby with no code: recover bound/persisted session or send home.
+      // Soft-nav can briefly mount with empty searchParams — do NOT bounce Home
+      // when ActiveRoomSession still exists in memory or storage.
       state = manager.getState();
-      if (state.session?.roomCode) {
-        canonicalizeActiveLobbyUrl(state.session.roomCode);
+      manager.rehydrateFromStorageIfNeeded();
+      state = manager.getState();
+      const recoveredCode = state.session?.roomCode
+        ? canonicalizeRoomCode(state.session.roomCode)
+        : '';
+
+      if (recoveredCode) {
+        manager.clearExplicitLeaveHome();
+        canonicalizeActiveLobbyUrl(recoveredCode);
         if (
-          !isReusableActiveSession(state, state.session.roomCode) &&
-          !manager.hasLiveActiveRoom(state.session.roomCode)
+          !isReusableActiveSession(state, recoveredCode) &&
+          !manager.hasLiveActiveRoom(recoveredCode)
         ) {
-          await manager.resumeSameRoom(state.session.roomCode);
+          await manager.resumeSameRoom(recoveredCode);
           if (cancelled) {
             return;
           }
@@ -511,6 +609,11 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       }
 
       if (manager.isEnterInFlight()) {
+        return;
+      }
+
+      if (manager.shouldSuppressInvitePrefill()) {
+        replaceHomeClean(router);
         return;
       }
 
@@ -531,15 +634,21 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     urlRoomCode,
   ]);
 
-  // Keep canonical `/lobby?code=` after successful entry even if Next reconciles
-  // sticky action=create / name= query params back into the address bar.
+  // Keep canonical `/lobby?code=` aligned with the LIVE session — beats stale
+  // App Router searchParams that briefly revive a previously left room code.
   useEffect(() => {
     if (status !== 'connected' || !room?.code) {
       return;
     }
 
-    if (urlAction === 'create' || urlHasName || (urlRoomCode && urlRoomCode !== room.code)) {
-      canonicalizeActiveLobbyUrl(room.code);
+    const liveCode = canonicalizeRoomCode(room.code);
+    if (
+      urlAction === 'create' ||
+      urlHasName ||
+      !urlRoomCode ||
+      urlRoomCode !== liveCode
+    ) {
+      canonicalizeActiveLobbyUrl(liveCode);
     }
   }, [status, room?.code, urlAction, urlHasName, urlRoomCode, canonicalizeActiveLobbyUrl]);
 
@@ -762,7 +871,28 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       clearLocalGameUi();
       setErrorMessage(null);
 
-      await getRoomSessionManager().leave();
+      const manager = getRoomSessionManager();
+
+      let pathname = '/';
+      try {
+        pathname = new URL(redirectTo, 'http://local.invalid').pathname || '/';
+      } catch {
+        pathname = redirectTo.split('?')[0] || '/';
+      }
+
+      // Explicit Leave → Home must be exactly `/` (never /?code=OLD).
+      if (pathname === '/' || pathname === '') {
+        // Mark before clearing so any lobby bootstrap during leave() cannot
+        // rewrite empty-session + /lobby?code= into an invite /?code=OLD.
+        manager.markExplicitLeaveHome();
+        // Finish server leave + socket teardown BEFORE Home Create/Join can start.
+        // Navigating first caused Create to race Leave.finally and get INTERNAL_ERROR.
+        await manager.leave();
+        replaceHomeClean(router);
+        return;
+      }
+
+      await manager.leave();
       router.replace(redirectTo);
     },
     [clearLocalGameUi, router],

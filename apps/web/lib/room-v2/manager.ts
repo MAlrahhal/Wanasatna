@@ -107,6 +107,10 @@ class RoomSessionManager {
   private resumeInFlight: Promise<RoomV2Result<ActiveRoomSession>> | null = null;
   private onTerminal: ((reason: 'kick' | 'closed' | 'leave') => void) | null = null;
   private onSocketManagerReconnect: (() => void) | null = null;
+  /** After explicit Leave/Kick — block rewriting Home into /?code=OLD. */
+  private explicitLeaveHome = false;
+  /** In-memory only: rooms explicitly left this runtime must not resume. */
+  private leftRoomIds = new Set<string>();
 
   constructor() {
     ensureManagerInstanceId(this);
@@ -145,6 +149,15 @@ class RoomSessionManager {
   rehydrateFromStorageIfNeeded(): void {
     const persisted = readPersistedActiveRoomSession();
     if (!persisted) {
+      return;
+    }
+
+    // Explicit Leave this runtime — never resurrect that Room from sticky storage.
+    if (this.leftRoomIds.has(persisted.roomId)) {
+      clearPersistedActiveRoomSession();
+      if (this.session?.roomId === persisted.roomId) {
+        this.session = null;
+      }
       return;
     }
 
@@ -243,6 +256,9 @@ class RoomSessionManager {
     };
     this.status = 'active';
     this.errorMessage = null;
+    // Successful Create/Join/resume must not keep Leave's invite-suppress flag,
+    // or Lobby bootstrap would replaceHomeClean() and bounce back to `/`.
+    this.explicitLeaveHome = false;
     this.notify();
     return true;
   }
@@ -565,6 +581,22 @@ class RoomSessionManager {
       };
     }
 
+    if (this.leftRoomIds.has(stored.roomId)) {
+      this.bumpGeneration();
+      this.clearLocalParticipation();
+      this.status = 'idle';
+      this.notify();
+      recordContinuity('RESUME_BLOCKED_LEFT_ROOM', {
+        roomCode: stored.roomCode,
+        playerId: stored.playerId,
+        detail: stored.roomId,
+      });
+      return {
+        success: false,
+        error: { code: 'PLAYER_NOT_FOUND', message: getRoomErrorMessage('PLAYER_NOT_FOUND') },
+      };
+    }
+
     if (
       expectedRoomCode &&
       canonicalizeRoomCode(stored.roomCode) !== canonicalizeRoomCode(expectedRoomCode)
@@ -708,7 +740,13 @@ class RoomSessionManager {
    * Generation-guarded: a superseding Create/Join must not be torn down by Leave.finally.
    */
   async leave(): Promise<void> {
+    // Explicit Leave always suppresses invite-prefill of the room being left.
+    this.explicitLeaveHome = true;
+
     const old = this.session;
+    if (old) {
+      this.leftRoomIds.add(old.roomId);
+    }
     const leaveGen = this.bumpGeneration();
     this.status = 'leaving';
     this.clearLocalParticipation();
@@ -827,6 +865,60 @@ class RoomSessionManager {
 
   isEnterInFlight(): boolean {
     return this.enterInFlight !== null;
+  }
+
+  /**
+   * Room-participation-only reset — same clean slate a hard refresh gives for Room state,
+   * without tearing down the whole JS runtime or blindly cycling the socket.
+   */
+  prepareFreshRoomEntry(): void {
+    this.bumpGeneration();
+    this.enterInFlight = null;
+    this.resumeInFlight = null;
+    this.clearLocalParticipation();
+    this.status = 'idle';
+    this.errorMessage = null;
+    this.notify();
+    roomV2Diag('SESSION_CLEAR', {
+      generation: this.generation,
+      detail: 'prepareFreshRoomEntry',
+    });
+    recordContinuity('FRESH_ENTRY_RESET', {
+      socketId: getRoomSocket().id ?? null,
+      managerId: this.__instanceId ?? null,
+      status: this.status,
+      detail: `runtime=${getRuntimeId()}`,
+    });
+  }
+
+  /**
+   * Explicit Leave / Kick / Closed → Home must not become an invite to the room just left.
+   * Lobby bootstrap and Home prefill honor this until Home consumes it.
+   */
+  markExplicitLeaveHome(): void {
+    this.explicitLeaveHome = true;
+  }
+
+  shouldSuppressInvitePrefill(): boolean {
+    return this.explicitLeaveHome;
+  }
+
+  clearExplicitLeaveHome(): void {
+    this.explicitLeaveHome = false;
+  }
+
+  /** True when this tab explicitly left at least one Room since last full reload. */
+  hasExplicitlyLeftRoomThisRuntime(): boolean {
+    return this.leftRoomIds.size > 0;
+  }
+
+  /** Home consumes the flag after clearing join prefill / URL. */
+  consumeExplicitLeaveHome(): boolean {
+    if (!this.explicitLeaveHome) {
+      return false;
+    }
+    this.explicitLeaveHome = false;
+    return true;
   }
 }
 

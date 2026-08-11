@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { replaceHomeClean } from '@/lib/public/home-url';
 import { HOME_ROOM_ACTIONS_ID } from '@/lib/public/routes';
 import { getRuntimeId, recordContinuity } from '@/lib/room-v2/continuity';
 import { getRoomSessionManager } from '@/lib/room-v2';
@@ -20,9 +21,16 @@ function resetSubmissionFlags(
   setIsJoining(false);
 }
 
+function readInviteCode(searchParams: Pick<URLSearchParams, 'get'>): string {
+  const raw = searchParams.get('code')?.trim() ?? '';
+  const code = raw.replace(/\D/g, '');
+  return /^\d{6}$/.test(code) ? code : '';
+}
+
 /**
  * Home Create/Join — V2: network completes HERE, then navigate to canonical lobby URL.
  * Lobby never executes create/join commands.
+ * `?code=` is invite form prefill only — never Room identity / never survives explicit Leave.
  */
 export function useRoomActions() {
   const router = useRouter();
@@ -39,14 +47,28 @@ export function useRoomActions() {
     document.getElementById(HOME_ROOM_ACTIONS_ID)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, []);
 
-  // Deep-link: /?code=B prefill join code (declarative invite data, not a command).
+  // Invite prefill OR clear after explicit Leave / clean Home.
+  // Do not clear the leave-suppress flag until URL is already `/` without code —
+  // otherwise a still-mounted Lobby bootstrap can rewrite /?code=OLD after Home consumed it.
   useEffect(() => {
-    const raw = searchParams.get('code')?.trim() ?? '';
-    const code = raw.replace(/\D/g, '');
-    if (/^\d{6}$/.test(code)) {
-      setJoinCode(code);
+    const manager = getRoomSessionManager();
+
+    if (manager.shouldSuppressInvitePrefill()) {
+      setJoinCode('');
+      // Never yank Home clean while Create/Join is in flight or after it owns the session.
+      if (searchParams.get('code') && !manager.isEnterInFlight() && manager.getState().status !== 'active') {
+        replaceHomeClean(router);
+        return;
+      }
+      if (!searchParams.get('code')) {
+        manager.clearExplicitLeaveHome();
+      }
+      return;
     }
-  }, [searchParams]);
+
+    const code = readInviteCode(searchParams);
+    setJoinCode(code);
+  }, [searchParams, router]);
 
   useEffect(() => {
     recordContinuity('HOME_READY', {
@@ -99,14 +121,39 @@ export function useRoomActions() {
     setIsCreating(true);
 
     void (async () => {
+      const manager = getRoomSessionManager();
       try {
-        const result = await getRoomSessionManager().create(trimmedName);
+        // Create = NEW room. Discard stale invite code as entry intent (form + URL only).
+        // Room authority was already cleared by Leave; avoid extra generation bumps here.
+        manager.clearExplicitLeaveHome();
+        setJoinCode('');
+        if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('code')) {
+          replaceHomeClean(router);
+        }
+
+        const result = await manager.create(trimmedName);
         if (!result.success) {
           setErrorMessage(result.error.message);
           return;
         }
 
-        router.replace(`/lobby?code=${encodeURIComponent(result.data.roomCode)}`);
+        manager.clearExplicitLeaveHome();
+        const lobbyUrl = `/lobby?code=${encodeURIComponent(result.data.roomCode)}`;
+        // After Explicit Leave in this runtime, App Router soft-nav can revive the
+        // left room's /lobby?code= from client cache (proven in continuity dumps:
+        // CREATE_SUCCESS=B then URL settles on A). Full document navigation to the
+        // NEW lobby matches what a manual refresh achieves for this handoff only.
+        if (
+          typeof window !== 'undefined' &&
+          manager.hasExplicitlyLeftRoomThisRuntime()
+        ) {
+          window.location.assign(lobbyUrl);
+          return;
+        }
+        if (typeof window !== 'undefined') {
+          window.history.replaceState(window.history.state, '', lobbyUrl);
+        }
+        router.push(lobbyUrl);
       } catch {
         setErrorMessage('تعذر إنشاء الغرفة. حاول مرة أخرى.');
       } finally {
@@ -168,14 +215,34 @@ export function useRoomActions() {
     setIsJoining(true);
 
     void (async () => {
+      const manager = getRoomSessionManager();
       try {
-        const result = await getRoomSessionManager().join(trimmedCode, trimmedName);
+        // Form code is invite data only — clear Leave suppress so Lobby won't bounce Home.
+        manager.clearExplicitLeaveHome();
+
+        const result = await manager.join(trimmedCode, trimmedName);
         if (!result.success) {
           setErrorMessage(result.error.message);
           return;
         }
 
-        router.replace(`/lobby?code=${encodeURIComponent(result.data.roomCode)}`);
+        manager.clearExplicitLeaveHome();
+        const lobbyUrl = `/lobby?code=${encodeURIComponent(result.data.roomCode)}`;
+        // After Explicit Leave in this runtime, App Router soft-nav can revive the
+        // left room's /lobby?code= from client cache (proven in continuity dumps:
+        // CREATE_SUCCESS=B then URL settles on A). Full document navigation to the
+        // NEW lobby matches what a manual refresh achieves for this handoff only.
+        if (
+          typeof window !== 'undefined' &&
+          manager.hasExplicitlyLeftRoomThisRuntime()
+        ) {
+          window.location.assign(lobbyUrl);
+          return;
+        }
+        if (typeof window !== 'undefined') {
+          window.history.replaceState(window.history.state, '', lobbyUrl);
+        }
+        router.push(lobbyUrl);
       } catch {
         setErrorMessage('تعذر الانضمام إلى الغرفة. حاول مرة أخرى.');
       } finally {
