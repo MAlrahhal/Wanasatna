@@ -5,7 +5,6 @@ import type { FastAnswerPlayerView } from '@wanasatna/shared';
 import {
   FAST_ANSWER_CONTINUE_ROUND_RESULTS_EVENT,
   FAST_ANSWER_PHASE_CHANGED_EVENT,
-  FAST_ANSWER_SET_CATEGORY_EVENT,
   FAST_ANSWER_SUBMIT_ANSWER_EVENT,
   FAST_ANSWER_SYNC_EVENT,
 } from '@wanasatna/shared';
@@ -36,6 +35,7 @@ export function useFastAnswerPlayerView(enabled: boolean) {
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const hasViewRef = useRef(false);
+  const roundIdRef = useRef<string | null>(null);
 
   const syncView = useCallback(async () => {
     const isInitialLoad = !hasViewRef.current;
@@ -49,6 +49,7 @@ export function useFastAnswerPlayerView(enabled: boolean) {
 
     if (result.view) {
       hasViewRef.current = true;
+      roundIdRef.current = result.view.roundId;
       setView(result.view);
       setRemainingSeconds(result.view.phaseRemainingSeconds);
       setErrorMessage(null);
@@ -64,6 +65,7 @@ export function useFastAnswerPlayerView(enabled: boolean) {
   useEffect(() => {
     if (!enabled) {
       hasViewRef.current = false;
+      roundIdRef.current = null;
       setView(null);
       setErrorMessage(null);
       setIsLoading(false);
@@ -76,6 +78,10 @@ export function useFastAnswerPlayerView(enabled: boolean) {
 
     void syncView();
   }, [enabled, syncView]);
+
+  useEffect(() => {
+    roundIdRef.current = view?.roundId ?? null;
+  }, [view?.roundId]);
 
   useEffect(() => {
     if (!enabled) {
@@ -96,26 +102,33 @@ export function useFastAnswerPlayerView(enabled: boolean) {
   }, [enabled, syncView]);
 
   useEffect(() => {
-    if (!enabled || !view || view.gamePhase !== 'question' || !view.questionDeadlineAtMs) {
+    if (!enabled || !view) {
       return;
     }
 
-    const updateRemaining = () => {
-      const seconds = Math.max(0, Math.ceil((view.questionDeadlineAtMs! - Date.now()) / 1000));
-      setRemainingSeconds(seconds);
-    };
+    if (view.gamePhase === 'question' && view.questionDeadlineAtMs) {
+      const updateRemaining = () => {
+        const seconds = Math.max(0, Math.ceil((view.questionDeadlineAtMs! - Date.now()) / 1000));
+        setRemainingSeconds(seconds);
+      };
 
-    updateRemaining();
-    const intervalId = window.setInterval(updateRemaining, 250);
+      updateRemaining();
+      const intervalId = window.setInterval(updateRemaining, 250);
+      return () => window.clearInterval(intervalId);
+    }
 
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [enabled, view?.gamePhase, view?.questionDeadlineAtMs]);
+    if (view.gamePhase === 'round-results' || view.gamePhase === 'match-completed') {
+      setRemainingSeconds(view.phaseRemainingSeconds);
+      const intervalId = window.setInterval(() => {
+        setRemainingSeconds((current) => Math.max(0, current - 1));
+      }, 1000);
+      return () => window.clearInterval(intervalId);
+    }
+  }, [enabled, view?.gamePhase, view?.questionDeadlineAtMs, view?.phaseRemainingSeconds, view?.roundId]);
 
   const submitAnswer = useCallback(
     async (answer: string) => {
-      if (!enabled || isSubmittingAction) {
+      if (!enabled || isSubmittingAction || !roundIdRef.current) {
         return;
       }
 
@@ -126,7 +139,10 @@ export function useFastAnswerPlayerView(enabled: boolean) {
       const response = await emitPluginWithAck<{
         correct: boolean;
         view: FastAnswerPlayerView;
-      }>(FAST_ANSWER_SUBMIT_ANSWER_EVENT, { answer });
+      }>(FAST_ANSWER_SUBMIT_ANSWER_EVENT, {
+        answer,
+        roundId: roundIdRef.current,
+      });
 
       if (!response.success) {
         setActionError(response.error.message);
@@ -135,10 +151,13 @@ export function useFastAnswerPlayerView(enabled: boolean) {
       }
 
       setView(response.data.view);
+      roundIdRef.current = response.data.view.roundId;
       setRemainingSeconds(response.data.view.phaseRemainingSeconds);
 
       if (!response.data.correct) {
         setIncorrectFeedback('إجابة غير صحيحة');
+      } else {
+        setIncorrectFeedback(null);
       }
 
       setIsSubmittingAction(false);
@@ -165,36 +184,11 @@ export function useFastAnswerPlayerView(enabled: boolean) {
     }
 
     setView(response.data.view);
+    roundIdRef.current = response.data.view.roundId;
     setRemainingSeconds(response.data.view.phaseRemainingSeconds);
     setIncorrectFeedback(null);
     setIsSubmittingAction(false);
   }, [enabled, isSubmittingAction]);
-
-  const setNextRoundCategory = useCallback(
-    async (categoryId: string | null) => {
-      if (!enabled || isSubmittingAction) {
-        return;
-      }
-
-      setIsSubmittingAction(true);
-      setActionError(null);
-
-      const response = await emitPluginWithAck<{ view: FastAnswerPlayerView }>(
-        FAST_ANSWER_SET_CATEGORY_EVENT,
-        { categoryId },
-      );
-
-      if (!response.success) {
-        setActionError(response.error.message);
-        setIsSubmittingAction(false);
-        return;
-      }
-
-      setView(response.data.view);
-      setIsSubmittingAction(false);
-    },
-    [enabled, isSubmittingAction],
-  );
 
   return {
     view,
@@ -204,7 +198,6 @@ export function useFastAnswerPlayerView(enabled: boolean) {
     incorrectFeedback,
     isSubmittingAction,
     remainingSeconds,
-    setNextRoundCategory,
     submitAnswer,
     continueFromRoundResults,
   };

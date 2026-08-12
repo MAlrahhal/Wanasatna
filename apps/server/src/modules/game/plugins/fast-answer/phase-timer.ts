@@ -3,7 +3,11 @@ import type { FastAnswerMatchState } from '@wanasatna/shared';
 import { FAST_ANSWER_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
-import { completeMatch, finalizeQuestionRound } from './match-lifecycle.js';
+import {
+  advanceFromRoundResults,
+  completeMatch,
+  finalizeQuestionRound,
+} from './match-lifecycle.js';
 import { remainingSecondsFromDeadline, withRound } from './state.js';
 import { getFastAnswerState, setFastAnswerState } from './store.js';
 
@@ -11,12 +15,9 @@ const timersByRoomId = new Map<string, ReturnType<typeof setInterval>>();
 const pausedRoomIds = new Set<string>();
 const pausedQuestionRemainingMsByRoomId = new Map<string, number>();
 
-const TIMERLESS_PHASES = new Set<FastAnswerMatchState['round']['gamePhase']>([
-  'round-results',
-]);
-
-const TIMED_TICK_PHASES = new Set<FastAnswerMatchState['round']['gamePhase']>([
+const TIMED_PHASES = new Set<FastAnswerMatchState['round']['gamePhase']>([
   'question',
+  'round-results',
   'match-completed',
 ]);
 
@@ -76,16 +77,33 @@ export function clearFastAnswerPhaseTimerRuntime(roomId: string): void {
   pausedQuestionRemainingMsByRoomId.delete(roomId);
 }
 
+export function restartFastAnswerPhaseTimer(io: Server, roomId: string): void {
+  stopFastAnswerPhaseTimer(roomId);
+  startFastAnswerPhaseTimerIfNeeded(io, roomId);
+}
+
 function handlePhaseTimerExpired(
   io: Server,
   roomId: string,
   match: FastAnswerMatchState,
 ): void {
+  const shell = getGameShellByRoomId(roomId);
+
+  if (!shell || shell.phase !== 'PLAYING') {
+    stopFastAnswerPhaseTimer(roomId);
+    return;
+  }
+
   if (match.round.gamePhase === 'question') {
     finalizeQuestionRound(io, roomId, match, {
       winnerPlayerId: match.round.winnerPlayerId,
       timedOut: match.round.winnerPlayerId === null,
     });
+    return;
+  }
+
+  if (match.round.gamePhase === 'round-results') {
+    advanceFromRoundResults(io, roomId, match);
     return;
   }
 
@@ -101,20 +119,16 @@ export function startFastAnswerPhaseTimerIfNeeded(io: Server, roomId: string): v
 
   const match = getFastAnswerState(roomId);
 
-  if (!match || TIMERLESS_PHASES.has(match.round.gamePhase)) {
+  if (!match || !TIMED_PHASES.has(match.round.gamePhase)) {
     return;
   }
 
   if (match.round.gamePhase === 'question' && match.round.deadlineAtMs) {
-    const remainingMs = match.round.deadlineAtMs - Date.now();
-
-    if (remainingMs <= 0) {
+    if (match.round.deadlineAtMs - Date.now() <= 0) {
       handlePhaseTimerExpired(io, roomId, match);
       return;
     }
-  }
-
-  if (match.round.phaseRemainingSeconds <= 0 && match.round.gamePhase === 'match-completed') {
+  } else if (match.round.phaseRemainingSeconds <= 0) {
     handlePhaseTimerExpired(io, roomId, match);
     return;
   }
@@ -122,7 +136,7 @@ export function startFastAnswerPhaseTimerIfNeeded(io: Server, roomId: string): v
   const intervalId = setInterval(() => {
     const currentMatch = getFastAnswerState(roomId);
 
-    if (!currentMatch || TIMERLESS_PHASES.has(currentMatch.round.gamePhase)) {
+    if (!currentMatch || !TIMED_PHASES.has(currentMatch.round.gamePhase)) {
       stopFastAnswerPhaseTimer(roomId);
       return;
     }
@@ -155,12 +169,14 @@ export function startFastAnswerPhaseTimerIfNeeded(io: Server, roomId: string): v
     });
 
     setFastAnswerState(roomId, nextMatch);
+    io.to(getRoomChannel(roomId)).emit(FAST_ANSWER_PHASE_CHANGED_EVENT, {});
 
-    if (TIMED_TICK_PHASES.has(currentMatch.round.gamePhase)) {
-      io.to(getRoomChannel(roomId)).emit(FAST_ANSWER_PHASE_CHANGED_EVENT, {});
-    }
-
-    if (remainingSeconds <= 0 && currentMatch.round.gamePhase === 'match-completed') {
+    if (
+      remainingSeconds <= 0 &&
+      (currentMatch.round.gamePhase === 'round-results' ||
+        currentMatch.round.gamePhase === 'match-completed')
+    ) {
+      stopFastAnswerPhaseTimer(roomId);
       handlePhaseTimerExpired(io, roomId, nextMatch);
     }
   }, 1000);

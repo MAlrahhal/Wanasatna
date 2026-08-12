@@ -2,10 +2,8 @@
 
 import { useMemo } from 'react';
 import type { FastAnswerRoundResultEntry } from '@wanasatna/shared';
-import { FAST_ANSWER_GAME_ID } from '@wanasatna/shared';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
-import { RoundCategoryPanel } from '@/components/lobby/round-category-panel';
 import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
 import { Button } from '@/components/ui/button';
 import { FAST_ANSWER_GAME_ICON, FAST_ANSWER_GAME_NAME } from '@/lib/game/fast-answer-brand';
@@ -16,14 +14,14 @@ export type FastAnswerRoundResultsScreenProps = {
   revealedAnswer: string;
   timedOut: boolean;
   winnerName: string | null;
+  categoryLabel?: string | null;
   roundResults: readonly FastAnswerRoundResultEntry[];
   currentPlayerId: string;
   roundNumber: number;
   totalRounds: number;
   roomCode: string;
-  isHost?: boolean;
-  nextCategoryId?: string | null;
-  onSelectNextCategory?: (categoryId: string) => void;
+  remainingSeconds?: number;
+  totalDurationSeconds?: number;
   continueLabel?: string | null;
   waitingMessage?: string | null;
   isContinueLoading?: boolean;
@@ -35,14 +33,14 @@ export function FastAnswerRoundResultsScreen({
   revealedAnswer,
   timedOut,
   winnerName,
+  categoryLabel = null,
   roundResults,
   currentPlayerId,
   roundNumber,
   totalRounds,
   roomCode,
-  isHost = false,
-  nextCategoryId = null,
-  onSelectNextCategory,
+  remainingSeconds = 0,
+  totalDurationSeconds = 10,
   continueLabel,
   waitingMessage,
   isContinueLoading = false,
@@ -61,6 +59,25 @@ export function FastAnswerRoundResultsScreen({
   );
 
   const hasWinner = Boolean(winnerName) && !timedOut;
+  const progressMax = Math.max(totalDurationSeconds, 1);
+  const progressNow = Math.max(0, Math.min(remainingSeconds, totalDurationSeconds));
+  const progressPercent = Math.round((progressNow / progressMax) * 100);
+
+  const progressBar = (
+    <div
+      className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted"
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={progressMax}
+      aria-valuenow={progressNow}
+      aria-label={`الانتقال التلقائي ${progressNow} من ${progressMax} ثانية`}
+    >
+      <div
+        className="h-full rounded-full bg-wanas-accent transition-[width] duration-200 ease-linear"
+        style={{ width: `${progressPercent}%` }}
+      />
+    </div>
+  );
 
   return (
     <GameScreen ariaLabel="نتائج الجولة" maxWidth="4xl" className={className}>
@@ -74,6 +91,12 @@ export function FastAnswerRoundResultsScreen({
       />
 
       <div className="flex flex-col gap-6 sm:gap-7">
+        {categoryLabel ? (
+          <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
+            الفئة: {categoryLabel}
+          </p>
+        ) : null}
+
         <div
           className={cn(
             'wanas-game-card rounded-[2rem] px-6 py-10 text-center sm:px-10 sm:py-12',
@@ -86,7 +109,7 @@ export function FastAnswerRoundResultsScreen({
               hasWinner ? 'text-wanas-success-dark' : 'text-wanas-accent-hover',
             )}
           >
-            {hasWinner ? `أسرع إجابة كانت من: ${winnerName}` : 'انتهى الوقت'}
+            {hasWinner ? `أسرع إجابة: ${winnerName}` : 'انتهى الوقت'}
           </p>
         </div>
 
@@ -149,30 +172,32 @@ export function FastAnswerRoundResultsScreen({
           </ul>
         </GameCard>
 
-        {roundNumber < totalRounds ? (
-          <RoundCategoryPanel
-            gameId={FAST_ANSWER_GAME_ID}
-            selectedCategoryId={nextCategoryId}
-            isHost={isHost}
-            isActiveMatch
-            onSelectCategory={(categoryId) => onSelectNextCategory?.(categoryId)}
-          />
-        ) : null}
-
-        {onContinue && continueLabel ? (
-          <div className="flex justify-center">
+        {continueLabel && onContinue ? (
+          <div className="mx-auto w-full max-w-md space-y-3">
+            <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
+              {waitingMessage ?? 'الجولة التالية تبدأ تلقائياً...'}
+            </p>
+            {progressBar}
             <Button
-              type="button"
               size="lg"
+              className="w-full min-h-14 focus-visible:ring-offset-4"
               loading={isContinueLoading}
               onClick={onContinue}
-              className="min-w-48"
             >
               {continueLabel}
             </Button>
           </div>
         ) : waitingMessage ? (
-          <p className="text-center text-sm text-wanas-text-muted">{waitingMessage}</p>
+          <div
+            role="status"
+            aria-live="polite"
+            className="mx-auto w-full max-w-md space-y-3 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-6 text-center shadow-sm"
+          >
+            <p className="wanas-game-helper font-medium text-wanas-text-secondary">
+              {waitingMessage}
+            </p>
+            {progressBar}
+          </div>
         ) : null}
       </div>
     </GameScreen>

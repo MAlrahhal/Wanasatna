@@ -96,8 +96,8 @@ export const mockGameSettingsByGameId: Record<string, LobbyGameSettingsPlacehold
     { id: 'players', label: 'عدد اللاعبين', value: '٢ أو ٤' },
   ],
   'fast-answer': [
-    { id: 'rounds', label: 'عدد الجولات', value: '٥ جولات' },
-    { id: 'round-time', label: 'وقت السؤال', value: '١٥ ثانية' },
+    { id: 'info-rounds', label: 'عدد الجولات', value: '٥ جولات ثابتة' },
+    { id: 'info-time', label: 'وقت السؤال', value: '١٥ ثانية' },
   ],
   marathon: [
     { id: 'games', label: 'عدد الألعاب', value: '٣ ألعاب' },

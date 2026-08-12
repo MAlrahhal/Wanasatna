@@ -2,7 +2,13 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { FastAnswerPlayerView, GamePluginScreenProps } from '@wanasatna/shared';
-import { FAST_ANSWER_GAME_ID } from '@wanasatna/shared';
+import {
+  FAST_ANSWER_GAME_ID,
+  FAST_ANSWER_ROUND_RESULTS_SECONDS,
+  MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS,
+} from '@wanasatna/shared';
+import { GameCard, GameScreen } from '@/components/game/game-card';
+import { GameHeader } from '@/components/game/game-header';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
@@ -12,6 +18,8 @@ import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-scree
 import { FastAnswerQuestionScreen } from './question-screen';
 import { FastAnswerRoundResultsScreen } from './round-results-screen';
 import { useFastAnswerPlayerView } from './use-player-view';
+
+const VISIBLE_TIMER_PHASES = new Set(['question', 'round-results', 'match-completed']);
 
 export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
   const { state: shellState, returnToLobby } = useGameShell();
@@ -33,7 +41,6 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
     remainingSeconds,
     submitAnswer,
     continueFromRoundResults,
-    setNextRoundCategory,
   } = useFastAnswerPlayerView(pluginEnabled);
 
   const activeFinalResultsView =
@@ -72,10 +79,18 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
     setExperienceMeta({
       gameName: FAST_ANSWER_GAME_NAME,
       gameIcon: FAST_ANSWER_GAME_ICON,
-      phaseLabel: activeView.phaseLabel,
+      phaseLabel: activeView.isMatchSpectator ? 'الجولة جارية' : activeView.phaseLabel,
+      categoryLabel: activeView.categoryLabel
+        ? `الفئة: ${activeView.categoryLabel}`
+        : undefined,
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
-      leaderboardEntries: mapFastAnswerLeaderboard(activeView, player.id, players),
+      timer: VISIBLE_TIMER_PHASES.has(activeView.gamePhase)
+        ? { remainingSeconds, format: 'seconds' as const, lowTimeThreshold: 5 }
+        : undefined,
+      leaderboardEntries: activeView.isMatchSpectator
+        ? []
+        : mapFastAnswerLeaderboard(activeView, player.id, players),
     });
   }, [
     activeFinalResultsView,
@@ -83,6 +98,7 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
     player,
     players,
     pluginEnabled,
+    remainingSeconds,
     setExperienceMeta,
     showFinalMatchResults,
     view,
@@ -91,7 +107,19 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
   useEffect(() => () => setExperienceMeta(null), [setExperienceMeta]);
 
   const handleReturnToLobby = useCallback(() => {
-    if (!isHost || shellPhase !== 'FINISHED' || isReturningToLobby) {
+    if (isReturningToLobby) {
+      return;
+    }
+
+    if (view?.gamePhase === 'match-completed' && isHost) {
+      setIsReturningToLobby(true);
+      void continueFromRoundResults().finally(() => {
+        setIsReturningToLobby(false);
+      });
+      return;
+    }
+
+    if (!isHost || shellPhase !== 'FINISHED') {
       return;
     }
 
@@ -99,15 +127,25 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
     void returnToLobby().finally(() => {
       setIsReturningToLobby(false);
     });
-  }, [isHost, isReturningToLobby, returnToLobby, shellPhase]);
+  }, [
+    continueFromRoundResults,
+    isHost,
+    isReturningToLobby,
+    returnToLobby,
+    shellPhase,
+    view?.gamePhase,
+  ]);
 
   if (showFinalMatchResults && room && player && activeFinalResultsView) {
     const shellFinished = shellPhase === 'FINISHED';
-    const returnStatusMessage = !shellFinished
-      ? 'جاري إنهاء المباراة...'
-      : !isHost
-        ? 'بانتظار المضيف للعودة إلى اللوبي.'
-        : null;
+    const isMatchCompletedPhase = activeFinalResultsView.gamePhase === 'match-completed';
+    const autoReturnMessage = isMatchCompletedPhase
+      ? `العودة إلى اللوبي تلقائياً خلال ${Math.max(0, remainingSeconds)} ثانية`
+      : !shellFinished
+        ? 'جاري إنهاء المباراة...'
+        : !isHost
+          ? 'بانتظار المضيف للعودة إلى اللوبي.'
+          : null;
 
     return (
       <MatchResultsScreen
@@ -124,9 +162,17 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
         playerCount={activeFinalResultsView.resultsLeaderboard.length}
         roomCode={room.code}
         gameName={FAST_ANSWER_GAME_NAME}
-        returnStatusMessage={returnStatusMessage}
+        returnStatusMessage={
+          isHost && (isMatchCompletedPhase || shellFinished) ? null : autoReturnMessage
+        }
+        autoReturnSeconds={isMatchCompletedPhase ? remainingSeconds : undefined}
+        autoReturnTotalSeconds={
+          isMatchCompletedPhase ? MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS : undefined
+        }
         isReturnToLobbyLoading={isReturningToLobby}
-        onReturnToLobby={isHost && shellFinished ? handleReturnToLobby : undefined}
+        onReturnToLobby={
+          isHost && (isMatchCompletedPhase || shellFinished) ? handleReturnToLobby : undefined
+        }
       />
     );
   }
@@ -155,10 +201,71 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
     return null;
   }
 
+  if (view.isMatchSpectator) {
+    if (view.gamePhase === 'question' && view.question) {
+      return (
+        <div className="space-y-3">
+          <FastAnswerQuestionScreen
+            question={view.question}
+            categoryLabel={view.categoryLabel}
+            remainingSeconds={remainingSeconds}
+            canSubmit={false}
+            isSubmitting={false}
+          />
+          <GameCard className="px-5 py-6 text-center">
+            <p className="text-lg font-semibold text-wanas-text-primary">الجولة جارية 👀</p>
+            <p className="mt-2 text-sm text-wanas-text-secondary">
+              أنت حالياً مشاهد، وبتشارك في المباراة القادمة.
+            </p>
+          </GameCard>
+        </div>
+      );
+    }
+
+    if (view.gamePhase === 'round-results' && view.revealedAnswer !== null) {
+      return (
+        <FastAnswerRoundResultsScreen
+          revealedAnswer={view.revealedAnswer}
+          timedOut={view.timedOut}
+          winnerName={view.winnerName}
+          categoryLabel={view.categoryLabel}
+          roundResults={view.roundResults}
+          currentPlayerId={player.id}
+          roundNumber={view.currentRound}
+          totalRounds={view.totalRounds}
+          roomCode={room.code}
+          remainingSeconds={remainingSeconds}
+          totalDurationSeconds={FAST_ANSWER_ROUND_RESULTS_SECONDS}
+          waitingMessage={view.roundResultsWaitingMessage}
+        />
+      );
+    }
+
+    return (
+      <GameScreen ariaLabel="مشاهدة">
+        <GameHeader
+          gameName={FAST_ANSWER_GAME_NAME}
+          gameIcon={FAST_ANSWER_GAME_ICON}
+          roomCode={room.code}
+          currentRound={view.currentRound}
+          totalRounds={view.totalRounds}
+          phaseLabel="الجولة جارية"
+        />
+        <GameCard className="px-5 py-10 text-center">
+          <p className="text-lg font-semibold text-wanas-text-primary">الجولة جارية 👀</p>
+          <p className="mt-2 text-sm text-wanas-text-secondary">
+            أنت حالياً مشاهد، وبتشارك في المباراة القادمة.
+          </p>
+        </GameCard>
+      </GameScreen>
+    );
+  }
+
   if (view.gamePhase === 'question' && view.question) {
     return (
       <FastAnswerQuestionScreen
         question={view.question}
+        categoryLabel={view.categoryLabel}
         remainingSeconds={remainingSeconds}
         canSubmit={view.canSubmitAnswer}
         isSubmitting={isSubmittingAction}
@@ -176,14 +283,14 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
           revealedAnswer={view.revealedAnswer}
           timedOut={view.timedOut}
           winnerName={view.winnerName}
+          categoryLabel={view.categoryLabel}
           roundResults={view.roundResults}
           currentPlayerId={player.id}
           roundNumber={view.currentRound}
           totalRounds={view.totalRounds}
           roomCode={room.code}
-          isHost={view.isHost}
-          nextCategoryId={view.nextCategoryId}
-          onSelectNextCategory={(categoryId) => void setNextRoundCategory(categoryId)}
+          remainingSeconds={remainingSeconds}
+          totalDurationSeconds={FAST_ANSWER_ROUND_RESULTS_SECONDS}
           continueLabel={view.canContinueFromRoundResults ? view.roundResultsContinueLabel : null}
           waitingMessage={view.roundResultsWaitingMessage}
           isContinueLoading={isSubmittingAction}

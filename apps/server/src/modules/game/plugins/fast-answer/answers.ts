@@ -7,6 +7,8 @@ export function normalizeAnswerText(value: string): string {
     .replace(/[أإآا]/g, 'ا')
     .replace(/ى/g, 'ي')
     .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g, '')
+    // Hyphens/dashes become spaces so "كأس-العالم" matches "كأس العالم".
+    .replace(/[-–—]/g, ' ')
     .replace(/[^\p{L}\p{N}\s]/gu, '')
     .replace(/\s+/g, ' ')
     .trim();

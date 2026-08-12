@@ -1,26 +1,18 @@
 import type { Server, Socket } from 'socket.io';
-import type {
-  FastAnswerSetCategoryPayload,
-  FastAnswerSubmitAnswerPayload,
-  GameActionResponse,
-} from '@wanasatna/shared';
+import type { FastAnswerSubmitAnswerPayload, GameActionResponse } from '@wanasatna/shared';
 import {
   FAST_ANSWER_CONTINUE_ROUND_RESULTS_EVENT,
   FAST_ANSWER_GAME_ID,
-  FAST_ANSWER_PHASE_CHANGED_EVENT,
-  FAST_ANSWER_SET_CATEGORY_EVENT,
   FAST_ANSWER_SUBMIT_ANSWER_EVENT,
   FAST_ANSWER_SYNC_EVENT,
   isActiveMatchParticipant,
 } from '@wanasatna/shared';
-import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
 import { getGameSocketContext, sendGameResponse } from '../../game.socket.utils.js';
 import {
   isPlayerRecoveryActive,
   playerRecoveryBlockedError,
 } from '../../runtime/player-recovery.js';
-import { setRoomRoundCategory } from '../../runtime/round-category-store.js';
 import { isCorrectAnswer } from './answers.js';
 import { ensureFastAnswerMatchStateWithTimer } from './init-match.js';
 import { continueFromRoundResults, finalizeQuestionRound } from './match-lifecycle.js';
@@ -151,6 +143,18 @@ export function registerFastAnswerSocketHandlers(io: Server, socket: Socket): vo
 
       const answer =
         payload && typeof payload === 'object' ? payload.answer : undefined;
+      const roundId =
+        payload && typeof payload === 'object' ? payload.roundId : undefined;
+
+      if (typeof roundId !== 'string' || roundId.length === 0) {
+        sendGameResponse(callback, invalidActionError('معرف الجولة غير صالح.'));
+        return;
+      }
+
+      if (roundId !== match.round.roundId) {
+        sendGameResponse(callback, invalidActionError('انتهت هذه الجولة.'));
+        return;
+      }
 
       if (typeof answer !== 'string' || answer.trim().length === 0) {
         sendGameResponse(callback, invalidActionError('الإجابة غير صالحة.'));
@@ -168,11 +172,11 @@ export function registerFastAnswerSocketHandlers(io: Server, socket: Socket): vo
         return;
       }
 
-      // Atomic claim — no await between read and write.
       const claim = tryAcceptCorrectAnswer(
         () => getFastAnswerState(roomId!),
         (next) => setFastAnswerState(roomId!, next),
         playerId!,
+        roundId,
       );
 
       if (!claim.accepted || !claim.match) {
@@ -236,58 +240,14 @@ export function registerFastAnswerSocketHandlers(io: Server, socket: Socket): vo
     }
 
     continueFromRoundResults(io, roomId!, match, shell, playerId!);
-    respondWithView(callback, roomId!, playerId!);
-  });
 
-  socket.on(
-    FAST_ANSWER_SET_CATEGORY_EVENT,
-    (payload: FastAnswerSetCategoryPayload, callback) => {
-      const contextError = getGameSocketContext(socket);
-
-      if (contextError) {
-        sendGameResponse(callback, contextError);
-        return;
-      }
-
-      const { roomId, playerId } = socket.data;
-
-      if (recoveryBlockedResponse(roomId!, callback)) {
-        return;
-      }
-
-      const shell = getGameShellByRoomId(roomId!);
-      const match = getFastAnswerState(roomId!);
-
-      if (!shell || !match || shell.gameId !== FAST_ANSWER_GAME_ID) {
-        sendGameResponse(callback, gameNotReadyError());
-        return;
-      }
-
-      if (shell.hostPlayerId !== playerId) {
-        sendGameResponse(callback, {
-          success: false,
-          error: { code: 'NOT_HOST', message: 'هذا الإجراء متاح للمضيف فقط.' },
-        });
-        return;
-      }
-
-      if (match.round.gamePhase !== 'round-results') {
-        sendGameResponse(callback, invalidActionError('يمكن تغيير الفئة أثناء نتائج الجولة فقط.'));
-        return;
-      }
-
-      const categoryId =
-        payload && typeof payload === 'object' ? payload.categoryId : null;
-
-      setRoomRoundCategory(
-        roomId!,
-        typeof categoryId === 'string' || categoryId === null ? categoryId : null,
-      );
-
-      io.to(getRoomChannel(roomId!)).emit(FAST_ANSWER_PHASE_CHANGED_EVENT, {});
+    if (getFastAnswerState(roomId!)) {
       respondWithView(callback, roomId!, playerId!);
-    },
-  );
+      return;
+    }
+
+    sendGameResponse(callback, { success: true, data: {} });
+  });
 }
 
 export { clearFastAnswerRuntime };

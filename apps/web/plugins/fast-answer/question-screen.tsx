@@ -7,16 +7,18 @@ import { cn } from '@/lib/utils';
 
 export type FastAnswerQuestionScreenProps = {
   question: string;
+  categoryLabel?: string | null;
   remainingSeconds: number;
   canSubmit: boolean;
   isSubmitting: boolean;
   incorrectFeedback?: string | null;
   actionError?: string | null;
-  onSubmit: (answer: string) => void;
+  onSubmit?: (answer: string) => void;
 };
 
 export function FastAnswerQuestionScreen({
   question,
+  categoryLabel = null,
   remainingSeconds,
   canSubmit,
   isSubmitting,
@@ -36,7 +38,7 @@ export function FastAnswerQuestionScreen({
 
     const trimmed = answer.trim();
 
-    if (!trimmed || !canSubmit || isSubmitting) {
+    if (!trimmed || !canSubmit || isSubmitting || !onSubmit) {
       return;
     }
 
@@ -49,7 +51,12 @@ export function FastAnswerQuestionScreen({
   return (
     <GameScreen ariaLabel="سؤال أسرع إجابة" maxWidth="3xl">
       <div className="flex flex-col gap-6 sm:gap-8">
-        <div className="text-center">
+        <div className="flex flex-col items-center gap-2 text-center">
+          {categoryLabel ? (
+            <p className="text-xs font-medium text-wanas-text-muted sm:text-sm">
+              الفئة: {categoryLabel}
+            </p>
+          ) : null}
           <p
             className={cn(
               'text-sm font-semibold tabular-nums',
@@ -66,45 +73,47 @@ export function FastAnswerQuestionScreen({
           </p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="wanas-game-card flex flex-col gap-3 rounded-[1.25rem] p-4 sm:p-5"
-        >
-          <label htmlFor="fast-answer-input" className="text-sm font-semibold text-wanas-text-primary">
-            إجابتك
-          </label>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <input
-              ref={inputRef}
-              id="fast-answer-input"
-              type="text"
-              value={answer}
-              onChange={(event) => setAnswer(event.target.value)}
-              disabled={!canSubmit || isSubmitting}
-              placeholder="اكتب الإجابة هنا..."
-              autoComplete="off"
-              className={cn(
-                'min-h-11 w-full flex-1 rounded-[var(--wanas-radius-control)] border border-wanas-border bg-[color:var(--wanas-game-card)] px-3.5 text-sm text-wanas-text-primary',
-                'placeholder:text-wanas-text-muted',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/40',
-                (!canSubmit || isSubmitting) && 'cursor-not-allowed opacity-60',
-              )}
-            />
-            <Button
-              type="submit"
-              size="md"
-              disabled={!canSubmit || isSubmitting || answer.trim().length === 0}
-              loading={isSubmitting}
-              className="sm:min-w-28"
-            >
-              إرسال
-            </Button>
-          </div>
-          {incorrectFeedback ? (
-            <p className="text-sm text-destructive">{incorrectFeedback}</p>
-          ) : null}
-          {actionError ? <p className="text-sm text-destructive">{actionError}</p> : null}
-        </form>
+        {canSubmit ? (
+          <form
+            onSubmit={handleSubmit}
+            className="wanas-game-card flex flex-col gap-3 rounded-[1.25rem] p-4 sm:p-5"
+          >
+            <label htmlFor="fast-answer-input" className="text-sm font-semibold text-wanas-text-primary">
+              إجابتك
+            </label>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                ref={inputRef}
+                id="fast-answer-input"
+                type="text"
+                value={answer}
+                onChange={(event) => setAnswer(event.target.value)}
+                disabled={!canSubmit || isSubmitting}
+                placeholder="اكتب الإجابة هنا..."
+                autoComplete="off"
+                className={cn(
+                  'min-h-11 w-full flex-1 rounded-[var(--wanas-radius-control)] border border-wanas-border bg-[color:var(--wanas-game-card)] px-3.5 text-sm text-wanas-text-primary',
+                  'placeholder:text-wanas-text-muted',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/40',
+                  (!canSubmit || isSubmitting) && 'cursor-not-allowed opacity-60',
+                )}
+              />
+              <Button
+                type="submit"
+                size="md"
+                disabled={!canSubmit || isSubmitting || answer.trim().length === 0}
+                loading={isSubmitting}
+                className="sm:min-w-28"
+              >
+                إرسال
+              </Button>
+            </div>
+            {incorrectFeedback ? (
+              <p className="text-sm text-destructive">{incorrectFeedback}</p>
+            ) : null}
+            {actionError ? <p className="text-sm text-destructive">{actionError}</p> : null}
+          </form>
+        ) : null}
       </div>
     </GameScreen>
   );

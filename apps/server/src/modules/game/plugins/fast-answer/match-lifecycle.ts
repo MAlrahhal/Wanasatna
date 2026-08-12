@@ -3,12 +3,13 @@ import type { FastAnswerMatchState, GameShellState } from '@wanasatna/shared';
 import { FAST_ANSWER_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
-import { finishGameShellForRoom } from '../../game.service.js';
-import { cleanupGameShellRuntime } from '../../game.lifecycle.js';
-import { broadcastGameShellState } from '../../game.timer.js';
+import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
+import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
+import { clearRoomRoundCategory } from '../../runtime/round-category-store.js';
 import {
-  startFastAnswerPhaseTimerIfNeeded,
+  restartFastAnswerPhaseTimer,
   stopFastAnswerPhaseTimer,
+  clearFastAnswerPhaseTimerRuntime,
 } from './phase-timer.js';
 import { applyRoundScores } from './scoring.js';
 import {
@@ -16,7 +17,7 @@ import {
   createRoundState,
   withRound,
 } from './state.js';
-import { deleteFastAnswerState, setFastAnswerState } from './store.js';
+import { deleteFastAnswerState, getFastAnswerState, setFastAnswerState } from './store.js';
 
 function broadcastPhaseChanged(io: Server, roomId: string): void {
   io.to(getRoomChannel(roomId)).emit(FAST_ANSWER_PHASE_CHANGED_EVENT, {});
@@ -35,12 +36,12 @@ export function startRoundResults(
   const nextMatch = withRound(scoredMatch, {
     ...scoredMatch.round,
     gamePhase: 'round-results',
-    phaseRemainingSeconds: 0,
+    phaseRemainingSeconds: timedPhaseDurations.fastAnswerRoundResults(),
     deadlineAtMs: null,
   });
 
   setFastAnswerState(roomId, nextMatch);
-  stopFastAnswerPhaseTimer(roomId);
+  restartFastAnswerPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
@@ -72,7 +73,11 @@ function startNextRound(
   match: FastAnswerMatchState,
 ): FastAnswerMatchState {
   const nextRoundNumber = match.currentRound + 1;
-  const round = createRoundState(roomId, match.recentQuestionIds, match.roundTimeSeconds);
+  const round = createRoundState(
+    match.lockedCategoryId,
+    match.recentQuestionIds,
+    match.roundTimeSeconds,
+  );
   const nextMatch: FastAnswerMatchState = {
     ...match,
     currentRound: nextRoundNumber,
@@ -82,7 +87,7 @@ function startNextRound(
   };
 
   setFastAnswerState(roomId, nextMatch);
-  startFastAnswerPhaseTimerIfNeeded(io, roomId);
+  restartFastAnswerPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
@@ -106,23 +111,17 @@ function startMatchCompletedPhase(
   );
 
   setFastAnswerState(roomId, nextMatch);
-  startFastAnswerPhaseTimerIfNeeded(io, roomId);
+  restartFastAnswerPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
 
-export function continueFromRoundResults(
+export function advanceFromRoundResults(
   io: Server,
   roomId: string,
   match: FastAnswerMatchState,
-  shell: GameShellState,
-  hostPlayerId: string,
 ): FastAnswerMatchState {
   if (match.round.gamePhase !== 'round-results') {
-    return match;
-  }
-
-  if (shell.hostPlayerId !== hostPlayerId) {
     return match;
   }
 
@@ -135,14 +134,42 @@ export function continueFromRoundResults(
   return startMatchCompletedPhase(io, roomId, match);
 }
 
-export function completeMatch(io: Server, roomId: string): void {
-  stopFastAnswerPhaseTimer(roomId);
-  deleteFastAnswerState(roomId);
-
-  const nextShell = finishGameShellForRoom(roomId);
-
-  if (nextShell) {
-    cleanupGameShellRuntime(roomId);
-    broadcastGameShellState(io, nextShell);
+export function continueFromRoundResults(
+  io: Server,
+  roomId: string,
+  match: FastAnswerMatchState,
+  shell: GameShellState,
+  hostPlayerId: string,
+): FastAnswerMatchState {
+  if (shell.hostPlayerId !== hostPlayerId) {
+    return match;
   }
+
+  const current = getFastAnswerState(roomId) ?? match;
+
+  if (current.round.gamePhase === 'match-completed') {
+    completeMatch(io, roomId);
+    return current;
+  }
+
+  if (current.round.gamePhase !== 'round-results') {
+    return current;
+  }
+
+  return advanceFromRoundResults(io, roomId, current);
+}
+
+export function completeMatch(io: Server, roomId: string): void {
+  clearFastAnswerPhaseTimerRuntime(roomId);
+  deleteFastAnswerState(roomId);
+  clearRoomRoundCategory(roomId);
+
+  const shell = getGameShellByRoomId(roomId);
+  if (!shell) {
+    return;
+  }
+
+  cleanupGameShellRuntime(roomId);
+  deleteGameShell(roomId);
+  navigateRoomToLobby(io, roomId);
 }

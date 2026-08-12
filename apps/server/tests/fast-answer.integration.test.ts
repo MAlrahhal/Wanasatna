@@ -1,5 +1,5 @@
 /**
- * Fast Answer Socket.IO race integration (Host + B + C).
+ * Fast Answer Socket.IO integration.
  * Requires server on localhost:4001 with WANASATNA_TEST_MODE=1.
  *
  * Run: pnpm --filter @wanasatna/server test:fast-answer:integration
@@ -9,9 +9,12 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  FAST_ANSWER_CONTINUE_ROUND_RESULTS_EVENT,
+  FAST_ANSWER_DEFAULT_ROUNDS,
   FAST_ANSWER_GAME_ID,
   FAST_ANSWER_SUBMIT_ANSWER_EVENT,
   FAST_ANSWER_SYNC_EVENT,
+  TIMING_CHALLENGE_GAME_ID,
 } from '@wanasatna/shared';
 import {
   ack,
@@ -28,6 +31,7 @@ let failed = 0;
 type ContentQuestion = {
   question: string;
   acceptedAnswers: string[];
+  categoryId: string;
 };
 
 const contentQuestions = JSON.parse(
@@ -55,16 +59,16 @@ async function runTest(name: string, fn: () => Promise<void>): Promise<void> {
   }
 }
 
-async function startFastAnswerMatch(): Promise<{
+async function createRoomWithPlayers(playerCount: number): Promise<{
   host: TestClient;
   clients: TestClient[];
 }> {
-  const names = ['محمد', 'خالد', 'علي'] as const;
+  const names = Array.from({ length: playerCount }, (_, index) => `لاعب${index + 1}`);
   const clients: TestClient[] = [];
 
   const hostSocket = await connectClient();
   const host: TestClient = {
-    name: names[0],
+    name: names[0]!,
     socket: hostSocket,
     id: '',
     roomId: '',
@@ -116,10 +120,22 @@ async function startFastAnswerMatch(): Promise<{
     clients.push(client);
   }
 
+  return { host, clients };
+}
+
+async function startFastAnswerMatch(
+  playerCount = 3,
+  categoryId: string | null = 'countries',
+): Promise<{
+  host: TestClient;
+  clients: TestClient[];
+}> {
+  const { host, clients } = await createRoomWithPlayers(playerCount);
+
   const startRes = await ack<{ success: boolean; error?: { message?: string } }>(
     host.socket,
     'game-shell-start-from-lobby',
-    { gameId: FAST_ANSWER_GAME_ID },
+    { gameId: FAST_ANSWER_GAME_ID, categoryId },
   );
   assert.ok(startRes.success, startRes.error?.message ?? 'start-from-lobby failed');
 
@@ -146,24 +162,48 @@ async function startFastAnswerMatch(): Promise<{
   return { host, clients };
 }
 
+async function syncView(client: TestClient) {
+  const syncRes = await ack<{
+    success: boolean;
+    data: {
+      view: {
+        gamePhase: string;
+        question: string | null;
+        roundId: string | null;
+        categoryId: string | null;
+        currentRound: number;
+        totalRounds: number;
+        canSubmitAnswer: boolean;
+        isMatchSpectator: boolean;
+        revealedAnswer: string | null;
+        winnerPlayerId: string | null;
+        roundResults: Array<{ playerId: string; roundPoints: number }>;
+      };
+    };
+  }>(client.socket, FAST_ANSWER_SYNC_EVENT);
+  assert.ok(syncRes.success);
+  return syncRes.data.view;
+}
+
 async function main(): Promise<void> {
   console.log('[fast-answer] waiting for test server...');
   await waitForServer();
 
-  await runTest('sync privacy: no revealed answer during question', async () => {
-    const { clients } = await startFastAnswerMatch();
+  await runTest('sync privacy + locked category + 5 rounds', async () => {
+    const { clients } = await startFastAnswerMatch(2, 'football');
 
     for (const client of clients) {
-      const syncRes = await ack<{
-        success: boolean;
-        data: { view: Record<string, unknown> };
-      }>(client.socket, FAST_ANSWER_SYNC_EVENT);
-      assert.ok(syncRes.success);
-      assert.equal(syncRes.data.view.gamePhase, 'question');
-      assert.equal(syncRes.data.view.revealedAnswer, null);
-      assert.equal(syncRes.data.view.winnerPlayerId, null);
-      assert.equal('acceptedAnswers' in syncRes.data.view, false);
-      assert.ok(typeof syncRes.data.view.question === 'string');
+      const view = await syncView(client);
+      assert.equal(view.gamePhase, 'question');
+      assert.equal(view.revealedAnswer, null);
+      assert.equal(view.winnerPlayerId, null);
+      assert.equal('acceptedAnswers' in view, false);
+      assert.ok(typeof view.question === 'string');
+      assert.equal(view.totalRounds, FAST_ANSWER_DEFAULT_ROUNDS);
+      assert.equal(view.categoryId, 'football');
+      assert.ok(view.roundId);
+      const entry = contentQuestions.find((item) => item.question === view.question);
+      assert.equal(entry?.categoryId, 'football');
     }
 
     for (const client of clients) {
@@ -171,23 +211,26 @@ async function main(): Promise<void> {
     }
   });
 
-  await runTest('wrong then correct ends round for sender only path', async () => {
-    const { clients } = await startFastAnswerMatch();
+  await runTest('wrong then correct ends round; roundId required', async () => {
+    const { clients } = await startFastAnswerMatch(2, 'countries');
     const [host, playerB] = clients;
-    const syncRes = await ack<{
-      success: boolean;
-      data: { view: { question: string } };
-    }>(host!.socket, FAST_ANSWER_SYNC_EVENT);
-    assert.ok(syncRes.success);
-    const answer = answerForQuestion(syncRes.data.view.question);
+    const view = await syncView(host!);
+    const answer = answerForQuestion(view.question!);
 
     const wrong = await ack<{ success: boolean; data?: { correct: boolean } }>(
       playerB!.socket,
       FAST_ANSWER_SUBMIT_ANSWER_EVENT,
-      { answer: 'إجابة-خاطئة-تماماً' },
+      { answer: 'إجابة-خاطئة-تماماً', roundId: view.roundId },
     );
     assert.ok(wrong.success);
     assert.equal(wrong.data?.correct, false);
+
+    const stale = await ack<{ success: boolean }>(
+      playerB!.socket,
+      FAST_ANSWER_SUBMIT_ANSWER_EVENT,
+      { answer, roundId: 'stale-round-id' },
+    );
+    assert.equal(stale.success, false);
 
     const correct = await ack<{
       success: boolean;
@@ -195,7 +238,10 @@ async function main(): Promise<void> {
         correct: boolean;
         view: { gamePhase: string; winnerPlayerId: string | null; revealedAnswer: string | null };
       };
-    }>(playerB!.socket, FAST_ANSWER_SUBMIT_ANSWER_EVENT, { answer });
+    }>(playerB!.socket, FAST_ANSWER_SUBMIT_ANSWER_EVENT, {
+      answer,
+      roundId: view.roundId,
+    });
     assert.ok(correct.success);
     assert.equal(correct.data?.correct, true);
     assert.equal(correct.data?.view.gamePhase, 'round-results');
@@ -207,26 +253,27 @@ async function main(): Promise<void> {
     }
   });
 
-  await runTest('Host+B+C concurrent correct → single winner', async () => {
-    const { clients } = await startFastAnswerMatch();
+  await runTest('concurrent correct → single winner', async () => {
+    const { clients } = await startFastAnswerMatch(3, 'tech');
     const [host, playerB, playerC] = clients;
-
-    const syncRes = await ack<{
-      success: boolean;
-      data: { view: { question: string } };
-    }>(host!.socket, FAST_ANSWER_SYNC_EVENT);
-    assert.ok(syncRes.success);
-    const answer = answerForQuestion(syncRes.data.view.question);
+    const view = await syncView(host!);
+    const answer = answerForQuestion(view.question!);
 
     const [resultB, resultC] = await Promise.all([
       ack<{
         success: boolean;
         data?: { correct: boolean; view: { winnerPlayerId: string | null; gamePhase: string } };
-      }>(playerB!.socket, FAST_ANSWER_SUBMIT_ANSWER_EVENT, { answer }),
+      }>(playerB!.socket, FAST_ANSWER_SUBMIT_ANSWER_EVENT, {
+        answer,
+        roundId: view.roundId,
+      }),
       ack<{
         success: boolean;
         data?: { correct: boolean; view: { winnerPlayerId: string | null; gamePhase: string } };
-      }>(playerC!.socket, FAST_ANSWER_SUBMIT_ANSWER_EVENT, { answer }),
+      }>(playerC!.socket, FAST_ANSWER_SUBMIT_ANSWER_EVENT, {
+        answer,
+        roundId: view.roundId,
+      }),
     ]);
 
     const correctResults = [resultB, resultC].filter(
@@ -237,29 +284,157 @@ async function main(): Promise<void> {
     const winnerId = correctResults[0]!.data!.view.winnerPlayerId;
     assert.ok(winnerId === playerB!.id || winnerId === playerC!.id);
 
-    const syncAfter = await ack<{
-      success: boolean;
-      data: {
-        view: {
-          gamePhase: string;
-          winnerPlayerId: string | null;
-          roundResults: Array<{ playerId: string; roundPoints: number }>;
-        };
-      };
-    }>(host!.socket, FAST_ANSWER_SYNC_EVENT);
-
-    assert.ok(syncAfter.success);
-    assert.equal(syncAfter.data.view.gamePhase, 'round-results');
-    assert.equal(syncAfter.data.view.winnerPlayerId, winnerId);
+    const syncAfter = await syncView(host!);
+    assert.equal(syncAfter.gamePhase, 'round-results');
+    assert.equal(syncAfter.winnerPlayerId, winnerId);
     assert.equal(
-      syncAfter.data.view.roundResults.find((entry) => entry.playerId === winnerId)?.roundPoints,
+      syncAfter.roundResults.find((entry) => entry.playerId === winnerId)?.roundPoints,
       100,
     );
-    assert.ok(
-      syncAfter.data.view.roundResults
-        .filter((entry) => entry.playerId !== winnerId)
-        .every((entry) => entry.roundPoints === 0),
+
+    for (const client of clients) {
+      client.socket.disconnect();
+    }
+  });
+
+  await runTest('spectator mid-join cannot submit', async () => {
+    const { host, clients } = await startFastAnswerMatch(2, 'animals');
+    const view = await syncView(host);
+
+    const spectatorSocket = await connectClient();
+    const joinRes = await ack<{
+      success: boolean;
+      data: { player: { id: string } };
+    }>(spectatorSocket, 'join-room', {
+      roomCode: host.roomCode,
+      playerName: 'مشاهد',
+    });
+    assert.ok(joinRes.success);
+
+    const spectatorView = await ack<{
+      success: boolean;
+      data: { view: { isMatchSpectator: boolean; canSubmitAnswer: boolean; revealedAnswer: string | null } };
+    }>(spectatorSocket, FAST_ANSWER_SYNC_EVENT);
+    assert.ok(spectatorView.success);
+    assert.equal(spectatorView.data.view.isMatchSpectator, true);
+    assert.equal(spectatorView.data.view.canSubmitAnswer, false);
+    assert.equal(spectatorView.data.view.revealedAnswer, null);
+
+    const submit = await ack<{ success: boolean }>(
+      spectatorSocket,
+      FAST_ANSWER_SUBMIT_ANSWER_EVENT,
+      { answer: answerForQuestion(view.question!), roundId: view.roundId },
     );
+    assert.equal(submit.success, false);
+
+    spectatorSocket.disconnect();
+    for (const client of clients) {
+      client.socket.disconnect();
+    }
+  });
+
+  await runTest('host skip results + complete match cleanup allows next game', async () => {
+    const { host, clients } = await startFastAnswerMatch(2, 'movies');
+
+    for (let round = 1; round <= FAST_ANSWER_DEFAULT_ROUNDS; round += 1) {
+      const view = await waitFor(async () => {
+        const current = await syncView(host);
+        return current.gamePhase === 'question' && current.currentRound === round
+          ? current
+          : null;
+      }, 20000, `question round ${round}`);
+
+      assert.equal(view.categoryId, 'movies');
+      assert.equal(view.totalRounds, 5);
+      assert.ok(view.roundId);
+
+      const answer = answerForQuestion(view.question!);
+      const win = await ack<{
+        success: boolean;
+        error?: { message?: string };
+        data?: { correct: boolean; view?: { gamePhase: string } };
+      }>(clients[1]!.socket, FAST_ANSWER_SUBMIT_ANSWER_EVENT, {
+        answer,
+        roundId: view.roundId,
+      });
+      assert.ok(
+        win.success && win.data?.correct,
+        `round ${round} win failed: ${win.error?.message ?? JSON.stringify(win)}`,
+      );
+
+      const after = await waitFor(async () => {
+        const current = await syncView(host);
+        if (current.gamePhase === 'round-results' && current.currentRound === round) {
+          return current;
+        }
+        if (round < FAST_ANSWER_DEFAULT_ROUNDS && current.gamePhase === 'question' && current.currentRound === round + 1) {
+          return current;
+        }
+        if (round === FAST_ANSWER_DEFAULT_ROUNDS && current.gamePhase === 'match-completed') {
+          return current;
+        }
+        return null;
+      }, 10000, `post-win round ${round}`);
+
+      if (after.gamePhase === 'round-results') {
+        const cont = await ack<{ success: boolean; error?: { message?: string } }>(
+          host.socket,
+          FAST_ANSWER_CONTINUE_ROUND_RESULTS_EVENT,
+        );
+        assert.ok(cont.success, `continue round ${round}: ${cont.error?.message ?? 'failed'}`);
+      }
+    }
+
+    const finalOrLobby = await waitFor(async () => {
+      try {
+        const current = await syncView(host);
+        if (current.gamePhase === 'match-completed') {
+          return current;
+        }
+      } catch {
+        // shell may already be deleted
+      }
+      if (host.navigations.some((path) => String(path).includes('lobby'))) {
+        return 'lobby' as const;
+      }
+      return null;
+    }, 20000, 'final or lobby');
+
+    if (finalOrLobby !== 'lobby') {
+      const done = await ack<{ success: boolean; error?: { message?: string } }>(
+        host.socket,
+        FAST_ANSWER_CONTINUE_ROUND_RESULTS_EVENT,
+      );
+      assert.ok(done.success, done.error?.message ?? 'final return failed');
+    }
+
+    await waitFor(
+      async () => (host.navigations.some((path) => String(path).includes('lobby')) ? true : null),
+      15000,
+      'navigate lobby',
+    );
+
+    const nextStart = await ack<{ success: boolean; error?: { message?: string } }>(
+      host.socket,
+      'game-shell-start-from-lobby',
+      { gameId: TIMING_CHALLENGE_GAME_ID },
+    );
+    assert.ok(
+      nextStart.success,
+      nextStart.error?.message ?? 'expected A→Lobby→B without stale shell',
+    );
+
+    for (const client of clients) {
+      client.socket.disconnect();
+    }
+  });
+
+  await runTest('8 players can start', async () => {
+    const { clients } = await startFastAnswerMatch(8, 'games');
+    const view = await syncView(clients[0]!);
+    assert.equal(view.gamePhase, 'question');
+    assert.equal(view.totalRounds, 5);
+    assert.equal(view.categoryId, 'games');
 
     for (const client of clients) {
       client.socket.disconnect();

@@ -8,7 +8,12 @@ import type {
   FastAnswerRoundState,
   GameShellState,
 } from '@wanasatna/shared';
-import { FAST_ANSWER_WINNER_POINTS } from '@wanasatna/shared';
+import {
+  FAST_ANSWER_DEFAULT_ROUNDS,
+  FAST_ANSWER_QUESTION_SECONDS,
+  FAST_ANSWER_ROUND_RESULTS_SECONDS,
+  FAST_ANSWER_WINNER_POINTS,
+} from '@wanasatna/shared';
 import {
   isCorrectAnswer,
   normalizeAnswerText,
@@ -21,6 +26,7 @@ import {
 } from '../src/modules/game/plugins/fast-answer/scoring.js';
 import {
   buildFastAnswerPlayerView,
+  resolveTotalRounds,
   tryAcceptCorrectAnswer,
   withRound,
 } from '../src/modules/game/plugins/fast-answer/state.js';
@@ -68,6 +74,7 @@ function makeShell(playerIds: string[] = ['p1', 'p2', 'p3']): GameShellState {
 
 function makeRound(overrides?: Partial<FastAnswerRoundState>): FastAnswerRoundState {
   return {
+    roundId: 'round-1',
     gamePhase: 'question',
     phaseRemainingSeconds: 15,
     questionId: 'q1',
@@ -83,26 +90,28 @@ function makeRound(overrides?: Partial<FastAnswerRoundState>): FastAnswerRoundSt
 
 function makeMatch(overrides?: Partial<FastAnswerMatchState>): FastAnswerMatchState {
   const playerIds = ['p1', 'p2', 'p3'];
-
   return {
     playerIds,
     playerNames: { p1: 'محمد', p2: 'خالد', p3: 'سامي' },
     currentRound: 1,
-    totalRounds: 5,
+    totalRounds: FAST_ANSWER_DEFAULT_ROUNDS,
     scores: { p1: 0, p2: 0, p3: 0 },
     matchStatus: 'in-progress',
-    roundTimeSeconds: 15,
+    lockedCategoryId: 'countries',
+    lockedCategoryLabel: 'بلدان',
+    roundTimeSeconds: FAST_ANSWER_QUESTION_SECONDS,
     recentQuestionIds: ['q1'],
     round: makeRound(),
     ...overrides,
-    round: {
-      ...makeRound(),
-      ...(overrides?.round ?? {}),
-    },
   };
 }
 
-// --- Normalization ---
+test('production constants: 5 rounds, 15s question, 10s results', () => {
+  assert.equal(FAST_ANSWER_DEFAULT_ROUNDS, 5);
+  assert.equal(FAST_ANSWER_QUESTION_SECONDS, 15);
+  assert.equal(FAST_ANSWER_ROUND_RESULTS_SECONDS, 10);
+  assert.equal(resolveTotalRounds(), 5);
+});
 
 test('normalize: trim + lower + collapse spaces', () => {
   assert.equal(normalizeAnswerText('  Hello   World  '), 'hello world');
@@ -128,9 +137,15 @@ test('normalize: does NOT map ة → ه', () => {
   assert.notEqual(normalizeAnswerText('مدرسة'), normalizeAnswerText('مدرسه'));
 });
 
+test('normalize: hyphen/dash becomes space separator', () => {
+  assert.equal(normalizeAnswerText('كأس-العالم'), normalizeAnswerText('كأس العالم'));
+  assert.equal(normalizeAnswerText('كأس–العالم'), normalizeAnswerText('كأس العالم'));
+  assert.equal(normalizeAnswerText('كأس—العالم'), normalizeAnswerText('كأس العالم'));
+  assert.equal(isCorrectAnswer('كأس-العالم', ['كأس العالم']), true);
+});
+
 test('normalize: strip punctuation', () => {
   assert.equal(normalizeAnswerText('القاهرة!!!'), 'القاهرة');
-  assert.equal(normalizeAnswerText('كأس-العالم؟'), 'كاسالعالم');
 });
 
 test('isCorrectAnswer matches accepted variants', () => {
@@ -139,17 +154,15 @@ test('isCorrectAnswer matches accepted variants', () => {
   assert.equal(isCorrectAnswer('الجيزة', ['القاهرة', 'قاهره']), false);
 });
 
-// --- Concurrent winner ---
-
 test('tryAcceptCorrect twice sync → one winner', () => {
   let match = makeMatch();
-
   const first = tryAcceptCorrectAnswer(
     () => match,
     (next) => {
       match = next;
     },
     'p2',
+    'round-1',
   );
   const second = tryAcceptCorrectAnswer(
     () => match,
@@ -157,20 +170,32 @@ test('tryAcceptCorrect twice sync → one winner', () => {
       match = next;
     },
     'p3',
+    'round-1',
   );
-
   assert.equal(first.accepted, true);
   assert.equal(second.accepted, false);
   assert.equal(match.round.winnerPlayerId, 'p2');
 });
 
-// --- Wrong then correct ---
+test('stale roundId rejected', () => {
+  let match = makeMatch();
+  const stale = tryAcceptCorrectAnswer(
+    () => match,
+    (next) => {
+      match = next;
+    },
+    'p1',
+    'old-round',
+  );
+  assert.equal(stale.accepted, false);
+  assert.equal(stale.reason, 'stale');
+  assert.equal(match.round.winnerPlayerId, null);
+});
 
 test('wrong answer rejected; correct later accepted', () => {
   const match = makeMatch();
   assert.equal(isCorrectAnswer('غلط', match.round.acceptedAnswers), false);
   assert.equal(isCorrectAnswer('القاهرة', match.round.acceptedAnswers), true);
-
   let current = match;
   const claim = tryAcceptCorrectAnswer(
     () => current,
@@ -178,32 +203,21 @@ test('wrong answer rejected; correct later accepted', () => {
       current = next;
     },
     'p1',
+    'round-1',
   );
   assert.equal(claim.accepted, true);
   assert.equal(current.round.winnerPlayerId, 'p1');
 });
 
-// --- Timeout / privacy / scoring ---
-
 test('timeout state has no winner and reveals answer', () => {
-  const match = makeMatch({
-    round: makeRound({
-      gamePhase: 'round-results',
-      winnerPlayerId: null,
-      timedOut: true,
-      deadlineAtMs: null,
-    }),
-  });
-
+  const match = withRound(makeMatch(), makeRound({ winnerPlayerId: null, timedOut: true, gamePhase: 'round-results' }));
   assert.equal(match.round.winnerPlayerId, null);
   assert.equal(match.round.timedOut, true);
   assert.equal(revealPrimaryAnswer(match.round.acceptedAnswers), 'القاهرة');
 });
 
 test('player view privacy: no acceptedAnswers / revealed answer during question', () => {
-  const match = makeMatch();
-  const view = buildFastAnswerPlayerView(match, 'p2', makeShell());
-
+  const view = buildFastAnswerPlayerView(makeMatch(), 'p1', makeShell());
   assert.equal(view.gamePhase, 'question');
   assert.equal(view.revealedAnswer, null);
   assert.equal(view.winnerPlayerId, null);
@@ -211,37 +225,73 @@ test('player view privacy: no acceptedAnswers / revealed answer during question'
   assert.equal(view.timedOut, false);
   assert.equal('acceptedAnswers' in view, false);
   assert.ok(view.question);
+  assert.equal(view.categoryLabel, 'بلدان');
+  assert.equal(view.roundId, 'round-1');
+  assert.equal(view.totalRounds, 5);
+});
+
+test('spectator cannot submit and sees no answer pre-result', () => {
+  const view = buildFastAnswerPlayerView(makeMatch(), 'spectator', makeShell(['p1', 'p2', 'p3']));
+  assert.equal(view.isMatchSpectator, true);
+  assert.equal(view.canSubmitAnswer, false);
+  assert.equal(view.revealedAnswer, null);
+  assert.ok(view.question);
 });
 
 test('scoring +100 once to winner, 0 others', () => {
-  const open = makeMatch({
-    round: makeRound({ winnerPlayerId: 'p2' }),
-  });
-  const scored = applyRoundScores(open);
-
+  const scored = applyRoundScores(
+    withRound(makeMatch(), makeRound({ winnerPlayerId: 'p2', gamePhase: 'round-results' })),
+  );
   assert.equal(scored.scores.p2, FAST_ANSWER_WINNER_POINTS);
   assert.equal(scored.scores.p1, 0);
   assert.equal(scored.scores.p3, 0);
   assert.equal(computePlayerRoundPoints(scored, 'p2'), FAST_ANSWER_WINNER_POINTS);
   assert.equal(computePlayerRoundPoints(scored, 'p1'), 0);
-
-  const resultsMatch = withRound(scored, {
-    ...scored.round,
-    gamePhase: 'round-results',
-  });
-  const entries = buildRoundResultEntries(resultsMatch);
+  const entries = buildRoundResultEntries(scored);
   assert.equal(entries.find((entry) => entry.playerId === 'p2')?.roundPoints, 100);
   assert.equal(entries.find((entry) => entry.playerId === 'p1')?.roundPoints, 0);
 });
 
 test('timeout scoring applies 0 to everyone', () => {
-  const match = makeMatch({
-    round: makeRound({ winnerPlayerId: null, timedOut: true }),
-  });
-  const scored = applyRoundScores(match);
+  const scored = applyRoundScores(
+    withRound(makeMatch(), makeRound({ winnerPlayerId: null, timedOut: true, gamePhase: 'round-results' })),
+  );
   assert.equal(scored.scores.p1, 0);
   assert.equal(scored.scores.p2, 0);
   assert.equal(scored.scores.p3, 0);
+});
+
+test('round results continue copy mid vs final', () => {
+  const mid = buildFastAnswerPlayerView(
+    withRound(makeMatch({ currentRound: 2 }), makeRound({ gamePhase: 'round-results', timedOut: false, winnerPlayerId: 'p1' })),
+    'p1',
+    makeShell(),
+  );
+  assert.equal(mid.roundResultsContinueLabel, 'التالي الآن');
+  assert.equal(mid.roundResultsWaitingMessage, 'الجولة التالية تبدأ تلقائياً...');
+
+  const final = buildFastAnswerPlayerView(
+    withRound(
+      makeMatch({ currentRound: 5 }),
+      makeRound({ gamePhase: 'round-results', timedOut: false, winnerPlayerId: 'p1' }),
+    ),
+    'p1',
+    makeShell(),
+  );
+  assert.equal(final.roundResultsContinueLabel, 'عرض النتائج الآن');
+  assert.equal(final.roundResultsWaitingMessage, 'سيتم عرض النتائج النهائية تلقائياً...');
+});
+
+test('8-player match view builds', () => {
+  const ids = Array.from({ length: 8 }, (_, index) => `p${index + 1}`);
+  const match = makeMatch({
+    playerIds: ids,
+    playerNames: Object.fromEntries(ids.map((id) => [id, id])),
+    scores: Object.fromEntries(ids.map((id) => [id, 0])),
+  });
+  const view = buildFastAnswerPlayerView(match, 'p1', makeShell(ids));
+  assert.equal(view.leaderboard.length, 8);
+  assert.equal(view.canSubmitAnswer, true);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
