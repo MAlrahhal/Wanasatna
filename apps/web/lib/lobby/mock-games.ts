@@ -87,8 +87,8 @@ export const mockGameSettingsByGameId: Record<string, LobbyGameSettingsPlacehold
     { id: 'info-time', label: 'وقت الكتابة', value: '٦٠ ثانية' },
   ],
   judge: [
-    { id: 'rounds', label: 'عدد الجولات', value: '٣ جولات' },
-    { id: 'cases', label: 'نوع القضايا', value: 'مختلط' },
+    { id: 'info-rounds', label: 'عدد الجولات', value: 'جولة لكل لاعب' },
+    { id: 'info-time', label: 'وقت الكتابة', value: '٦٠ ثانية' },
   ],
   'guessing-challenge': [
     { id: 'rounds', label: 'عدد الجولات', value: '٤ جولات' },

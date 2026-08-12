@@ -2,15 +2,12 @@
 
 import { useMemo } from 'react';
 import type { JudgeRevealEntry, JudgeRoundResultEntry } from '@wanasatna/shared';
-import { JUDGE_GAME_ID } from '@wanasatna/shared';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
-import { RoundCategoryPanel } from '@/components/lobby/round-category-panel';
 import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
 import { Button } from '@/components/ui/button';
 import { JUDGE_GAME_ICON, JUDGE_GAME_NAME } from '@/lib/game/judge-brand';
 import { cn } from '@/lib/utils';
-import { JudgeAnswerCard } from './judge-answer-card';
 
 export type JudgeRoundResultsScreenProps = {
   winningAnswerText: string | null;
@@ -21,9 +18,8 @@ export type JudgeRoundResultsScreenProps = {
   roundNumber: number;
   totalRounds: number;
   roomCode: string;
-  isHost?: boolean;
-  nextCategoryId?: string | null;
-  onSelectNextCategory?: (categoryId: string) => void;
+  remainingSeconds?: number;
+  totalDurationSeconds?: number;
   continueLabel?: string | null;
   waitingMessage?: string | null;
   isContinueLoading?: boolean;
@@ -39,9 +35,8 @@ export function JudgeRoundResultsScreen({
   roundNumber,
   totalRounds,
   roomCode,
-  isHost = false,
-  nextCategoryId = null,
-  onSelectNextCategory,
+  remainingSeconds = 0,
+  totalDurationSeconds = 10,
   continueLabel,
   waitingMessage,
   isContinueLoading = false,
@@ -58,6 +53,27 @@ export function JudgeRoundResultsScreen({
     [roundResults],
   );
 
+  const otherAnswers = revealEntries.filter((entry) => !entry.isWinner);
+  const progressMax = Math.max(totalDurationSeconds, 1);
+  const progressNow = Math.max(0, Math.min(remainingSeconds, totalDurationSeconds));
+  const progressPercent = Math.round((progressNow / progressMax) * 100);
+
+  const progressBar = (
+    <div
+      className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted"
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={progressMax}
+      aria-valuenow={progressNow}
+      aria-label={`الانتقال التلقائي ${progressNow} من ${progressMax} ثانية`}
+    >
+      <div
+        className="h-full rounded-full bg-wanas-accent transition-[width] duration-200 ease-linear"
+        style={{ width: `${progressPercent}%` }}
+      />
+    </div>
+  );
+
   return (
     <GameScreen ariaLabel="نتائج الجولة" maxWidth="4xl">
       <GameHeader
@@ -69,36 +85,49 @@ export function JudgeRoundResultsScreen({
         phaseLabel="نتائج الجولة"
       />
 
-      <div className="flex flex-col gap-6 sm:gap-7">
+      <div className="flex flex-col gap-3 sm:gap-4">
         {winningAnswerText && winnerName ? (
-          <div className="wanas-game-card rounded-[2rem] border-wanas-success-border/80 bg-wanas-success-surface px-6 py-10 text-center sm:px-10">
-            <p className="text-xs font-medium tracking-wide text-wanas-text-muted">أفضل إجابة</p>
-            <p className="mt-4 break-words text-2xl font-bold text-wanas-success-dark sm:text-3xl">
-              «{winningAnswerText}»
+          <div className="rounded-[1.25rem] border border-wanas-success-border/80 bg-wanas-success-surface px-4 py-3">
+            <p className="break-words text-base font-bold leading-snug text-wanas-success-dark sm:text-lg">
+              🏆 «{winningAnswerText}»
             </p>
-            <p className="mt-4 text-lg font-semibold text-wanas-text-primary">
-              كتبها: {winnerName}
-            </p>
+            <div className="mt-1 flex items-center justify-between gap-3">
+              <p className="truncate text-sm font-semibold text-wanas-text-primary">{winnerName}</p>
+              <p className="shrink-0 text-sm font-bold tabular-nums text-wanas-success-dark">
+                +100
+              </p>
+            </div>
           </div>
+        ) : (
+          <div className="rounded-[1.25rem] border border-wanas-border bg-[color:var(--wanas-game-card)] px-4 py-3 text-center">
+            <p className="text-sm font-semibold text-wanas-text-muted">لا توجد إجابة فائزة</p>
+          </div>
+        )}
+
+        {otherAnswers.length > 0 ? (
+          <GameCard className="p-3 sm:p-4">
+            <h2 className="mb-2 text-sm font-bold text-wanas-text-primary">بقية الإجابات</h2>
+            <ul className="space-y-1.5">
+              {otherAnswers.map((entry) => (
+                <li
+                  key={entry.answerId}
+                  className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-lg border border-wanas-border bg-wanas-surface-soft px-3 py-2"
+                >
+                  <p className="break-words text-sm font-semibold leading-snug text-wanas-text-primary">
+                    «{entry.text}»
+                  </p>
+                  <p className="shrink-0 pt-0.5 text-xs font-semibold text-wanas-text-muted">
+                    {entry.ownerName}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </GameCard>
         ) : null}
 
-        <GameCard className="p-5 sm:p-6">
-          <h2 className="wanas-game-title mb-4">كل الإجابات</h2>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {revealEntries.map((entry) => (
-              <JudgeAnswerCard
-                key={entry.answerId}
-                text={entry.text}
-                ownerName={entry.ownerName}
-                isWinner={entry.isWinner}
-              />
-            ))}
-          </div>
-        </GameCard>
-
-        <GameCard className="p-5 sm:p-6">
-          <h2 className="wanas-game-title mb-4">نقاط الجولة</h2>
-          <ul className="space-y-2.5">
+        <GameCard className="p-3 sm:p-4">
+          <h2 className="mb-2 text-sm font-bold text-wanas-text-primary">نقاط الجولة</h2>
+          <ul className="space-y-1">
             {sortedResults.map((player) => {
               const colors = getPlayerAvatarColors(player.playerId);
               const isCurrent = player.playerId === currentPlayerId;
@@ -107,35 +136,28 @@ export function JudgeRoundResultsScreen({
                 <li
                   key={player.playerId}
                   className={cn(
-                    'flex items-center justify-between gap-3 rounded-xl px-3 py-2.5',
+                    'grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded-lg px-2 py-1.5',
                     isCurrent && 'bg-wanas-accent/10',
-                    player.isWinner && 'ring-1 ring-wanas-success-border/60',
                   )}
                 >
-                  <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex min-w-0 items-center gap-2">
                     <span
                       className={cn(
-                        'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold',
+                        'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold',
                         colors.bg,
                         colors.text,
                       )}
                     >
                       {player.name.slice(0, 1)}
                     </span>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-wanas-text-primary">
-                        {player.name}
-                        {isCurrent ? ' (أنت)' : ''}
-                        {player.isJudge ? ' · قاضي' : ''}
-                      </p>
-                      <p className="text-xs text-wanas-text-muted">
-                        المجموع: {player.totalPoints}
-                      </p>
-                    </div>
+                    <p className="truncate text-sm font-semibold text-wanas-text-primary">
+                      {player.name}
+                      {isCurrent ? ' (أنت)' : ''}
+                    </p>
                   </div>
                   <p
                     className={cn(
-                      'shrink-0 text-sm font-bold tabular-nums',
+                      'min-w-10 shrink-0 text-end text-sm font-bold tabular-nums',
                       player.roundPoints > 0
                         ? 'text-wanas-success-dark'
                         : 'text-wanas-text-muted',
@@ -143,36 +165,39 @@ export function JudgeRoundResultsScreen({
                   >
                     {player.roundPoints > 0 ? `+${player.roundPoints}` : '0'}
                   </p>
+                  <p className="min-w-10 shrink-0 text-end text-xs tabular-nums text-wanas-text-muted">
+                    {player.totalPoints}
+                  </p>
                 </li>
               );
             })}
           </ul>
         </GameCard>
 
-        {roundNumber < totalRounds ? (
-          <RoundCategoryPanel
-            gameId={JUDGE_GAME_ID}
-            selectedCategoryId={nextCategoryId}
-            isHost={isHost}
-            isActiveMatch
-            onSelectCategory={(categoryId) => onSelectNextCategory?.(categoryId)}
-          />
-        ) : null}
-
-        {onContinue && continueLabel ? (
-          <div className="flex justify-center">
+        {continueLabel && onContinue ? (
+          <div className="mx-auto w-full max-w-md space-y-2.5">
+            <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
+              {waitingMessage ?? 'الجولة التالية تبدأ تلقائياً...'}
+            </p>
+            {progressBar}
             <Button
-              type="button"
               size="lg"
+              className="w-full min-h-12 focus-visible:ring-offset-4"
               loading={isContinueLoading}
               onClick={onContinue}
-              className="min-w-48"
             >
               {continueLabel}
             </Button>
           </div>
         ) : waitingMessage ? (
-          <p className="text-center text-sm text-wanas-text-muted">{waitingMessage}</p>
+          <div
+            role="status"
+            aria-live="polite"
+            className="mx-auto w-full max-w-md space-y-2.5 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-4 py-4 text-center shadow-sm"
+          >
+            <p className="text-sm font-medium text-wanas-text-secondary">{waitingMessage}</p>
+            {progressBar}
+          </div>
         ) : null}
       </div>
     </GameScreen>

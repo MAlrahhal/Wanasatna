@@ -6,7 +6,6 @@ import {
   JUDGE_CONTINUE_ROUND_RESULTS_EVENT,
   JUDGE_PHASE_CHANGED_EVENT,
   JUDGE_SELECT_WINNER_EVENT,
-  JUDGE_SET_CATEGORY_EVENT,
   JUDGE_SUBMIT_ANSWER_EVENT,
   JUDGE_SYNC_EVENT,
 } from '@wanasatna/shared';
@@ -32,6 +31,7 @@ export function useJudgePlayerView(enabled: boolean) {
   const [isLoading, setIsLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
+  const [remainingSeconds, setRemainingSeconds] = useState(0);
   const hasViewRef = useRef(false);
 
   const syncView = useCallback(async () => {
@@ -65,6 +65,7 @@ export function useJudgePlayerView(enabled: boolean) {
       setIsLoading(false);
       setActionError(null);
       setIsSubmittingAction(false);
+      setRemainingSeconds(0);
       return;
     }
 
@@ -87,9 +88,42 @@ export function useJudgePlayerView(enabled: boolean) {
     };
   }, [enabled, syncView]);
 
+  useEffect(() => {
+    if (!enabled || !view) {
+      return;
+    }
+
+    if (
+      (view.gamePhase === 'answering' || view.gamePhase === 'judging') &&
+      view.deadlineAtMs
+    ) {
+      const updateRemaining = () => {
+        setRemainingSeconds(Math.max(0, Math.ceil((view.deadlineAtMs! - Date.now()) / 1000)));
+      };
+
+      updateRemaining();
+      const intervalId = window.setInterval(updateRemaining, 250);
+      return () => window.clearInterval(intervalId);
+    }
+
+    if (view.gamePhase === 'round-results' || view.gamePhase === 'match-completed') {
+      setRemainingSeconds(view.phaseRemainingSeconds);
+      const intervalId = window.setInterval(() => {
+        setRemainingSeconds((current) => Math.max(0, current - 1));
+      }, 1000);
+      return () => window.clearInterval(intervalId);
+    }
+  }, [
+    enabled,
+    view?.gamePhase,
+    view?.deadlineAtMs,
+    view?.phaseRemainingSeconds,
+    view?.roundId,
+  ]);
+
   const submitAnswer = useCallback(
     async (answer: string) => {
-      if (!enabled || isSubmittingAction) {
+      if (!enabled || isSubmittingAction || !view?.roundId) {
         return;
       }
 
@@ -98,7 +132,7 @@ export function useJudgePlayerView(enabled: boolean) {
 
       const response = await emitPluginWithAck<{ view: JudgePlayerView }>(
         JUDGE_SUBMIT_ANSWER_EVENT,
-        { answer },
+        { answer, roundId: view.roundId },
       );
 
       if (!response.success) {
@@ -110,12 +144,12 @@ export function useJudgePlayerView(enabled: boolean) {
       setView(response.data.view);
       setIsSubmittingAction(false);
     },
-    [enabled, isSubmittingAction],
+    [enabled, isSubmittingAction, view?.roundId],
   );
 
   const selectWinner = useCallback(
     async (answerId: string) => {
-      if (!enabled || isSubmittingAction) {
+      if (!enabled || isSubmittingAction || !view?.roundId) {
         return;
       }
 
@@ -124,7 +158,7 @@ export function useJudgePlayerView(enabled: boolean) {
 
       const response = await emitPluginWithAck<{ view: JudgePlayerView }>(
         JUDGE_SELECT_WINNER_EVENT,
-        { answerId },
+        { answerId, roundId: view.roundId },
       );
 
       if (!response.success) {
@@ -136,7 +170,7 @@ export function useJudgePlayerView(enabled: boolean) {
       setView(response.data.view);
       setIsSubmittingAction(false);
     },
-    [enabled, isSubmittingAction],
+    [enabled, isSubmittingAction, view?.roundId],
   );
 
   const continueFromRoundResults = useCallback(async () => {
@@ -157,35 +191,11 @@ export function useJudgePlayerView(enabled: boolean) {
       return;
     }
 
-    setView(response.data.view);
+    if (response.data?.view) {
+      setView(response.data.view);
+    }
     setIsSubmittingAction(false);
   }, [enabled, isSubmittingAction]);
-
-  const setNextRoundCategory = useCallback(
-    async (categoryId: string | null) => {
-      if (!enabled || isSubmittingAction) {
-        return;
-      }
-
-      setIsSubmittingAction(true);
-      setActionError(null);
-
-      const response = await emitPluginWithAck<{ view: JudgePlayerView }>(
-        JUDGE_SET_CATEGORY_EVENT,
-        { categoryId },
-      );
-
-      if (!response.success) {
-        setActionError(response.error.message);
-        setIsSubmittingAction(false);
-        return;
-      }
-
-      setView(response.data.view);
-      setIsSubmittingAction(false);
-    },
-    [enabled, isSubmittingAction],
-  );
 
   return {
     view,
@@ -193,9 +203,9 @@ export function useJudgePlayerView(enabled: boolean) {
     isLoading,
     actionError,
     isSubmittingAction,
+    remainingSeconds,
     submitAnswer,
     selectWinner,
     continueFromRoundResults,
-    setNextRoundCategory,
   };
 }

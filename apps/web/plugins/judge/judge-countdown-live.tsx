@@ -1,6 +1,5 @@
 'use client';
 
-import { JUDGE_DEFAULT_ROUNDS } from '@wanasatna/shared';
 import { useEffect } from 'react';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
@@ -22,6 +21,10 @@ export function JudgeCountdownLive() {
   const { state } = useGameShell();
   const { room } = useRoom();
   const setMeta = useSetGameExperienceMeta();
+  const totalRounds =
+    state?.matchParticipantIds?.length ??
+    state?.players.filter((player) => player.isConnected).length ??
+    0;
 
   useEffect(() => {
     setMeta({
@@ -29,11 +32,11 @@ export function JudgeCountdownLive() {
       gameIcon: JUDGE_GAME_ICON,
       phaseLabel: 'العد التنازلي',
       currentRound: 1,
-      totalRounds: JUDGE_DEFAULT_ROUNDS,
+      totalRounds,
       leaderboardEntries: null,
     });
     return () => setMeta(null);
-  }, [setMeta]);
+  }, [setMeta, totalRounds]);
 
   if (
     !state ||
@@ -48,7 +51,7 @@ export function JudgeCountdownLive() {
     <CountdownScreen
       currentNumber={toCountdownNumber(state.countdownRemainingSeconds)}
       roundNumber={1}
-      totalRounds={JUDGE_DEFAULT_ROUNDS}
+      totalRounds={totalRounds}
       roomCode={room.code}
     />
   );

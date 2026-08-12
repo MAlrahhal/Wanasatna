@@ -22,6 +22,8 @@ export type GameExperienceMeta = {
   phaseLabel?: string;
   /** Optional public category label, e.g. "الفئة: أكلات". */
   categoryLabel?: string;
+  /** Optional top-center identity label, e.g. "القاضي: محمد". */
+  centerLabel?: string;
   currentRound?: number;
   totalRounds?: number;
   timer?: GameExperienceTimer;

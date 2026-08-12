@@ -1,27 +1,35 @@
 import type { Server } from 'socket.io';
 import type { GameShellState, JudgeMatchState } from '@wanasatna/shared';
-import { JUDGE_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
+import { JUDGE_GAME_ID, JUDGE_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
-import { finishGameShellForRoom } from '../../game.service.js';
-import { cleanupGameShellRuntime } from '../../game.lifecycle.js';
-import { broadcastGameShellState } from '../../game.timer.js';
+import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
+import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
+import { clearRoomRoundCategory } from '../../runtime/round-category-store.js';
 import {
-  startJudgePhaseTimerIfNeeded,
+  clearJudgePhaseTimerRuntime,
+  restartJudgePhaseTimer,
   stopJudgePhaseTimer,
 } from './phase-timer.js';
 import { applyRoundScores } from './scoring.js';
 import {
+  allRequiredHaveAnswered,
   appendRecentPromptId,
   beginJudgingPhase,
   createRoundState,
-  resolveJudgeForRound,
+  isDeparted,
+  markPlayerDeparted,
+  resolveNextRoundJudge,
   withRound,
 } from './state.js';
-import { deleteJudgeState, setJudgeState } from './store.js';
+import { deleteJudgeState, getJudgeState, setJudgeState } from './store.js';
 
 function broadcastPhaseChanged(io: Server, roomId: string): void {
   io.to(getRoomChannel(roomId)).emit(JUDGE_PHASE_CHANGED_EVENT, {});
+}
+
+function remainingActiveCount(match: JudgeMatchState): number {
+  return match.playerIds.filter((playerId) => !isDeparted(match, playerId)).length;
 }
 
 export function transitionToJudging(
@@ -29,10 +37,39 @@ export function transitionToJudging(
   roomId: string,
   match: JudgeMatchState,
 ): JudgeMatchState {
+  if (match.round.gamePhase !== 'answering') {
+    return match;
+  }
+
+  if (
+    match.round.answers.length === 0 ||
+    isDeparted(match, match.round.judgePlayerId)
+  ) {
+    return startRoundResults(io, roomId, match);
+  }
+
   const nextMatch = beginJudgingPhase(match);
   setJudgeState(roomId, nextMatch);
+  restartJudgePhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
+}
+
+export function maybeAdvanceAnswering(
+  io: Server,
+  roomId: string,
+  match: JudgeMatchState,
+  shell: GameShellState,
+): JudgeMatchState {
+  if (match.round.gamePhase !== 'answering') {
+    return match;
+  }
+
+  if (!allRequiredHaveAnswered(match, shell)) {
+    return match;
+  }
+
+  return transitionToJudging(io, roomId, match);
 }
 
 export function startRoundResults(
@@ -48,11 +85,12 @@ export function startRoundResults(
   const nextMatch = withRound(scoredMatch, {
     ...scoredMatch.round,
     gamePhase: 'round-results',
-    phaseRemainingSeconds: 0,
+    phaseRemainingSeconds: timedPhaseDurations.judgeRoundResults(),
+    deadlineAtMs: null,
   });
 
   setJudgeState(roomId, nextMatch);
-  stopJudgePhaseTimer(roomId);
+  restartJudgePhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
@@ -62,19 +100,40 @@ function startNextRound(
   roomId: string,
   match: JudgeMatchState,
 ): JudgeMatchState {
-  const resolved = resolveJudgeForRound(match.judgeOrder, match.judgeOrderIndex);
-  const round = createRoundState(roomId, resolved.judgePlayerId, match.recentPromptIds);
+  const resolved = resolveNextRoundJudge(match);
+
+  if (!resolved) {
+    return startMatchCompletedPhase(io, roomId, match);
+  }
+
+  const { round, usedRoundCategoryIds } = createRoundState(
+    match.lockedCategoryId,
+    match.usedRoundCategoryIds,
+    match.recentPromptIds,
+    resolved.judgePlayerId,
+  );
+
   const nextMatch: JudgeMatchState = {
     ...match,
-    judgeOrder: resolved.nextOrder,
     judgeOrderIndex: resolved.nextIndex,
     currentRound: match.currentRound + 1,
     matchStatus: 'in-progress',
+    usedRoundCategoryIds,
     recentPromptIds: appendRecentPromptId(match.recentPromptIds, round.promptId),
     round,
   };
 
   setJudgeState(roomId, nextMatch);
+
+  const shell = getGameShellByRoomId(roomId);
+  if (shell) {
+    const advanced = maybeAdvanceAnswering(io, roomId, nextMatch, shell);
+    if (advanced !== nextMatch) {
+      return advanced;
+    }
+  }
+
+  restartJudgePhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
@@ -93,13 +152,32 @@ function startMatchCompletedPhase(
       ...match.round,
       gamePhase: 'match-completed',
       phaseRemainingSeconds: timedPhaseDurations.matchResults(),
+      deadlineAtMs: null,
     },
   );
 
   setJudgeState(roomId, nextMatch);
-  startJudgePhaseTimerIfNeeded(io, roomId);
+  restartJudgePhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
+}
+
+export function advanceFromRoundResults(
+  io: Server,
+  roomId: string,
+  match: JudgeMatchState,
+): JudgeMatchState {
+  if (match.round.gamePhase !== 'round-results') {
+    return match;
+  }
+
+  stopJudgePhaseTimer(roomId);
+
+  if (remainingActiveCount(match) < 2 || !resolveNextRoundJudge(match)) {
+    return startMatchCompletedPhase(io, roomId, match);
+  }
+
+  return startNextRound(io, roomId, match);
 }
 
 export function continueFromRoundResults(
@@ -109,31 +187,70 @@ export function continueFromRoundResults(
   shell: GameShellState,
   hostPlayerId: string,
 ): JudgeMatchState {
-  if (match.round.gamePhase !== 'round-results') {
-    return match;
-  }
-
   if (shell.hostPlayerId !== hostPlayerId) {
     return match;
   }
 
-  stopJudgePhaseTimer(roomId);
+  const current = getJudgeState(roomId) ?? match;
 
-  if (match.currentRound < match.totalRounds) {
-    return startNextRound(io, roomId, match);
+  if (current.round.gamePhase === 'match-completed') {
+    completeMatch(io, roomId);
+    return current;
   }
 
-  return startMatchCompletedPhase(io, roomId, match);
+  if (current.round.gamePhase !== 'round-results') {
+    return current;
+  }
+
+  return advanceFromRoundResults(io, roomId, current);
 }
 
 export function completeMatch(io: Server, roomId: string): void {
-  stopJudgePhaseTimer(roomId);
+  clearJudgePhaseTimerRuntime(roomId);
   deleteJudgeState(roomId);
+  clearRoomRoundCategory(roomId);
 
-  const nextShell = finishGameShellForRoom(roomId);
-
-  if (nextShell) {
-    cleanupGameShellRuntime(roomId);
-    broadcastGameShellState(io, nextShell);
+  const shell = getGameShellByRoomId(roomId);
+  if (!shell) {
+    return;
   }
+
+  cleanupGameShellRuntime(roomId);
+  deleteGameShell(roomId);
+  navigateRoomToLobby(io, roomId);
+}
+
+export function handleJudgePermanentLeave(
+  io: Server,
+  roomId: string,
+  playerId: string,
+): void {
+  const match = getJudgeState(roomId);
+  const shell = getGameShellByRoomId(roomId);
+
+  if (!match || !shell || shell.gameId !== JUDGE_GAME_ID) {
+    return;
+  }
+
+  const nextMatch = markPlayerDeparted(match, playerId);
+  setJudgeState(roomId, nextMatch);
+
+  const isCurrentJudge = nextMatch.round.judgePlayerId === playerId;
+  const phase = nextMatch.round.gamePhase;
+
+  if (
+    isCurrentJudge &&
+    (phase === 'answering' || phase === 'judging') &&
+    nextMatch.round.winningAnswerId === null
+  ) {
+    startRoundResults(io, roomId, nextMatch);
+    return;
+  }
+
+  if (phase === 'answering') {
+    maybeAdvanceAnswering(io, roomId, nextMatch, shell);
+    return;
+  }
+
+  broadcastPhaseChanged(io, roomId);
 }

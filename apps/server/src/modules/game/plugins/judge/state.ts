@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type {
   GameContentSettings,
   GameShellPlayer,
@@ -8,11 +9,19 @@ import type {
   JudgeRevealEntry,
   JudgeRoundState,
 } from '@wanasatna/shared';
-import { JUDGE_DEFAULT_ROUNDS } from '@wanasatna/shared';
-import { resolveMatchRounds } from '../../../../config/test-timers.js';
-import { getRoomRoundCategory } from '../../runtime/round-category-store.js';
+import {
+  MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL,
+  MATCH_COMPLETED_WAITING_MESSAGE,
+  buildRoundResultsContinueCopy,
+} from '@wanasatna/shared';
+import { timedPhaseDurations } from '../../../../config/test-timers.js';
 import { createOpaqueAnswerId, shuffleIds } from './answers.js';
-import { pickJudgePrompt } from './prompts.js';
+import {
+  JUDGE_RANDOM_CATEGORY_ID,
+  pickJudgePrompt,
+  pickRoundCategoryId,
+  resolveMatchCategorySelection,
+} from './prompts.js';
 import {
   buildLeaderboardEntries,
   buildResultsLeaderboardEntries,
@@ -29,8 +38,12 @@ const PHASE_LABELS = {
 
 const MAX_RECENT_PROMPT_IDS = 24;
 
-export function resolveTotalRounds(settings: GameContentSettings): number {
-  return resolveMatchRounds(settings.rounds, JUDGE_DEFAULT_ROUNDS);
+export function remainingSecondsFromDeadline(deadlineAtMs: number | null, now = Date.now()): number {
+  if (deadlineAtMs === null) {
+    return 0;
+  }
+
+  return Math.max(0, Math.ceil((deadlineAtMs - now) / 1000));
 }
 
 export function withRound(match: JudgeMatchState, round: JudgeRoundState): JudgeMatchState {
@@ -45,80 +58,86 @@ export function createJudgeOrder(playerIds: readonly string[]): string[] {
   return shuffleIds(playerIds);
 }
 
-export function resolveJudgeForRound(
-  judgeOrder: readonly string[],
-  judgeOrderIndex: number,
-): { judgePlayerId: string; nextIndex: number; nextOrder: string[] } {
-  if (judgeOrder.length === 0) {
-    throw new Error('Judge order is empty.');
-  }
+export function isDeparted(match: JudgeMatchState, playerId: string): boolean {
+  return match.departedPlayerIds.includes(playerId);
+}
 
-  if (judgeOrderIndex < judgeOrder.length) {
-    return {
-      judgePlayerId: judgeOrder[judgeOrderIndex]!,
-      nextIndex: judgeOrderIndex + 1,
-      nextOrder: [...judgeOrder],
-    };
-  }
-
-  const reshuffled = shuffleIds(judgeOrder);
-  // Avoid consecutive repeat of last judge when possible
-  if (reshuffled.length > 1 && reshuffled[0] === judgeOrder[judgeOrder.length - 1]) {
-    const swapWith = reshuffled[reshuffled.length - 1]!;
-    reshuffled[reshuffled.length - 1] = reshuffled[0]!;
-    reshuffled[0] = swapWith;
-  }
-
-  return {
-    judgePlayerId: reshuffled[0]!,
-    nextIndex: 1,
-    nextOrder: reshuffled,
-  };
+export function recountTotalRounds(match: JudgeMatchState): number {
+  const future = match.judgeOrder
+    .slice(match.judgeOrderIndex + 1)
+    .filter((playerId) => !isDeparted(match, playerId)).length;
+  return match.currentRound + future;
 }
 
 export function createRoundState(
-  roomId: string,
-  judgePlayerId: string,
+  matchCategoryId: string,
+  usedRoundCategoryIds: readonly string[],
   recentPromptIds: readonly string[],
-): JudgeRoundState {
-  const prompt = pickJudgePrompt(roomId, recentPromptIds);
+  judgePlayerId: string,
+  now = Date.now(),
+): { round: JudgeRoundState; usedRoundCategoryIds: string[] } {
+  const roundCategoryId = pickRoundCategoryId(matchCategoryId, usedRoundCategoryIds);
+  const prompt = pickJudgePrompt(roundCategoryId, recentPromptIds);
+  const answeringSeconds = timedPhaseDurations.judgeAnswering();
+
+  const nextUsed =
+    matchCategoryId === JUDGE_RANDOM_CATEGORY_ID
+      ? usedRoundCategoryIds.includes(roundCategoryId)
+        ? [...usedRoundCategoryIds]
+        : [...usedRoundCategoryIds, roundCategoryId]
+      : [...usedRoundCategoryIds];
 
   return {
-    gamePhase: 'answering',
-    phaseRemainingSeconds: 0,
-    judgePlayerId,
-    promptId: prompt.id,
-    prompt: prompt.text,
-    categoryId: prompt.categoryId,
-    answers: [],
-    shuffledAnswerIds: [],
-    winningAnswerId: null,
+    round: {
+      roundId: randomUUID(),
+      gamePhase: 'answering',
+      phaseRemainingSeconds: answeringSeconds,
+      deadlineAtMs: now + answeringSeconds * 1000,
+      judgePlayerId,
+      promptId: prompt.id,
+      prompt: prompt.text,
+      categoryId: roundCategoryId,
+      answers: [],
+      shuffledAnswerIds: [],
+      winningAnswerId: null,
+    },
+    usedRoundCategoryIds: nextUsed,
   };
 }
 
 export function createMatchState(
   roomId: string,
   players: GameShellPlayer[],
-  settings: GameContentSettings,
+  _settings: GameContentSettings,
 ): JudgeMatchState {
   if (players.length === 0) {
     throw new Error('No players available for Judge match.');
   }
 
+  const selection = resolveMatchCategorySelection(roomId);
   const playerIds = players.map((player) => player.id);
   const judgeOrder = createJudgeOrder(playerIds);
-  const resolved = resolveJudgeForRound(judgeOrder, 0);
-  const round = createRoundState(roomId, resolved.judgePlayerId, []);
+  const judgePlayerId = judgeOrder[0]!;
+  const { round, usedRoundCategoryIds } = createRoundState(
+    selection.matchCategoryId,
+    [],
+    [],
+    judgePlayerId,
+  );
 
   return {
     playerIds,
     playerNames: Object.fromEntries(players.map((player) => [player.id, player.name])),
-    judgeOrder: resolved.nextOrder,
-    judgeOrderIndex: resolved.nextIndex,
+    judgeOrder,
+    judgeOrderIndex: 0,
     currentRound: 1,
-    totalRounds: resolveTotalRounds(settings),
+    totalRounds: playerIds.length,
     scores: createInitialScores(playerIds),
     matchStatus: 'in-progress',
+    lockedCategoryId: selection.matchCategoryId,
+    lockedCategoryLabel: selection.matchCategoryLabel,
+    usedRoundCategoryIds,
+    departedPlayerIds: [],
     recentPromptIds: [round.promptId],
     round,
   };
@@ -140,7 +159,9 @@ export function getConnectedParticipantIds(
     shell.players.filter((player) => player.isConnected).map((player) => player.id),
   );
 
-  return match.playerIds.filter((playerId) => connected.has(playerId));
+  return match.playerIds.filter(
+    (playerId) => connected.has(playerId) && !isDeparted(match, playerId),
+  );
 }
 
 export function findAnswerByPlayerId(
@@ -172,7 +193,7 @@ export function allRequiredHaveAnswered(
 ): boolean {
   const required = getRequiredAnswererIds(match, shell);
   if (required.length === 0) {
-    return false;
+    return true;
   }
 
   return required.every((playerId) => Boolean(findAnswerByPlayerId(match, playerId)));
@@ -183,7 +204,11 @@ export function submitAnswerToMatch(
   playerId: string,
   text: string,
 ): JudgeMatchState {
-  if (playerId === match.round.judgePlayerId || findAnswerByPlayerId(match, playerId)) {
+  if (
+    playerId === match.round.judgePlayerId ||
+    isDeparted(match, playerId) ||
+    findAnswerByPlayerId(match, playerId)
+  ) {
     return match;
   }
 
@@ -199,21 +224,28 @@ export function submitAnswerToMatch(
   });
 }
 
+export function applyJudgingDeadline(
+  match: JudgeMatchState,
+  now = Date.now(),
+): JudgeMatchState {
+  const seconds = timedPhaseDurations.judgeJudging();
+  return withRound(match, {
+    ...match.round,
+    gamePhase: 'judging',
+    phaseRemainingSeconds: seconds,
+    deadlineAtMs: now + seconds * 1000,
+    shuffledAnswerIds: shuffleIds(match.round.answers.map((answer) => answer.answerId)),
+  });
+}
+
 export function beginJudgingPhase(match: JudgeMatchState): JudgeMatchState {
   if (match.round.gamePhase !== 'answering') {
     return match;
   }
 
-  return withRound(match, {
-    ...match.round,
-    gamePhase: 'judging',
-    shuffledAnswerIds: shuffleIds(match.round.answers.map((answer) => answer.answerId)),
-  });
+  return applyJudgingDeadline(match);
 }
 
-/**
- * Atomically claim the winning answer. Must not await before claim.
- */
 export function trySelectWinner(
   getMatch: () => JudgeMatchState | null,
   setMatch: (match: JudgeMatchState) => void,
@@ -226,13 +258,18 @@ export function trySelectWinner(
     !match ||
     match.round.gamePhase !== 'judging' ||
     match.round.winningAnswerId !== null ||
-    match.round.judgePlayerId !== judgePlayerId
+    match.round.judgePlayerId !== judgePlayerId ||
+    isDeparted(match, judgePlayerId)
   ) {
     return { accepted: false, match };
   }
 
   const answer = findAnswerById(match, answerId);
-  if (!answer || answer.ownerPlayerId === judgePlayerId) {
+  const isCurrentAnswer =
+    match.round.shuffledAnswerIds.length === 0 ||
+    match.round.shuffledAnswerIds.includes(answerId);
+
+  if (!answer || !isCurrentAnswer || answer.ownerPlayerId === judgePlayerId) {
     return { accepted: false, match };
   }
 
@@ -245,8 +282,54 @@ export function trySelectWinner(
   return { accepted: true, match: nextMatch };
 }
 
+export function markPlayerDeparted(
+  match: JudgeMatchState,
+  playerId: string,
+): JudgeMatchState {
+  if (isDeparted(match, playerId)) {
+    return match;
+  }
+
+  const next: JudgeMatchState = {
+    ...match,
+    departedPlayerIds: [...match.departedPlayerIds, playerId],
+  };
+
+  return { ...next, totalRounds: recountTotalRounds(next) };
+}
+
+function findNextJudgeIndex(match: JudgeMatchState): number | null {
+  for (let index = match.judgeOrderIndex + 1; index < match.judgeOrder.length; index += 1) {
+    const playerId = match.judgeOrder[index]!;
+    if (!isDeparted(match, playerId)) {
+      return index;
+    }
+  }
+
+  return null;
+}
+
+export function resolveNextRoundJudge(
+  match: JudgeMatchState,
+): { judgePlayerId: string; nextIndex: number } | null {
+  const nextIndex = findNextJudgeIndex(match);
+  if (nextIndex === null) {
+    return null;
+  }
+
+  return {
+    judgePlayerId: match.judgeOrder[nextIndex]!,
+    nextIndex,
+  };
+}
+
 function buildRevealEntries(match: JudgeMatchState): JudgeRevealEntry[] {
-  return match.round.shuffledAnswerIds
+  const order =
+    match.round.shuffledAnswerIds.length > 0
+      ? match.round.shuffledAnswerIds
+      : match.round.answers.map((answer) => answer.answerId);
+
+  return order
     .map((answerId) => findAnswerById(match, answerId))
     .filter((answer): answer is JudgeAnswerRecord => Boolean(answer))
     .map((answer) => ({
@@ -258,32 +341,6 @@ function buildRevealEntries(match: JudgeMatchState): JudgeRevealEntry[] {
     }));
 }
 
-function buildRoundResultsInteractionView(
-  match: JudgeMatchState,
-  shell: GameShellState,
-  playerId: string,
-): Pick<
-  JudgePlayerView,
-  | 'isHost'
-  | 'canContinueFromRoundResults'
-  | 'roundResultsContinueLabel'
-  | 'roundResultsWaitingMessage'
-> {
-  const isHost = shell.hostPlayerId === playerId;
-  const isFinalRound = match.currentRound >= match.totalRounds;
-
-  return {
-    isHost,
-    canContinueFromRoundResults: isHost && match.round.gamePhase === 'round-results',
-    roundResultsContinueLabel: isHost
-      ? isFinalRound
-        ? 'عرض النتائج النهائية'
-        : 'بدء الجولة التالية'
-      : null,
-    roundResultsWaitingMessage: isHost ? null : 'بانتظار المضيف...',
-  };
-}
-
 export function buildJudgePlayerView(
   match: JudgeMatchState,
   playerId: string,
@@ -291,8 +348,9 @@ export function buildJudgePlayerView(
 ): JudgePlayerView {
   const phase = match.round.gamePhase;
   const revealed = phase === 'round-results' || phase === 'match-completed';
-  const isParticipant = match.playerIds.includes(playerId);
-  const isJudge = playerId === match.round.judgePlayerId;
+  const isParticipant = match.playerIds.includes(playerId) && !isDeparted(match, playerId);
+  const isMatchSpectator = !isParticipant;
+  const isJudge = isParticipant && playerId === match.round.judgePlayerId;
   const ownAnswer = findAnswerByPlayerId(match, playerId);
   const hasSubmittedAnswer = Boolean(ownAnswer);
   const requiredAnswerers = getRequiredAnswererIds(match, shell);
@@ -302,13 +360,25 @@ export function buildJudgePlayerView(
     : undefined;
   const winnerOwnerId = getWinningOwnerId(match);
 
-  return {
+  const phaseRemainingSeconds =
+    (phase === 'answering' || phase === 'judging') && match.round.deadlineAtMs
+      ? remainingSecondsFromDeadline(match.round.deadlineAtMs)
+      : match.round.phaseRemainingSeconds;
+
+  const base: JudgePlayerView = {
     gamePhase: phase,
-    phaseLabel: `${PHASE_LABELS[phase]} — الجولة ${match.currentRound}/${match.totalRounds}`,
-    phaseRemainingSeconds: match.round.phaseRemainingSeconds,
+    phaseLabel: isMatchSpectator
+      ? 'الجولة جارية'
+      : `${PHASE_LABELS[phase]} — الجولة ${match.currentRound}/${match.totalRounds}`,
+    phaseRemainingSeconds,
+    deadlineAtMs:
+      (phase === 'answering' || phase === 'judging') && match.round.deadlineAtMs
+        ? match.round.deadlineAtMs
+        : null,
+    roundId: match.round.roundId,
     prompt: match.round.prompt,
-    categoryId: match.round.categoryId,
-    nextCategoryId: getRoomRoundCategory(shell.roomId) ?? 'random',
+    categoryId: match.lockedCategoryId,
+    categoryLabel: match.lockedCategoryLabel,
     currentRound: match.currentRound,
     totalRounds: match.totalRounds,
     matchStatus: match.matchStatus,
@@ -322,7 +392,10 @@ export function buildJudgePlayerView(
     totalAnswerSlots: Math.max(requiredAnswerers.length, submittedAnswerCount),
     anonymousAnswers:
       phase === 'judging' || revealed
-        ? match.round.shuffledAnswerIds
+        ? (match.round.shuffledAnswerIds.length > 0
+            ? match.round.shuffledAnswerIds
+            : match.round.answers.map((answer) => answer.answerId)
+          )
             .map((answerId) => findAnswerById(match, answerId))
             .filter((answer): answer is JudgeAnswerRecord => Boolean(answer))
             .map((answer) => ({ answerId: answer.answerId, text: answer.text }))
@@ -338,8 +411,35 @@ export function buildJudgePlayerView(
     winnerName:
       revealed && winnerOwnerId ? (match.playerNames[winnerOwnerId] ?? 'لاعب') : null,
     roundResults: revealed ? buildRoundResultEntries(match) : [],
-    leaderboard: buildLeaderboardEntries(match),
+    leaderboard: isMatchSpectator ? [] : buildLeaderboardEntries(match),
     resultsLeaderboard: buildResultsLeaderboardEntries(match),
-    ...buildRoundResultsInteractionView(match, shell, playerId),
+    isHost: shell.hostPlayerId === playerId,
+    canContinueFromRoundResults: false,
+    roundResultsContinueLabel: null,
+    roundResultsWaitingMessage: null,
+    isMatchSpectator,
   };
+
+  if (phase === 'round-results') {
+    return {
+      ...base,
+      ...buildRoundResultsContinueCopy({
+        isFinalRound: match.currentRound >= match.totalRounds,
+        isHost: shell.hostPlayerId === playerId,
+      }),
+    };
+  }
+
+  if (phase === 'match-completed') {
+    const isHost = shell.hostPlayerId === playerId;
+    return {
+      ...base,
+      isHost,
+      canContinueFromRoundResults: isHost,
+      roundResultsContinueLabel: isHost ? MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL : null,
+      roundResultsWaitingMessage: MATCH_COMPLETED_WAITING_MESSAGE,
+    };
+  }
+
+  return base;
 }

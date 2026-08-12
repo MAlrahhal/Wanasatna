@@ -22,6 +22,10 @@ export function getWinningOwnerId(match: JudgeMatchState): string | null {
 }
 
 export function applyRoundScores(match: JudgeMatchState): JudgeMatchState {
+  if (match.round.gamePhase !== 'answering' && match.round.gamePhase !== 'judging') {
+    return match;
+  }
+
   const winnerId = getWinningOwnerId(match);
   if (!winnerId) {
     return match;

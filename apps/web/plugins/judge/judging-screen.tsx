@@ -12,6 +12,7 @@ export type JudgeJudgingScreenProps = {
   isJudge: boolean;
   canSelect: boolean;
   isSubmitting: boolean;
+  isSpectator?: boolean;
   actionError?: string | null;
   onSelectWinner: (answerId: string) => void;
 };
@@ -22,6 +23,7 @@ export function JudgeJudgingScreen({
   isJudge,
   canSelect,
   isSubmitting,
+  isSpectator = false,
   actionError = null,
   onSelectWinner,
 }: JudgeJudgingScreenProps) {
@@ -29,41 +31,63 @@ export function JudgeJudgingScreen({
 
   return (
     <GameScreen ariaLabel="القاضي يختار" maxWidth="4xl">
-      <div className="flex flex-col gap-5 sm:gap-6">
-        <div className="text-center">
-          <p className="text-sm font-semibold text-wanas-accent">⚖️ القاضي</p>
-          <p className="mt-1 text-xs text-wanas-text-muted line-clamp-2">{prompt}</p>
-          <p className="mt-3 text-sm font-semibold text-wanas-text-primary">
-            {isJudge ? 'اختر أفضل إجابة' : 'القاضي يختار أفضل إجابة...'}
+      <div className="flex flex-col gap-4 sm:gap-5">
+        <div className="wanas-game-card rounded-[1.25rem] px-5 py-5 text-center sm:px-6">
+          <p className="break-words text-lg font-bold leading-snug text-wanas-text-primary sm:text-xl">
+            {prompt}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {answers.map((answer) => (
-            <JudgeAnswerCard
-              key={answer.answerId}
-              text={answer.text}
-              selectable={canSelect}
-              selected={selectedAnswerId === answer.answerId}
-              disabled={isSubmitting || !canSelect}
-              onSelect={() => setSelectedAnswerId(answer.answerId)}
-            />
-          ))}
-        </div>
-
-        {isJudge && canSelect && selectedAnswerId ? (
-          <div className="flex justify-center">
-            <Button
-              type="button"
-              size="lg"
-              loading={isSubmitting}
-              onClick={() => onSelectWinner(selectedAnswerId)}
-              className="min-w-48"
-            >
-              اختيار هذه الإجابة
-            </Button>
+        {isJudge ? (
+          <>
+            <p className="text-center text-sm font-semibold text-wanas-text-primary">
+              اختر أفضل إجابة
+            </p>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {answers.map((answer) => (
+                <JudgeAnswerCard
+                  key={answer.answerId}
+                  text={answer.text}
+                  selectable={canSelect}
+                  selected={selectedAnswerId === answer.answerId}
+                  disabled={isSubmitting || !canSelect}
+                  onSelect={() => setSelectedAnswerId(answer.answerId)}
+                />
+              ))}
+            </div>
+            {canSelect && selectedAnswerId ? (
+              <div className="flex justify-center">
+                <Button
+                  type="button"
+                  size="lg"
+                  loading={isSubmitting}
+                  onClick={() => onSelectWinner(selectedAnswerId)}
+                  className="min-h-12 min-w-48"
+                >
+                  تأكيد الاختيار
+                </Button>
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <div className="wanas-game-card rounded-[1.25rem] px-5 py-6 text-center">
+            <p className="text-lg font-semibold text-wanas-text-primary">
+              القاضي يختار أفضل إجابة...
+            </p>
+            {isSpectator && answers.length > 0 ? (
+              <ul className="mt-4 space-y-1.5 text-right">
+                {answers.map((answer) => (
+                  <li
+                    key={answer.answerId}
+                    className="rounded-lg border border-wanas-border bg-wanas-surface-soft px-3 py-2 text-sm text-wanas-text-primary"
+                  >
+                    «{answer.text}»
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
-        ) : null}
+        )}
 
         {actionError ? (
           <p className="text-center text-sm text-destructive">{actionError}</p>

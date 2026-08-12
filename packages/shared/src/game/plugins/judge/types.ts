@@ -2,9 +2,11 @@ import { pluginActionEvent, pluginStateEvent } from '../../plugin/events.js';
 
 export const JUDGE_GAME_ID = 'judge' as const;
 
-export const JUDGE_DEFAULT_ROUNDS = 4;
 export const JUDGE_MAX_ANSWER_LENGTH = 150;
 export const JUDGE_WINNER_POINTS = 100;
+export const JUDGE_ANSWERING_SECONDS = 60;
+export const JUDGE_JUDGING_SECONDS = 30;
+export const JUDGE_ROUND_RESULTS_SECONDS = 10;
 
 export type JudgeGamePhase = 'answering' | 'judging' | 'round-results' | 'match-completed';
 
@@ -15,14 +17,16 @@ export type JudgeAnswerRecord = {
 };
 
 export type JudgeRoundState = {
+  roundId: string;
   gamePhase: JudgeGamePhase;
   phaseRemainingSeconds: number;
+  deadlineAtMs: number | null;
   judgePlayerId: string;
   promptId: string;
   prompt: string;
+  /** Internal prompt category for this round. */
   categoryId: string;
   answers: JudgeAnswerRecord[];
-  /** Authoritative card order — empty until judging. */
   shuffledAnswerIds: string[];
   winningAnswerId: string | null;
 };
@@ -30,13 +34,19 @@ export type JudgeRoundState = {
 export type JudgeMatchState = {
   playerIds: string[];
   playerNames: Record<string, string>;
-  /** Fair rotation queue; recycled when exhausted. */
+  /** Shuffled once at match start — each participant appears exactly once. */
   judgeOrder: string[];
+  /** Index of the current judge in judgeOrder. */
   judgeOrderIndex: number;
   currentRound: number;
   totalRounds: number;
   scores: Record<string, number>;
   matchStatus: 'in-progress' | 'completed';
+  lockedCategoryId: string;
+  lockedCategoryLabel: string;
+  usedRoundCategoryIds: string[];
+  /** Permanent leave/kick — not temporary disconnect. */
+  departedPlayerIds: string[];
   recentPromptIds: string[];
   round: JudgeRoundState;
 };
@@ -73,9 +83,11 @@ export type JudgePlayerView = {
   gamePhase: JudgeGamePhase;
   phaseLabel: string;
   phaseRemainingSeconds: number;
+  deadlineAtMs: number | null;
+  roundId: string | null;
   prompt: string | null;
   categoryId: string | null;
-  nextCategoryId: string | null;
+  categoryLabel: string | null;
   currentRound: number;
   totalRounds: number;
   matchStatus: 'in-progress' | 'completed';
@@ -105,6 +117,7 @@ export type JudgePlayerView = {
   canContinueFromRoundResults: boolean;
   roundResultsContinueLabel: string | null;
   roundResultsWaitingMessage: string | null;
+  isMatchSpectator: boolean;
 };
 
 export const JUDGE_SYNC_EVENT = pluginActionEvent(JUDGE_GAME_ID, 'sync');
@@ -115,17 +128,14 @@ export const JUDGE_CONTINUE_ROUND_RESULTS_EVENT = pluginActionEvent(
   JUDGE_GAME_ID,
   'continue-round-results',
 );
-export const JUDGE_SET_CATEGORY_EVENT = pluginActionEvent(JUDGE_GAME_ID, 'set-category');
 export const JUDGE_STATE_EVENT = pluginStateEvent(JUDGE_GAME_ID);
 
 export type JudgeSubmitAnswerPayload = {
   answer: string;
+  roundId: string;
 };
 
 export type JudgeSelectWinnerPayload = {
   answerId: string;
-};
-
-export type JudgeSetCategoryPayload = {
-  categoryId: string | null;
+  roundId: string;
 };

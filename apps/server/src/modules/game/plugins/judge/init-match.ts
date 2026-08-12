@@ -3,6 +3,7 @@ import type { JudgeMatchState } from '@wanasatna/shared';
 import { JUDGE_GAME_ID } from '@wanasatna/shared';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { getGameShellByRoomId } from '../../game.service.js';
+import { maybeAdvanceAnswering } from './match-lifecycle.js';
 import { startJudgePhaseTimerIfNeeded } from './phase-timer.js';
 import { createMatchState } from './state.js';
 import { getJudgeState, setJudgeState } from './store.js';
@@ -51,10 +52,16 @@ export function ensureJudgeMatchStateWithTimer(
   roomId: string,
 ): JudgeMatchState | null {
   const match = ensureJudgeMatchState(roomId);
+  const shell = getGameShellByRoomId(roomId);
 
-  if (match) {
+  if (!match || !shell) {
+    return match;
+  }
+
+  const advanced = maybeAdvanceAnswering(io, roomId, match, shell);
+  if (advanced === match) {
     startJudgePhaseTimerIfNeeded(io, roomId);
   }
 
-  return match;
+  return getJudgeState(roomId);
 }

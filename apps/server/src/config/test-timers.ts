@@ -19,6 +19,9 @@ import {
   IMPOSTER_DRAW_VOTING_SECONDS,
   FAST_ANSWER_QUESTION_SECONDS,
   FAST_ANSWER_ROUND_RESULTS_SECONDS,
+  JUDGE_ANSWERING_SECONDS,
+  JUDGE_JUDGING_SECONDS,
+  JUDGE_ROUND_RESULTS_SECONDS,
   WHO_WROTE_IT_ANSWERING_SECONDS,
   WHO_WROTE_IT_GUESS_SECONDS,
   WHO_WROTE_IT_ROUND_RESULTS_SECONDS,
@@ -117,5 +120,9 @@ export const timedPhaseDurations = {
   whoWroteItGuess: () => resolveInteractivePhaseSeconds(WHO_WROTE_IT_GUESS_SECONDS),
   whoWroteItRoundResults: () =>
     env.testMode ? TEST_ROUND_RESULTS_SECONDS : WHO_WROTE_IT_ROUND_RESULTS_SECONDS,
+  judgeAnswering: () => resolveInteractivePhaseSeconds(JUDGE_ANSWERING_SECONDS),
+  judgeJudging: () => resolveInteractivePhaseSeconds(JUDGE_JUDGING_SECONDS),
+  judgeRoundResults: () =>
+    env.testMode ? TEST_ROUND_RESULTS_SECONDS : JUDGE_ROUND_RESULTS_SECONDS,
   shellCountdown: () => resolveShellCountdownSeconds(DEFAULT_GAME_SHELL_COUNTDOWN_SECONDS),
 };

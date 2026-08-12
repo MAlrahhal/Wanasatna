@@ -63,16 +63,24 @@ export function GameExperienceHeader({
             </div>
           </div>
 
-          {meta.categoryLabel ? (
+          {meta.centerLabel || meta.categoryLabel ? (
             <p
               className="pointer-events-none absolute left-1/2 top-1/2 z-0 max-w-[min(100%,14rem)] -translate-x-1/2 -translate-y-1/2 truncate px-2 text-center text-sm font-semibold text-white sm:max-w-[min(100%,18rem)] sm:text-base"
-              title={meta.categoryLabel}
+              title={meta.centerLabel ?? meta.categoryLabel}
             >
-              {meta.categoryLabel}
+              {meta.centerLabel ?? meta.categoryLabel}
             </p>
           ) : null}
 
           <div className="relative z-10 flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+            {meta.centerLabel && meta.categoryLabel ? (
+              <span
+                className="inline-flex max-w-[7rem] truncate rounded-lg border border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] px-2 py-1 text-[11px] font-semibold text-[color:var(--wanas-game-text-primary)] sm:max-w-[12rem] sm:text-xs"
+                title={meta.categoryLabel}
+              >
+                {meta.categoryLabel}
+              </span>
+            ) : null}
             {showRound ? (
               <span className="inline-flex min-h-9 items-center rounded-lg border border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] px-2.5 text-[11px] font-semibold text-[color:var(--wanas-game-text-primary)] sm:text-xs">
                 {meta.currentRound}/{meta.totalRounds}

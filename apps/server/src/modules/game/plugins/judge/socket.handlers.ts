@@ -2,7 +2,6 @@ import type { Server, Socket } from 'socket.io';
 import type {
   GameActionResponse,
   JudgeSelectWinnerPayload,
-  JudgeSetCategoryPayload,
   JudgeSubmitAnswerPayload,
 } from '@wanasatna/shared';
 import {
@@ -10,7 +9,6 @@ import {
   JUDGE_GAME_ID,
   JUDGE_PHASE_CHANGED_EVENT,
   JUDGE_SELECT_WINNER_EVENT,
-  JUDGE_SET_CATEGORY_EVENT,
   JUDGE_SUBMIT_ANSWER_EVENT,
   JUDGE_SYNC_EVENT,
   isActiveMatchParticipant,
@@ -22,19 +20,18 @@ import {
   isPlayerRecoveryActive,
   playerRecoveryBlockedError,
 } from '../../runtime/player-recovery.js';
-import { setRoomRoundCategory } from '../../runtime/round-category-store.js';
 import { validateSubmittedAnswer } from './answers.js';
 import { ensureJudgeMatchStateWithTimer } from './init-match.js';
 import {
   continueFromRoundResults,
+  maybeAdvanceAnswering,
   startRoundResults,
-  transitionToJudging,
 } from './match-lifecycle.js';
 import { clearJudgePhaseTimerRuntime } from './phase-timer.js';
 import {
-  allRequiredHaveAnswered,
   buildJudgePlayerView,
   findAnswerByPlayerId,
+  isDeparted,
   submitAnswerToMatch,
   trySelectWinner,
 } from './state.js';
@@ -99,6 +96,15 @@ function respondWithView(
   });
 }
 
+function readRoundId(payload: unknown): string {
+  if (payload && typeof payload === 'object' && 'roundId' in payload) {
+    const roundId = (payload as { roundId?: unknown }).roundId;
+    return typeof roundId === 'string' ? roundId : '';
+  }
+
+  return '';
+}
+
 export function registerJudgeSocketHandlers(io: Server, socket: Socket): void {
   socket.on(JUDGE_SYNC_EVENT, (_payload: unknown, callback) => {
     const contextError = getGameSocketContext(socket);
@@ -145,13 +151,18 @@ export function registerJudgeSocketHandlers(io: Server, socket: Socket): void {
       return;
     }
 
-    if (!isActiveMatchParticipant(shell, playerId!)) {
+    if (!isActiveMatchParticipant(shell, playerId!) || isDeparted(match, playerId!)) {
       sendGameResponse(callback, notParticipantError());
       return;
     }
 
     if (match.round.gamePhase !== 'answering') {
       sendGameResponse(callback, invalidActionError('انتهت مرحلة الإجابات.'));
+      return;
+    }
+
+    if (readRoundId(payload) !== match.round.roundId) {
+      sendGameResponse(callback, invalidActionError('انتهت هذه الجولة.'));
       return;
     }
 
@@ -175,9 +186,8 @@ export function registerJudgeSocketHandlers(io: Server, socket: Socket): void {
     match = submitAnswerToMatch(match, playerId!, validated.text);
     setJudgeState(roomId!, match);
 
-    if (allRequiredHaveAnswered(match, shell)) {
-      match = transitionToJudging(io, roomId!, match);
-    } else {
+    const advanced = maybeAdvanceAnswering(io, roomId!, match, shell);
+    if (advanced === match) {
       io.to(getRoomChannel(roomId!)).emit(JUDGE_PHASE_CHANGED_EVENT, {});
     }
 
@@ -206,7 +216,7 @@ export function registerJudgeSocketHandlers(io: Server, socket: Socket): void {
       return;
     }
 
-    if (!isActiveMatchParticipant(shell, playerId!)) {
+    if (!isActiveMatchParticipant(shell, playerId!) || isDeparted(existing, playerId!)) {
       sendGameResponse(callback, notParticipantError());
       return;
     }
@@ -216,6 +226,16 @@ export function registerJudgeSocketHandlers(io: Server, socket: Socket): void {
         success: false,
         error: { code: 'NOT_HOST', message: 'هذا الإجراء متاح للقاضي فقط.' },
       });
+      return;
+    }
+
+    if (existing.round.gamePhase !== 'judging') {
+      sendGameResponse(callback, invalidActionError('انتهت مرحلة التحكيم.'));
+      return;
+    }
+
+    if (readRoundId(payload) !== existing.round.roundId) {
+      sendGameResponse(callback, invalidActionError('انتهت هذه الجولة.'));
       return;
     }
 
@@ -276,53 +296,13 @@ export function registerJudgeSocketHandlers(io: Server, socket: Socket): void {
     }
 
     continueFromRoundResults(io, roomId!, match, shell, playerId!);
-    respondWithView(callback, roomId!, playerId!);
-  });
 
-  socket.on(JUDGE_SET_CATEGORY_EVENT, (payload: JudgeSetCategoryPayload, callback) => {
-    const contextError = getGameSocketContext(socket);
-
-    if (contextError) {
-      sendGameResponse(callback, contextError);
+    if (getJudgeState(roomId!)) {
+      respondWithView(callback, roomId!, playerId!);
       return;
     }
 
-    const { roomId, playerId } = socket.data;
-
-    if (recoveryBlockedResponse(roomId!, callback)) {
-      return;
-    }
-
-    const shell = getGameShellByRoomId(roomId!);
-    const match = getJudgeState(roomId!);
-
-    if (!shell || !match || shell.gameId !== JUDGE_GAME_ID) {
-      sendGameResponse(callback, gameNotReadyError());
-      return;
-    }
-
-    if (shell.hostPlayerId !== playerId) {
-      sendGameResponse(callback, {
-        success: false,
-        error: { code: 'NOT_HOST', message: 'هذا الإجراء متاح للمضيف فقط.' },
-      });
-      return;
-    }
-
-    if (match.round.gamePhase !== 'round-results') {
-      sendGameResponse(callback, invalidActionError('يمكن تغيير الفئة أثناء نتائج الجولة فقط.'));
-      return;
-    }
-
-    const categoryId = payload && typeof payload === 'object' ? payload.categoryId : null;
-
-    setRoomRoundCategory(
-      roomId!,
-      typeof categoryId === 'string' || categoryId === null ? categoryId : null,
-    );
-
-    io.to(getRoomChannel(roomId!)).emit(JUDGE_PHASE_CHANGED_EVENT, {});
-    respondWithView(callback, roomId!, playerId!);
+    sendGameResponse(callback, { success: true, data: {} });
   });
 }
 

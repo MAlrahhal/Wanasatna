@@ -9,25 +9,25 @@ import { cn } from '@/lib/utils';
 export type JudgeAnsweringScreenProps = {
   prompt: string;
   isJudge: boolean;
-  judgeName: string | null;
   canSubmit: boolean;
   hasSubmitted: boolean;
   submittedCount: number;
   totalSlots: number;
   isSubmitting: boolean;
+  isSpectator?: boolean;
   actionError?: string | null;
-  onSubmit: (answer: string) => void;
+  onSubmit?: (answer: string) => void;
 };
 
 export function JudgeAnsweringScreen({
   prompt,
   isJudge,
-  judgeName,
   canSubmit,
   hasSubmitted,
   submittedCount,
   totalSlots,
   isSubmitting,
+  isSpectator = false,
   actionError = null,
   onSubmit,
 }: JudgeAnsweringScreenProps) {
@@ -43,7 +43,7 @@ export function JudgeAnsweringScreen({
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     const trimmed = answer.trim();
-    if (!trimmed || !canSubmit || isSubmitting) {
+    if (!trimmed || !canSubmit || isSubmitting || !onSubmit) {
       return;
     }
     onSubmit(trimmed);
@@ -51,35 +51,35 @@ export function JudgeAnsweringScreen({
 
   return (
     <GameScreen ariaLabel="أجب على السؤال" maxWidth="3xl">
-      <div className="flex flex-col gap-6 sm:gap-8">
-        <div className="text-center">
-          <p className="text-sm font-semibold text-wanas-accent">⚖️ القاضي</p>
-          {judgeName ? (
-            <p className="mt-1 text-xs text-wanas-text-muted">القاضي: {judgeName}</p>
-          ) : null}
-        </div>
-
-        <div className="wanas-game-card rounded-[2rem] px-5 py-10 text-center sm:px-10 sm:py-12">
-          <p className="break-words text-2xl font-bold leading-snug tracking-tight text-wanas-text-primary min-[360px]:text-3xl sm:text-4xl">
+      <div className="flex flex-col gap-5 sm:gap-6">
+        <div className="wanas-game-card rounded-[1.5rem] px-5 py-7 text-center sm:px-8 sm:py-8">
+          <p className="break-words text-xl font-bold leading-snug tracking-tight text-wanas-text-primary min-[360px]:text-2xl sm:text-3xl">
             {prompt}
           </p>
         </div>
 
-        {isJudge ? (
-          <div className="wanas-game-card rounded-[1.25rem] px-5 py-8 text-center">
+        {isSpectator ? (
+          <div className="wanas-game-card rounded-[1.25rem] px-5 py-6 text-center">
+            <p className="text-sm text-wanas-text-muted">اللاعبون يكتبون إجاباتهم...</p>
+            <p className="mt-3 text-sm tabular-nums text-wanas-text-muted">
+              {submittedCount} / {totalSlots} أجابوا
+            </p>
+          </div>
+        ) : isJudge ? (
+          <div className="wanas-game-card rounded-[1.25rem] px-5 py-6 text-center">
             <p className="text-lg font-semibold text-wanas-text-primary">
               أنت القاضي في هذه الجولة
             </p>
             <p className="mt-2 text-sm text-wanas-text-muted">بانتظار إجابات اللاعبين...</p>
-            <p className="mt-4 text-sm tabular-nums text-wanas-text-muted">
+            <p className="mt-3 text-sm tabular-nums text-wanas-text-muted">
               {submittedCount} / {totalSlots} أجابوا
             </p>
           </div>
         ) : hasSubmitted ? (
-          <div className="wanas-game-card rounded-[1.25rem] px-5 py-8 text-center">
+          <div className="wanas-game-card rounded-[1.25rem] px-5 py-6 text-center">
             <p className="text-lg font-semibold text-wanas-text-primary">تم إرسال إجابتك</p>
             <p className="mt-2 text-sm text-wanas-text-muted">بانتظار بقية اللاعبين...</p>
-            <p className="mt-4 text-sm tabular-nums text-wanas-text-muted">
+            <p className="mt-3 text-sm tabular-nums text-wanas-text-muted">
               {submittedCount} / {totalSlots} أجابوا
             </p>
           </div>
