@@ -113,9 +113,7 @@ export function StopTimerScreen({
           <div className="mt-6 space-y-3 text-center">
             {selfTimerRunning ? (
               <DigitalTimerDisplay value="--:--.--" running label="المؤقت يعمل..." />
-            ) : (
-              <p className="text-sm text-wanas-text-muted">اضغط لبدء المؤقت — لن ترى الوقت الجاري</p>
-            )}
+            ) : null}
 
             <Button
               type="button"
@@ -134,7 +132,6 @@ export function StopTimerScreen({
             >
               {selfTimerRunning ? 'أوقف الآن' : 'اضغط لبدء المؤقت'}
             </Button>
-            <p className="text-xs text-wanas-text-muted">أو اضغط Space من الكيبورد</p>
           </div>
         )}
 

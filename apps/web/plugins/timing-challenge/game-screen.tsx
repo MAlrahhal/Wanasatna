@@ -26,13 +26,8 @@ import { StopTimerScreen } from './stop-timer-screen';
 import { useTimingChallengePlayerView } from './use-player-view';
 import { useTimingStartSound } from './use-timing-start-sound';
 
-const TIMED_PHASES = new Set([
-  'ready',
-  'guessing',
-  'stop-timer',
-  'round-results',
-  'match-completed',
-]);
+/** Visible chrome timers only — never during active timing gameplay. */
+const VISIBLE_TIMER_PHASES = new Set(['ready', 'round-results', 'match-completed']);
 
 export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
   const { state: shellState, returnToLobby } = useGameShell();
@@ -99,7 +94,7 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
       phaseLabel: activeView.isMatchSpectator ? 'مشاهدة' : activeView.phaseLabel,
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
-      timer: TIMED_PHASES.has(activeView.gamePhase)
+      timer: VISIBLE_TIMER_PHASES.has(activeView.gamePhase)
         ? { remainingSeconds, format: 'seconds' as const, lowTimeThreshold: 5 }
         : undefined,
       leaderboardEntries: activeView.isMatchSpectator
