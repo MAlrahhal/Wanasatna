@@ -2,7 +2,13 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { GamePluginScreenProps, WhoWroteItPlayerView } from '@wanasatna/shared';
-import { WHO_WROTE_IT_GAME_ID } from '@wanasatna/shared';
+import {
+  MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS,
+  WHO_WROTE_IT_GAME_ID,
+  WHO_WROTE_IT_ROUND_RESULTS_SECONDS,
+} from '@wanasatna/shared';
+import { GameCard, GameScreen } from '@/components/game/game-card';
+import { GameHeader } from '@/components/game/game-header';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
@@ -13,6 +19,24 @@ import { WhoWroteItAnsweringScreen } from './answering-screen';
 import { WhoWroteItGuessingScreen } from './guessing-screen';
 import { WhoWroteItRoundResultsScreen } from './round-results-screen';
 import { useWhoWroteItPlayerView } from './use-player-view';
+
+const VISIBLE_TIMER_PHASES = new Set([
+  'answering',
+  'guessing',
+  'round-results',
+  'match-completed',
+]);
+
+function SpectatorBanner() {
+  return (
+    <GameCard className="px-5 py-5 text-center">
+      <p className="text-lg font-semibold text-wanas-text-primary">الجولة جارية 👀</p>
+      <p className="mt-2 text-sm text-wanas-text-secondary">
+        أنت حالياً مشاهد، وبتشارك في المباراة القادمة.
+      </p>
+    </GameCard>
+  );
+}
 
 export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
   const { state: shellState, returnToLobby } = useGameShell();
@@ -30,10 +54,10 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
     isLoading,
     actionError,
     isSubmittingAction,
+    remainingSeconds,
     submitAnswer,
     submitOwnerGuess,
     continueFromRoundResults,
-    setNextRoundCategory,
   } = useWhoWroteItPlayerView(pluginEnabled);
 
   const activeFinalResultsView =
@@ -72,10 +96,18 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
     setExperienceMeta({
       gameName: WHO_WROTE_IT_GAME_NAME,
       gameIcon: WHO_WROTE_IT_GAME_ICON,
-      phaseLabel: activeView.phaseLabel,
+      phaseLabel: activeView.isMatchSpectator ? 'الجولة جارية' : activeView.phaseLabel,
+      categoryLabel: activeView.categoryLabel
+        ? `الفئة: ${activeView.categoryLabel}`
+        : undefined,
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
-      leaderboardEntries: mapWhoWroteItLeaderboard(activeView, player.id, players),
+      timer: VISIBLE_TIMER_PHASES.has(activeView.gamePhase)
+        ? { remainingSeconds, format: 'seconds' as const, lowTimeThreshold: 5 }
+        : undefined,
+      leaderboardEntries: activeView.isMatchSpectator
+        ? []
+        : mapWhoWroteItLeaderboard(activeView, player.id, players),
     });
   }, [
     activeFinalResultsView,
@@ -83,6 +115,7 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
     player,
     players,
     pluginEnabled,
+    remainingSeconds,
     setExperienceMeta,
     showFinalMatchResults,
     view,
@@ -91,7 +124,19 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
   useEffect(() => () => setExperienceMeta(null), [setExperienceMeta]);
 
   const handleReturnToLobby = useCallback(() => {
-    if (!isHost || shellPhase !== 'FINISHED' || isReturningToLobby) {
+    if (isReturningToLobby) {
+      return;
+    }
+
+    if (view?.gamePhase === 'match-completed' && isHost) {
+      setIsReturningToLobby(true);
+      void continueFromRoundResults().finally(() => {
+        setIsReturningToLobby(false);
+      });
+      return;
+    }
+
+    if (!isHost || shellPhase !== 'FINISHED') {
       return;
     }
 
@@ -99,15 +144,25 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
     void returnToLobby().finally(() => {
       setIsReturningToLobby(false);
     });
-  }, [isHost, isReturningToLobby, returnToLobby, shellPhase]);
+  }, [
+    continueFromRoundResults,
+    isHost,
+    isReturningToLobby,
+    returnToLobby,
+    shellPhase,
+    view?.gamePhase,
+  ]);
 
   if (showFinalMatchResults && room && player && activeFinalResultsView) {
     const shellFinished = shellPhase === 'FINISHED';
-    const returnStatusMessage = !shellFinished
-      ? 'جاري إنهاء المباراة...'
-      : !isHost
-        ? 'بانتظار المضيف للعودة إلى اللوبي.'
-        : null;
+    const isMatchCompletedPhase = activeFinalResultsView.gamePhase === 'match-completed';
+    const autoReturnMessage = isMatchCompletedPhase
+      ? `العودة إلى اللوبي تلقائياً خلال ${Math.max(0, remainingSeconds)} ثانية`
+      : !shellFinished
+        ? 'جاري إنهاء المباراة...'
+        : !isHost
+          ? 'بانتظار المضيف للعودة إلى اللوبي.'
+          : null;
 
     return (
       <MatchResultsScreen
@@ -124,9 +179,17 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
         playerCount={activeFinalResultsView.resultsLeaderboard.length}
         roomCode={room.code}
         gameName={WHO_WROTE_IT_GAME_NAME}
-        returnStatusMessage={returnStatusMessage}
+        returnStatusMessage={
+          isHost && (isMatchCompletedPhase || shellFinished) ? null : autoReturnMessage
+        }
+        autoReturnSeconds={isMatchCompletedPhase ? remainingSeconds : undefined}
+        autoReturnTotalSeconds={
+          isMatchCompletedPhase ? MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS : undefined
+        }
         isReturnToLobbyLoading={isReturningToLobby}
-        onReturnToLobby={isHost && shellFinished ? handleReturnToLobby : undefined}
+        onReturnToLobby={
+          isHost && (isMatchCompletedPhase || shellFinished) ? handleReturnToLobby : undefined
+        }
       />
     );
   }
@@ -155,6 +218,77 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
     return null;
   }
 
+  if (view.isMatchSpectator) {
+    if (view.gamePhase === 'answering' && view.question) {
+      return (
+        <div className="space-y-3">
+          <WhoWroteItAnsweringScreen
+            question={view.question}
+            canSubmit={false}
+            hasSubmitted={false}
+            submittedCount={view.submittedAnswerCount}
+            totalSlots={view.totalAnswerSlots}
+            isSubmitting={false}
+            isSpectator
+          />
+          <SpectatorBanner />
+        </div>
+      );
+    }
+
+    if (view.gamePhase === 'guessing') {
+      return (
+        <div className="space-y-3">
+          <WhoWroteItGuessingScreen
+            currentAnswer={view.currentAnonymousAnswer}
+            options={[]}
+            progressIndex={view.guessingProgressIndex}
+            progressTotal={view.guessingProgressTotal}
+            isOwnAnswer={false}
+            hasGuessedCurrent={false}
+            canSubmitGuess={false}
+            currentGuessCount={view.currentAnswerGuessCount}
+            requiredGuessCount={view.currentAnswerRequiredGuessCount}
+            isSubmitting={false}
+            isSpectator
+            onGuess={() => undefined}
+          />
+          <SpectatorBanner />
+        </div>
+      );
+    }
+
+    if (view.gamePhase === 'round-results') {
+      return (
+        <WhoWroteItRoundResultsScreen
+          revealEntries={view.revealEntries}
+          roundResults={view.roundResults}
+          currentPlayerId={player.id}
+          roundNumber={view.currentRound}
+          totalRounds={view.totalRounds}
+          roomCode={room.code}
+          remainingSeconds={remainingSeconds}
+          totalDurationSeconds={WHO_WROTE_IT_ROUND_RESULTS_SECONDS}
+          waitingMessage={view.roundResultsWaitingMessage}
+        />
+      );
+    }
+
+    return (
+      <GameScreen ariaLabel="مشاهدة">
+        <GameHeader
+          gameName={WHO_WROTE_IT_GAME_NAME}
+          gameIcon={WHO_WROTE_IT_GAME_ICON}
+          roomCode={room.code}
+          currentRound={view.currentRound}
+          totalRounds={view.totalRounds}
+          phaseLabel="الجولة جارية"
+        />
+        <SpectatorBanner />
+      </GameScreen>
+    );
+  }
+
   if (view.gamePhase === 'answering' && view.question) {
     return (
       <WhoWroteItAnsweringScreen
@@ -173,7 +307,6 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
   if (view.gamePhase === 'guessing') {
     return (
       <WhoWroteItGuessingScreen
-        question={view.question ?? ''}
         currentAnswer={view.currentAnonymousAnswer}
         options={view.guessOptions}
         progressIndex={view.guessingProgressIndex}
@@ -200,9 +333,8 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
           roundNumber={view.currentRound}
           totalRounds={view.totalRounds}
           roomCode={room.code}
-          isHost={view.isHost}
-          nextCategoryId={view.nextCategoryId}
-          onSelectNextCategory={(categoryId) => void setNextRoundCategory(categoryId)}
+          remainingSeconds={remainingSeconds}
+          totalDurationSeconds={WHO_WROTE_IT_ROUND_RESULTS_SECONDS}
           continueLabel={view.canContinueFromRoundResults ? view.roundResultsContinueLabel : null}
           waitingMessage={view.roundResultsWaitingMessage}
           isContinueLoading={isSubmittingAction}

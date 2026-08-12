@@ -3,24 +3,57 @@ import type { GameShellState, WhoWroteItMatchState } from '@wanasatna/shared';
 import { WHO_WROTE_IT_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
-import { finishGameShellForRoom } from '../../game.service.js';
-import { cleanupGameShellRuntime } from '../../game.lifecycle.js';
-import { broadcastGameShellState } from '../../game.timer.js';
+import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
+import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
+import { clearRoomRoundCategory } from '../../runtime/round-category-store.js';
 import {
-  startWhoWroteItPhaseTimerIfNeeded,
+  clearWhoWroteItPhaseTimerRuntime,
+  restartWhoWroteItPhaseTimer,
   stopWhoWroteItPhaseTimer,
 } from './phase-timer.js';
 import { applyRoundScores } from './scoring.js';
 import {
+  allRequiredHaveGuessedCurrent,
   appendRecentQuestionId,
+  advanceGlobalAnswerOrComplete,
   beginGuessingPhase,
   createRoundState,
   withRound,
 } from './state.js';
-import { deleteWhoWroteItState, setWhoWroteItState } from './store.js';
+import { deleteWhoWroteItState, getWhoWroteItState, setWhoWroteItState } from './store.js';
 
 function broadcastPhaseChanged(io: Server, roomId: string): void {
   io.to(getRoomChannel(roomId)).emit(WHO_WROTE_IT_PHASE_CHANGED_EVENT, {});
+}
+
+export function advanceGuessingIfReady(
+  io: Server,
+  roomId: string,
+  match: WhoWroteItMatchState,
+  shell: GameShellState,
+): WhoWroteItMatchState {
+  let current = match;
+
+  while (
+    current.round.gamePhase === 'guessing' &&
+    allRequiredHaveGuessedCurrent(current, shell)
+  ) {
+    const advanced = advanceGlobalAnswerOrComplete(current);
+
+    if (advanced.completed) {
+      return startRoundResults(io, roomId, advanced.match);
+    }
+
+    current = advanced.match;
+    setWhoWroteItState(roomId, current);
+  }
+
+  if (current !== match) {
+    restartWhoWroteItPhaseTimer(io, roomId);
+    broadcastPhaseChanged(io, roomId);
+  }
+
+  return current;
 }
 
 export function transitionToGuessing(
@@ -28,8 +61,26 @@ export function transitionToGuessing(
   roomId: string,
   match: WhoWroteItMatchState,
 ): WhoWroteItMatchState {
+  if (match.round.gamePhase !== 'answering') {
+    return match;
+  }
+
+  if (match.round.answers.length === 0) {
+    return startRoundResults(io, roomId, match);
+  }
+
   const nextMatch = beginGuessingPhase(match);
   setWhoWroteItState(roomId, nextMatch);
+
+  const shell = getGameShellByRoomId(roomId);
+  if (shell) {
+    const advanced = advanceGuessingIfReady(io, roomId, nextMatch, shell);
+    if (advanced !== nextMatch) {
+      return advanced;
+    }
+  }
+
+  restartWhoWroteItPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
@@ -47,11 +98,12 @@ export function startRoundResults(
   const nextMatch = withRound(scoredMatch, {
     ...scoredMatch.round,
     gamePhase: 'round-results',
-    phaseRemainingSeconds: 0,
+    phaseRemainingSeconds: timedPhaseDurations.whoWroteItRoundResults(),
+    deadlineAtMs: null,
   });
 
   setWhoWroteItState(roomId, nextMatch);
-  stopWhoWroteItPhaseTimer(roomId);
+  restartWhoWroteItPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
@@ -62,16 +114,22 @@ function startNextRound(
   match: WhoWroteItMatchState,
 ): WhoWroteItMatchState {
   const nextRoundNumber = match.currentRound + 1;
-  const round = createRoundState(roomId, match.recentQuestionIds);
+  const { round, usedRoundCategoryIds } = createRoundState(
+    match.lockedCategoryId,
+    match.usedRoundCategoryIds,
+    match.recentQuestionIds,
+  );
   const nextMatch: WhoWroteItMatchState = {
     ...match,
     currentRound: nextRoundNumber,
     matchStatus: 'in-progress',
+    usedRoundCategoryIds,
     recentQuestionIds: appendRecentQuestionId(match.recentQuestionIds, round.questionId),
     round,
   };
 
   setWhoWroteItState(roomId, nextMatch);
+  restartWhoWroteItPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
@@ -90,27 +148,22 @@ function startMatchCompletedPhase(
       ...match.round,
       gamePhase: 'match-completed',
       phaseRemainingSeconds: timedPhaseDurations.matchResults(),
+      deadlineAtMs: null,
     },
   );
 
   setWhoWroteItState(roomId, nextMatch);
-  startWhoWroteItPhaseTimerIfNeeded(io, roomId);
+  restartWhoWroteItPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
 
-export function continueFromRoundResults(
+export function advanceFromRoundResults(
   io: Server,
   roomId: string,
   match: WhoWroteItMatchState,
-  shell: GameShellState,
-  hostPlayerId: string,
 ): WhoWroteItMatchState {
   if (match.round.gamePhase !== 'round-results') {
-    return match;
-  }
-
-  if (shell.hostPlayerId !== hostPlayerId) {
     return match;
   }
 
@@ -123,14 +176,42 @@ export function continueFromRoundResults(
   return startMatchCompletedPhase(io, roomId, match);
 }
 
-export function completeMatch(io: Server, roomId: string): void {
-  stopWhoWroteItPhaseTimer(roomId);
-  deleteWhoWroteItState(roomId);
-
-  const nextShell = finishGameShellForRoom(roomId);
-
-  if (nextShell) {
-    cleanupGameShellRuntime(roomId);
-    broadcastGameShellState(io, nextShell);
+export function continueFromRoundResults(
+  io: Server,
+  roomId: string,
+  match: WhoWroteItMatchState,
+  shell: GameShellState,
+  hostPlayerId: string,
+): WhoWroteItMatchState {
+  if (shell.hostPlayerId !== hostPlayerId) {
+    return match;
   }
+
+  const current = getWhoWroteItState(roomId) ?? match;
+
+  if (current.round.gamePhase === 'match-completed') {
+    completeMatch(io, roomId);
+    return current;
+  }
+
+  if (current.round.gamePhase !== 'round-results') {
+    return current;
+  }
+
+  return advanceFromRoundResults(io, roomId, current);
+}
+
+export function completeMatch(io: Server, roomId: string): void {
+  clearWhoWroteItPhaseTimerRuntime(roomId);
+  deleteWhoWroteItState(roomId);
+  clearRoomRoundCategory(roomId);
+
+  const shell = getGameShellByRoomId(roomId);
+  if (!shell) {
+    return;
+  }
+
+  cleanupGameShellRuntime(roomId);
+  deleteGameShell(roomId);
+  navigateRoomToLobby(io, roomId);
 }

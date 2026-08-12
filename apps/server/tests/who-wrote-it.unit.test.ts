@@ -9,13 +9,19 @@ import type {
   WhoWroteItRoundState,
 } from '@wanasatna/shared';
 import {
+  WHO_WROTE_IT_ANSWERING_SECONDS,
+  WHO_WROTE_IT_DEFAULT_ROUNDS,
+  WHO_WROTE_IT_GUESS_SECONDS,
   WHO_WROTE_IT_MAX_ANSWER_LENGTH,
   WHO_WROTE_IT_POINTS_PER_CORRECT,
+  WHO_WROTE_IT_ROUND_RESULTS_SECONDS,
+  buildRoundResultsContinueCopy,
 } from '@wanasatna/shared';
 import {
   createOpaqueAnswerId,
   validateSubmittedAnswer,
 } from '../src/modules/game/plugins/who-wrote-it/answers.js';
+import { chooseRoundCategoryId } from '../src/modules/game/plugins/who-wrote-it/prompts.js';
 import {
   applyRoundScores,
   buildRoundResultEntries,
@@ -30,6 +36,8 @@ import {
   buildWhoWroteItPlayerView,
   getCurrentAnswerId,
   getEligibleOwnerOptions,
+  remainingSecondsFromDeadline,
+  resolveTotalRounds,
   submitAnswerToMatch,
   withRound,
 } from '../src/modules/game/plugins/who-wrote-it/state.js';
@@ -77,8 +85,10 @@ function makeShell(playerIds: string[] = ['p1', 'p2', 'p3', 'p4']): GameShellSta
 
 function makeRound(overrides?: Partial<WhoWroteItRoundState>): WhoWroteItRoundState {
   return {
+    roundId: 'round-1',
     gamePhase: 'answering',
-    phaseRemainingSeconds: 0,
+    phaseRemainingSeconds: WHO_WROTE_IT_ANSWERING_SECONDS,
+    deadlineAtMs: Date.now() + WHO_WROTE_IT_ANSWERING_SECONDS * 1000,
     questionId: 'funny-1',
     question: 'وش أغرب عذر ممكن تستخدمه؟',
     categoryId: 'funny',
@@ -97,9 +107,12 @@ function makeMatch(overrides?: Partial<WhoWroteItMatchState>): WhoWroteItMatchSt
     playerIds,
     playerNames: { p1: 'محمد', p2: 'خالد', p3: 'سارة', p4: 'عبدالله' },
     currentRound: 1,
-    totalRounds: 4,
+    totalRounds: WHO_WROTE_IT_DEFAULT_ROUNDS,
     scores: { p1: 0, p2: 0, p3: 0, p4: 0 },
     matchStatus: 'in-progress',
+    lockedCategoryId: 'funny',
+    lockedCategoryLabel: 'أسئلة مضحكة',
+    usedRoundCategoryIds: [],
     recentQuestionIds: ['funny-1'],
     round: makeRound(),
     ...overrides,
@@ -303,6 +316,110 @@ test('privacy: anonymous payload has no owner fields', () => {
   const serialized = JSON.stringify(view.currentAnonymousAnswer);
   assert.equal(serialized.includes('ownerPlayerId'), false);
   assert.equal(view.isOwnAnswer, false);
+  assert.equal(JSON.stringify(view).includes('"ownerPlayerId"'), false);
+});
+
+test('match is exactly 3 rounds and not settings-configurable', () => {
+  assert.equal(WHO_WROTE_IT_DEFAULT_ROUNDS, 3);
+  assert.equal(resolveTotalRounds({ rounds: 9 } as never), 3);
+  assert.equal(makeMatch().totalRounds, 3);
+});
+
+test('fixed category stays locked; random prefers unused then reuses', () => {
+  const pool = ['funny', 'personal', 'situations', 'preferences'];
+  assert.equal(chooseRoundCategoryId('funny', ['personal'], pool), 'funny');
+
+  const first = chooseRoundCategoryId('random', [], pool, () => 0);
+  const second = chooseRoundCategoryId('random', [first], pool, () => 0);
+  const third = chooseRoundCategoryId('random', [first, second], pool, () => 0);
+  assert.notEqual(first, second);
+  assert.notEqual(second, third);
+  assert.notEqual(first, third);
+
+  const reused = chooseRoundCategoryId('random', pool, pool, () => 0);
+  assert.equal(reused, pool[0]);
+});
+
+test('public category stays locked label, including random', () => {
+  const randomMatch = startGuessingWithOrder(
+    makeMatch({
+      lockedCategoryId: 'random',
+      lockedCategoryLabel: 'عشوائي',
+      round: makeRound({ categoryId: 'funny' }),
+    }),
+    ['p2', 'p1', 'p3', 'p4'],
+  );
+  const view = buildWhoWroteItPlayerView(randomMatch, 'p1', makeShell());
+  assert.equal(view.categoryId, 'random');
+  assert.equal(view.categoryLabel, 'عشوائي');
+  assert.equal(view.roundId, randomMatch.round.roundId);
+});
+
+test('writing 60s and guess 30s constants; deadline remaining', () => {
+  assert.equal(WHO_WROTE_IT_ANSWERING_SECONDS, 60);
+  assert.equal(WHO_WROTE_IT_GUESS_SECONDS, 30);
+  assert.equal(WHO_WROTE_IT_ROUND_RESULTS_SECONDS, 10);
+  const guessing = beginGuessingPhase(seedAnswers(makeMatch()));
+  assert.equal(guessing.round.phaseRemainingSeconds, WHO_WROTE_IT_GUESS_SECONDS);
+  assert.ok(guessing.round.deadlineAtMs);
+  assert.ok(remainingSecondsFromDeadline(guessing.round.deadlineAtMs) <= 30);
+  assert.ok(remainingSecondsFromDeadline(guessing.round.deadlineAtMs) >= 29);
+});
+
+test('player view exposes roundId for stale-action binding', () => {
+  const match = makeMatch({ round: makeRound({ roundId: 'gen-42' }) });
+  const view = buildWhoWroteItPlayerView(match, 'p1', makeShell());
+  assert.equal(view.roundId, 'gen-42');
+});
+
+test('privacy: spectator and other guesses hidden before reveal', () => {
+  let match = startGuessingWithOrder(makeMatch(), ['p2', 'p1', 'p3', 'p4']);
+  const answerId = getCurrentAnswerId(match)!;
+  match = applyOwnerGuess(match, 'p1', answerId, 'p2');
+
+  const p3 = buildWhoWroteItPlayerView(match, 'p3', makeShell());
+  assert.equal(p3.hasGuessedCurrentAnswer, false);
+  assert.equal(JSON.stringify(p3).includes('"ownerPlayerId"'), false);
+  assert.equal(p3.revealEntries.length, 0);
+
+  const specShell = makeShell();
+  specShell.players.push({
+    id: 'spec',
+    name: 'مشاهد',
+    isConnected: true,
+    isHost: false,
+    isReady: false,
+  });
+  const spec = buildWhoWroteItPlayerView(match, 'spec', specShell);
+  assert.equal(spec.isMatchSpectator, true);
+  assert.equal(spec.canSubmitAnswer, false);
+  assert.equal(spec.canSubmitGuess, false);
+  assert.equal(spec.leaderboard.length, 0);
+  assert.ok(spec.currentAnonymousAnswer);
+  assert.equal(JSON.stringify(spec).includes('"ownerPlayerId"'), false);
+});
+
+test('wrong guess scores 0; duplicate guess map does not double', () => {
+  let match = startGuessingWithOrder(makeMatch(), ['p2', 'p3', 'p4', 'p1']);
+  const byOwner = Object.fromEntries(
+    match.round.answers.map((answer) => [answer.ownerPlayerId, answer.answerId]),
+  );
+  match = applyOwnerGuess(match, 'p1', byOwner.p2!, 'p3');
+  match = applyOwnerGuess(match, 'p1', byOwner.p2!, 'p3');
+  assert.equal(countCorrectGuesses(match, 'p1'), 0);
+  match = applyRoundScores(match);
+  const p1 = buildRoundResultEntries(match).find((entry) => entry.playerId === 'p1');
+  assert.equal(p1?.roundPoints, 0);
+});
+
+test('round results copy: next vs final', () => {
+  const next = buildRoundResultsContinueCopy({ isFinalRound: false, isHost: true });
+  assert.equal(next.roundResultsContinueLabel, 'التالي الآن');
+  assert.equal(next.roundResultsWaitingMessage, 'الجولة التالية تبدأ تلقائياً...');
+
+  const final = buildRoundResultsContinueCopy({ isFinalRound: true, isHost: true });
+  assert.equal(final.roundResultsContinueLabel, 'عرض النتائج الآن');
+  assert.equal(final.roundResultsWaitingMessage, 'سيتم عرض النتائج النهائية تلقائياً...');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

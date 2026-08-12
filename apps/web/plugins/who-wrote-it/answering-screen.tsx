@@ -13,8 +13,9 @@ export type WhoWroteItAnsweringScreenProps = {
   submittedCount: number;
   totalSlots: number;
   isSubmitting: boolean;
+  isSpectator?: boolean;
   actionError?: string | null;
-  onSubmit: (answer: string) => void;
+  onSubmit?: (answer: string) => void;
 };
 
 export function WhoWroteItAnsweringScreen({
@@ -24,6 +25,7 @@ export function WhoWroteItAnsweringScreen({
   submittedCount,
   totalSlots,
   isSubmitting,
+  isSpectator = false,
   actionError = null,
   onSubmit,
 }: WhoWroteItAnsweringScreenProps) {
@@ -39,7 +41,7 @@ export function WhoWroteItAnsweringScreen({
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     const trimmed = answer.trim();
-    if (!trimmed || !canSubmit || isSubmitting) {
+    if (!trimmed || !canSubmit || isSubmitting || !onSubmit) {
       return;
     }
     onSubmit(trimmed);
@@ -47,22 +49,18 @@ export function WhoWroteItAnsweringScreen({
 
   return (
     <GameScreen ariaLabel="أجب على السؤال" maxWidth="3xl">
-      <div className="flex flex-col gap-6 sm:gap-8">
-        <div className="text-center">
-          <p className="text-sm font-semibold text-wanas-accent">✍️ من كتبها؟</p>
-        </div>
-
-        <div className="wanas-game-card rounded-[2rem] px-5 py-10 text-center sm:px-10 sm:py-12">
+      <div className="flex flex-col gap-5 sm:gap-6">
+        <div className="wanas-game-card rounded-[1.75rem] px-5 py-8 text-center sm:px-8 sm:py-10">
           <p className="break-words text-2xl font-bold leading-snug tracking-tight text-wanas-text-primary min-[360px]:text-3xl sm:text-4xl">
             {question}
           </p>
         </div>
 
-        {hasSubmitted ? (
-          <div className="wanas-game-card rounded-[1.25rem] px-5 py-8 text-center">
+        {isSpectator ? null : hasSubmitted ? (
+          <div className="wanas-game-card rounded-[1.25rem] px-5 py-6 text-center">
             <p className="text-lg font-semibold text-wanas-text-primary">تم إرسال إجابتك</p>
-            <p className="mt-2 text-sm text-wanas-text-muted">بانتظار بقية اللاعبين...</p>
-            <p className="mt-4 text-sm tabular-nums text-wanas-text-muted">
+            <p className="mt-1.5 text-sm text-wanas-text-muted">بانتظار بقية اللاعبين...</p>
+            <p className="mt-3 text-sm tabular-nums text-wanas-text-muted">
               {submittedCount} / {totalSlots} أجابوا
             </p>
           </div>
@@ -87,7 +85,7 @@ export function WhoWroteItAnsweringScreen({
               onChange={(event) => setAnswer(event.target.value)}
               placeholder="اكتب إجابتك هنا..."
               className={cn(
-                'min-h-28 w-full resize-none rounded-xl border border-wanas-border bg-wanas-surface px-4 py-3',
+                'min-h-24 w-full resize-none rounded-xl border border-wanas-border bg-wanas-surface px-4 py-3',
                 'text-base text-wanas-text-primary placeholder:text-wanas-text-muted',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/40',
               )}

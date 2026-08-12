@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type {
   GameContentSettings,
   GameShellPlayer,
@@ -8,11 +9,20 @@ import type {
   WhoWroteItRevealEntry,
   WhoWroteItRoundState,
 } from '@wanasatna/shared';
-import { WHO_WROTE_IT_DEFAULT_ROUNDS } from '@wanasatna/shared';
-import { resolveMatchRounds } from '../../../../config/test-timers.js';
-import { getRoomRoundCategory } from '../../runtime/round-category-store.js';
+import {
+  MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL,
+  MATCH_COMPLETED_WAITING_MESSAGE,
+  WHO_WROTE_IT_DEFAULT_ROUNDS,
+  buildRoundResultsContinueCopy,
+} from '@wanasatna/shared';
+import { timedPhaseDurations } from '../../../../config/test-timers.js';
 import { createOpaqueAnswerId, shuffleIds } from './answers.js';
-import { pickWhoWroteItPrompt } from './prompts.js';
+import {
+  pickRoundCategoryId,
+  pickWhoWroteItPrompt,
+  resolveMatchCategorySelection,
+  WHO_WROTE_IT_RANDOM_CATEGORY_ID,
+} from './prompts.js';
 import {
   buildLeaderboardEntries,
   buildResultsLeaderboardEntries,
@@ -28,8 +38,8 @@ const PHASE_LABELS = {
 
 const MAX_RECENT_QUESTION_IDS = 24;
 
-export function resolveTotalRounds(settings: GameContentSettings): number {
-  return resolveMatchRounds(settings.rounds, WHO_WROTE_IT_DEFAULT_ROUNDS);
+export function resolveTotalRounds(_settings?: GameContentSettings): number {
+  return WHO_WROTE_IT_DEFAULT_ROUNDS;
 }
 
 export function withRound(
@@ -43,22 +53,58 @@ export function createInitialScores(playerIds: string[]): Record<string, number>
   return Object.fromEntries(playerIds.map((playerId) => [playerId, 0]));
 }
 
+export function remainingSecondsFromDeadline(deadlineAtMs: number | null, now = Date.now()): number {
+  if (deadlineAtMs === null) {
+    return 0;
+  }
+
+  return Math.max(0, Math.ceil((deadlineAtMs - now) / 1000));
+}
+
+export function applyGuessDeadline(
+  match: WhoWroteItMatchState,
+  now = Date.now(),
+): WhoWroteItMatchState {
+  const seconds = timedPhaseDurations.whoWroteItGuess();
+  return withRound(match, {
+    ...match.round,
+    phaseRemainingSeconds: seconds,
+    deadlineAtMs: now + seconds * 1000,
+  });
+}
+
 export function createRoundState(
-  roomId: string,
+  matchCategoryId: string,
+  usedRoundCategoryIds: readonly string[],
   recentQuestionIds: readonly string[],
-): WhoWroteItRoundState {
-  const prompt = pickWhoWroteItPrompt(roomId, recentQuestionIds);
+  now = Date.now(),
+): { round: WhoWroteItRoundState; usedRoundCategoryIds: string[] } {
+  const roundCategoryId = pickRoundCategoryId(matchCategoryId, usedRoundCategoryIds);
+  const prompt = pickWhoWroteItPrompt(roundCategoryId, recentQuestionIds);
+  const answeringSeconds = timedPhaseDurations.whoWroteItAnswering();
+
+  const nextUsed =
+    matchCategoryId === WHO_WROTE_IT_RANDOM_CATEGORY_ID
+      ? usedRoundCategoryIds.includes(roundCategoryId)
+        ? [...usedRoundCategoryIds]
+        : [...usedRoundCategoryIds, roundCategoryId]
+      : [...usedRoundCategoryIds];
 
   return {
-    gamePhase: 'answering',
-    phaseRemainingSeconds: 0,
-    questionId: prompt.id,
-    question: prompt.text,
-    categoryId: prompt.categoryId,
-    answers: [],
-    shuffledAnswerIds: [],
-    currentAnswerIndex: 0,
-    guessesByPlayerId: {},
+    round: {
+      roundId: randomUUID(),
+      gamePhase: 'answering',
+      phaseRemainingSeconds: answeringSeconds,
+      deadlineAtMs: now + answeringSeconds * 1000,
+      questionId: prompt.id,
+      question: prompt.text,
+      categoryId: roundCategoryId,
+      answers: [],
+      shuffledAnswerIds: [],
+      currentAnswerIndex: 0,
+      guessesByPlayerId: {},
+    },
+    usedRoundCategoryIds: nextUsed,
   };
 }
 
@@ -71,8 +117,13 @@ export function createMatchState(
     throw new Error('No players available for Who Wrote It match.');
   }
 
+  const selection = resolveMatchCategorySelection(roomId);
   const playerIds = players.map((player) => player.id);
-  const round = createRoundState(roomId, []);
+  const { round, usedRoundCategoryIds } = createRoundState(
+    selection.matchCategoryId,
+    [],
+    [],
+  );
 
   return {
     playerIds,
@@ -81,6 +132,9 @@ export function createMatchState(
     totalRounds: resolveTotalRounds(settings),
     scores: createInitialScores(playerIds),
     matchStatus: 'in-progress',
+    lockedCategoryId: selection.matchCategoryId,
+    lockedCategoryLabel: selection.matchCategoryLabel,
+    usedRoundCategoryIds,
     recentQuestionIds: [round.questionId],
     round,
   };
@@ -179,7 +233,7 @@ export function allRequiredHaveGuessedCurrent(
   shell: GameShellState,
 ): boolean {
   const { guessed, required } = countGuessesForCurrentAnswer(match, shell);
-  return required > 0 && guessed >= required;
+  return guessed >= required;
 }
 
 export function getEligibleOwnerOptions(
@@ -235,14 +289,15 @@ export function beginGuessingPhase(match: WhoWroteItMatchState): WhoWroteItMatch
   }
 
   const shuffledAnswerIds = shuffleIds(match.round.answers.map((answer) => answer.answerId));
-
-  return withRound(match, {
+  const withShuffle = withRound(match, {
     ...match.round,
     gamePhase: 'guessing',
     shuffledAnswerIds,
     currentAnswerIndex: 0,
     guessesByPlayerId: {},
   });
+
+  return applyGuessDeadline(withShuffle);
 }
 
 export function applyOwnerGuess(
@@ -265,7 +320,7 @@ export function applyOwnerGuess(
 
 /**
  * Advance global answer index, or signal that guessing is complete.
- * Caller must ensure current answer guesses are complete.
+ * Caller must ensure current answer guesses are complete or timed out.
  */
 export function advanceGlobalAnswerOrComplete(
   match: WhoWroteItMatchState,
@@ -277,10 +332,12 @@ export function advanceGlobalAnswerOrComplete(
   }
 
   return {
-    match: withRound(match, {
-      ...match.round,
-      currentAnswerIndex: nextIndex,
-    }),
+    match: applyGuessDeadline(
+      withRound(match, {
+        ...match.round,
+        currentAnswerIndex: nextIndex,
+      }),
+    ),
     completed: false,
   };
 }
@@ -311,32 +368,6 @@ function buildRevealEntries(
     });
 }
 
-function buildRoundResultsInteractionView(
-  match: WhoWroteItMatchState,
-  shell: GameShellState,
-  playerId: string,
-): Pick<
-  WhoWroteItPlayerView,
-  | 'isHost'
-  | 'canContinueFromRoundResults'
-  | 'roundResultsContinueLabel'
-  | 'roundResultsWaitingMessage'
-> {
-  const isHost = shell.hostPlayerId === playerId;
-  const isFinalRound = match.currentRound >= match.totalRounds;
-
-  return {
-    isHost,
-    canContinueFromRoundResults: isHost && match.round.gamePhase === 'round-results',
-    roundResultsContinueLabel: isHost
-      ? isFinalRound
-        ? 'عرض النتائج النهائية'
-        : 'بدء الجولة التالية'
-      : null,
-    roundResultsWaitingMessage: isHost ? null : 'بانتظار المضيف...',
-  };
-}
-
 export function buildWhoWroteItPlayerView(
   match: WhoWroteItMatchState,
   playerId: string,
@@ -345,6 +376,7 @@ export function buildWhoWroteItPlayerView(
   const phase = match.round.gamePhase;
   const revealed = phase === 'round-results' || phase === 'match-completed';
   const isParticipant = match.playerIds.includes(playerId);
+  const isMatchSpectator = !isParticipant;
   const ownAnswer = findAnswerByPlayerId(match, playerId);
   const hasSubmittedAnswer = Boolean(ownAnswer);
   const connectedIds = getConnectedParticipantIds(match, shell);
@@ -353,28 +385,36 @@ export function buildWhoWroteItPlayerView(
 
   const currentAnswer = phase === 'guessing' ? getCurrentAnswer(match) : undefined;
   const currentAnswerId = currentAnswer?.answerId ?? null;
-  const isOwnAnswer = Boolean(
-    currentAnswer && currentAnswer.ownerPlayerId === playerId,
-  );
+  const isOwnAnswer = Boolean(currentAnswer && currentAnswer.ownerPlayerId === playerId);
   const hasGuessedCurrentAnswer = Boolean(
     currentAnswerId && getPlayerGuessMap(match, playerId)[currentAnswerId],
   );
-  const guessCounts = phase === 'guessing'
-    ? countGuessesForCurrentAnswer(match, shell)
-    : { guessed: 0, required: 0 };
+  const guessCounts =
+    phase === 'guessing' ? countGuessesForCurrentAnswer(match, shell) : { guessed: 0, required: 0 };
 
-  return {
+  const phaseRemainingSeconds =
+    (phase === 'answering' || phase === 'guessing') && match.round.deadlineAtMs
+      ? remainingSecondsFromDeadline(match.round.deadlineAtMs)
+      : match.round.phaseRemainingSeconds;
+
+  const base: WhoWroteItPlayerView = {
     gamePhase: phase,
-    phaseLabel: `${PHASE_LABELS[phase]} — الجولة ${match.currentRound}/${match.totalRounds}`,
-    phaseRemainingSeconds: match.round.phaseRemainingSeconds,
+    phaseLabel: isMatchSpectator
+      ? 'الجولة جارية'
+      : `${PHASE_LABELS[phase]} — الجولة ${match.currentRound}/${match.totalRounds}`,
+    phaseRemainingSeconds,
+    deadlineAtMs:
+      (phase === 'answering' || phase === 'guessing') && match.round.deadlineAtMs
+        ? match.round.deadlineAtMs
+        : null,
+    roundId: match.round.roundId,
     question: match.round.question,
-    categoryId: match.round.categoryId,
-    nextCategoryId: getRoomRoundCategory(shell.roomId) ?? 'random',
+    categoryId: match.lockedCategoryId,
+    categoryLabel: match.lockedCategoryLabel,
     currentRound: match.currentRound,
     totalRounds: match.totalRounds,
     matchStatus: match.matchStatus,
-    canSubmitAnswer:
-      isParticipant && phase === 'answering' && !hasSubmittedAnswer,
+    canSubmitAnswer: isParticipant && phase === 'answering' && !hasSubmittedAnswer,
     hasSubmittedAnswer,
     submittedAnswerCount,
     totalAnswerSlots,
@@ -398,13 +438,40 @@ export function buildWhoWroteItPlayerView(
     currentAnswerGuessCount: guessCounts.guessed,
     currentAnswerRequiredGuessCount: guessCounts.required,
     guessOptions:
-      phase === 'guessing' && !isOwnAnswer && !hasGuessedCurrentAnswer
+      phase === 'guessing' && !isOwnAnswer && !hasGuessedCurrentAnswer && isParticipant
         ? getEligibleOwnerOptions(match, playerId)
         : [],
     revealEntries: revealed ? buildRevealEntries(match, playerId) : [],
     roundResults: revealed ? buildRoundResultEntries(match) : [],
-    leaderboard: buildLeaderboardEntries(match),
+    leaderboard: isMatchSpectator ? [] : buildLeaderboardEntries(match),
     resultsLeaderboard: buildResultsLeaderboardEntries(match),
-    ...buildRoundResultsInteractionView(match, shell, playerId),
+    isHost: shell.hostPlayerId === playerId,
+    canContinueFromRoundResults: false,
+    roundResultsContinueLabel: null,
+    roundResultsWaitingMessage: null,
+    isMatchSpectator,
   };
+
+  if (phase === 'round-results') {
+    return {
+      ...base,
+      ...buildRoundResultsContinueCopy({
+        isFinalRound: match.currentRound >= match.totalRounds,
+        isHost: shell.hostPlayerId === playerId,
+      }),
+    };
+  }
+
+  if (phase === 'match-completed') {
+    const isHost = shell.hostPlayerId === playerId;
+    return {
+      ...base,
+      isHost,
+      canContinueFromRoundResults: isHost,
+      roundResultsContinueLabel: isHost ? MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL : null,
+      roundResultsWaitingMessage: MATCH_COMPLETED_WAITING_MESSAGE,
+    };
+  }
+
+  return base;
 }

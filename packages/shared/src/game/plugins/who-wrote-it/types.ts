@@ -2,7 +2,11 @@ import { pluginActionEvent, pluginStateEvent } from '../../plugin/events.js';
 
 export const WHO_WROTE_IT_GAME_ID = 'who-wrote-it' as const;
 
-export const WHO_WROTE_IT_DEFAULT_ROUNDS = 4;
+/** Production Free: exactly 3 rounds (not lobby-configurable). */
+export const WHO_WROTE_IT_DEFAULT_ROUNDS = 3;
+export const WHO_WROTE_IT_ANSWERING_SECONDS = 60;
+export const WHO_WROTE_IT_GUESS_SECONDS = 30;
+export const WHO_WROTE_IT_ROUND_RESULTS_SECONDS = 10;
 export const WHO_WROTE_IT_MAX_ANSWER_LENGTH = 150;
 export const WHO_WROTE_IT_POINTS_PER_CORRECT = 100;
 
@@ -19,10 +23,13 @@ export type WhoWroteItAnswerRecord = {
 };
 
 export type WhoWroteItRoundState = {
+  roundId: string;
   gamePhase: WhoWroteItGamePhase;
   phaseRemainingSeconds: number;
+  deadlineAtMs: number | null;
   questionId: string;
   question: string;
+  /** Internal prompt category for this round. */
   categoryId: string;
   /** Server-only owner mapping until reveal/results. */
   answers: WhoWroteItAnswerRecord[];
@@ -41,6 +48,12 @@ export type WhoWroteItMatchState = {
   totalRounds: number;
   scores: Record<string, number>;
   matchStatus: 'in-progress' | 'completed';
+  /** Lobby selection: specific category id, or `random`. */
+  lockedCategoryId: string;
+  /** Public header label — stays `عشوائي` for the whole match when random. */
+  lockedCategoryLabel: string;
+  /** Internal categories already used in this match (random mode only). */
+  usedRoundCategoryIds: string[];
   recentQuestionIds: string[];
   round: WhoWroteItRoundState;
 };
@@ -85,9 +98,11 @@ export type WhoWroteItPlayerView = {
   gamePhase: WhoWroteItGamePhase;
   phaseLabel: string;
   phaseRemainingSeconds: number;
+  deadlineAtMs: number | null;
+  roundId: string | null;
   question: string | null;
   categoryId: string | null;
-  nextCategoryId: string | null;
+  categoryLabel: string | null;
   currentRound: number;
   totalRounds: number;
   matchStatus: 'in-progress' | 'completed';
@@ -119,6 +134,7 @@ export type WhoWroteItPlayerView = {
   canContinueFromRoundResults: boolean;
   roundResultsContinueLabel: string | null;
   roundResultsWaitingMessage: string | null;
+  isMatchSpectator: boolean;
 };
 
 export const WHO_WROTE_IT_SYNC_EVENT = pluginActionEvent(WHO_WROTE_IT_GAME_ID, 'sync');
@@ -138,21 +154,15 @@ export const WHO_WROTE_IT_CONTINUE_ROUND_RESULTS_EVENT = pluginActionEvent(
   WHO_WROTE_IT_GAME_ID,
   'continue-round-results',
 );
-export const WHO_WROTE_IT_SET_CATEGORY_EVENT = pluginActionEvent(
-  WHO_WROTE_IT_GAME_ID,
-  'set-category',
-);
 export const WHO_WROTE_IT_STATE_EVENT = pluginStateEvent(WHO_WROTE_IT_GAME_ID);
 
 export type WhoWroteItSubmitAnswerPayload = {
   answer: string;
+  roundId: string;
 };
 
 export type WhoWroteItSubmitOwnerGuessPayload = {
   answerId: string;
   ownerPlayerId: string;
-};
-
-export type WhoWroteItSetCategoryPayload = {
-  categoryId: string | null;
+  roundId: string;
 };

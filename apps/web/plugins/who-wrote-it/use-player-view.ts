@@ -5,7 +5,6 @@ import type { WhoWroteItPlayerView } from '@wanasatna/shared';
 import {
   WHO_WROTE_IT_CONTINUE_ROUND_RESULTS_EVENT,
   WHO_WROTE_IT_PHASE_CHANGED_EVENT,
-  WHO_WROTE_IT_SET_CATEGORY_EVENT,
   WHO_WROTE_IT_SUBMIT_ANSWER_EVENT,
   WHO_WROTE_IT_SUBMIT_OWNER_GUESS_EVENT,
   WHO_WROTE_IT_SYNC_EVENT,
@@ -34,7 +33,17 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
   const [isLoading, setIsLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
+  const [remainingSeconds, setRemainingSeconds] = useState(0);
   const hasViewRef = useRef(false);
+  const roundIdRef = useRef<string | null>(null);
+
+  const applyView = useCallback((nextView: WhoWroteItPlayerView) => {
+    hasViewRef.current = true;
+    roundIdRef.current = nextView.roundId;
+    setView(nextView);
+    setRemainingSeconds(nextView.phaseRemainingSeconds);
+    setErrorMessage(null);
+  }, []);
 
   const syncView = useCallback(async () => {
     const isInitialLoad = !hasViewRef.current;
@@ -47,9 +56,7 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
     const result = await fetchPlayerView();
 
     if (result.view) {
-      hasViewRef.current = true;
-      setView(result.view);
-      setErrorMessage(null);
+      applyView(result.view);
     } else if (isInitialLoad) {
       setErrorMessage(result.errorMessage);
     }
@@ -57,21 +64,27 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
     if (isInitialLoad) {
       setIsLoading(false);
     }
-  }, []);
+  }, [applyView]);
 
   useEffect(() => {
     if (!enabled) {
       hasViewRef.current = false;
+      roundIdRef.current = null;
       setView(null);
       setErrorMessage(null);
       setIsLoading(false);
       setActionError(null);
       setIsSubmittingAction(false);
+      setRemainingSeconds(0);
       return;
     }
 
     void syncView();
   }, [enabled, syncView]);
+
+  useEffect(() => {
+    roundIdRef.current = view?.roundId ?? null;
+  }, [view?.roundId]);
 
   useEffect(() => {
     if (!enabled) {
@@ -91,9 +104,42 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
     };
   }, [enabled, syncView]);
 
+  useEffect(() => {
+    if (!enabled || !view) {
+      return;
+    }
+
+    if (
+      (view.gamePhase === 'answering' || view.gamePhase === 'guessing') &&
+      view.deadlineAtMs
+    ) {
+      const updateRemaining = () => {
+        setRemainingSeconds(Math.max(0, Math.ceil((view.deadlineAtMs! - Date.now()) / 1000)));
+      };
+
+      updateRemaining();
+      const intervalId = window.setInterval(updateRemaining, 250);
+      return () => window.clearInterval(intervalId);
+    }
+
+    if (view.gamePhase === 'round-results' || view.gamePhase === 'match-completed') {
+      setRemainingSeconds(view.phaseRemainingSeconds);
+      const intervalId = window.setInterval(() => {
+        setRemainingSeconds((current) => Math.max(0, current - 1));
+      }, 1000);
+      return () => window.clearInterval(intervalId);
+    }
+  }, [
+    enabled,
+    view?.gamePhase,
+    view?.deadlineAtMs,
+    view?.phaseRemainingSeconds,
+    view?.roundId,
+  ]);
+
   const submitAnswer = useCallback(
     async (answer: string) => {
-      if (!enabled || isSubmittingAction) {
+      if (!enabled || isSubmittingAction || !roundIdRef.current) {
         return;
       }
 
@@ -102,7 +148,7 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
 
       const response = await emitPluginWithAck<{ view: WhoWroteItPlayerView }>(
         WHO_WROTE_IT_SUBMIT_ANSWER_EVENT,
-        { answer },
+        { answer, roundId: roundIdRef.current },
       );
 
       if (!response.success) {
@@ -111,15 +157,15 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
         return;
       }
 
-      setView(response.data.view);
+      applyView(response.data.view);
       setIsSubmittingAction(false);
     },
-    [enabled, isSubmittingAction],
+    [applyView, enabled, isSubmittingAction],
   );
 
   const submitOwnerGuess = useCallback(
     async (answerId: string, ownerPlayerId: string) => {
-      if (!enabled || isSubmittingAction) {
+      if (!enabled || isSubmittingAction || !roundIdRef.current) {
         return;
       }
 
@@ -128,7 +174,7 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
 
       const response = await emitPluginWithAck<{ view: WhoWroteItPlayerView }>(
         WHO_WROTE_IT_SUBMIT_OWNER_GUESS_EVENT,
-        { answerId, ownerPlayerId },
+        { answerId, ownerPlayerId, roundId: roundIdRef.current },
       );
 
       if (!response.success) {
@@ -137,10 +183,10 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
         return;
       }
 
-      setView(response.data.view);
+      applyView(response.data.view);
       setIsSubmittingAction(false);
     },
-    [enabled, isSubmittingAction],
+    [applyView, enabled, isSubmittingAction],
   );
 
   const continueFromRoundResults = useCallback(async () => {
@@ -151,7 +197,7 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
     setIsSubmittingAction(true);
     setActionError(null);
 
-    const response = await emitPluginWithAck<{ view: WhoWroteItPlayerView }>(
+    const response = await emitPluginWithAck<{ view?: WhoWroteItPlayerView }>(
       WHO_WROTE_IT_CONTINUE_ROUND_RESULTS_EVENT,
     );
 
@@ -161,35 +207,12 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
       return;
     }
 
-    setView(response.data.view);
+    if (response.data?.view) {
+      applyView(response.data.view);
+    }
+
     setIsSubmittingAction(false);
-  }, [enabled, isSubmittingAction]);
-
-  const setNextRoundCategory = useCallback(
-    async (categoryId: string | null) => {
-      if (!enabled || isSubmittingAction) {
-        return;
-      }
-
-      setIsSubmittingAction(true);
-      setActionError(null);
-
-      const response = await emitPluginWithAck<{ view: WhoWroteItPlayerView }>(
-        WHO_WROTE_IT_SET_CATEGORY_EVENT,
-        { categoryId },
-      );
-
-      if (!response.success) {
-        setActionError(response.error.message);
-        setIsSubmittingAction(false);
-        return;
-      }
-
-      setView(response.data.view);
-      setIsSubmittingAction(false);
-    },
-    [enabled, isSubmittingAction],
-  );
+  }, [applyView, enabled, isSubmittingAction]);
 
   return {
     view,
@@ -197,9 +220,9 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
     isLoading,
     actionError,
     isSubmittingAction,
+    remainingSeconds,
     submitAnswer,
     submitOwnerGuess,
     continueFromRoundResults,
-    setNextRoundCategory,
   };
 }

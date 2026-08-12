@@ -1,7 +1,6 @@
 import type { Server, Socket } from 'socket.io';
 import type {
   GameActionResponse,
-  WhoWroteItSetCategoryPayload,
   WhoWroteItSubmitAnswerPayload,
   WhoWroteItSubmitOwnerGuessPayload,
 } from '@wanasatna/shared';
@@ -9,7 +8,6 @@ import {
   WHO_WROTE_IT_CONTINUE_ROUND_RESULTS_EVENT,
   WHO_WROTE_IT_GAME_ID,
   WHO_WROTE_IT_PHASE_CHANGED_EVENT,
-  WHO_WROTE_IT_SET_CATEGORY_EVENT,
   WHO_WROTE_IT_SUBMIT_ANSWER_EVENT,
   WHO_WROTE_IT_SUBMIT_OWNER_GUESS_EVENT,
   WHO_WROTE_IT_SYNC_EVENT,
@@ -22,19 +20,15 @@ import {
   isPlayerRecoveryActive,
   playerRecoveryBlockedError,
 } from '../../runtime/player-recovery.js';
-import { setRoomRoundCategory } from '../../runtime/round-category-store.js';
 import { validateSubmittedAnswer } from './answers.js';
 import { ensureWhoWroteItMatchStateWithTimer } from './init-match.js';
 import {
+  advanceGuessingIfReady,
   continueFromRoundResults,
-  startRoundResults,
   transitionToGuessing,
 } from './match-lifecycle.js';
 import { clearWhoWroteItPhaseTimerRuntime } from './phase-timer.js';
 import {
-  advanceGlobalAnswerOrComplete,
-  allConnectedHaveAnswered,
-  allRequiredHaveGuessedCurrent,
   applyOwnerGuess,
   buildWhoWroteItPlayerView,
   findAnswerById,
@@ -43,6 +37,7 @@ import {
   getEligibleOwnerOptions,
   getPlayerGuessMap,
   submitAnswerToMatch,
+  allConnectedHaveAnswered,
 } from './state.js';
 import {
   deleteWhoWroteItState,
@@ -109,6 +104,12 @@ function respondWithView(
   });
 }
 
+function payloadRoundId(payload: { roundId?: unknown } | undefined): string {
+  return payload && typeof payload === 'object' && typeof payload.roundId === 'string'
+    ? payload.roundId
+    : '';
+}
+
 export function registerWhoWroteItSocketHandlers(io: Server, socket: Socket): void {
   socket.on(WHO_WROTE_IT_SYNC_EVENT, (_payload: unknown, callback) => {
     const contextError = getGameSocketContext(socket);
@@ -164,6 +165,11 @@ export function registerWhoWroteItSocketHandlers(io: Server, socket: Socket): vo
 
       if (match.round.gamePhase !== 'answering') {
         sendGameResponse(callback, invalidActionError('انتهت مرحلة الإجابات.'));
+        return;
+      }
+
+      if (payloadRoundId(payload) !== match.round.roundId) {
+        sendGameResponse(callback, invalidActionError('انتهت هذه الجولة.'));
         return;
       }
 
@@ -226,6 +232,11 @@ export function registerWhoWroteItSocketHandlers(io: Server, socket: Socket): vo
         return;
       }
 
+      if (payloadRoundId(payload) !== match.round.roundId) {
+        sendGameResponse(callback, invalidActionError('انتهت هذه الجولة.'));
+        return;
+      }
+
       const answerId =
         payload && typeof payload === 'object' && typeof payload.answerId === 'string'
           ? payload.answerId
@@ -275,18 +286,9 @@ export function registerWhoWroteItSocketHandlers(io: Server, socket: Socket): vo
 
       match = applyOwnerGuess(match, playerId!, answerId, ownerPlayerId);
       setWhoWroteItState(roomId!, match);
+      match = advanceGuessingIfReady(io, roomId!, match, shell);
 
-      if (allRequiredHaveGuessedCurrent(match, shell)) {
-        const advanced = advanceGlobalAnswerOrComplete(match);
-
-        if (advanced.completed) {
-          match = startRoundResults(io, roomId!, advanced.match);
-        } else {
-          match = advanced.match;
-          setWhoWroteItState(roomId!, match);
-          io.to(getRoomChannel(roomId!)).emit(WHO_WROTE_IT_PHASE_CHANGED_EVENT, {});
-        }
-      } else {
+      if (match.round.gamePhase === 'guessing' && getCurrentAnswerId(match) === answerId) {
         io.to(getRoomChannel(roomId!)).emit(WHO_WROTE_IT_PHASE_CHANGED_EVENT, {});
       }
 
@@ -325,58 +327,14 @@ export function registerWhoWroteItSocketHandlers(io: Server, socket: Socket): vo
     }
 
     continueFromRoundResults(io, roomId!, match, shell, playerId!);
-    respondWithView(callback, roomId!, playerId!);
-  });
 
-  socket.on(
-    WHO_WROTE_IT_SET_CATEGORY_EVENT,
-    (payload: WhoWroteItSetCategoryPayload, callback) => {
-      const contextError = getGameSocketContext(socket);
-
-      if (contextError) {
-        sendGameResponse(callback, contextError);
-        return;
-      }
-
-      const { roomId, playerId } = socket.data;
-
-      if (recoveryBlockedResponse(roomId!, callback)) {
-        return;
-      }
-
-      const shell = getGameShellByRoomId(roomId!);
-      const match = getWhoWroteItState(roomId!);
-
-      if (!shell || !match || shell.gameId !== WHO_WROTE_IT_GAME_ID) {
-        sendGameResponse(callback, gameNotReadyError());
-        return;
-      }
-
-      if (shell.hostPlayerId !== playerId) {
-        sendGameResponse(callback, {
-          success: false,
-          error: { code: 'NOT_HOST', message: 'هذا الإجراء متاح للمضيف فقط.' },
-        });
-        return;
-      }
-
-      if (match.round.gamePhase !== 'round-results') {
-        sendGameResponse(callback, invalidActionError('يمكن تغيير الفئة أثناء نتائج الجولة فقط.'));
-        return;
-      }
-
-      const categoryId =
-        payload && typeof payload === 'object' ? payload.categoryId : null;
-
-      setRoomRoundCategory(
-        roomId!,
-        typeof categoryId === 'string' || categoryId === null ? categoryId : null,
-      );
-
-      io.to(getRoomChannel(roomId!)).emit(WHO_WROTE_IT_PHASE_CHANGED_EVENT, {});
+    if (getWhoWroteItState(roomId!)) {
       respondWithView(callback, roomId!, playerId!);
-    },
-  );
+      return;
+    }
+
+    sendGameResponse(callback, { success: true, data: {} });
+  });
 }
 
 export { clearWhoWroteItRuntime };

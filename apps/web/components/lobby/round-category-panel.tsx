@@ -1,6 +1,6 @@
 'use client';
 
-import { FAST_ANSWER_GAME_ID } from '@wanasatna/shared';
+import { FAST_ANSWER_GAME_ID, WHO_WROTE_IT_GAME_ID } from '@wanasatna/shared';
 import {
   getGameRoundCategories,
   type RoundCategory,
@@ -65,8 +65,9 @@ export function RoundCategoryPanel({
     return null;
   }
 
-  // Fast Answer: category is lobby-only for the whole match — hide during active play.
-  if (gameId === FAST_ANSWER_GAME_ID && isActiveMatch) {
+  const lockForMatch = gameId === FAST_ANSWER_GAME_ID || gameId === WHO_WROTE_IT_GAME_ID;
+
+  if (lockForMatch && isActiveMatch) {
     return null;
   }
 
@@ -75,16 +76,18 @@ export function RoundCategoryPanel({
       ? selectedCategoryId
       : config.defaultCategoryId;
 
-  const lockForMatch = gameId === FAST_ANSWER_GAME_ID;
   const subtitle = lockForMatch
     ? 'اختر الفئة التي تريد اللعب بها طوال المباراة'
     : isActiveMatch
       ? 'اختر الفئة التي تريد اللعب بها في الجولة التالية'
       : 'اختر الفئة التي تريد اللعب بها في الجولة الأولى';
 
-  const footer = lockForMatch
-    ? 'تُقفل الفئة عند بدء المباراة وتستخدم لكل الجولات الخمس'
-    : 'سيتم استخدام هذه الفئة فقط للجولة القادمة، ويمكن تغييرها قبل كل جولة جديدة';
+  const footer =
+    gameId === FAST_ANSWER_GAME_ID
+      ? 'تُقفل الفئة عند بدء المباراة وتستخدم لكل الجولات الخمس'
+      : gameId === WHO_WROTE_IT_GAME_ID
+        ? 'تُقفل الفئة عند بدء المباراة وتستخدم لكل الجولات الثلاث'
+        : 'سيتم استخدام هذه الفئة فقط للجولة القادمة، ويمكن تغييرها قبل كل جولة جديدة';
 
   return (
     <section

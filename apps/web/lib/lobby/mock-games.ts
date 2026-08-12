@@ -83,8 +83,8 @@ export const mockGameSettingsByGameId: Record<string, LobbyGameSettingsPlacehold
     { id: 'range', label: 'نطاق الوقت', value: '٣–١٥ ثانية' },
   ],
   'who-wrote-it': [
-    { id: 'rounds', label: 'عدد الجولات', value: '٤ جولات' },
-    { id: 'prompts', label: 'نوع الأسئلة', value: 'عشوائي' },
+    { id: 'info-rounds', label: 'عدد الجولات', value: '٣ جولات ثابتة' },
+    { id: 'info-time', label: 'وقت الكتابة', value: '٦٠ ثانية' },
   ],
   judge: [
     { id: 'rounds', label: 'عدد الجولات', value: '٣ جولات' },
