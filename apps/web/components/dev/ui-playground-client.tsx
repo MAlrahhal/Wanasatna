@@ -24,7 +24,6 @@ import { resetRoomSessionForDevelopment } from '@/lib/room/reset-session';
 import { cn } from '@/lib/utils';
 import { CountdownScreen } from '@/plugins/bara-al-salafa/countdown-screen';
 import { DirectedQuestionsScreen } from '@/plugins/bara-al-salafa/directed-questions-screen';
-import { FreeDiscussionScreen } from '@/plugins/bara-al-salafa/free-discussion-screen';
 import { FreeQuestionsScreen } from '@/plugins/bara-al-salafa/free-questions-screen';
 import { ImpostorGuessScreen } from '@/plugins/bara-al-salafa/impostor-guess-screen';
 import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-screen';
@@ -35,8 +34,6 @@ import { VotingScreen } from '@/plugins/bara-al-salafa/voting-screen';
 import {
   countdownDemoDefaults,
   directedQuestionsDemoDefaults,
-  freeDiscussionDemoDefaults,
-  freeDiscussionLowTimeDemoDefaults,
   freeQuestionsDemoDefaults,
   freeQuestionsMostCompletedDemoDefaults,
   freeQuestionsWaitingDemoDefaults,
@@ -488,31 +485,6 @@ export function UiPlaygroundClient() {
                   {...directedQuestionsDemoDefaults}
                   currentPlayerId="p3"
                 />
-              </div>
-            </div>
-          </PlaygroundSubsection>
-
-          <PlaygroundSubsection title="Free Discussion — برا السالفة">
-            <div className="grid gap-6 xl:grid-cols-2">
-              <div className="overflow-hidden rounded-[24px] border border-wanas-border bg-wanas-background">
-                <p className="border-b border-wanas-border bg-wanas-surface-soft px-4 py-2 text-xs font-bold text-wanas-text-muted">
-                  Standard Desktop Preview
-                </p>
-                <FreeDiscussionScreen {...freeDiscussionDemoDefaults} />
-              </div>
-              <div className="overflow-hidden rounded-[24px] border border-wanas-border bg-wanas-background">
-                <p className="border-b border-wanas-border bg-wanas-surface-soft px-4 py-2 text-xs font-bold text-wanas-text-muted">
-                  Low Time — 10 Seconds Remaining
-                </p>
-                <FreeDiscussionScreen {...freeDiscussionLowTimeDemoDefaults} />
-              </div>
-            </div>
-            <div className="mt-6 overflow-hidden rounded-[24px] border border-wanas-border bg-wanas-background">
-              <p className="border-b border-wanas-border bg-wanas-surface-soft px-4 py-2 text-xs font-bold text-wanas-text-muted">
-                Mobile Width Preview
-              </p>
-              <div className="mx-auto max-w-[390px] border-x border-wanas-border">
-                <FreeDiscussionScreen {...freeDiscussionDemoDefaults} />
               </div>
             </div>
           </PlaygroundSubsection>

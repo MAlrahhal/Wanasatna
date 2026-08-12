@@ -105,7 +105,7 @@ export async function assertRoomJoinable(room: Room): Promise<ServiceError | nul
   const activePlayerCount = await countActivePlayers(room.id);
 
   if (activePlayerCount >= MAX_ROOM_PLAYERS) {
-    return serviceError('ROOM_FULL', 'This room is full.');
+    return serviceError('ROOM_FULL', 'الغرفة ممتلئة (الحد الأقصى 8 لاعبين).');
   }
 
   return null;

@@ -46,6 +46,7 @@ export function mapDirectedQuestionsLiveProps(
     currentTurn: view.directedQuestionCurrentTurn,
     totalTurns: view.directedQuestionTotalTurns,
     remainingSeconds,
+    showTimer: true,
     roundNumber: view.currentRound,
     totalRounds: view.totalRounds,
     roomCode,
@@ -74,6 +75,7 @@ export function mapVotingLiveProps(
     confirmedPlayerId,
     hasVoted: view.hasVoted,
     remainingSeconds,
+    showTimer: true,
     submittedVotesCount: view.submittedVotesCount,
     eligibleVotersCount: view.eligibleVotersCount,
     roundNumber: view.currentRound,
@@ -81,6 +83,7 @@ export function mapVotingLiveProps(
     roomCode,
     isSubmitting,
     errorMessage,
+    questionHelper: 'صوّت لمين تتوقع أنه برا السالفة',
   };
 }
 
@@ -116,9 +119,17 @@ export function mapImpostorGuessOptions(words: readonly string[]): ImpostorGuess
 export function mapImpostorGuessLiveProps(
   view: BaraAlSalafaPlayerView,
   roomCode: string,
+  remainingSeconds: number,
 ): Pick<
   ImpostorGuessScreenProps,
-  'isImpostor' | 'options' | 'hasSubmitted' | 'roundNumber' | 'totalRounds' | 'roomCode'
+  | 'isImpostor'
+  | 'options'
+  | 'hasSubmitted'
+  | 'roundNumber'
+  | 'totalRounds'
+  | 'roomCode'
+  | 'remainingSeconds'
+  | 'showTimer'
 > {
   return {
     isImpostor: view.isImpostorGuessActivePlayer,
@@ -127,6 +138,8 @@ export function mapImpostorGuessLiveProps(
     roundNumber: view.currentRound,
     totalRounds: view.totalRounds,
     roomCode,
+    remainingSeconds,
+    showTimer: true,
   };
 }
 

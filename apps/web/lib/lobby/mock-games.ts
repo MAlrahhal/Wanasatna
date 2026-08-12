@@ -67,10 +67,7 @@ export const mockLobbyGames: LobbyGame[] = [
 ];
 
 export const mockGameSettingsByGameId: Record<string, LobbyGameSettingsPlaceholder[]> = {
-  'bara-al-salafa': [
-    { id: 'rounds', label: 'عدد الجولات', value: '٣ جولات' },
-    { id: 'timer', label: 'مدة النقاش', value: '٣ دقائق' },
-  ],
+  'bara-al-salafa': [],
   'draw-guess': [
     { id: 'rounds', label: 'عدد الجولات', value: '٥ جولات' },
     { id: 'draw-time', label: 'وقت الرسم', value: '٦٠ ثانية' },

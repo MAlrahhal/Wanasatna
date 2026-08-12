@@ -16,25 +16,8 @@ import {
   timedPhaseDurations,
 } from '../../../../config/test-timers.js';
 
-const DEFAULT_QUESTION_TURN_SECONDS = 45;
-const MIN_QUESTION_TURN_SECONDS = 30;
-const MAX_QUESTION_TURN_SECONDS = 90;
-
-export function resolveTotalRounds(settings: GameContentSettings): number {
-  return resolveMatchRounds(settings.rounds, BARA_AL_SALAFA_DEFAULT_ROUNDS);
-}
-
-function resolveQuestionTurnDuration(
-  settings: GameContentSettings,
-  playerCount: number,
-): number {
-  const baseDuration = settings.roundTime ?? DEFAULT_QUESTION_TURN_SECONDS;
-  const scaledDuration = Math.floor(baseDuration / Math.max(playerCount, 1));
-
-  return Math.min(
-    MAX_QUESTION_TURN_SECONDS,
-    Math.max(MIN_QUESTION_TURN_SECONDS, scaledDuration),
-  );
+export function resolveTotalRounds(_settings?: GameContentSettings): number {
+  return resolveMatchRounds(BARA_AL_SALAFA_DEFAULT_ROUNDS, BARA_AL_SALAFA_DEFAULT_ROUNDS);
 }
 
 export function createInitialScores(playerIds: string[]): Record<string, number> {
@@ -56,11 +39,16 @@ export function ensureScoresForPlayers(
   return nextScores;
 }
 
+function resolveCategoryName(bundle: GameContentBundle, categoryId: string): string {
+  return bundle.categories.find((category) => category.id === categoryId)?.name ?? categoryId;
+}
+
 export function createRoundState(
   players: GameShellPlayer[],
   bundle: GameContentBundle,
   settings: GameContentSettings,
   enabledCategoryIds?: string[],
+  usedWordTexts: readonly string[] = [],
 ): BaraAlSalafaRoundState {
   const eligiblePlayers = players.filter((player) => player.isConnected);
 
@@ -71,6 +59,7 @@ export function createRoundState(
   const wordEntry = pickRandomWordFromCategories(
     bundle,
     enabledCategoryIds ?? settings.enabledCategories,
+    usedWordTexts,
   );
 
   if (!wordEntry) {
@@ -79,14 +68,13 @@ export function createRoundState(
 
   const impostorIndex = Math.floor(Math.random() * eligiblePlayers.length);
   const impostor = eligiblePlayers[impostorIndex]!;
-  const descriptionDurationSeconds = resolveDescriptionDurationSeconds(settings.roundTime);
-  const questionTurnDurationSeconds = resolveQuestionTurnDurationSeconds(
-    resolveQuestionTurnDuration(settings, eligiblePlayers.length),
-  );
+  const descriptionDurationSeconds = resolveDescriptionDurationSeconds();
+  const questionTurnDurationSeconds = resolveQuestionTurnDurationSeconds();
 
   return {
     word: wordEntry.text,
     wordCategoryId: wordEntry.categoryId,
+    categoryName: resolveCategoryName(bundle, wordEntry.categoryId),
     impostorPlayerId: impostor.id,
     gamePhase: 'description',
     phaseRemainingSeconds: descriptionDurationSeconds,
@@ -107,6 +95,8 @@ export function createRoundState(
     impostorGuessDurationSeconds: timedPhaseDurations.impostorGuess(),
     selectedWord: null,
     guessedCorrectly: null,
+    roundResultsDurationSeconds: timedPhaseDurations.roundResults(),
+    guessResultDurationSeconds: timedPhaseDurations.guessResult(),
   };
 }
 
@@ -118,6 +108,7 @@ export function createMatchState(
 ): BaraAlSalafaMatchState {
   const eligiblePlayers = players.filter((player) => player.isConnected);
   const playerIds = eligiblePlayers.map((player) => player.id);
+  const round = createRoundState(eligiblePlayers, bundle, settings, enabledCategoryIds, []);
 
   return {
     playerIds,
@@ -128,7 +119,8 @@ export function createMatchState(
     totalRounds: resolveTotalRounds(settings),
     scores: createInitialScores(playerIds),
     matchStatus: 'in-progress',
-    round: createRoundState(eligiblePlayers, bundle, settings, enabledCategoryIds),
+    usedWordTexts: [round.word],
+    round,
   };
 }
 

@@ -28,6 +28,7 @@ export type RoundResultsScreenProps = {
   roundNumber: number;
   totalRounds: number;
   remainingSeconds?: number;
+  totalDurationSeconds?: number;
   showTransitionTimer?: boolean;
   roomCode: string;
   gameName?: string;
@@ -38,58 +39,50 @@ export type RoundResultsScreenProps = {
   className?: string;
 };
 
-function RoundOutcomeHero({
+function RoundMetaLine({
+  revealedWord,
   impostorPlayerName,
-  impostorGuessedCorrectly,
-}: Pick<RoundResultsScreenProps, 'impostorPlayerName' | 'impostorGuessedCorrectly'>) {
-  const succeeded = impostorGuessedCorrectly;
-
+}: Pick<RoundResultsScreenProps, 'revealedWord' | 'impostorPlayerName'>) {
   return (
-    <div
-      className={cn(
-        'wanas-game-card rounded-[2rem] px-6 py-10 text-center sm:px-10 sm:py-12',
-        succeeded && 'border-wanas-success-border/80 bg-wanas-success-surface',
-        !succeeded && 'border-[color:var(--wanas-game-card-border)]',
-      )}
-    >
-      <div className="flex flex-col items-center gap-4">
-        <span
-          className={cn(
-            'flex size-16 items-center justify-center rounded-full text-3xl sm:size-[4.5rem] sm:text-4xl',
-            succeeded ? 'bg-wanas-success/15' : 'bg-wanas-accent/10',
-          )}
-          aria-hidden
-        >
-          {succeeded ? '🎯' : '🔍'}
-        </span>
-
-        <div className="space-y-2">
-          <p
-            className={cn(
-              'text-xl font-semibold sm:text-2xl',
-              succeeded ? 'text-wanas-success-dark' : 'text-wanas-accent-hover',
-            )}
-          >
-            {succeeded ? 'نجح برا السالفة في معرفة الكلمة!' : 'تم اكتشاف برا السالفة!'}
-          </p>
-          <p className="wanas-game-helper">
-            {impostorPlayerName}{' '}
-            <span className="font-medium text-wanas-text-secondary">كان برا السالفة</span>
-          </p>
-        </div>
-      </div>
-    </div>
+    <p className="text-center text-xs text-wanas-text-muted sm:text-sm">
+      الكلمة: <span className="font-medium text-wanas-text-secondary">{revealedWord}</span>
+      <span className="mx-2 text-wanas-text-muted" aria-hidden>
+        ·
+      </span>
+      برا السالفة: <span className="font-medium text-wanas-text-secondary">{impostorPlayerName}</span>
+    </p>
   );
 }
 
-function RevealedWordCard({ revealedWord }: Pick<RoundResultsScreenProps, 'revealedWord'>) {
+function RoundTransitionProgress({
+  remainingSeconds,
+  totalDurationSeconds,
+}: {
+  remainingSeconds: number;
+  totalDurationSeconds: number;
+}) {
+  const total = Math.max(totalDurationSeconds, 1);
+  const clampedRemaining = Math.max(0, Math.min(remainingSeconds, total));
+  const progressPercent = Math.round((clampedRemaining / total) * 100);
+
   return (
-    <div className="wanas-game-card rounded-[2rem] px-5 py-8 text-center sm:px-10 sm:py-12">
-      <div>
-        <p className="text-xs font-medium tracking-wide text-wanas-text-muted">الكلمة كانت</p>
-        <p className="mt-4 break-words text-3xl font-bold leading-tight tracking-tight text-wanas-text-primary min-[360px]:text-4xl sm:text-5xl md:text-[3.25rem]">
-          {revealedWord}
-        </p>
+    <div className="mx-auto w-full max-w-md space-y-2" role="status" aria-live="polite">
+      <div className="flex items-center justify-between gap-2 text-[11px] font-medium text-wanas-text-muted">
+        <span>الانتقال التلقائي</span>
+        <span className="font-mono tabular-nums">{clampedRemaining}ث</span>
+      </div>
+      <div
+        className="h-2.5 overflow-hidden rounded-full bg-wanas-surface-muted"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuenow={clampedRemaining}
+        aria-label={`الوقت المتبقي ${clampedRemaining} من ${total} ثانية`}
+      >
+        <div
+          className="h-full rounded-full bg-wanas-accent transition-[width] duration-200 ease-linear"
+          style={{ width: `${progressPercent}%` }}
+        />
       </div>
     </div>
   );
@@ -212,31 +205,28 @@ function RoundTransitionFooter({
     );
   }
 
-  if (waitingMessage) {
-    return (
-      <div
-        role="status"
-        aria-live="polite"
-        className="mx-auto w-full max-w-md rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-6 text-center shadow-sm"
-      >
-        <p className="wanas-game-helper font-medium text-wanas-text-secondary">{waitingMessage}</p>
-      </div>
-    );
-  }
-
-  return null;
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="mx-auto w-full max-w-md rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-6 text-center shadow-sm"
+    >
+      <p className="wanas-game-helper font-medium text-wanas-text-secondary">
+        {waitingMessage ?? 'الانتقال للمرحلة التالية تلقائياً...'}
+      </p>
+    </div>
+  );
 }
 
 export function RoundResultsScreen({
   revealedWord,
   impostorPlayerName,
-  impostorGuessedCorrectly,
   roundResults,
   currentPlayerId,
   roundNumber,
   totalRounds,
   remainingSeconds = 0,
-  showTransitionTimer = false,
+  totalDurationSeconds = 10,
   roomCode,
   gameName = 'برا السالفة',
   continueLabel,
@@ -254,22 +244,17 @@ export function RoundResultsScreen({
         currentRound={roundNumber}
         totalRounds={totalRounds}
         phaseLabel="نتائج الجولة"
-        timer={
-          showTransitionTimer
-            ? { remainingSeconds, format: 'seconds' }
-            : undefined
-        }
       />
 
       <div className="flex flex-col gap-6 sm:gap-7">
-        <RoundOutcomeHero
-          impostorPlayerName={impostorPlayerName}
-          impostorGuessedCorrectly={impostorGuessedCorrectly}
-        />
-
-        <RevealedWordCard revealedWord={revealedWord} />
-
         <RoundPointsList roundResults={roundResults} currentPlayerId={currentPlayerId} />
+
+        <RoundMetaLine revealedWord={revealedWord} impostorPlayerName={impostorPlayerName} />
+
+        <RoundTransitionProgress
+          remainingSeconds={remainingSeconds}
+          totalDurationSeconds={totalDurationSeconds}
+        />
 
         <RoundTransitionFooter
           continueLabel={continueLabel}

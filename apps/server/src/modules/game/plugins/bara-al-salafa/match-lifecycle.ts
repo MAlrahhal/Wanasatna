@@ -23,7 +23,11 @@ import {
   withRound,
 } from './round-state.js';
 import { deleteBaraAlSalafaState, setBaraAlSalafaState } from './store.js';
-import { startPhaseTimerIfNeeded, stopPhaseTimer } from './phase-timer.js';
+import {
+  clearPhaseTimerRuntime,
+  restartPhaseTimer,
+  stopPhaseTimer,
+} from './phase-timer.js';
 
 function broadcastPhaseChanged(io: Server, roomId: string): void {
   io.to(getRoomChannel(roomId)).emit(BARA_AL_SALAFA_PHASE_CHANGED_EVENT, {});
@@ -44,17 +48,19 @@ export function startNextRound(
     bundle,
     settings,
     resolveEnabledCategoryFilter(roomId),
+    syncedMatch.usedWordTexts,
   );
 
   const nextMatch: BaraAlSalafaMatchState = {
     ...syncedMatch,
     currentRound: nextRoundNumber,
     matchStatus: 'in-progress',
+    usedWordTexts: [...syncedMatch.usedWordTexts, nextRound.word],
     round: nextRound,
   };
 
   setBaraAlSalafaState(roomId, nextMatch);
-  startPhaseTimerIfNeeded(io, roomId);
+  restartPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
 
   return nextMatch;
@@ -65,15 +71,19 @@ export function startRoundResultsPhase(
   roomId: string,
   match: BaraAlSalafaMatchState,
 ): BaraAlSalafaMatchState {
+  if (match.round.gamePhase === 'round-results') {
+    return match;
+  }
+
   const scoredMatch = applyRoundScores(match);
   const nextMatch = withRound(scoredMatch, {
     ...scoredMatch.round,
     gamePhase: 'round-results',
-    phaseRemainingSeconds: 0,
+    phaseRemainingSeconds: scoredMatch.round.roundResultsDurationSeconds,
   });
 
   setBaraAlSalafaState(roomId, nextMatch);
-  stopPhaseTimer(roomId);
+  restartPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
 
   return nextMatch;
@@ -85,6 +95,10 @@ export function completeRoundResultsPhase(
   match: BaraAlSalafaMatchState,
   shell: GameShellState,
 ): BaraAlSalafaMatchState {
+  if (match.round.gamePhase !== 'round-results') {
+    return match;
+  }
+
   const content = getLoadedGameContent(BARA_AL_SALAFA_GAME_ID);
 
   if (!content) {
@@ -116,14 +130,14 @@ export function startMatchCompletedPhase(
   );
 
   setBaraAlSalafaState(roomId, nextMatch);
-  startPhaseTimerIfNeeded(io, roomId);
+  restartPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
 
   return nextMatch;
 }
 
 export function completeMatchCompletedPhase(io: Server, roomId: string): void {
-  stopPhaseTimer(roomId);
+  clearPhaseTimerRuntime(roomId);
   deleteBaraAlSalafaState(roomId);
 
   const nextShell = finishGameShellForRoom(roomId);
@@ -132,4 +146,10 @@ export function completeMatchCompletedPhase(io: Server, roomId: string): void {
     cleanupGameShellRuntime(roomId);
     broadcastGameShellState(io, nextShell);
   }
+}
+
+export function cleanupBaraAlSalafaRuntime(roomId: string): void {
+  clearPhaseTimerRuntime(roomId);
+  deleteBaraAlSalafaState(roomId);
+  stopPhaseTimer(roomId);
 }

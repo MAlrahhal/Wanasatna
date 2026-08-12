@@ -45,6 +45,8 @@ export function DirectedQuestionsScreen({
   currentPlayerId,
   currentTurn,
   totalTurns,
+  remainingSeconds = 0,
+  showTimer = false,
   roundNumber,
   totalRounds,
   roomCode,
@@ -62,6 +64,11 @@ export function DirectedQuestionsScreen({
         currentRound={roundNumber}
         totalRounds={totalRounds}
         phaseLabel="الأسئلة الموجّهة"
+        timer={
+          showTimer
+            ? { remainingSeconds: remainingSeconds ?? 0, format: 'seconds', lowTimeThreshold: 10 }
+            : undefined
+        }
       />
 
       <DirectedQuestionsTurnProgress currentTurn={currentTurn} totalTurns={totalTurns} />

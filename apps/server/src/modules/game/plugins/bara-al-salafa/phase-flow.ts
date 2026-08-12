@@ -1,11 +1,16 @@
 import type { Server } from 'socket.io';
 import type { BaraAlSalafaMatchState, GameShellState } from '@wanasatna/shared';
 import {
+  BARA_AL_SALAFA_GAME_ID,
   BARA_AL_SALAFA_PHASE_CHANGED_EVENT,
 } from '@wanasatna/shared';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
-import { buildDirectedQuestionPairsFromOrder, buildSpeakingOrder, DirectedQuestionPairsBuildError } from './speaking-order.js';
+import {
+  buildDirectedQuestionPairsFromOrder,
+  buildSpeakingOrder,
+  DirectedQuestionPairsBuildError,
+} from './speaking-order.js';
 import {
   completeActiveFreeQuestionTurn,
   getRemainingFreeQuestionPlayerIds,
@@ -14,20 +19,41 @@ import {
 } from './free-questions.js';
 import { withRound } from './round-state.js';
 import { applyVote, haveAllConnectedParticipantsVoted } from './voting.js';
-import { applyRoleUnderstood, haveAllConnectedParticipantsAcknowledgedRole } from './role-understood.js';
+import {
+  applyRoleUnderstood,
+  haveAllConnectedParticipantsAcknowledgedRole,
+} from './role-understood.js';
 import {
   applyImpostorGuessSubmission,
   buildRoundImpostorGuessOptions,
   finalizeImpostorGuessWithoutSubmission,
 } from './impostor-guess.js';
-import { completeRoundResultsPhase, startRoundResultsPhase } from './match-lifecycle.js';
+import {
+  completeMatchCompletedPhase,
+  completeRoundResultsPhase,
+  startRoundResultsPhase,
+} from './match-lifecycle.js';
 import { getLoadedGameContent } from '../../../content/index.js';
-import { BARA_AL_SALAFA_GAME_ID } from '@wanasatna/shared';
 import { setBaraAlSalafaState } from './store.js';
-import { startPhaseTimerIfNeeded, stopPhaseTimer } from './phase-timer.js';
+import {
+  registerBaraPhaseExpiredHandler,
+  restartPhaseTimer,
+  stopPhaseTimer,
+} from './phase-timer.js';
 
 function broadcastPhaseChanged(io: Server, roomId: string): void {
   io.to(getRoomChannel(roomId)).emit(BARA_AL_SALAFA_PHASE_CHANGED_EVENT, {});
+}
+
+function commitPhase(
+  io: Server,
+  roomId: string,
+  nextMatch: BaraAlSalafaMatchState,
+): BaraAlSalafaMatchState {
+  setBaraAlSalafaState(roomId, nextMatch);
+  restartPhaseTimer(io, roomId);
+  broadcastPhaseChanged(io, roomId);
+  return nextMatch;
 }
 
 export function startDirectedQuestionsPhase(
@@ -50,20 +76,20 @@ export function startDirectedQuestionsPhase(
     throw error;
   }
 
-  const nextMatch = withRound(match, {
-    ...match.round,
-    gamePhase: 'directed-questions',
-    phaseRemainingSeconds: 0,
-    speakingOrder,
-    directedQuestionPairs,
-    currentSpeakerIndex: 0,
-  });
+  const turnSeconds = match.round.questionTurnDurationSeconds;
 
-  stopPhaseTimer(roomId);
-  setBaraAlSalafaState(roomId, nextMatch);
-  broadcastPhaseChanged(io, roomId);
-
-  return nextMatch;
+  return commitPhase(
+    io,
+    roomId,
+    withRound(match, {
+      ...match.round,
+      gamePhase: 'directed-questions',
+      phaseRemainingSeconds: turnSeconds,
+      speakingOrder,
+      directedQuestionPairs,
+      currentSpeakerIndex: 0,
+    }),
+  );
 }
 
 export function completeDescriptionPhase(
@@ -71,6 +97,10 @@ export function completeDescriptionPhase(
   roomId: string,
   match: BaraAlSalafaMatchState,
 ): BaraAlSalafaMatchState {
+  if (match.round.gamePhase !== 'description') {
+    return match;
+  }
+
   return startDirectedQuestionsPhase(io, roomId, match);
 }
 
@@ -79,6 +109,10 @@ export function advanceDirectedQuestionTurn(
   roomId: string,
   match: BaraAlSalafaMatchState,
 ): BaraAlSalafaMatchState {
+  if (match.round.gamePhase !== 'directed-questions') {
+    return match;
+  }
+
   const nextIndex = match.round.currentSpeakerIndex + 1;
 
   if (nextIndex >= match.round.directedQuestionPairs.length) {
@@ -91,16 +125,15 @@ export function advanceDirectedQuestionTurn(
     return startFreeQuestionsPhase(io, roomId, match, shell);
   }
 
-  const nextMatch = withRound(match, {
-    ...match.round,
-    currentSpeakerIndex: nextIndex,
-    phaseRemainingSeconds: 0,
-  });
-
-  setBaraAlSalafaState(roomId, nextMatch);
-  broadcastPhaseChanged(io, roomId);
-
-  return nextMatch;
+  return commitPhase(
+    io,
+    roomId,
+    withRound(match, {
+      ...match.round,
+      currentSpeakerIndex: nextIndex,
+      phaseRemainingSeconds: match.round.questionTurnDurationSeconds,
+    }),
+  );
 }
 
 export function startFreeQuestionsPhase(
@@ -109,31 +142,29 @@ export function startFreeQuestionsPhase(
   match: BaraAlSalafaMatchState,
   shell: GameShellState,
 ): BaraAlSalafaMatchState {
-  stopPhaseTimer(roomId);
-
   const clearedRound = {
     ...match.round,
     gamePhase: 'free-questions' as const,
-    phaseRemainingSeconds: 0,
+    phaseRemainingSeconds: match.round.questionTurnDurationSeconds,
     currentSpeakerIndex: match.round.directedQuestionPairs.length,
     completedFreeQuestionTurns: [],
-    activeFreeQuestionPlayerId: null,
-    pendingFreeQuestionTargetPlayerId: null,
+    activeFreeQuestionPlayerId: null as string | null,
+    pendingFreeQuestionTargetPlayerId: null as string | null,
   };
 
   const clearedMatch = withRound(match, clearedRound);
   const remainingPlayerIds = getRemainingFreeQuestionPlayerIds(shell, clearedMatch);
   const firstActivePlayerId = pickRandomPlayerId(remainingPlayerIds);
 
-  const nextMatch = withRound(clearedMatch, {
-    ...clearedRound,
-    activeFreeQuestionPlayerId: firstActivePlayerId,
-  });
-
-  setBaraAlSalafaState(roomId, nextMatch);
-  broadcastPhaseChanged(io, roomId);
-
-  return nextMatch;
+  return commitPhase(
+    io,
+    roomId,
+    withRound(clearedMatch, {
+      ...clearedRound,
+      activeFreeQuestionPlayerId: firstActivePlayerId,
+      phaseRemainingSeconds: match.round.questionTurnDurationSeconds,
+    }),
+  );
 }
 
 export function applyFreeQuestionPlayerChoice(
@@ -144,6 +175,10 @@ export function applyFreeQuestionPlayerChoice(
   _activePlayerId: string,
   targetPlayerId: string,
 ): BaraAlSalafaMatchState {
+  if (match.round.gamePhase !== 'free-questions') {
+    return match;
+  }
+
   const nextMatch = withRound(match, {
     ...match.round,
     pendingFreeQuestionTargetPlayerId: targetPlayerId,
@@ -151,7 +186,6 @@ export function applyFreeQuestionPlayerChoice(
 
   setBaraAlSalafaState(roomId, nextMatch);
   broadcastPhaseChanged(io, roomId);
-
   return nextMatch;
 }
 
@@ -162,6 +196,14 @@ export function applyFreeQuestionAdvance(
   shell: GameShellState,
   activePlayerId: string,
 ): BaraAlSalafaMatchState {
+  if (match.round.gamePhase !== 'free-questions') {
+    return match;
+  }
+
+  if (match.round.activeFreeQuestionPlayerId !== activePlayerId) {
+    return match;
+  }
+
   const targetPlayerId = match.round.pendingFreeQuestionTargetPlayerId;
 
   if (!targetPlayerId) {
@@ -171,13 +213,7 @@ export function applyFreeQuestionAdvance(
   let nextMatch = completeActiveFreeQuestionTurn(match, activePlayerId);
 
   if (isFreeQuestionsPhaseComplete(shell, nextMatch)) {
-    const clearedMatch = withRound(nextMatch, {
-      ...nextMatch.round,
-      pendingFreeQuestionTargetPlayerId: null,
-      activeFreeQuestionPlayerId: null,
-    });
-    setBaraAlSalafaState(roomId, clearedMatch);
-    return startVotingPhase(io, roomId, clearedMatch);
+    return startVotingPhase(io, roomId, nextMatch);
   }
 
   const remainingPlayerIds = getRemainingFreeQuestionPlayerIds(shell, nextMatch);
@@ -187,25 +223,19 @@ export function applyFreeQuestionAdvance(
     : targetPlayerId;
 
   if (!nextActivePlayerId) {
-    const clearedMatch = withRound(nextMatch, {
-      ...nextMatch.round,
-      pendingFreeQuestionTargetPlayerId: null,
-      activeFreeQuestionPlayerId: null,
-    });
-    setBaraAlSalafaState(roomId, clearedMatch);
-    return startVotingPhase(io, roomId, clearedMatch);
+    return startVotingPhase(io, roomId, nextMatch);
   }
 
-  nextMatch = withRound(nextMatch, {
-    ...nextMatch.round,
-    pendingFreeQuestionTargetPlayerId: null,
-    activeFreeQuestionPlayerId: nextActivePlayerId,
-  });
-
-  setBaraAlSalafaState(roomId, nextMatch);
-  broadcastPhaseChanged(io, roomId);
-
-  return nextMatch;
+  return commitPhase(
+    io,
+    roomId,
+    withRound(nextMatch, {
+      ...nextMatch.round,
+      pendingFreeQuestionTargetPlayerId: null,
+      activeFreeQuestionPlayerId: nextActivePlayerId,
+      phaseRemainingSeconds: nextMatch.round.questionTurnDurationSeconds,
+    }),
+  );
 }
 
 export function applyFreeQuestionSkipTurn(
@@ -215,10 +245,21 @@ export function applyFreeQuestionSkipTurn(
   shell: GameShellState,
   activePlayerId: string,
 ): BaraAlSalafaMatchState {
-  let nextMatch = completeActiveFreeQuestionTurn(match, activePlayerId);
+  if (match.round.gamePhase !== 'free-questions') {
+    return match;
+  }
+
+  if (
+    match.round.activeFreeQuestionPlayerId &&
+    match.round.activeFreeQuestionPlayerId !== activePlayerId
+  ) {
+    return match;
+  }
+
+  const turnOwner = match.round.activeFreeQuestionPlayerId ?? activePlayerId;
+  let nextMatch = completeActiveFreeQuestionTurn(match, turnOwner);
 
   if (isFreeQuestionsPhaseComplete(shell, nextMatch)) {
-    setBaraAlSalafaState(roomId, nextMatch);
     return startVotingPhase(io, roomId, nextMatch);
   }
 
@@ -226,19 +267,19 @@ export function applyFreeQuestionSkipTurn(
   const nextActivePlayerId = pickRandomPlayerId(remainingPlayerIds);
 
   if (!nextActivePlayerId) {
-    setBaraAlSalafaState(roomId, nextMatch);
     return startVotingPhase(io, roomId, nextMatch);
   }
 
-  nextMatch = withRound(nextMatch, {
-    ...nextMatch.round,
-    activeFreeQuestionPlayerId: nextActivePlayerId,
-  });
-
-  setBaraAlSalafaState(roomId, nextMatch);
-  broadcastPhaseChanged(io, roomId);
-
-  return nextMatch;
+  return commitPhase(
+    io,
+    roomId,
+    withRound(nextMatch, {
+      ...nextMatch.round,
+      pendingFreeQuestionTargetPlayerId: null,
+      activeFreeQuestionPlayerId: nextActivePlayerId,
+      phaseRemainingSeconds: nextMatch.round.questionTurnDurationSeconds,
+    }),
+  );
 }
 
 export function startVotingPhase(
@@ -246,22 +287,19 @@ export function startVotingPhase(
   roomId: string,
   match: BaraAlSalafaMatchState,
 ): BaraAlSalafaMatchState {
-  stopPhaseTimer(roomId);
-
-  const nextMatch = withRound(match, {
-    ...match.round,
-    gamePhase: 'voting',
-    phaseRemainingSeconds: 0,
-    votingDurationSeconds: match.round.votingDurationSeconds,
-    activeFreeQuestionPlayerId: null,
-    votes: {},
-    submittedVoterIds: [],
-  });
-
-  setBaraAlSalafaState(roomId, nextMatch);
-  broadcastPhaseChanged(io, roomId);
-
-  return nextMatch;
+  return commitPhase(
+    io,
+    roomId,
+    withRound(match, {
+      ...match.round,
+      gamePhase: 'voting',
+      phaseRemainingSeconds: match.round.votingDurationSeconds,
+      activeFreeQuestionPlayerId: null,
+      pendingFreeQuestionTargetPlayerId: null,
+      votes: {},
+      submittedVoterIds: [],
+    }),
+  );
 }
 
 export function applyVoteSubmission(
@@ -272,12 +310,18 @@ export function applyVoteSubmission(
   voterId: string,
   targetPlayerId: string,
 ): BaraAlSalafaMatchState {
-  const nextMatch = applyVote(match, voterId, targetPlayerId);
+  if (match.round.gamePhase !== 'voting') {
+    return match;
+  }
 
+  if (match.round.submittedVoterIds.includes(voterId)) {
+    return match;
+  }
+
+  const nextMatch = applyVote(match, voterId, targetPlayerId);
   setBaraAlSalafaState(roomId, nextMatch);
 
   if (haveAllConnectedParticipantsVoted(shell, nextMatch)) {
-    stopPhaseTimer(roomId);
     return completeVotingPhase(io, roomId, nextMatch);
   }
 
@@ -290,7 +334,19 @@ export function completeVotingPhase(
   roomId: string,
   match: BaraAlSalafaMatchState,
 ): BaraAlSalafaMatchState {
+  if (match.round.gamePhase !== 'voting') {
+    return match;
+  }
+
   return startRevealImpostorPhase(io, roomId, match);
+}
+
+export function completeVotingPhaseOnTimeout(
+  io: Server,
+  roomId: string,
+  match: BaraAlSalafaMatchState,
+): BaraAlSalafaMatchState {
+  return completeVotingPhase(io, roomId, match);
 }
 
 export function startRevealImpostorPhase(
@@ -298,17 +354,15 @@ export function startRevealImpostorPhase(
   roomId: string,
   match: BaraAlSalafaMatchState,
 ): BaraAlSalafaMatchState {
-  const nextMatch = withRound(match, {
-    ...match.round,
-    gamePhase: 'reveal-impostor',
-    phaseRemainingSeconds: match.round.revealDurationSeconds,
-  });
-
-  setBaraAlSalafaState(roomId, nextMatch);
-  startPhaseTimerIfNeeded(io, roomId);
-  broadcastPhaseChanged(io, roomId);
-
-  return nextMatch;
+  return commitPhase(
+    io,
+    roomId,
+    withRound(match, {
+      ...match.round,
+      gamePhase: 'reveal-impostor',
+      phaseRemainingSeconds: match.round.revealDurationSeconds,
+    }),
+  );
 }
 
 export function completeRevealImpostorPhase(
@@ -316,6 +370,10 @@ export function completeRevealImpostorPhase(
   roomId: string,
   match: BaraAlSalafaMatchState,
 ): BaraAlSalafaMatchState {
+  if (match.round.gamePhase !== 'reveal-impostor') {
+    return match;
+  }
+
   return startImpostorGuessPhase(io, roomId, match);
 }
 
@@ -332,21 +390,18 @@ export function startImpostorGuessPhase(
 
   const impostorGuessOptions = buildRoundImpostorGuessOptions(content.bundle, match);
 
-  stopPhaseTimer(roomId);
-
-  const nextMatch = withRound(match, {
-    ...match.round,
-    gamePhase: 'impostor-guess',
-    phaseRemainingSeconds: 0,
-    impostorGuessOptions,
-    selectedWord: null,
-    guessedCorrectly: null,
-  });
-
-  setBaraAlSalafaState(roomId, nextMatch);
-  broadcastPhaseChanged(io, roomId);
-
-  return nextMatch;
+  return commitPhase(
+    io,
+    roomId,
+    withRound(match, {
+      ...match.round,
+      gamePhase: 'impostor-guess',
+      phaseRemainingSeconds: match.round.impostorGuessDurationSeconds,
+      impostorGuessOptions,
+      selectedWord: null,
+      guessedCorrectly: null,
+    }),
+  );
 }
 
 export function applyImpostorGuessSubmissionAction(
@@ -357,26 +412,75 @@ export function applyImpostorGuessSubmissionAction(
   playerId: string,
   selectedWord: string,
 ): BaraAlSalafaMatchState {
-  const nextMatch = applyImpostorGuessSubmission(match, playerId, selectedWord);
+  if (match.round.gamePhase !== 'impostor-guess') {
+    return match;
+  }
 
+  if (match.round.selectedWord !== null) {
+    return match;
+  }
+
+  const nextMatch = applyImpostorGuessSubmission(match, playerId, selectedWord);
   setBaraAlSalafaState(roomId, nextMatch);
 
-  return completeImpostorGuessPhase(io, roomId, nextMatch, shell);
+  return startGuessResultPhase(io, roomId, nextMatch, shell);
+}
+
+export function timeoutImpostorGuessPhase(
+  io: Server,
+  roomId: string,
+  match: BaraAlSalafaMatchState,
+  shell: GameShellState,
+): BaraAlSalafaMatchState {
+  if (match.round.gamePhase !== 'impostor-guess') {
+    return match;
+  }
+
+  const finalizedMatch = finalizeImpostorGuessWithoutSubmission(match);
+  return startGuessResultPhase(io, roomId, finalizedMatch, shell);
+}
+
+export function startGuessResultPhase(
+  io: Server,
+  roomId: string,
+  match: BaraAlSalafaMatchState,
+  _shell: GameShellState,
+): BaraAlSalafaMatchState {
+  const finalizedMatch =
+    match.round.guessedCorrectly === null
+      ? finalizeImpostorGuessWithoutSubmission(match)
+      : match;
+
+  return commitPhase(
+    io,
+    roomId,
+    withRound(finalizedMatch, {
+      ...finalizedMatch.round,
+      gamePhase: 'impostor-guess-result',
+      phaseRemainingSeconds: finalizedMatch.round.guessResultDurationSeconds,
+    }),
+  );
+}
+
+export function completeGuessResultPhase(
+  io: Server,
+  roomId: string,
+  match: BaraAlSalafaMatchState,
+): BaraAlSalafaMatchState {
+  if (match.round.gamePhase !== 'impostor-guess-result') {
+    return match;
+  }
+
+  return startRoundResultsPhase(io, roomId, match);
 }
 
 export function completeImpostorGuessPhase(
   io: Server,
   roomId: string,
   match: BaraAlSalafaMatchState,
-  _shell: GameShellState,
+  shell: GameShellState,
 ): BaraAlSalafaMatchState {
-  const finalizedMatch = finalizeImpostorGuessWithoutSubmission(match);
-
-  setBaraAlSalafaState(roomId, finalizedMatch);
-  stopPhaseTimer(roomId);
-  broadcastPhaseChanged(io, roomId);
-
-  return startRoundResultsPhase(io, roomId, finalizedMatch);
+  return startGuessResultPhase(io, roomId, match, shell);
 }
 
 export function applyRoleUnderstoodSubmission(
@@ -386,12 +490,14 @@ export function applyRoleUnderstoodSubmission(
   shell: GameShellState,
   playerId: string,
 ): BaraAlSalafaMatchState {
-  let nextMatch = applyRoleUnderstood(match, playerId);
+  if (match.round.gamePhase !== 'description') {
+    return match;
+  }
 
+  let nextMatch = applyRoleUnderstood(match, playerId);
   setBaraAlSalafaState(roomId, nextMatch);
 
   if (haveAllConnectedParticipantsAcknowledgedRole(shell, nextMatch)) {
-    stopPhaseTimer(roomId);
     return completeDescriptionPhase(io, roomId, nextMatch);
   }
 
@@ -436,3 +542,55 @@ export function applyHostContinueRoundResults(
   stopPhaseTimer(roomId);
   return completeRoundResultsPhase(io, roomId, match, shell);
 }
+
+export function handleBaraPhaseTimerExpired(
+  io: Server,
+  roomId: string,
+  match: BaraAlSalafaMatchState,
+): void {
+  const shell = getGameShellByRoomId(roomId);
+
+  if (!shell || shell.phase !== 'PLAYING') {
+    stopPhaseTimer(roomId);
+    return;
+  }
+
+  switch (match.round.gamePhase) {
+    case 'description':
+      completeDescriptionPhase(io, roomId, match);
+      return;
+    case 'directed-questions':
+      advanceDirectedQuestionTurn(io, roomId, match);
+      return;
+    case 'free-questions': {
+      const activePlayerId = match.round.activeFreeQuestionPlayerId;
+      if (!activePlayerId) {
+        return;
+      }
+      applyFreeQuestionSkipTurn(io, roomId, match, shell, activePlayerId);
+      return;
+    }
+    case 'voting':
+      completeVotingPhaseOnTimeout(io, roomId, match);
+      return;
+    case 'reveal-impostor':
+      completeRevealImpostorPhase(io, roomId, match);
+      return;
+    case 'impostor-guess':
+      timeoutImpostorGuessPhase(io, roomId, match, shell);
+      return;
+    case 'impostor-guess-result':
+      completeGuessResultPhase(io, roomId, match);
+      return;
+    case 'round-results':
+      completeRoundResultsPhase(io, roomId, match, shell);
+      return;
+    case 'match-completed':
+      completeMatchCompletedPhase(io, roomId);
+      return;
+    default:
+      stopPhaseTimer(roomId);
+  }
+}
+
+registerBaraPhaseExpiredHandler(handleBaraPhaseTimerExpired);

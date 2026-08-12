@@ -20,6 +20,8 @@ export type GameExperienceMeta = {
   gameName: string;
   gameIcon?: ReactNode;
   phaseLabel?: string;
+  /** Optional public category label, e.g. "الفئة: أكلات". */
+  categoryLabel?: string;
   currentRound?: number;
   totalRounds?: number;
   timer?: GameExperienceTimer;

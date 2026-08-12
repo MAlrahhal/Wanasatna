@@ -2,6 +2,7 @@ import { PlayerStatus, type Player, type Room } from '@prisma/client';
 import type { Server } from 'socket.io';
 import { prisma } from '../../lib/prisma.js';
 import {
+  MAX_ROOM_PLAYERS,
   ROOM_PLAYERS_SNAPSHOT_EVENT,
   type RoomData,
   type RoomPlayerData,
@@ -10,7 +11,7 @@ import {
 
 export const ROOM_CODE_LENGTH = 6;
 export const MAX_CODE_GENERATION_ATTEMPTS = 10;
-export const MAX_ROOM_PLAYERS = 12;
+export { MAX_ROOM_PLAYERS };
 export const RECONNECT_WINDOW_MS = 3 * 60 * 1000;
 
 export function getRoomChannel(roomId: string): string {

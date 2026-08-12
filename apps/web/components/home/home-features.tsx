@@ -23,7 +23,7 @@ const features = [
     ),
   },
   {
-    title: 'حتى 12 لاعب',
+    title: 'حتى 8 لاعب',
     description: 'اجمع أصدقاءك في غرفة واحدة واستمتعوا بألعاب جماعية حماسية.',
     icon: (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden>

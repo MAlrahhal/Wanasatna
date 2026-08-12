@@ -87,9 +87,7 @@ function ImpostorMysteryDisplay() {
 function RoleRevealInstruction({ role }: { role: RoleRevealRole }) {
   return (
     <p className="mt-8 max-w-xs text-sm leading-relaxed text-wanas-text-secondary">
-      {role === 'impostor'
-        ? 'حاول معرفة الكلمة من إجابات الآخرين.'
-        : 'احفظ الكلمة جيدًا قبل المتابعة.'}
+      {role === 'impostor' ? 'أنت برا السالفة.' : 'احفظ الكلمة جيدًا.'}
     </p>
   );
 }

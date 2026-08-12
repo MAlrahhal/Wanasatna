@@ -40,7 +40,7 @@ export const faqItems: FaqItem[] = [
     id: 'player-count',
     category: 'play',
     question: 'كم عدد اللاعبين المدعوم؟',
-    answer: 'تدعم وناستنا حتى 12 لاعباً في الغرفة الواحدة، حسب اللعبة المختارة.',
+    answer: 'تدعم وناستنا حتى 8 لاعباً في الغرفة الواحدة، حسب اللعبة المختارة.',
   },
   {
     id: 'mobile',

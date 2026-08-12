@@ -1,6 +1,6 @@
 {
   "minPlayers": 3,
-  "maxPlayers": 12,
+  "maxPlayers": 8,
   "rounds": 4,
   "enabledCategories": []
 }

@@ -2,11 +2,20 @@ import { pluginActionEvent } from '../../plugin/events.js';
 
 export const BARA_AL_SALAFA_GAME_ID = 'bara-al-salafa' as const;
 
-export const BARA_AL_SALAFA_VOTING_DURATION_SECONDS = 30;
+/** Role / secret reveal maximum duration (seconds). */
+export const BARA_AL_SALAFA_ROLE_REVEAL_DURATION_SECONDS = 20;
+
+/** Directed / free question turn maximum duration (seconds). */
+export const BARA_AL_SALAFA_QUESTION_TURN_DURATION_SECONDS = 60;
+
+export const BARA_AL_SALAFA_VOTING_DURATION_SECONDS = 60;
 
 export const BARA_AL_SALAFA_REVEAL_DURATION_SECONDS = 5;
 
-export const BARA_AL_SALAFA_IMPOSTOR_GUESS_DURATION_SECONDS = 20;
+export const BARA_AL_SALAFA_IMPOSTOR_GUESS_DURATION_SECONDS = 60;
+
+/** Short shared feedback after impostor submits (or times out). */
+export const BARA_AL_SALAFA_GUESS_RESULT_DURATION_SECONDS = 3;
 
 export const BARA_AL_SALAFA_IMPOSTOR_GUESS_OPTION_COUNT = 8;
 
@@ -16,7 +25,10 @@ export const BARA_AL_SALAFA_MATCH_RESULTS_DURATION_SECONDS = 10;
 
 export const BARA_AL_SALAFA_ROUND_SCORE_POINTS = 100;
 
+/** Free product: fixed match length. */
 export const BARA_AL_SALAFA_DEFAULT_ROUNDS = 3;
+
+export const BARA_AL_SALAFA_MAX_PLAYERS = 8;
 
 export type BaraAlSalafaRole = 'impostor' | 'player';
 
@@ -29,6 +41,7 @@ export type BaraAlSalafaGamePhase =
   | 'voting'
   | 'reveal-impostor'
   | 'impostor-guess'
+  | 'impostor-guess-result'
   | 'round-results'
   | 'match-completed';
 
@@ -70,6 +83,8 @@ export type BaraAlSalafaDirectedQuestionPair = {
 export type BaraAlSalafaRoundState = {
   word: string;
   wordCategoryId: string;
+  /** Public Arabic category name (safe for all players). */
+  categoryName: string;
   impostorPlayerId: string;
   gamePhase: BaraAlSalafaGamePhase;
   phaseRemainingSeconds: number;
@@ -90,6 +105,8 @@ export type BaraAlSalafaRoundState = {
   impostorGuessDurationSeconds: number;
   selectedWord: string | null;
   guessedCorrectly: boolean | null;
+  roundResultsDurationSeconds: number;
+  guessResultDurationSeconds: number;
 };
 
 /** Match-level state — persists across rounds until the match ends. */
@@ -100,6 +117,8 @@ export type BaraAlSalafaMatchState = {
   totalRounds: number;
   scores: Record<string, number>;
   matchStatus: BaraAlSalafaMatchStatus;
+  /** Secret words already used this match (avoid repeats when alternatives exist). */
+  usedWordTexts: string[];
   round: BaraAlSalafaRoundState;
 };
 
@@ -113,6 +132,8 @@ export type BaraAlSalafaPlayerView = {
   gamePhase: BaraAlSalafaGamePhase;
   phaseLabel: string;
   phaseRemainingSeconds: number;
+  /** Public category label, e.g. "أكلات". Never the secret word. */
+  categoryName: string | null;
   instruction: string | null;
   currentSpeakerName: string | null;
   directedQuestionAskerPlayerId: string | null;
@@ -146,6 +167,8 @@ export type BaraAlSalafaPlayerView = {
   impostorGuessOptions: string[];
   hasSubmittedImpostorGuess: boolean;
   revealedWord: string | null;
+  /** Shared guess outcome copy for impostor-guess-result phase. */
+  guessResultMessage: string | null;
   leaderboard: BaraAlSalafaLeaderboardEntry[];
   roundResults: BaraAlSalafaRoundResultEntry[];
   resultsLeaderboard: BaraAlSalafaResultsLeaderboardEntry[];
@@ -156,6 +179,8 @@ export type BaraAlSalafaPlayerView = {
   canContinueFromRoundResults: boolean;
   roundResultsContinueLabel: string | null;
   roundResultsWaitingMessage: string | null;
+  /** Mid-match joiner: no secrets, no actions. */
+  isMatchSpectator: boolean;
 };
 
 export const BARA_AL_SALAFA_SYNC_EVENT = pluginActionEvent(BARA_AL_SALAFA_GAME_ID, 'sync');

@@ -20,6 +20,8 @@ export type FreeQuestionsScreenProps = {
   conversationTargetPlayerName?: string | null;
   selectedTargetPlayerId?: string | null;
   completedPlayerIds: readonly string[];
+  remainingSeconds?: number;
+  showTimer?: boolean;
   roundNumber: number;
   totalRounds: number;
   roomCode: string;
@@ -266,6 +268,8 @@ export function FreeQuestionsScreen({
   conversationTargetPlayerName = null,
   selectedTargetPlayerId = null,
   completedPlayerIds,
+  remainingSeconds = 0,
+  showTimer = false,
   roundNumber,
   totalRounds,
   roomCode,
@@ -290,6 +294,11 @@ export function FreeQuestionsScreen({
         currentRound={roundNumber}
         totalRounds={totalRounds}
         phaseLabel="الأسئلة الحرة"
+        timer={
+          showTimer
+            ? { remainingSeconds: remainingSeconds ?? 0, format: 'seconds', lowTimeThreshold: 10 }
+            : undefined
+        }
       />
 
       <div className="flex flex-col gap-6 sm:gap-7">

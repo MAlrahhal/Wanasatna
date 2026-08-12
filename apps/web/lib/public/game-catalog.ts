@@ -24,7 +24,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
     iconBg: 'var(--wanas-game-blue-icon-bg)',
     iconText: 'var(--wanas-game-blue-icon-text)',
     shadow: 'shadow-wanas-game-blue/15',
-    playerRange: '٣–١٢ لاعب',
+    playerRange: '٣–٨ لاعب',
     featured: true,
   },
   'draw-guess': {
@@ -35,7 +35,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
     iconBg: 'var(--wanas-game-orange-icon-bg)',
     iconText: 'var(--wanas-game-orange-icon-text)',
     shadow: 'shadow-wanas-game-orange/15',
-    playerRange: '٢–١٢ لاعب',
+    playerRange: '٢–٨ لاعب',
     featured: true,
   },
   'timing-challenge': {
@@ -46,7 +46,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
     iconBg: 'var(--wanas-game-rose-icon-bg)',
     iconText: 'var(--wanas-game-rose-icon-text)',
     shadow: 'shadow-wanas-game-rose/15',
-    playerRange: '٢–١٢ لاعب',
+    playerRange: '٢–٨ لاعب',
     featured: true,
   },
   'fast-answer': {
@@ -57,7 +57,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
     iconBg: 'var(--wanas-game-teal-icon-bg)',
     iconText: 'var(--wanas-game-teal-icon-text)',
     shadow: 'shadow-wanas-game-teal/15',
-    playerRange: '٢–١٢ لاعب',
+    playerRange: '٢–٨ لاعب',
     featured: true,
   },
   'imposter-draw': {
@@ -68,7 +68,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
     iconBg: 'var(--wanas-game-purple-icon-bg)',
     iconText: 'var(--wanas-game-purple-icon-text)',
     shadow: 'shadow-wanas-game-purple/10',
-    playerRange: '٣–١٢ لاعب',
+    playerRange: '٣–٨ لاعب',
     featured: true,
   },
   'who-wrote-it': {
@@ -79,7 +79,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
     iconBg: 'var(--wanas-game-purple-icon-bg)',
     iconText: 'var(--wanas-game-purple-icon-text)',
     shadow: 'shadow-wanas-game-purple/10',
-    playerRange: '٣–١٢ لاعب',
+    playerRange: '٣–٨ لاعب',
     featured: false,
   },
   judge: {
@@ -90,7 +90,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
     iconBg: 'var(--wanas-game-slate-icon-bg)',
     iconText: 'var(--wanas-game-slate-icon-text-dark)',
     shadow: 'shadow-wanas-game-slate/40',
-    playerRange: '٣–١٢ لاعب',
+    playerRange: '٣–٨ لاعب',
     featured: false,
   },
   'guessing-challenge': {
@@ -112,7 +112,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
     iconBg: 'var(--wanas-game-green-icon-bg)',
     iconText: 'var(--wanas-game-green-icon-text)',
     shadow: 'shadow-wanas-game-green/10',
-    playerRange: '٤–١٢ لاعب',
+    playerRange: '٤–٨ لاعب',
     featured: false,
   },
 };
@@ -125,7 +125,7 @@ const defaultCatalogEntry: GameCatalogEntry = {
   iconBg: 'var(--wanas-game-slate-icon-bg)',
   iconText: 'var(--wanas-game-slate-icon-text)',
   shadow: 'shadow-wanas-game-slate/40',
-  playerRange: '٢–١٢ لاعب',
+  playerRange: '٢–٨ لاعب',
   featured: false,
 };
 

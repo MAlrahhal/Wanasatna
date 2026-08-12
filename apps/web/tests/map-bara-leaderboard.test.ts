@@ -40,6 +40,7 @@ function baseView(overrides: Partial<BaraAlSalafaPlayerView> = {}): BaraAlSalafa
     gamePhase: 'description',
     phaseLabel: 'test',
     phaseRemainingSeconds: 0,
+    categoryName: null,
     instruction: null,
     currentSpeakerName: null,
     directedQuestionAskerPlayerId: null,
@@ -73,6 +74,7 @@ function baseView(overrides: Partial<BaraAlSalafaPlayerView> = {}): BaraAlSalafa
     impostorGuessOptions: [],
     hasSubmittedImpostorGuess: false,
     revealedWord: null,
+    guessResultMessage: null,
     leaderboard: [],
     roundResults: [],
     resultsLeaderboard: [],
@@ -83,6 +85,7 @@ function baseView(overrides: Partial<BaraAlSalafaPlayerView> = {}): BaraAlSalafa
     canContinueFromRoundResults: false,
     roundResultsContinueLabel: null,
     roundResultsWaitingMessage: null,
+    isMatchSpectator: false,
     ...overrides,
   };
 }

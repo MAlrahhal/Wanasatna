@@ -293,7 +293,7 @@ export function VotingScreen({
   gameName = 'برا السالفة',
   gameIcon = BARA_AL_SALAFA_GAME_ICON,
   questionTitle = 'من هو برا السالفة؟',
-  questionHelper = 'اختر اللاعب الذي تشك أنه خارج السالفة.',
+  questionHelper = 'صوّت لمين تتوقع أنه برا السالفة',
   isSubmitting = false,
   errorMessage = null,
   onSelectPlayer,

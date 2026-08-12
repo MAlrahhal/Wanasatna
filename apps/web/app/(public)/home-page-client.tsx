@@ -13,7 +13,7 @@ import { scrollToHomeRoomActions } from '@/lib/public/scroll-to-room-actions';
 import { useRoomActions } from '@/lib/public/use-room-actions';
 import { cn } from '@/lib/utils';
 
-const benefitChips = ['بدون تسجيل', 'حتى 12 لاعب', 'عربي بالكامل'] as const;
+const benefitChips = ['بدون تسجيل', 'حتى 8 لاعب', 'عربي بالكامل'] as const;
 
 const steps = [
   { n: '1', title: 'أنشئ غرفة', desc: 'اختر اسمك وابدأ غرفة جديدة.' },

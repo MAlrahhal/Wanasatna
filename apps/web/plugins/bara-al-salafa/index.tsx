@@ -10,7 +10,7 @@ export const baraAlSalafaClientPlugin: WebClientGamePlugin = {
     description: 'اكتشف من برا السالفة قبل ما ينكشف!',
     iconLabel: 'ب',
     minPlayers: 3,
-    maxPlayers: 12,
+    maxPlayers: 8,
   },
   GameScreen: BaraAlSalafaGameScreen,
 };

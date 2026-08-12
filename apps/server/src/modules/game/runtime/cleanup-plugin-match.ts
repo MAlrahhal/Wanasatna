@@ -8,7 +8,7 @@ import {
   TIMING_CHALLENGE_GAME_ID,
   WHO_WROTE_IT_GAME_ID,
 } from '@wanasatna/shared';
-import { stopPhaseTimer } from '../plugins/bara-al-salafa/phase-timer.js';
+import { clearPhaseTimerRuntime } from '../plugins/bara-al-salafa/phase-timer.js';
 import { deleteBaraAlSalafaState } from '../plugins/bara-al-salafa/store.js';
 import { clearRoomRoundCategory } from './round-category-store.js';
 import { stopDrawGuessPhaseTimer } from '../plugins/draw-guess/phase-timer.js';
@@ -35,7 +35,7 @@ export function cleanupPluginMatchState(roomId: string, gameId: string | null): 
   clearRoomRoundCategory(roomId);
 
   if (gameId === BARA_AL_SALAFA_GAME_ID) {
-    stopPhaseTimer(roomId);
+    clearPhaseTimerRuntime(roomId);
     deleteBaraAlSalafaState(roomId);
   }
 

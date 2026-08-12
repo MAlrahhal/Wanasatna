@@ -1,21 +1,26 @@
 import type { GameShellState } from '@wanasatna/shared';
 import type { BaraAlSalafaMatchState, BaraAlSalafaPlayerView } from '@wanasatna/shared';
 import { getConnectedParticipantIds } from './free-questions.js';
-import { buildLeaderboardEntries, buildResultsLeaderboardEntries, buildRoundResultEntries } from './scoring.js';
+import {
+  buildLeaderboardEntries,
+  buildResultsLeaderboardEntries,
+  buildRoundResultEntries,
+} from './scoring.js';
 
 const IMPOSTOR_MESSAGE = 'أنت برا السالفة';
 const FREE_QUESTIONS_ACTIVE_INSTRUCTION = 'اختر لاعباً لتسأله';
-const VOTING_INSTRUCTION = 'صوّت على من تعتقد أنه برا السالفة';
+const VOTING_INSTRUCTION = 'صوّت لمين تتوقع أنه برا السالفة';
 const IMPOSTOR_GUESS_INSTRUCTION = 'خمّن الكلمة';
 const IMPOSTOR_GUESS_SPECTATOR_INSTRUCTION = 'برا السالفة يحاول تخمين الكلمة...';
 
 const PHASE_LABELS = {
-  description: 'مرحلة الوصف',
+  description: 'كشف الدور',
   'directed-questions': 'أسئلة موجهة',
   'free-questions': 'أسئلة حرة',
   voting: 'مرحلة التصويت',
   'reveal-impostor': 'كشف برا السالفة',
   'impostor-guess': 'تخمين برا السالفة',
+  'impostor-guess-result': 'نتيجة التخمين',
   'round-results': 'نتيجة الجولة',
   'match-completed': 'انتهت المباراة',
 } as const;
@@ -91,7 +96,7 @@ function buildDescriptionView(
 }
 
 function buildRoundResultsInteractionView(
-  match: BaraAlSalafaMatchState,
+  _match: BaraAlSalafaMatchState,
   shell: GameShellState,
   playerId: string,
 ): Pick<
@@ -102,21 +107,12 @@ function buildRoundResultsInteractionView(
   | 'roundResultsWaitingMessage'
 > {
   const isHost = shell.hostPlayerId === playerId;
-  const isFinalRound = match.currentRound >= match.totalRounds;
 
   return {
     isHost,
     canContinueFromRoundResults: isHost,
-    roundResultsContinueLabel: isHost
-      ? isFinalRound
-        ? 'عرض النتائج النهائية'
-        : 'بدء الجولة التالية'
-      : null,
-    roundResultsWaitingMessage: !isHost
-      ? isFinalRound
-        ? 'بانتظار المضيف لعرض النتائج النهائية.'
-        : 'بانتظار المضيف لبدء الجولة التالية.'
-      : null,
+    roundResultsContinueLabel: isHost ? 'التالي الآن' : null,
+    roundResultsWaitingMessage: !isHost ? 'الجولة التالية تبدأ تلقائياً...' : null,
   };
 }
 
@@ -238,6 +234,7 @@ const EMPTY_INTERACTION_VIEW: Pick<
   | 'impostorGuessOptions'
   | 'hasSubmittedImpostorGuess'
   | 'revealedWord'
+  | 'guessResultMessage'
   | 'leaderboard'
   | 'roundResults'
   | 'resultsLeaderboard'
@@ -248,6 +245,7 @@ const EMPTY_INTERACTION_VIEW: Pick<
   | 'canContinueFromRoundResults'
   | 'roundResultsContinueLabel'
   | 'roundResultsWaitingMessage'
+  | 'isMatchSpectator'
 > = {
   directedQuestionAskerPlayerId: null,
   directedQuestionAskerName: null,
@@ -277,6 +275,7 @@ const EMPTY_INTERACTION_VIEW: Pick<
   impostorGuessOptions: [],
   hasSubmittedImpostorGuess: false,
   revealedWord: null,
+  guessResultMessage: null,
   leaderboard: [],
   roundResults: [],
   resultsLeaderboard: [],
@@ -287,6 +286,7 @@ const EMPTY_INTERACTION_VIEW: Pick<
   canContinueFromRoundResults: false,
   roundResultsContinueLabel: null,
   roundResultsWaitingMessage: null,
+  isMatchSpectator: false,
 };
 
 function buildVotingView(
@@ -325,6 +325,27 @@ function buildVotingView(
   };
 }
 
+export function buildBaraAlSalafaSpectatorView(
+  match: BaraAlSalafaMatchState,
+): BaraAlSalafaPlayerView {
+  return {
+    role: 'player',
+    displayText: '',
+    gamePhase: match.round.gamePhase,
+    phaseLabel: 'الجولة جارية',
+    phaseRemainingSeconds: match.round.phaseRemainingSeconds,
+    categoryName: match.round.categoryName,
+    instruction: 'أنت حالياً مشاهد، وبتقدر تلعب في المباراة القادمة.',
+    currentSpeakerName: null,
+    currentRound: match.currentRound,
+    totalRounds: match.totalRounds,
+    matchStatus: match.matchStatus,
+    ...EMPTY_INTERACTION_VIEW,
+    isMatchSpectator: true,
+    leaderboard: buildLeaderboardEntries(match),
+  };
+}
+
 export function buildBaraAlSalafaPlayerView(
   match: BaraAlSalafaMatchState,
   playerId: string,
@@ -341,6 +362,7 @@ export function buildBaraAlSalafaPlayerView(
     gamePhase: round.gamePhase,
     phaseLabel: buildRoundPhaseLabel(match),
     phaseRemainingSeconds: round.phaseRemainingSeconds,
+    categoryName: round.categoryName,
     currentRound: match.currentRound,
     totalRounds: match.totalRounds,
     matchStatus: match.matchStatus,
@@ -350,7 +372,10 @@ export function buildBaraAlSalafaPlayerView(
   if (round.gamePhase === 'description') {
     return {
       ...baseView,
-      instruction: 'صف الكلمة بصوتك.',
+      instruction:
+        roleView.role === 'impostor'
+          ? 'اعرف دورك، ثم اضغط فهمت.'
+          : 'احفظ الكلمة جيداً، ثم اضغط فهمت.',
       currentSpeakerName: null,
       ...buildDescriptionView(match, shell, playerId),
     };
@@ -390,6 +415,7 @@ export function buildBaraAlSalafaPlayerView(
       currentSpeakerName: null,
       revealedImpostorPlayerId: round.impostorPlayerId,
       revealedImpostorName: impostorName,
+      revealedWord: null,
     };
   }
 
@@ -407,18 +433,44 @@ export function buildBaraAlSalafaPlayerView(
         isImpostorGuessActivePlayer: true,
         impostorGuessOptions: hasSubmittedImpostorGuess ? [] : round.impostorGuessOptions,
         hasSubmittedImpostorGuess,
+        revealedImpostorPlayerId: round.impostorPlayerId,
+        revealedImpostorName: match.playerNames[round.impostorPlayerId] ?? 'لاعب',
+        revealedWord: null,
       };
     }
 
     return {
       ...baseView,
       role: 'player',
-      displayText: '',
+      // Normals keep knowing the word privately via displayText; never expose via revealedWord yet.
+      displayText: round.word,
       instruction: IMPOSTOR_GUESS_SPECTATOR_INSTRUCTION,
       currentSpeakerName: null,
       isImpostorGuessActivePlayer: false,
       impostorGuessOptions: [],
       hasSubmittedImpostorGuess: false,
+      revealedImpostorPlayerId: round.impostorPlayerId,
+      revealedImpostorName: match.playerNames[round.impostorPlayerId] ?? 'لاعب',
+      revealedWord: null,
+    };
+  }
+
+  if (round.gamePhase === 'impostor-guess-result') {
+    const impostorName = match.playerNames[round.impostorPlayerId] ?? 'لاعب';
+    const guessResultMessage =
+      round.guessedCorrectly === true ? 'إجابة صحيحة!' : 'إجابة خاطئة!';
+
+    return {
+      ...baseView,
+      role: 'player',
+      displayText: '',
+      instruction: null,
+      currentSpeakerName: null,
+      revealedImpostorPlayerId: round.impostorPlayerId,
+      revealedImpostorName: impostorName,
+      revealedWord: round.word,
+      impostorGuessedCorrectly: round.guessedCorrectly,
+      guessResultMessage,
     };
   }
 

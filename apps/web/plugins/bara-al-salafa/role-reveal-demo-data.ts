@@ -39,21 +39,6 @@ export const directedQuestionsDemoDefaults = {
   players: roleRevealDemoPlayers,
 } as const;
 
-export const freeDiscussionDemoDefaults = {
-  gameName: 'برا السالفة',
-  roundNumber: 1,
-  totalRounds: 3,
-  roomCode: '482916',
-  remainingSeconds: 90,
-  currentPlayerId: 'p2',
-  players: roleRevealDemoPlayers,
-} as const;
-
-export const freeDiscussionLowTimeDemoDefaults = {
-  ...freeDiscussionDemoDefaults,
-  remainingSeconds: 10,
-} as const;
-
 export const freeQuestionsDemoDefaults = {
   gameName: 'برا السالفة',
   roundNumber: 1,

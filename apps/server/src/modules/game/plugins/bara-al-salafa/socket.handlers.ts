@@ -36,8 +36,11 @@ import {
   applyRoleUnderstoodSubmission,
   applyVoteSubmission,
 } from './phase-flow.js';
-import { stopPhaseTimer } from './phase-timer.js';
-import { buildBaraAlSalafaPlayerView } from './state.js';
+import { clearPhaseTimerRuntime } from './phase-timer.js';
+import {
+  buildBaraAlSalafaPlayerView,
+  buildBaraAlSalafaSpectatorView,
+} from './state.js';
 import {
   deleteBaraAlSalafaState,
   getBaraAlSalafaState,
@@ -91,7 +94,7 @@ function recoveryBlockedResponse(
 }
 
 function clearBaraAlSalafaRuntime(roomId: string): void {
-  stopPhaseTimer(roomId);
+  clearPhaseTimerRuntime(roomId);
   deleteBaraAlSalafaState(roomId);
 }
 
@@ -146,15 +149,18 @@ export function registerBaraAlSalafaSocketHandlers(io: Server, socket: Socket): 
         return;
       }
 
-      if (!isActiveMatchParticipant(shell, playerId!)) {
-        sendGameResponse(callback, notParticipantError());
-        return;
-      }
-
       const match = ensureBaraAlSalafaMatchStateWithTimer(io, roomId!);
 
       if (!match) {
         sendGameResponse(callback, gameNotReadyError());
+        return;
+      }
+
+      if (!isActiveMatchParticipant(shell, playerId!)) {
+        sendGameResponse(callback, {
+          success: true,
+          data: { view: buildBaraAlSalafaSpectatorView(match) },
+        });
         return;
       }
 

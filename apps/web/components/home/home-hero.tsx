@@ -8,7 +8,7 @@ type HomeHeroProps = {
   isSubmitting: boolean;
 };
 
-const benefitChips = ['بدون تسجيل', 'حتى 12 لاعب', 'عربي بالكامل'] as const;
+const benefitChips = ['بدون تسجيل', 'حتى 8 لاعب', 'عربي بالكامل'] as const;
 
 export function HomeHero({ onCreateRoomClick, onJoinRoomClick, isSubmitting }: HomeHeroProps) {
   return (

@@ -3,30 +3,45 @@ import type { BaraAlSalafaMatchState } from '@wanasatna/shared';
 import { BARA_AL_SALAFA_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
-import { completeDescriptionPhase, completeRevealImpostorPhase } from './phase-flow.js';
-import { completeMatchCompletedPhase } from './match-lifecycle.js';
 import { getBaraAlSalafaState, setBaraAlSalafaState } from './store.js';
 import { withRound } from './round-state.js';
 
 const timersByRoomId = new Map<string, ReturnType<typeof setInterval>>();
+const timerGenerationByRoomId = new Map<string, number>();
 const pausedRoomIds = new Set<string>();
 
-const TIMERLESS_PHASES = new Set<BaraAlSalafaMatchState['round']['gamePhase']>([
+type PhaseExpiredHandler = (
+  io: Server,
+  roomId: string,
+  match: BaraAlSalafaMatchState,
+) => void;
+
+let phaseExpiredHandler: PhaseExpiredHandler | null = null;
+
+const TIMED_PHASES = new Set<BaraAlSalafaMatchState['round']['gamePhase']>([
+  'description',
   'directed-questions',
   'free-questions',
   'voting',
-  'impostor-guess',
-  'round-results',
-]);
-
-const TIMED_TICK_PHASES = new Set<BaraAlSalafaMatchState['round']['gamePhase']>([
-  'description',
   'reveal-impostor',
+  'impostor-guess',
+  'impostor-guess-result',
+  'round-results',
   'match-completed',
 ]);
 
+export function registerBaraPhaseExpiredHandler(handler: PhaseExpiredHandler): void {
+  phaseExpiredHandler = handler;
+}
+
 export function isPhaseTimerPaused(roomId: string): boolean {
   return pausedRoomIds.has(roomId);
+}
+
+export function bumpPhaseTimerGeneration(roomId: string): number {
+  const next = (timerGenerationByRoomId.get(roomId) ?? 0) + 1;
+  timerGenerationByRoomId.set(roomId, next);
+  return next;
 }
 
 export function pausePhaseTimer(roomId: string): void {
@@ -50,20 +65,10 @@ export function stopPhaseTimer(roomId: string): void {
   timersByRoomId.delete(roomId);
 }
 
-function handlePhaseTimerExpired(io: Server, roomId: string, match: BaraAlSalafaMatchState): void {
-  if (match.round.gamePhase === 'description') {
-    completeDescriptionPhase(io, roomId, match);
-    return;
-  }
-
-  if (match.round.gamePhase === 'reveal-impostor') {
-    completeRevealImpostorPhase(io, roomId, match);
-    return;
-  }
-
-  if (match.round.gamePhase === 'match-completed') {
-    completeMatchCompletedPhase(io, roomId);
-  }
+export function clearPhaseTimerRuntime(roomId: string): void {
+  stopPhaseTimer(roomId);
+  pausedRoomIds.delete(roomId);
+  timerGenerationByRoomId.delete(roomId);
 }
 
 export function startPhaseTimerIfNeeded(io: Server, roomId: string): void {
@@ -73,14 +78,22 @@ export function startPhaseTimerIfNeeded(io: Server, roomId: string): void {
 
   const match = getBaraAlSalafaState(roomId);
 
-  if (!match || TIMERLESS_PHASES.has(match.round.gamePhase)) {
+  if (!match || !TIMED_PHASES.has(match.round.gamePhase)) {
     return;
   }
 
+  const generation = timerGenerationByRoomId.get(roomId) ?? bumpPhaseTimerGeneration(roomId);
+
   const intervalId = setInterval(() => {
+    if (timerGenerationByRoomId.get(roomId) !== generation) {
+      clearInterval(intervalId);
+      timersByRoomId.delete(roomId);
+      return;
+    }
+
     const currentMatch = getBaraAlSalafaState(roomId);
 
-    if (!currentMatch || TIMERLESS_PHASES.has(currentMatch.round.gamePhase)) {
+    if (!currentMatch || !TIMED_PHASES.has(currentMatch.round.gamePhase)) {
       stopPhaseTimer(roomId);
       return;
     }
@@ -99,15 +112,20 @@ export function startPhaseTimerIfNeeded(io: Server, roomId: string): void {
     });
 
     setBaraAlSalafaState(roomId, nextMatch);
-
-    if (TIMED_TICK_PHASES.has(currentMatch.round.gamePhase)) {
-      io.to(getRoomChannel(roomId)).emit(BARA_AL_SALAFA_PHASE_CHANGED_EVENT, {});
-    }
+    io.to(getRoomChannel(roomId)).emit(BARA_AL_SALAFA_PHASE_CHANGED_EVENT, {});
 
     if (remainingSeconds <= 0) {
-      handlePhaseTimerExpired(io, roomId, nextMatch);
+      stopPhaseTimer(roomId);
+      phaseExpiredHandler?.(io, roomId, nextMatch);
     }
   }, 1000);
 
   timersByRoomId.set(roomId, intervalId);
+}
+
+/** Stop any running timer, bump generation, then start if the current phase is timed. */
+export function restartPhaseTimer(io: Server, roomId: string): void {
+  stopPhaseTimer(roomId);
+  bumpPhaseTimerGeneration(roomId);
+  startPhaseTimerIfNeeded(io, roomId);
 }

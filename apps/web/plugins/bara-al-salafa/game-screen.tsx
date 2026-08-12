@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { BaraAlSalafaPlayerView, GamePluginScreenProps } from '@wanasatna/shared';
+import { GameScreen } from '@/components/game/game-card';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
@@ -24,9 +25,45 @@ import { RevealImpostorScreen } from './reveal-impostor-screen';
 import { RoleRevealScreen } from './role-reveal-screen';
 import { RoundResultsScreen } from './round-results-screen';
 import { VotingScreen } from './voting-screen';
+import { WaitingSpectatorScreen } from './waiting-spectator-screen';
 import { useBaraAlSalafaPlayerView } from './use-player-view';
 
-const TIMED_BARA_PHASES = new Set(['description', 'reveal-impostor']);
+const TIMED_BARA_PHASES = new Set([
+  'description',
+  'directed-questions',
+  'free-questions',
+  'voting',
+  'reveal-impostor',
+  'impostor-guess',
+  'impostor-guess-result',
+  'round-results',
+]);
+
+const NOT_PARTICIPANT_ERROR = 'أنت لست مشاركاً في هذه الجولة.';
+
+function ImpostorGuessResultScreen({
+  message,
+  secretWord,
+}: {
+  message: string;
+  secretWord: string | null;
+}) {
+  return (
+    <GameScreen ariaLabel="نتيجة تخمين برا السالفة" maxWidth="3xl">
+      <div className="flex flex-col items-center justify-center px-4 py-16 text-center sm:py-20">
+        <p className="text-2xl font-semibold text-wanas-text-primary sm:text-3xl">{message}</p>
+        {secretWord ? (
+          <>
+            <p className="mt-8 text-base font-medium text-wanas-text-secondary sm:text-lg">الكلمة:</p>
+            <p className="mt-2 max-w-full break-words text-2xl font-semibold text-wanas-text-primary sm:text-3xl">
+              {secretWord}
+            </p>
+          </>
+        ) : null}
+      </div>
+    </GameScreen>
+  );
+}
 
 export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
   const { state: shellState, returnToLobby } = useGameShell();
@@ -65,6 +102,10 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     activeFinalResultsView !== null &&
     (shellPhase === 'PLAYING' || shellPhase === 'FINISHED');
 
+  const treatAsSpectator =
+    view?.isMatchSpectator === true ||
+    (!view && Boolean(errorMessage?.includes(NOT_PARTICIPANT_ERROR)));
+
   useEffect(() => {
     if (view?.gamePhase === 'match-completed') {
       setFinalResultsView(view);
@@ -97,7 +138,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
       setExperienceMeta({
         gameName: 'برا السالفة',
         gameIcon: BARA_AL_SALAFA_GAME_ICON,
-        phaseLabel: 'جاري التحميل...',
+        phaseLabel: treatAsSpectator ? 'الجولة جارية' : 'جاري التحميل...',
         leaderboardEntries: mapBaraAlSalafaLeaderboard(null, player.id, players),
       });
       return;
@@ -107,6 +148,9 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
       gameName: 'برا السالفة',
       gameIcon: BARA_AL_SALAFA_GAME_ICON,
       phaseLabel: activeView.phaseLabel,
+      categoryLabel: activeView.categoryName
+        ? `الفئة: ${activeView.categoryName}`
+        : undefined,
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
       timer: TIMED_BARA_PHASES.has(activeView.gamePhase)
@@ -123,6 +167,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     remainingSeconds,
     setExperienceMeta,
     showFinalMatchResults,
+    treatAsSpectator,
     view,
   ]);
 
@@ -193,6 +238,10 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     return null;
   }
 
+  if (treatAsSpectator) {
+    return <WaitingSpectatorScreen />;
+  }
+
   if (isLoading) {
     return (
       <section className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
@@ -211,6 +260,15 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
 
   if (!view) {
     return null;
+  }
+
+  if (view.gamePhase === 'impostor-guess-result') {
+    return (
+      <ImpostorGuessResultScreen
+        message={view.guessResultMessage ?? 'انتهت نتيجة التخمين'}
+        secretWord={view.revealedWord}
+      />
+    );
   }
 
   if (view.gamePhase === 'round-results') {
@@ -274,7 +332,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
       return null;
     }
 
-    const impostorGuessProps = mapImpostorGuessLiveProps(view, room.code);
+    const impostorGuessProps = mapImpostorGuessLiveProps(view, room.code, remainingSeconds);
 
     return (
       <div className="space-y-4">
@@ -436,6 +494,8 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
           conversationTargetPlayerName={view.activeFreeQuestionTargetPlayerName}
           selectedTargetPlayerId={freeQuestionSelection}
           completedPlayerIds={view.completedFreeQuestionPlayerIds}
+          remainingSeconds={remainingSeconds}
+          showTimer
           roundNumber={view.currentRound}
           totalRounds={view.totalRounds}
           roomCode={room.code}

@@ -1,8 +1,7 @@
+import { MAX_ROOM_PLAYERS } from '@wanasatna/shared';
 import type { LobbyPlayer } from '@/lib/lobby/types';
 import { getPlayerAvatarColors, getPlayerAvatarEmoji, LobbyPanel } from './lobby-ui';
 import { PlayerCard } from './player-card';
-
-const MAX_PLAYERS = 12;
 
 type PlayersPanelProps = {
   players: LobbyPlayer[];
@@ -26,7 +25,7 @@ export function PlayersPanel({
   return (
     <LobbyPanel
       title="اللاعبون"
-      description={`${players.length} / ${MAX_PLAYERS}`}
+      description={`${players.length} / ${MAX_ROOM_PLAYERS}`}
       className="h-fit"
       bodyClassName="gap-2 p-3 sm:p-4"
     >

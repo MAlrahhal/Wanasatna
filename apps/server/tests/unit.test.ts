@@ -19,7 +19,22 @@ import {
   applyRoleUnderstood,
   haveAllConnectedParticipantsAcknowledgedRole,
 } from '../src/modules/game/plugins/bara-al-salafa/role-understood.js';
-import { buildBaraAlSalafaPlayerView } from '../src/modules/game/plugins/bara-al-salafa/state.js';
+import { buildBaraAlSalafaPlayerView, buildBaraAlSalafaSpectatorView } from '../src/modules/game/plugins/bara-al-salafa/state.js';
+import {
+  buildImpostorGuessOptions,
+  pickRandomWordFromCategories,
+  BARA_AL_SALAFA_DEFAULT_ROUNDS,
+  BARA_AL_SALAFA_ROLE_REVEAL_DURATION_SECONDS,
+  BARA_AL_SALAFA_VOTING_DURATION_SECONDS,
+  BARA_AL_SALAFA_IMPOSTOR_GUESS_DURATION_SECONDS,
+  BARA_AL_SALAFA_QUESTION_TURN_DURATION_SECONDS,
+  BARA_AL_SALAFA_ROUND_RESULTS_DURATION_SECONDS,
+  MAX_ROOM_PLAYERS,
+} from '@wanasatna/shared';
+import { resolveTotalRounds } from '../src/modules/game/plugins/bara-al-salafa/round-state.js';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 
 let passed = 0;
 let failed = 0;
@@ -44,14 +59,16 @@ function makeMatch(overrides?: Partial<BaraAlSalafaMatchState['round']>): BaraAl
     totalRounds: 3,
     scores: { p1: 0, p2: 0, p3: 0 },
     matchStatus: 'in-progress',
+    usedWordTexts: ['مكة'],
     round: {
       word: 'مكة',
       wordCategoryId: 'places',
+      categoryName: 'أماكن',
       impostorPlayerId: 'p2',
       gamePhase: 'description',
-      phaseRemainingSeconds: 60,
-      descriptionDurationSeconds: 60,
-      questionTurnDurationSeconds: 30,
+      phaseRemainingSeconds: 20,
+      descriptionDurationSeconds: 20,
+      questionTurnDurationSeconds: 60,
       speakingOrder: [],
       directedQuestionPairs: [],
       currentSpeakerIndex: 0,
@@ -60,13 +77,15 @@ function makeMatch(overrides?: Partial<BaraAlSalafaMatchState['round']>): BaraAl
       completedFreeQuestionTurns: [],
       votes: {},
       submittedVoterIds: [],
-      votingDurationSeconds: 30,
+      votingDurationSeconds: 60,
       revealDurationSeconds: 5,
       impostorGuessOptions: [],
-      impostorGuessDurationSeconds: 20,
+      impostorGuessDurationSeconds: 60,
       selectedWord: null,
       guessedCorrectly: null,
       roleUnderstoodPlayerIds: [],
+      roundResultsDurationSeconds: 10,
+      guessResultDurationSeconds: 3,
       ...overrides,
     },
   };
@@ -321,14 +340,14 @@ test('round-results: host can continue; non-host sees waiting message', () => {
   const hostView = buildBaraAlSalafaPlayerView(match, 'p1', shell);
   assert.equal(hostView.isHost, true);
   assert.equal(hostView.canContinueFromRoundResults, true);
-  assert.equal(hostView.roundResultsContinueLabel, 'بدء الجولة التالية');
+  assert.equal(hostView.roundResultsContinueLabel, 'التالي الآن');
 
   const guestView = buildBaraAlSalafaPlayerView(match, 'p3', shell);
   assert.equal(guestView.canContinueFromRoundResults, false);
-  assert.ok(guestView.roundResultsWaitingMessage?.includes('المضيف'));
+  assert.ok(guestView.roundResultsWaitingMessage?.includes('تلقائيا'));
 });
 
-test('round-results final round: host sees final-results label', () => {
+test('round-results final round: host sees التالي الآن', () => {
   const shell = makeShell();
   const match = applyRoundScores(
     makeMatch({
@@ -340,7 +359,7 @@ test('round-results final round: host sees final-results label', () => {
   match.currentRound = 3;
 
   const hostView = buildBaraAlSalafaPlayerView(match, 'p1', shell);
-  assert.equal(hostView.roundResultsContinueLabel, 'عرض النتائج النهائية');
+  assert.equal(hostView.roundResultsContinueLabel, 'التالي الآن');
 });
 
 // --- Voting ---
@@ -425,17 +444,129 @@ test('impostor guess: options hidden after submission', () => {
 
 // --- Reveal impostor ---
 
-test('reveal-impostor: identity revealed, word and votes still hidden', () => {
+test('reveal-impostor: identity only; secret word hidden until guess resolves', () => {
   const shell = makeShell();
   const match = makeMatch({ gamePhase: 'reveal-impostor', votes: { p1: 'p2', p3: 'p2' } });
 
-  const view = buildBaraAlSalafaPlayerView(match, 'p1', shell);
-  assert.equal(view.revealedImpostorPlayerId, 'p2');
-  assert.equal(view.revealedWord, null, 'word not revealed yet');
-  assert.deepEqual(view.roundResults, [], 'no scores yet');
-  assert.equal(view.confirmedVoteTargetPlayerId, null, 'no vote breakdown');
+  for (const playerId of ['p1', 'p2', 'p3']) {
+    const view = buildBaraAlSalafaPlayerView(match, playerId, shell);
+    assert.equal(view.revealedImpostorPlayerId, 'p2');
+    assert.equal(view.revealedImpostorName, 'خالد');
+    assert.equal(view.revealedWord, null, `${playerId} must not see public word yet`);
+    assert.ok(!view.displayText.includes('مكة'), `${playerId} displayText must not leak word`);
+  }
 });
 
+test('privacy before guess: normals know word; impostor and reveal do not leak it', () => {
+  const shell = makeShell();
+
+  const description = makeMatch({ gamePhase: 'description' });
+  assert.equal(buildBaraAlSalafaPlayerView(description, 'p1', shell).displayText, 'مكة');
+  assert.equal(buildBaraAlSalafaPlayerView(description, 'p2', shell).displayText, 'أنت برا السالفة');
+  assert.equal(buildBaraAlSalafaSpectatorView(description).revealedWord, null);
+  assert.equal(buildBaraAlSalafaSpectatorView(description).displayText, '');
+
+  const reveal = makeMatch({ gamePhase: 'reveal-impostor' });
+  assert.equal(buildBaraAlSalafaPlayerView(reveal, 'p2', shell).revealedWord, null);
+  assert.equal(buildBaraAlSalafaPlayerView(reveal, 'p1', shell).revealedWord, null);
+
+  const guessing = makeMatch({
+    gamePhase: 'impostor-guess',
+    impostorGuessOptions: ['مكة', 'جدة', 'الرياض', 'الدمام', 'تبوك', 'أبها', 'خميس', 'حائل'],
+  });
+  const impostorGuessView = buildBaraAlSalafaPlayerView(guessing, 'p2', shell);
+  assert.equal(impostorGuessView.revealedWord, null);
+  assert.equal(impostorGuessView.displayText, '');
+  assert.ok(!impostorGuessView.displayText.includes('مكة'));
+  assert.equal(buildBaraAlSalafaPlayerView(guessing, 'p1', shell).displayText, 'مكة');
+  assert.equal(buildBaraAlSalafaPlayerView(guessing, 'p1', shell).revealedWord, null);
+});
+
+test('after guess resolves: secret word revealed to everyone', () => {
+  const shell = makeShell();
+  const match = makeMatch({
+    gamePhase: 'impostor-guess-result',
+    guessedCorrectly: true,
+  });
+  for (const playerId of ['p1', 'p2', 'p3']) {
+    const view = buildBaraAlSalafaPlayerView(match, playerId, shell);
+    assert.equal(view.revealedWord, 'مكة');
+    assert.equal(view.guessResultMessage, 'إجابة صحيحة!');
+  }
+});
+
+test('round-results host continue label is التالي الآن', () => {
+  const shell = makeShell();
+  const match = applyRoundScores(
+    makeMatch({ gamePhase: 'round-results', votes: { p1: 'p2' }, guessedCorrectly: false }),
+  );
+  const hostView = buildBaraAlSalafaPlayerView(match, 'p1', shell);
+  assert.equal(hostView.roundResultsContinueLabel, 'التالي الآن');
+  assert.equal(hostView.canContinueFromRoundResults, true);
+});
+
+test('spectator view hides word and impostor identity before reveal', () => {
+  const match = makeMatch({ gamePhase: 'voting' });
+  const view = buildBaraAlSalafaSpectatorView(match);
+  assert.equal(view.isMatchSpectator, true);
+  assert.equal(view.displayText, '');
+  assert.equal(view.revealedImpostorPlayerId, null);
+  assert.equal(view.revealedWord, null);
+  assert.equal(view.categoryName, 'أماكن');
+});
+
+test('free product: fixed 3 rounds and timer constants', () => {
+  assert.equal(BARA_AL_SALAFA_DEFAULT_ROUNDS, 3);
+  assert.equal(resolveTotalRounds(), 3);
+  assert.equal(BARA_AL_SALAFA_ROLE_REVEAL_DURATION_SECONDS, 20);
+  assert.equal(BARA_AL_SALAFA_QUESTION_TURN_DURATION_SECONDS, 60);
+  assert.equal(BARA_AL_SALAFA_VOTING_DURATION_SECONDS, 60);
+  assert.equal(BARA_AL_SALAFA_IMPOSTOR_GUESS_DURATION_SECONDS, 60);
+  assert.equal(BARA_AL_SALAFA_ROUND_RESULTS_DURATION_SECONDS, 10);
+  assert.equal(MAX_ROOM_PLAYERS, 8);
+});
+
+test('word picker avoids used words when alternatives exist', () => {
+  const contentDir = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    '../../../content/bara-al-salafa',
+  );
+  const words = JSON.parse(readFileSync(path.join(contentDir, 'words.json'), 'utf8')) as Array<{
+    id: string;
+    text: string;
+    categoryId: string;
+  }>;
+  const categories = JSON.parse(
+    readFileSync(path.join(contentDir, 'categories.json'), 'utf8'),
+  ) as Array<{ id: string; name: string; enabled: boolean }>;
+  const bundle = { words, categories, prompts: [], questions: [], images: [] };
+  const first = pickRandomWordFromCategories(bundle, ['animals']);
+  assert.ok(first);
+  const second = pickRandomWordFromCategories(bundle, ['animals'], [first!.text]);
+  assert.ok(second);
+  assert.notEqual(second!.text, first!.text);
+
+  const options = buildImpostorGuessOptions(bundle, first!.text, first!.categoryId, 8);
+  assert.ok(options.includes(first!.text));
+  assert.equal(new Set(options).size, options.length);
+  assert.equal(options.length, 8, '12-word category yields 8 options');
+  const categoryTexts = new Set(
+    words.filter((word) => word.categoryId === first!.categoryId).map((word) => word.text),
+  );
+  for (const option of options) {
+    assert.ok(categoryTexts.has(option), `option "${option}" must stay in ${first!.categoryId}`);
+  }
+});
+
+test('impostor-guess-result wrong message synchronized', () => {
+  const shell = makeShell();
+  const wrong = makeMatch({
+    gamePhase: 'impostor-guess-result',
+    guessedCorrectly: false,
+  });
+  assert.equal(buildBaraAlSalafaPlayerView(wrong, 'p1', shell).guessResultMessage, 'إجابة خاطئة!');
+  assert.equal(buildBaraAlSalafaPlayerView(wrong, 'p1', shell).revealedWord, 'مكة');
+});
 // --- Round results ---
 
 test('round-results: reveals word, impostor, guess result, points, leaderboard', () => {

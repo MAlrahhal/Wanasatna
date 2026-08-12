@@ -26,7 +26,7 @@ export function buildTimingChallengePluginDefinition(): GamePluginDefinition {
   return {
     ...metadata,
     minPlayers: 2,
-    maxPlayers: 12,
+    maxPlayers: 8,
     defaultSettings: {
       mode: defaults.mode,
       rounds: String(defaults.rounds),
