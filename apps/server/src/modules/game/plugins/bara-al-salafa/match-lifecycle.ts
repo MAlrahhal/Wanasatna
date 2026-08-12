@@ -12,9 +12,8 @@ import {
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getLoadedGameContent } from '../../../content/index.js';
-import { finishGameShellForRoom } from '../../game.service.js';
+import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
 import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
-import { broadcastGameShellState } from '../../game.timer.js';
 import { resolveEnabledCategoryFilter } from '../../runtime/round-category-store.js';
 import { applyRoundScores } from './scoring.js';
 import {
@@ -140,13 +139,15 @@ export function completeMatchCompletedPhase(io: Server, roomId: string): void {
   clearPhaseTimerRuntime(roomId);
   deleteBaraAlSalafaState(roomId);
 
-  const nextShell = finishGameShellForRoom(roomId);
-
-  if (nextShell) {
-    cleanupGameShellRuntime(roomId);
-    broadcastGameShellState(io, nextShell);
+  // Must delete the shell (not leave FINISHED). navigateRoomToLobby alone leaves a
+  // stale shell Map entry → next start-from-lobby fails with SHELL_ALREADY_EXISTS.
+  const shell = getGameShellByRoomId(roomId);
+  if (!shell) {
+    return;
   }
 
+  cleanupGameShellRuntime(roomId);
+  deleteGameShell(roomId);
   navigateRoomToLobby(io, roomId);
 }
 

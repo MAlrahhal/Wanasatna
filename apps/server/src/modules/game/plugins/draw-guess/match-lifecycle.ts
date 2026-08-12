@@ -4,9 +4,8 @@ import { DRAW_GUESS_GAME_ID, DRAW_GUESS_PHASE_CHANGED_EVENT } from '@wanasatna/s
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
-import { finishGameShellForRoom } from '../../game.service.js';
+import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
 import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
-import { broadcastGameShellState } from '../../game.timer.js';
 import {
   clearDrawGuessPhaseTimerRuntime,
   restartDrawGuessPhaseTimer,
@@ -170,12 +169,13 @@ export function completeMatch(io: Server, roomId: string): void {
   deleteDrawGuessState(roomId);
   clearDrawGuessRoomDrawerSettings(roomId);
 
-  const nextShell = finishGameShellForRoom(roomId);
-
-  if (nextShell) {
-    cleanupGameShellRuntime(roomId);
-    broadcastGameShellState(io, nextShell);
+  // Same invariant as bara: lobby return must delete the shell, not leave FINISHED.
+  const shell = getGameShellByRoomId(roomId);
+  if (!shell) {
+    return;
   }
 
+  cleanupGameShellRuntime(roomId);
+  deleteGameShell(roomId);
   navigateRoomToLobby(io, roomId);
 }
