@@ -4,15 +4,22 @@ import { pluginActionEvent, pluginStateEvent } from '../../plugin/events.js';
 export const IMPOSTER_DRAW_GAME_ID = 'imposter-draw' as const;
 
 export const IMPOSTER_DRAW_DEFAULT_ROUNDS = 3;
-export const IMPOSTER_DRAW_TURN_SECONDS = 10;
-export const IMPOSTER_DRAW_GUESS_SECONDS = 20;
+export const IMPOSTER_DRAW_BRIEFING_SECONDS = 20;
+export const IMPOSTER_DRAW_TURN_SECONDS = 15;
+export const IMPOSTER_DRAW_VOTING_SECONDS = 60;
+export const IMPOSTER_DRAW_GUESS_SECONDS = 30;
 export const IMPOSTER_DRAW_REVEAL_SECONDS = 10;
+export const IMPOSTER_DRAW_ROUND_RESULTS_SECONDS = 10;
+/** @deprecated Prefer IMPOSTER_DRAW_TURN_SECONDS */
+export const IMPOSTER_DRAW_DEFAULT_TURN_SECONDS = IMPOSTER_DRAW_TURN_SECONDS;
 
 export type ImposterDrawGamePhase =
+  | 'briefing'
   | 'drawing-turns'
   | 'voting'
   | 'reveal'
   | 'impostor-guess'
+  | 'guess-result'
   | 'round-results'
   | 'match-completed';
 
@@ -25,13 +32,8 @@ export type ImposterDrawReferenceImage = {
   categoryId: string;
 };
 
-export type ImposterDrawVoteTallyEntry = {
-  playerId: string;
-  name: string;
-  voteCount: number;
-};
-
 export type ImposterDrawRoundState = {
+  turnId: string;
   imageId: string;
   imageLabel: string;
   imageUrl: string;
@@ -39,10 +41,13 @@ export type ImposterDrawRoundState = {
   impostorPlayerId: string;
   drawingOrder: string[];
   currentDrawerIndex: number;
+  /** Stroke ids created by the current drawer during the active turnId. */
+  currentTurnStrokeIds: string[];
   turnDurationSeconds: number;
   gamePhase: ImposterDrawGamePhase;
   phaseRemainingSeconds: number;
   strokes: DrawStroke[];
+  roleUnderstoodPlayerIds: string[];
   votes: Record<string, string>;
   submittedVoterIds: string[];
   impostorVotedOut: boolean | null;
@@ -60,6 +65,8 @@ export type ImposterDrawMatchState = {
   totalRounds: number;
   scores: Record<string, number>;
   matchStatus: 'in-progress' | 'completed';
+  usedImageTexts: string[];
+  previousImpostorPlayerId: string | null;
   round: ImposterDrawRoundState;
 };
 
@@ -83,7 +90,9 @@ export type ImposterDrawPlayerView = {
   phaseLabel: string;
   phaseRemainingSeconds: number;
   role: ImposterDrawRole;
+  /** Only present during briefing for crew (or reconnect during briefing). Never after. */
   referenceImage: ImposterDrawReferenceImage | null;
+  turnId: string;
   currentDrawerPlayerId: string | null;
   currentDrawerName: string | null;
   canDraw: boolean;
@@ -92,21 +101,23 @@ export type ImposterDrawPlayerView = {
   currentRound: number;
   totalRounds: number;
   matchStatus: 'in-progress' | 'completed';
+  hasAcknowledgedBriefing: boolean;
+  briefingAckCount: number;
+  eligibleBriefingAckCount: number;
   hasVoted: boolean;
   votablePlayers: Array<{ playerId: string; name: string }>;
   submittedVotesCount: number;
   eligibleVotersCount: number;
   confirmedVoteTargetPlayerId: string | null;
-  revealedImage: ImposterDrawReferenceImage | null;
   revealedImpostorPlayerId: string | null;
   revealedImpostorName: string | null;
   impostorVotedOut: boolean | null;
-  voteTally: ImposterDrawVoteTallyEntry[];
   impostorGuessOptions: string[];
   canGuessImage: boolean;
   hasSubmittedImageGuess: boolean;
   selectedImageGuess: string | null;
   impostorGuessedCorrectly: boolean | null;
+  guessResultMessage: string | null;
   playersWon: boolean | null;
   roundResults: ImposterDrawRoundResultEntry[];
   leaderboard: ImposterDrawLeaderboardEntry[];
@@ -121,6 +132,9 @@ export type ImposterDrawPlayerView = {
   canContinueFromRoundResults: boolean;
   roundResultsContinueLabel: string | null;
   roundResultsWaitingMessage: string | null;
+  isMatchSpectator: boolean;
+  /** Revealed answer label only after guess resolves (results phases). Never an image. */
+  revealedAnswerLabel: string | null;
 };
 
 export const IMPOSTER_DRAW_SYNC_EVENT = pluginActionEvent(IMPOSTER_DRAW_GAME_ID, 'sync');
@@ -133,9 +147,10 @@ export const IMPOSTER_DRAW_STROKE_POINTS_EVENT = pluginActionEvent(
   IMPOSTER_DRAW_GAME_ID,
   'stroke-points',
 );
-export const IMPOSTER_DRAW_CLEAR_CANVAS_EVENT = pluginActionEvent(
+export const IMPOSTER_DRAW_UNDO_EVENT = pluginActionEvent(IMPOSTER_DRAW_GAME_ID, 'undo');
+export const IMPOSTER_DRAW_SUBMIT_ROLE_UNDERSTOOD_EVENT = pluginActionEvent(
   IMPOSTER_DRAW_GAME_ID,
-  'clear-canvas',
+  'submit-role-understood',
 );
 export const IMPOSTER_DRAW_SUBMIT_VOTE_EVENT = pluginActionEvent(
   IMPOSTER_DRAW_GAME_ID,
@@ -156,6 +171,7 @@ export const IMPOSTER_DRAW_CANVAS_UPDATED_EVENT = pluginActionEvent(
 export const IMPOSTER_DRAW_STATE_EVENT = pluginStateEvent(IMPOSTER_DRAW_GAME_ID);
 
 export type ImposterDrawStrokePayload = {
+  turnId: string;
   strokeId: string;
   tool: DrawGuessTool;
   color: string;
@@ -164,8 +180,13 @@ export type ImposterDrawStrokePayload = {
 };
 
 export type ImposterDrawStrokePointsPayload = {
+  turnId: string;
   strokeId: string;
   points: DrawStrokePoint[];
+};
+
+export type ImposterDrawTurnScopedPayload = {
+  turnId: string;
 };
 
 export type ImposterDrawSubmitVotePayload = {
@@ -177,5 +198,6 @@ export type ImposterDrawSubmitImageGuessPayload = {
 };
 
 export type ImposterDrawCanvasUpdatedPayload = {
+  turnId: string;
   strokes: DrawStroke[];
 };

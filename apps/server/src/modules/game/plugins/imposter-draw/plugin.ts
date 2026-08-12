@@ -5,7 +5,6 @@ import type {
   LoadedGameContent,
 } from '@wanasatna/shared';
 import {
-  IMPOSTER_DRAW_CLEAR_CANVAS_EVENT,
   IMPOSTER_DRAW_CONTINUE_ROUND_RESULTS_EVENT,
   IMPOSTER_DRAW_GAME_ID,
   IMPOSTER_DRAW_PHASE_CHANGED_EVENT,
@@ -13,12 +12,14 @@ import {
   IMPOSTER_DRAW_STROKE_EVENT,
   IMPOSTER_DRAW_STROKE_POINTS_EVENT,
   IMPOSTER_DRAW_SUBMIT_IMAGE_GUESS_EVENT,
+  IMPOSTER_DRAW_SUBMIT_ROLE_UNDERSTOOD_EVENT,
   IMPOSTER_DRAW_SUBMIT_VOTE_EVENT,
   IMPOSTER_DRAW_SYNC_EVENT,
+  IMPOSTER_DRAW_UNDO_EVENT,
   contentValidationToPluginError,
   validateGameStartContent,
 } from '@wanasatna/shared';
-import { createMatchState } from './state.js';
+import { createMatchState, serializeImposterDrawState } from './state.js';
 
 const metadata = {
   id: IMPOSTER_DRAW_GAME_ID,
@@ -59,7 +60,7 @@ export function buildImposterDrawPluginDefinition(
     },
     createInitialState: (context, _pluginSettings) =>
       createMatchState(context.roomId, context.players, settings),
-    serializeState: (state) => state,
+    serializeState: (state) => serializeImposterDrawState(state as ImposterDrawMatchState),
     deserializeState: (payload) => payload as ImposterDrawMatchState,
     lifecycle: {},
     socket: {
@@ -68,7 +69,8 @@ export function buildImposterDrawPluginDefinition(
         phaseChanged: IMPOSTER_DRAW_PHASE_CHANGED_EVENT,
         stroke: IMPOSTER_DRAW_STROKE_EVENT,
         strokePoints: IMPOSTER_DRAW_STROKE_POINTS_EVENT,
-        clearCanvas: IMPOSTER_DRAW_CLEAR_CANVAS_EVENT,
+        undo: IMPOSTER_DRAW_UNDO_EVENT,
+        submitRoleUnderstood: IMPOSTER_DRAW_SUBMIT_ROLE_UNDERSTOOD_EVENT,
         submitVote: IMPOSTER_DRAW_SUBMIT_VOTE_EVENT,
         submitImageGuess: IMPOSTER_DRAW_SUBMIT_IMAGE_GUESS_EVENT,
         continueRoundResults: IMPOSTER_DRAW_CONTINUE_ROUND_RESULTS_EVENT,

@@ -19,6 +19,8 @@
     "test:fast-answer:integration": "tsx tests/fast-answer.integration.test.ts",
     "test:draw-guess": "tsx tests/draw-guess.unit.test.ts",
     "test:draw-guess:integration": "tsx tests/draw-guess.integration.test.ts",
+    "test:imposter-draw": "tsx tests/imposter-draw.unit.test.ts",
+    "test:imposter-draw:integration": "tsx tests/imposter-draw.integration.test.ts",
     "test:who-wrote-it": "tsx tests/who-wrote-it.unit.test.ts",
     "test:who-wrote-it:integration": "tsx tests/who-wrote-it.integration.test.ts",
     "test:judge": "tsx tests/judge.unit.test.ts",

@@ -35,10 +35,9 @@ export type DrawingToolbarProps = {
   onColorChange: (color: string) => void;
   onSizeChange: (size: number) => void;
   onUndo?: () => void;
-  onClear: () => void;
+  onClear?: () => void;
   className?: string;
 };
-
 export function DrawingToolbar({
   tool,
   color,
@@ -91,17 +90,19 @@ export function DrawingToolbar({
             تراجع
           </Button>
         ) : null}
-        <Button
-          type="button"
-          size="sm"
-          variant="danger"
-          disabled={disabled}
-          loading={isClearing}
-          onClick={onClear}
-          className="ms-auto"
-        >
-          مسح اللوحة
-        </Button>
+        {onClear ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="danger"
+            disabled={disabled}
+            loading={isClearing}
+            onClick={onClear}
+            className="ms-auto"
+          >
+            مسح اللوحة
+          </Button>
+        ) : null}
       </div>
 
       <div className="space-y-2">

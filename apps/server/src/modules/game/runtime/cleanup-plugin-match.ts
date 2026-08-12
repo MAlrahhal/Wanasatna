@@ -20,7 +20,7 @@ import { clearGuessingChallengePhaseTimerRuntime } from '../plugins/guessing-cha
 import { clearGuessingChallengeRoomMode } from '../plugins/guessing-challenge/mode-store.js';
 import { clearLookThrottleForRoom } from '../plugins/guessing-challenge/state.js';
 import { deleteGuessingChallengeState } from '../plugins/guessing-challenge/store.js';
-import { stopImposterDrawPhaseTimer } from '../plugins/imposter-draw/phase-timer.js';
+import { clearImposterDrawPhaseTimerRuntime } from '../plugins/imposter-draw/phase-timer.js';
 import { deleteImposterDrawState } from '../plugins/imposter-draw/store.js';
 import { clearJudgePhaseTimerRuntime } from '../plugins/judge/phase-timer.js';
 import { deleteJudgeState } from '../plugins/judge/store.js';
@@ -47,7 +47,7 @@ export function cleanupPluginMatchState(roomId: string, gameId: string | null): 
   }
 
   if (gameId === IMPOSTER_DRAW_GAME_ID) {
-    stopImposterDrawPhaseTimer(roomId);
+    clearImposterDrawPhaseTimerRuntime(roomId);
     deleteImposterDrawState(roomId);
   }
 

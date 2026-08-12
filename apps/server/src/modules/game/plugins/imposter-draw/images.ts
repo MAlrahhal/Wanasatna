@@ -33,7 +33,10 @@ function escapeXml(value: string): string {
     .replace(/'/g, '&apos;');
 }
 
-export function pickImposterDrawImage(roomId: string): GameContentWord {
+export function pickImposterDrawImage(
+  roomId: string,
+  excludeTexts: readonly string[] = [],
+): GameContentWord {
   const content = getLoadedGameContent(IMPOSTER_DRAW_GAME_ID);
 
   if (!content) {
@@ -43,6 +46,7 @@ export function pickImposterDrawImage(roomId: string): GameContentWord {
   const wordEntry = pickRandomWordFromCategories(
     content.bundle,
     resolveEnabledCategoryFilter(roomId) ?? content.settings.enabledCategories,
+    excludeTexts,
   );
 
   if (!wordEntry) {

@@ -154,12 +154,14 @@ function VotingQuestionHero({
   questionHelper,
 }: {
   questionTitle: string;
-  questionHelper: string;
+  questionHelper?: string;
 }) {
   return (
     <div className="text-center">
       <h2 className="text-2xl font-semibold text-wanas-text-primary sm:text-3xl">{questionTitle}</h2>
-      <p className="mx-auto mt-3 max-w-md wanas-game-helper">{questionHelper}</p>
+      {questionHelper ? (
+        <p className="mx-auto mt-3 max-w-md wanas-game-helper">{questionHelper}</p>
+      ) : null}
     </div>
   );
 }

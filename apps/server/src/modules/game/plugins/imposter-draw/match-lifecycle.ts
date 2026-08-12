@@ -1,24 +1,97 @@
 import type { Server } from 'socket.io';
 import type { GameShellState, ImposterDrawMatchState } from '@wanasatna/shared';
-import { IMPOSTER_DRAW_GAME_ID, IMPOSTER_DRAW_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
+import { IMPOSTER_DRAW_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
+import { randomUUID } from 'node:crypto';
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
-import { getLoadedGameContent } from '../../../content/index.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
-import { finishGameShellForRoom } from '../../game.service.js';
-import { cleanupGameShellRuntime } from '../../game.lifecycle.js';
-import { broadcastGameShellState } from '../../game.timer.js';
+import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
+import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
 import { buildImageGuessOptions } from './images.js';
 import {
-  startImposterDrawPhaseTimerIfNeeded,
+  clearImposterDrawPhaseTimerRuntime,
+  restartImposterDrawPhaseTimer,
   stopImposterDrawPhaseTimer,
 } from './phase-timer.js';
 import { applyRoundScores } from './scoring.js';
 import { createRoundState, withRound } from './state.js';
 import { deleteImposterDrawState, setImposterDrawState } from './store.js';
-import { applyVote, haveAllConnectedParticipantsVoted, resolveImpostorVotedOut } from './voting.js';
+import {
+  applyVote,
+  getConnectedParticipantIds,
+  haveAllConnectedParticipantsVoted,
+  resolveImpostorVotedOut,
+} from './voting.js';
 
 function broadcastPhaseChanged(io: Server, roomId: string): void {
   io.to(getRoomChannel(roomId)).emit(IMPOSTER_DRAW_PHASE_CHANGED_EVENT, {});
+}
+
+export function haveAllConnectedParticipantsAcknowledgedBriefing(
+  shell: GameShellState,
+  match: ImposterDrawMatchState,
+): boolean {
+  const connectedIds = getConnectedParticipantIds(shell, match);
+
+  if (connectedIds.length === 0) {
+    return false;
+  }
+
+  const acknowledgedIds = new Set(match.round.roleUnderstoodPlayerIds);
+  return connectedIds.every((playerId) => acknowledgedIds.has(playerId));
+}
+
+export function startDrawingPhase(
+  io: Server,
+  roomId: string,
+  match: ImposterDrawMatchState,
+): ImposterDrawMatchState {
+  if (match.round.gamePhase !== 'briefing') {
+    return match;
+  }
+
+  const nextMatch = withRound(match, {
+    ...match.round,
+    gamePhase: 'drawing-turns',
+    turnId: randomUUID(),
+    currentDrawerIndex: 0,
+    currentTurnStrokeIds: [],
+    phaseRemainingSeconds: match.round.turnDurationSeconds,
+  });
+
+  setImposterDrawState(roomId, nextMatch);
+  restartImposterDrawPhaseTimer(io, roomId);
+  broadcastPhaseChanged(io, roomId);
+  return nextMatch;
+}
+
+export function applyBriefingAcknowledgement(
+  io: Server,
+  roomId: string,
+  match: ImposterDrawMatchState,
+  shell: GameShellState,
+  playerId: string,
+): ImposterDrawMatchState {
+  if (match.round.gamePhase !== 'briefing') {
+    return match;
+  }
+
+  if (match.round.roleUnderstoodPlayerIds.includes(playerId)) {
+    return match;
+  }
+
+  const acknowledged = withRound(match, {
+    ...match.round,
+    roleUnderstoodPlayerIds: [...match.round.roleUnderstoodPlayerIds, playerId],
+  });
+
+  setImposterDrawState(roomId, acknowledged);
+
+  if (haveAllConnectedParticipantsAcknowledgedBriefing(shell, acknowledged)) {
+    return startDrawingPhase(io, roomId, acknowledged);
+  }
+
+  broadcastPhaseChanged(io, roomId);
+  return acknowledged;
 }
 
 export function advanceDrawingTurn(
@@ -38,15 +111,15 @@ export function advanceDrawingTurn(
 
   const nextMatch = withRound(match, {
     ...match.round,
+    turnId: randomUUID(),
     currentDrawerIndex: nextIndex,
+    currentTurnStrokeIds: [],
     phaseRemainingSeconds: match.round.turnDurationSeconds,
   });
 
   setImposterDrawState(roomId, nextMatch);
-  stopImposterDrawPhaseTimer(roomId);
-  startImposterDrawPhaseTimerIfNeeded(io, roomId);
+  restartImposterDrawPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
-
   return nextMatch;
 }
 
@@ -58,16 +131,15 @@ export function startVotingPhase(
   const nextMatch = withRound(match, {
     ...match.round,
     gamePhase: 'voting',
-    phaseRemainingSeconds: 0,
+    phaseRemainingSeconds: timedPhaseDurations.imposterDrawVoting(),
     currentDrawerIndex: match.round.drawingOrder.length,
     votes: {},
     submittedVoterIds: [],
   });
 
   setImposterDrawState(roomId, nextMatch);
-  stopImposterDrawPhaseTimer(roomId);
+  restartImposterDrawPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
-
   return nextMatch;
 }
 
@@ -105,10 +177,8 @@ export function completeVotingPhase(
   });
 
   setImposterDrawState(roomId, nextMatch);
-  stopImposterDrawPhaseTimer(roomId);
-  startImposterDrawPhaseTimerIfNeeded(io, roomId);
+  restartImposterDrawPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
-
   return nextMatch;
 }
 
@@ -130,16 +200,32 @@ export function startImpostorGuessPhase(
   const nextMatch = withRound(match, {
     ...match.round,
     gamePhase: 'impostor-guess',
-    phaseRemainingSeconds: 0,
+    phaseRemainingSeconds: timedPhaseDurations.imposterDrawGuess(),
     impostorGuessOptions: options,
     selectedImageGuess: null,
     impostorGuessedCorrectly: null,
   });
 
   setImposterDrawState(roomId, nextMatch);
-  stopImposterDrawPhaseTimer(roomId);
+  restartImposterDrawPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
+  return nextMatch;
+}
 
+export function startGuessResultPhase(
+  io: Server,
+  roomId: string,
+  match: ImposterDrawMatchState,
+): ImposterDrawMatchState {
+  const nextMatch = withRound(match, {
+    ...match.round,
+    gamePhase: 'guess-result',
+    phaseRemainingSeconds: timedPhaseDurations.imposterDrawGuessResult(),
+  });
+
+  setImposterDrawState(roomId, nextMatch);
+  restartImposterDrawPhaseTimer(io, roomId);
+  broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
 
@@ -169,7 +255,7 @@ export function applyImageGuessSubmission(
     phaseRemainingSeconds: 0,
   });
 
-  return startRoundResults(io, roomId, nextMatch);
+  return startGuessResultPhase(io, roomId, nextMatch);
 }
 
 export function finalizeImageGuessWithoutSubmission(
@@ -182,7 +268,7 @@ export function finalizeImageGuessWithoutSubmission(
   }
 
   if (match.round.selectedImageGuess !== null) {
-    return startRoundResults(io, roomId, match);
+    return startGuessResultPhase(io, roomId, match);
   }
 
   const nextMatch = withRound(match, {
@@ -192,7 +278,7 @@ export function finalizeImageGuessWithoutSubmission(
     phaseRemainingSeconds: 0,
   });
 
-  return startRoundResults(io, roomId, nextMatch);
+  return startGuessResultPhase(io, roomId, nextMatch);
 }
 
 export function startRoundResults(
@@ -208,13 +294,12 @@ export function startRoundResults(
   const nextMatch = withRound(scoredMatch, {
     ...scoredMatch.round,
     gamePhase: 'round-results',
-    phaseRemainingSeconds: 0,
+    phaseRemainingSeconds: timedPhaseDurations.imposterDrawRoundResults(),
   });
 
   setImposterDrawState(roomId, nextMatch);
-  stopImposterDrawPhaseTimer(roomId);
+  restartImposterDrawPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
-
   return nextMatch;
 }
 
@@ -223,24 +308,24 @@ function startNextRound(
   roomId: string,
   match: ImposterDrawMatchState,
 ): ImposterDrawMatchState {
-  const content = getLoadedGameContent(IMPOSTER_DRAW_GAME_ID);
+  const { round, usedImageTexts } = createRoundState(roomId, {
+    playerIds: match.playerIds,
+    usedImageTexts: match.usedImageTexts,
+    previousImpostorPlayerId: match.round.impostorPlayerId,
+  });
 
-  if (!content) {
-    return match;
-  }
-
-  const nextRoundNumber = match.currentRound + 1;
   const nextMatch: ImposterDrawMatchState = {
     ...match,
-    currentRound: nextRoundNumber,
+    currentRound: match.currentRound + 1,
     matchStatus: 'in-progress',
-    round: createRoundState(roomId, match.playerIds, content.settings),
+    usedImageTexts,
+    previousImpostorPlayerId: match.round.impostorPlayerId,
+    round,
   };
 
   setImposterDrawState(roomId, nextMatch);
-  startImposterDrawPhaseTimerIfNeeded(io, roomId);
+  restartImposterDrawPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
-
   return nextMatch;
 }
 
@@ -262,24 +347,17 @@ function startMatchCompletedPhase(
   );
 
   setImposterDrawState(roomId, nextMatch);
-  startImposterDrawPhaseTimerIfNeeded(io, roomId);
+  restartImposterDrawPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
-
   return nextMatch;
 }
 
-export function continueFromRoundResults(
+export function advanceFromRoundResults(
   io: Server,
   roomId: string,
   match: ImposterDrawMatchState,
-  shell: GameShellState,
-  hostPlayerId: string,
 ): ImposterDrawMatchState {
   if (match.round.gamePhase !== 'round-results') {
-    return match;
-  }
-
-  if (shell.hostPlayerId !== hostPlayerId) {
     return match;
   }
 
@@ -292,14 +370,39 @@ export function continueFromRoundResults(
   return startMatchCompletedPhase(io, roomId, match);
 }
 
+export function continueFromRoundResults(
+  io: Server,
+  roomId: string,
+  match: ImposterDrawMatchState,
+  shell: GameShellState,
+  hostPlayerId: string,
+): ImposterDrawMatchState {
+  if (shell.hostPlayerId !== hostPlayerId) {
+    return match;
+  }
+
+  if (match.round.gamePhase === 'match-completed') {
+    completeMatch(io, roomId);
+    return match;
+  }
+
+  if (match.round.gamePhase !== 'round-results') {
+    return match;
+  }
+
+  return advanceFromRoundResults(io, roomId, match);
+}
+
 export function completeMatch(io: Server, roomId: string): void {
-  stopImposterDrawPhaseTimer(roomId);
+  clearImposterDrawPhaseTimerRuntime(roomId);
   deleteImposterDrawState(roomId);
 
-  const nextShell = finishGameShellForRoom(roomId);
-
-  if (nextShell) {
-    cleanupGameShellRuntime(roomId);
-    broadcastGameShellState(io, nextShell);
+  const shell = getGameShellByRoomId(roomId);
+  if (!shell) {
+    return;
   }
+
+  cleanupGameShellRuntime(roomId);
+  deleteGameShell(roomId);
+  navigateRoomToLobby(io, roomId);
 }

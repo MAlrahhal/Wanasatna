@@ -5,8 +5,13 @@ import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
 import {
   advanceDrawingTurn,
+  advanceFromRoundResults,
   completeMatch,
   completeRevealPhase,
+  completeVotingPhase,
+  finalizeImageGuessWithoutSubmission,
+  startDrawingPhase,
+  startRoundResults,
 } from './match-lifecycle.js';
 import { getImposterDrawState, setImposterDrawState } from './store.js';
 import { withRound } from './state.js';
@@ -14,15 +19,14 @@ import { withRound } from './state.js';
 const timersByRoomId = new Map<string, ReturnType<typeof setInterval>>();
 const pausedRoomIds = new Set<string>();
 
-const TIMERLESS_PHASES = new Set<ImposterDrawMatchState['round']['gamePhase']>([
-  'voting',
-  'impostor-guess',
-  'round-results',
-]);
-
-const TIMED_TICK_PHASES = new Set<ImposterDrawMatchState['round']['gamePhase']>([
+const TIMED_PHASES = new Set<ImposterDrawMatchState['round']['gamePhase']>([
+  'briefing',
   'drawing-turns',
+  'voting',
   'reveal',
+  'impostor-guess',
+  'guess-result',
+  'round-results',
   'match-completed',
 ]);
 
@@ -51,18 +55,60 @@ export function stopImposterDrawPhaseTimer(roomId: string): void {
   timersByRoomId.delete(roomId);
 }
 
+export function clearImposterDrawPhaseTimerRuntime(roomId: string): void {
+  stopImposterDrawPhaseTimer(roomId);
+  pausedRoomIds.delete(roomId);
+}
+
+export function restartImposterDrawPhaseTimer(io: Server, roomId: string): void {
+  stopImposterDrawPhaseTimer(roomId);
+  startImposterDrawPhaseTimerIfNeeded(io, roomId);
+}
+
 function handlePhaseTimerExpired(
   io: Server,
   roomId: string,
   match: ImposterDrawMatchState,
 ): void {
+  const shell = getGameShellByRoomId(roomId);
+
+  if (!shell || shell.phase !== 'PLAYING') {
+    stopImposterDrawPhaseTimer(roomId);
+    return;
+  }
+
+  if (match.round.gamePhase === 'briefing') {
+    startDrawingPhase(io, roomId, match);
+    return;
+  }
+
   if (match.round.gamePhase === 'drawing-turns') {
     advanceDrawingTurn(io, roomId, match);
     return;
   }
 
+  if (match.round.gamePhase === 'voting') {
+    completeVotingPhase(io, roomId, match);
+    return;
+  }
+
   if (match.round.gamePhase === 'reveal') {
     completeRevealPhase(io, roomId, match);
+    return;
+  }
+
+  if (match.round.gamePhase === 'impostor-guess') {
+    finalizeImageGuessWithoutSubmission(io, roomId, match);
+    return;
+  }
+
+  if (match.round.gamePhase === 'guess-result') {
+    startRoundResults(io, roomId, match);
+    return;
+  }
+
+  if (match.round.gamePhase === 'round-results') {
+    advanceFromRoundResults(io, roomId, match);
     return;
   }
 
@@ -78,11 +124,11 @@ export function startImposterDrawPhaseTimerIfNeeded(io: Server, roomId: string):
 
   const match = getImposterDrawState(roomId);
 
-  if (!match || TIMERLESS_PHASES.has(match.round.gamePhase)) {
+  if (!match || !TIMED_PHASES.has(match.round.gamePhase)) {
     return;
   }
 
-  if (match.round.phaseRemainingSeconds <= 0 && TIMED_TICK_PHASES.has(match.round.gamePhase)) {
+  if (match.round.phaseRemainingSeconds <= 0) {
     handlePhaseTimerExpired(io, roomId, match);
     return;
   }
@@ -90,7 +136,7 @@ export function startImposterDrawPhaseTimerIfNeeded(io: Server, roomId: string):
   const intervalId = setInterval(() => {
     const currentMatch = getImposterDrawState(roomId);
 
-    if (!currentMatch || TIMERLESS_PHASES.has(currentMatch.round.gamePhase)) {
+    if (!currentMatch || !TIMED_PHASES.has(currentMatch.round.gamePhase)) {
       stopImposterDrawPhaseTimer(roomId);
       return;
     }
@@ -109,10 +155,7 @@ export function startImposterDrawPhaseTimerIfNeeded(io: Server, roomId: string):
     });
 
     setImposterDrawState(roomId, nextMatch);
-
-    if (TIMED_TICK_PHASES.has(currentMatch.round.gamePhase)) {
-      io.to(getRoomChannel(roomId)).emit(IMPOSTER_DRAW_PHASE_CHANGED_EVENT, {});
-    }
+    io.to(getRoomChannel(roomId)).emit(IMPOSTER_DRAW_PHASE_CHANGED_EVENT, {});
 
     if (remainingSeconds <= 0) {
       handlePhaseTimerExpired(io, roomId, nextMatch);

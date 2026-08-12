@@ -1,11 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type {
-  ImposterDrawReferenceImage,
-  ImposterDrawRoundResultEntry,
-  ImposterDrawVoteTallyEntry,
-} from '@wanasatna/shared';
+import type { ImposterDrawRoundResultEntry } from '@wanasatna/shared';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
 import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
@@ -15,18 +11,18 @@ import { compareByRoundPointsThenName } from '@/lib/game/leaderboard-sort';
 import { cn } from '@/lib/utils';
 
 export type ImposterDrawRoundResultsScreenProps = {
-  revealedImage: ImposterDrawReferenceImage;
   impostorName: string;
   impostorVotedOut: boolean | null;
   impostorGuessedCorrectly: boolean | null;
   selectedImageGuess: string | null;
+  revealedAnswerLabel: string | null;
   playersWon: boolean | null;
   roundResults: readonly ImposterDrawRoundResultEntry[];
-  voteTally: readonly ImposterDrawVoteTallyEntry[];
   currentPlayerId: string;
   roundNumber: number;
   totalRounds: number;
   roomCode: string;
+  remainingSeconds?: number;
   continueLabel?: string | null;
   waitingMessage?: string | null;
   isContinueLoading?: boolean;
@@ -35,18 +31,18 @@ export type ImposterDrawRoundResultsScreenProps = {
 };
 
 export function ImposterDrawRoundResultsScreen({
-  revealedImage,
   impostorName,
   impostorVotedOut,
   impostorGuessedCorrectly,
   selectedImageGuess,
+  revealedAnswerLabel,
   playersWon,
   roundResults,
-  voteTally,
   currentPlayerId,
   roundNumber,
   totalRounds,
   roomCode,
+  remainingSeconds,
   continueLabel,
   waitingMessage,
   isContinueLoading = false,
@@ -84,6 +80,11 @@ export function ImposterDrawRoundResultsScreen({
         currentRound={roundNumber}
         totalRounds={totalRounds}
         phaseLabel="نتائج الجولة"
+        timer={
+          typeof remainingSeconds === 'number'
+            ? { remainingSeconds, format: 'seconds', lowTimeThreshold: 3 }
+            : undefined
+        }
       />
 
       <div className="flex flex-col gap-6 sm:gap-7">
@@ -96,34 +97,13 @@ export function ImposterDrawRoundResultsScreen({
           <p className="text-xl font-semibold sm:text-2xl">{outcomeLabel}</p>
           <p className="mt-3 wanas-game-helper">{votingResult}</p>
           <p className="mt-1 wanas-game-helper">{guessResult}</p>
-        </div>
-
-        <GameCard className="px-5 py-6 text-center sm:px-8">
-          <p className="text-xs font-medium text-wanas-text-muted">الصورة كانت</p>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={revealedImage.imageUrl}
-            alt={revealedImage.label}
-            className="mx-auto mt-3 max-h-44 w-full max-w-md rounded-2xl border border-[color:var(--wanas-game-card-border)] object-contain"
-          />
-          <p className="mt-3 text-2xl font-bold text-wanas-text-primary">{revealedImage.label}</p>
+          {revealedAnswerLabel ? (
+            <p className="mt-4 text-lg font-semibold text-wanas-text-primary">
+              الصورة كانت: {revealedAnswerLabel}
+            </p>
+          ) : null}
           <p className="mt-2 text-sm text-wanas-text-secondary">الإمبوستر هو: {impostorName}</p>
-        </GameCard>
-
-        <GameCard className="p-5 sm:p-6">
-          <h2 className="wanas-game-title mb-4">نتيجة التصويت</h2>
-          <ul className="space-y-2.5">
-            {voteTally.map((entry) => (
-              <li
-                key={entry.playerId}
-                className="flex items-center justify-between rounded-2xl border border-[color:var(--wanas-game-card-border)] px-4 py-3"
-              >
-                <span className="font-medium text-wanas-text-primary">{entry.name}</span>
-                <span className="text-sm text-wanas-text-secondary">{entry.voteCount} صوت</span>
-              </li>
-            ))}
-          </ul>
-        </GameCard>
+        </div>
 
         <GameCard className="p-5 sm:p-6">
           <h2 className="wanas-game-title mb-4">نقاط الجولة</h2>

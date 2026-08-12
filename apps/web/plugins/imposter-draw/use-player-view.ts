@@ -10,14 +10,15 @@ import type {
 } from '@wanasatna/shared';
 import {
   IMPOSTER_DRAW_CANVAS_UPDATED_EVENT,
-  IMPOSTER_DRAW_CLEAR_CANVAS_EVENT,
   IMPOSTER_DRAW_CONTINUE_ROUND_RESULTS_EVENT,
   IMPOSTER_DRAW_PHASE_CHANGED_EVENT,
   IMPOSTER_DRAW_STROKE_EVENT,
   IMPOSTER_DRAW_STROKE_POINTS_EVENT,
   IMPOSTER_DRAW_SUBMIT_IMAGE_GUESS_EVENT,
+  IMPOSTER_DRAW_SUBMIT_ROLE_UNDERSTOOD_EVENT,
   IMPOSTER_DRAW_SUBMIT_VOTE_EVENT,
   IMPOSTER_DRAW_SYNC_EVENT,
+  IMPOSTER_DRAW_UNDO_EVENT,
 } from '@wanasatna/shared';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
@@ -54,7 +55,16 @@ function mergeStrokePoints(
   );
 }
 
-const LOCALLY_TIMED_PHASES = new Set(['drawing-turns', 'reveal', 'match-completed']);
+const LOCALLY_TIMED_PHASES = new Set([
+  'briefing',
+  'drawing-turns',
+  'voting',
+  'reveal',
+  'impostor-guess',
+  'guess-result',
+  'round-results',
+  'match-completed',
+]);
 
 export function useImposterDrawPlayerView(enabled: boolean) {
   const [view, setView] = useState<ImposterDrawPlayerView | null>(null);
@@ -64,6 +74,7 @@ export function useImposterDrawPlayerView(enabled: boolean) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const hasViewRef = useRef(false);
+  const turnIdRef = useRef<string | null>(null);
 
   const syncView = useCallback(async () => {
     const isInitialLoad = !hasViewRef.current;
@@ -77,6 +88,7 @@ export function useImposterDrawPlayerView(enabled: boolean) {
 
     if (result.view) {
       hasViewRef.current = true;
+      turnIdRef.current = result.view.turnId;
       setView(result.view);
       setErrorMessage(null);
       setRemainingSeconds(result.view.phaseRemainingSeconds);
@@ -92,6 +104,7 @@ export function useImposterDrawPlayerView(enabled: boolean) {
   useEffect(() => {
     if (!enabled) {
       hasViewRef.current = false;
+      turnIdRef.current = null;
       setView(null);
       setErrorMessage(null);
       setIsLoading(false);
@@ -103,6 +116,10 @@ export function useImposterDrawPlayerView(enabled: boolean) {
 
     void syncView();
   }, [enabled, syncView]);
+
+  useEffect(() => {
+    turnIdRef.current = view?.turnId ?? null;
+  }, [view?.turnId]);
 
   useEffect(() => {
     if (!enabled) {
@@ -120,7 +137,17 @@ export function useImposterDrawPlayerView(enabled: boolean) {
         return;
       }
 
-      setView((current) => (current ? { ...current, strokes: payload.strokes } : current));
+      setView((current) => {
+        if (!current) {
+          return current;
+        }
+
+        if (payload.turnId && payload.turnId !== current.turnId) {
+          return current;
+        }
+
+        return { ...current, strokes: payload.strokes };
+      });
     };
 
     const onStrokePoints = (payload: ImposterDrawStrokePointsPayload) => {
@@ -128,14 +155,20 @@ export function useImposterDrawPlayerView(enabled: boolean) {
         return;
       }
 
-      setView((current) =>
-        current
-          ? {
-              ...current,
-              strokes: mergeStrokePoints(current.strokes, payload),
-            }
-          : current,
-      );
+      setView((current) => {
+        if (!current) {
+          return current;
+        }
+
+        if (payload.turnId && payload.turnId !== current.turnId) {
+          return current;
+        }
+
+        return {
+          ...current,
+          strokes: mergeStrokePoints(current.strokes, payload),
+        };
+      });
     };
 
     socket.on(IMPOSTER_DRAW_PHASE_CHANGED_EVENT, onPhaseChanged);
@@ -165,7 +198,7 @@ export function useImposterDrawPlayerView(enabled: boolean) {
     };
   }, [enabled, view?.gamePhase, view?.phaseRemainingSeconds]);
 
-  const clearCanvas = useCallback(async () => {
+  const submitRoleUnderstood = useCallback(async () => {
     if (!enabled || isSubmittingAction) {
       return;
     }
@@ -174,7 +207,32 @@ export function useImposterDrawPlayerView(enabled: boolean) {
     setActionError(null);
 
     const response = await emitPluginWithAck<{ view: ImposterDrawPlayerView }>(
-      IMPOSTER_DRAW_CLEAR_CANVAS_EVENT,
+      IMPOSTER_DRAW_SUBMIT_ROLE_UNDERSTOOD_EVENT,
+    );
+
+    if (!response.success) {
+      setActionError(response.error.message);
+      setIsSubmittingAction(false);
+      return;
+    }
+
+    turnIdRef.current = response.data.view.turnId;
+    setView(response.data.view);
+    setRemainingSeconds(response.data.view.phaseRemainingSeconds);
+    setIsSubmittingAction(false);
+  }, [enabled, isSubmittingAction]);
+
+  const undoStroke = useCallback(async () => {
+    if (!enabled || isSubmittingAction || !turnIdRef.current) {
+      return;
+    }
+
+    setIsSubmittingAction(true);
+    setActionError(null);
+
+    const response = await emitPluginWithAck<{ view: ImposterDrawPlayerView }>(
+      IMPOSTER_DRAW_UNDO_EVENT,
+      { turnId: turnIdRef.current },
     );
 
     if (!response.success) {
@@ -258,6 +316,7 @@ export function useImposterDrawPlayerView(enabled: boolean) {
       return;
     }
 
+    turnIdRef.current = response.data.view.turnId;
     setView(response.data.view);
     setRemainingSeconds(response.data.view.phaseRemainingSeconds);
     setIsSubmittingAction(false);
@@ -266,14 +325,17 @@ export function useImposterDrawPlayerView(enabled: boolean) {
   const strokeReadyPromisesRef = useRef(new Map<string, Promise<void>>());
 
   const emitStroke = useCallback(
-    async (payload: ImposterDrawStrokePayload) => {
-      if (!enabled) {
+    async (payload: Omit<ImposterDrawStrokePayload, 'turnId'>) => {
+      if (!enabled || !turnIdRef.current) {
         return;
       }
 
       const strokePromise = emitPluginWithAck<{ view: ImposterDrawPlayerView }>(
         IMPOSTER_DRAW_STROKE_EVENT,
-        payload,
+        {
+          ...payload,
+          turnId: turnIdRef.current,
+        },
       ).then(() => undefined);
 
       strokeReadyPromisesRef.current.set(payload.strokeId, strokePromise);
@@ -283,8 +345,8 @@ export function useImposterDrawPlayerView(enabled: boolean) {
   );
 
   const emitStrokePoints = useCallback(
-    async (payload: ImposterDrawStrokePointsPayload) => {
-      if (!enabled) {
+    async (payload: Omit<ImposterDrawStrokePointsPayload, 'turnId'>) => {
+      if (!enabled || !turnIdRef.current) {
         return;
       }
 
@@ -294,10 +356,10 @@ export function useImposterDrawPlayerView(enabled: boolean) {
         await ready;
       }
 
-      void emitPluginWithAck<{ view: ImposterDrawPlayerView }>(
-        IMPOSTER_DRAW_STROKE_POINTS_EVENT,
-        payload,
-      );
+      void emitPluginWithAck<{ view: ImposterDrawPlayerView }>(IMPOSTER_DRAW_STROKE_POINTS_EVENT, {
+        ...payload,
+        turnId: turnIdRef.current,
+      });
     },
     [enabled],
   );
@@ -309,7 +371,8 @@ export function useImposterDrawPlayerView(enabled: boolean) {
     remainingSeconds,
     actionError,
     isSubmittingAction,
-    clearCanvas,
+    submitRoleUnderstood,
+    undoStroke,
     submitVote,
     submitImageGuess,
     continueFromRoundResults,

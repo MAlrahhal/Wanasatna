@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { GamePluginScreenProps, ImposterDrawPlayerView } from '@wanasatna/shared';
 import { IMPOSTER_DRAW_GAME_ID } from '@wanasatna/shared';
+import { GameCard, GameScreen } from '@/components/game/game-card';
+import { GameHeader } from '@/components/game/game-header';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
@@ -12,12 +14,22 @@ import type { LobbyPlayer } from '@/lib/lobby/types';
 import { ImpostorGuessScreen } from '@/plugins/bara-al-salafa/impostor-guess-screen';
 import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-screen';
 import { VotingScreen } from '@/plugins/bara-al-salafa/voting-screen';
+import { ImposterDrawBriefingScreen } from './briefing-screen';
 import { DrawingTurnsScreen } from './drawing-turns-screen';
 import { ImposterDrawRevealScreen } from './reveal-screen';
 import { ImposterDrawRoundResultsScreen } from './round-results-screen';
 import { useImposterDrawPlayerView } from './use-player-view';
 
-const TIMED_PHASES = new Set(['drawing-turns', 'reveal']);
+const TIMED_PHASES = new Set([
+  'briefing',
+  'drawing-turns',
+  'voting',
+  'reveal',
+  'impostor-guess',
+  'guess-result',
+  'round-results',
+  'match-completed',
+]);
 
 function toLobbyPlayers(
   votablePlayers: ImposterDrawPlayerView['votablePlayers'],
@@ -48,7 +60,6 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
   const setExperienceMeta = useSetGameExperienceMeta();
   const isImposterDraw = shellState?.gameId === IMPOSTER_DRAW_GAME_ID;
   const shellPhase = shellState?.phase;
-  // Mounted only via GamePluginRenderer for this plugin id; enable by shell phase.
   const pluginEnabled = isImposterDraw && shellPhase === 'PLAYING';
   const [finalResultsView, setFinalResultsView] = useState<ImposterDrawPlayerView | null>(null);
   const [isReturningToLobby, setIsReturningToLobby] = useState(false);
@@ -62,7 +73,8 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
     remainingSeconds,
     actionError,
     isSubmittingAction,
-    clearCanvas,
+    submitRoleUnderstood,
+    undoStroke,
     submitVote,
     submitImageGuess,
     continueFromRoundResults,
@@ -116,13 +128,15 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
     setExperienceMeta({
       gameName: IMPOSTER_DRAW_GAME_NAME,
       gameIcon: IMPOSTER_DRAW_GAME_ICON,
-      phaseLabel: activeView.phaseLabel,
+      phaseLabel: activeView.isMatchSpectator ? 'مشاهدة' : activeView.phaseLabel,
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
       timer: TIMED_PHASES.has(activeView.gamePhase)
         ? { remainingSeconds, format: 'seconds' as const, lowTimeThreshold: 5 }
         : undefined,
-      leaderboardEntries: mapImposterDrawLeaderboard(activeView, player.id, players),
+      leaderboardEntries: activeView.isMatchSpectator
+        ? []
+        : mapImposterDrawLeaderboard(activeView, player.id, players),
     });
   }, [
     activeFinalResultsView,
@@ -139,7 +153,19 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
   useEffect(() => () => setExperienceMeta(null), [setExperienceMeta]);
 
   const handleReturnToLobby = useCallback(() => {
-    if (!isHost || shellPhase !== 'FINISHED' || isReturningToLobby) {
+    if (isReturningToLobby) {
+      return;
+    }
+
+    if (view?.gamePhase === 'match-completed' && isHost) {
+      setIsReturningToLobby(true);
+      void continueFromRoundResults().finally(() => {
+        setIsReturningToLobby(false);
+      });
+      return;
+    }
+
+    if (!isHost || shellPhase !== 'FINISHED') {
       return;
     }
 
@@ -147,7 +173,14 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
     void returnToLobby().finally(() => {
       setIsReturningToLobby(false);
     });
-  }, [isHost, isReturningToLobby, returnToLobby, shellPhase]);
+  }, [
+    continueFromRoundResults,
+    isHost,
+    isReturningToLobby,
+    returnToLobby,
+    shellPhase,
+    view?.gamePhase,
+  ]);
 
   const guessOptions = useMemo(
     () =>
@@ -161,11 +194,14 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
 
   if (showFinalMatchResults && room && player && activeFinalResultsView) {
     const shellFinished = shellPhase === 'FINISHED';
-    const returnStatusMessage = !shellFinished
-      ? 'جاري إنهاء المباراة...'
-      : !isHost
-        ? 'بانتظار المضيف للعودة إلى اللوبي.'
-        : null;
+    const isMatchCompletedPhase = activeFinalResultsView.gamePhase === 'match-completed';
+    const autoReturnMessage = isMatchCompletedPhase
+      ? `العودة إلى اللوبي تلقائياً خلال ${Math.max(0, remainingSeconds)} ثانية`
+      : !shellFinished
+        ? 'جاري إنهاء المباراة...'
+        : !isHost
+          ? 'بانتظار المضيف للعودة إلى اللوبي.'
+          : null;
 
     return (
       <MatchResultsScreen
@@ -182,9 +218,11 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
         playerCount={activeFinalResultsView.resultsLeaderboard.length}
         roomCode={room.code}
         gameName={IMPOSTER_DRAW_GAME_NAME}
-        returnStatusMessage={returnStatusMessage}
+        returnStatusMessage={autoReturnMessage}
         isReturnToLobbyLoading={isReturningToLobby}
-        onReturnToLobby={isHost && shellFinished ? handleReturnToLobby : undefined}
+        onReturnToLobby={
+          isHost && (isMatchCompletedPhase || shellFinished) ? handleReturnToLobby : undefined
+        }
       />
     );
   }
@@ -213,20 +251,73 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
     return null;
   }
 
+  if (view.isMatchSpectator) {
+    if (view.gamePhase === 'drawing-turns') {
+      return (
+        <DrawingTurnsScreen
+          strokes={view.strokes}
+          canDraw={false}
+          isSpectator
+          currentDrawerName={view.currentDrawerName}
+          remainingSeconds={remainingSeconds}
+          currentRound={view.currentRound}
+          totalRounds={view.totalRounds}
+          roomCode={room.code}
+        />
+      );
+    }
+
+    return (
+      <GameScreen ariaLabel="مشاهدة">
+        <GameHeader
+          gameName={IMPOSTER_DRAW_GAME_NAME}
+          gameIcon={IMPOSTER_DRAW_GAME_ICON}
+          roomCode={room.code}
+          currentRound={view.currentRound}
+          totalRounds={view.totalRounds}
+          phaseLabel="مشاهدة"
+          timer={{ remainingSeconds, format: 'seconds', lowTimeThreshold: 5 }}
+        />
+        <GameCard className="px-5 py-10 text-center">
+          <p className="text-lg font-semibold text-wanas-text-primary">أنت مشاهد</p>
+          <p className="mt-2 text-sm text-wanas-text-secondary">{view.phaseLabel}</p>
+        </GameCard>
+      </GameScreen>
+    );
+  }
+
+  if (view.gamePhase === 'briefing') {
+    return (
+      <ImposterDrawBriefingScreen
+        role={view.role}
+        referenceImage={view.referenceImage}
+        remainingSeconds={remainingSeconds}
+        currentRound={view.currentRound}
+        totalRounds={view.totalRounds}
+        roomCode={room.code}
+        acknowledged={view.hasAcknowledgedBriefing}
+        isSubmitting={isSubmittingAction}
+        onAcknowledge={
+          view.hasAcknowledgedBriefing || isSubmittingAction
+            ? undefined
+            : () => void submitRoleUnderstood()
+        }
+      />
+    );
+  }
+
   if (view.gamePhase === 'drawing-turns') {
     return (
       <DrawingTurnsScreen
         strokes={view.strokes}
         canDraw={view.canDraw}
-        role={view.role}
-        referenceImage={view.referenceImage}
         currentDrawerName={view.currentDrawerName}
         remainingSeconds={remainingSeconds}
         currentRound={view.currentRound}
         totalRounds={view.totalRounds}
         roomCode={room.code}
         actionError={actionError}
-        onClearCanvas={() => void clearCanvas()}
+        onUndo={view.canDraw ? () => void undoStroke() : undefined}
         onEmitStroke={(payload) => void emitStroke(payload)}
         onEmitStrokePoints={(payload) => void emitStrokePoints(payload)}
       />
@@ -249,7 +340,9 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
         gameName={IMPOSTER_DRAW_GAME_NAME}
         gameIcon={IMPOSTER_DRAW_GAME_ICON}
         questionTitle="من هو الإمبوستر؟"
-        questionHelper="اختر اللاعب الذي تشك أنه يرسم بدون معرفة الصورة."
+        questionHelper=""
+        remainingSeconds={remainingSeconds}
+        showTimer
         isSubmitting={isSubmittingAction}
         errorMessage={actionError}
         onSelectPlayer={setSelectedVoteTargetId}
@@ -262,14 +355,12 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
     );
   }
 
-  if (view.gamePhase === 'reveal' && view.revealedImage && view.revealedImpostorName && view.revealedImpostorPlayerId) {
+  if (view.gamePhase === 'reveal' && view.revealedImpostorName && view.revealedImpostorPlayerId) {
     return (
       <ImposterDrawRevealScreen
-        revealedImage={view.revealedImage}
         impostorName={view.revealedImpostorName}
         impostorPlayerId={view.revealedImpostorPlayerId}
         impostorVotedOut={view.impostorVotedOut}
-        voteTally={view.voteTally}
         remainingSeconds={remainingSeconds}
         currentRound={view.currentRound}
         totalRounds={view.totalRounds}
@@ -291,12 +382,13 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
         gameName={IMPOSTER_DRAW_GAME_NAME}
         gameIcon={IMPOSTER_DRAW_GAME_ICON}
         phaseLabel="تخمين الصورة"
-        showTimer={false}
-        showOptionsToObservers
+        remainingSeconds={remainingSeconds}
+        showTimer
+        showOptionsToObservers={false}
         waitingTitle="الإمبوستر يحاول تخمين الصورة..."
-        waitingHelper="شاهد الخيارات وانتظر نتيجة التخمين."
-        heroTitle="ما هي الصورة؟"
-        heroHelper="اختر الصورة التي يعتقد الجميع أنهم يرسمونها."
+        waitingHelper="انتظر نتيجة التخمين."
+        heroTitle="وش الصورة؟"
+        heroHelper="اختر الإجابة الصحيحة دون معرفة الصورة مسبقاً."
         onSelectWord={view.role === 'impostor' ? setSelectedGuessWord : undefined}
         onSubmit={
           view.role === 'impostor'
@@ -311,22 +403,43 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
     );
   }
 
-  if (view.gamePhase === 'round-results' && view.revealedImage && view.revealedImpostorName) {
+  if (view.gamePhase === 'guess-result') {
+    return (
+      <GameScreen ariaLabel="نتيجة التخمين">
+        <GameHeader
+          gameName={IMPOSTER_DRAW_GAME_NAME}
+          gameIcon={IMPOSTER_DRAW_GAME_ICON}
+          roomCode={room.code}
+          currentRound={view.currentRound}
+          totalRounds={view.totalRounds}
+          phaseLabel="نتيجة التخمين"
+          timer={{ remainingSeconds, format: 'seconds', lowTimeThreshold: 2 }}
+        />
+        <GameCard className="px-5 py-12 text-center">
+          <p className="text-3xl font-bold text-wanas-text-primary">
+            {view.guessResultMessage ?? 'إجابة خاطئة!'}
+          </p>
+        </GameCard>
+      </GameScreen>
+    );
+  }
+
+  if (view.gamePhase === 'round-results' && view.revealedImpostorName) {
     return (
       <div className="space-y-4">
         <ImposterDrawRoundResultsScreen
-          revealedImage={view.revealedImage}
           impostorName={view.revealedImpostorName}
           impostorVotedOut={view.impostorVotedOut}
           impostorGuessedCorrectly={view.impostorGuessedCorrectly}
           selectedImageGuess={view.selectedImageGuess}
+          revealedAnswerLabel={view.revealedAnswerLabel}
           playersWon={view.playersWon}
           roundResults={view.roundResults}
-          voteTally={view.voteTally}
           currentPlayerId={player.id}
           roundNumber={view.currentRound}
           totalRounds={view.totalRounds}
           roomCode={room.code}
+          remainingSeconds={remainingSeconds}
           continueLabel={view.canContinueFromRoundResults ? view.roundResultsContinueLabel : null}
           waitingMessage={view.roundResultsWaitingMessage}
           isContinueLoading={isSubmittingAction}
