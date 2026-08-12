@@ -23,6 +23,7 @@ export type ImposterDrawRoundResultsScreenProps = {
   totalRounds: number;
   roomCode: string;
   remainingSeconds?: number;
+  totalDurationSeconds?: number;
   continueLabel?: string | null;
   waitingMessage?: string | null;
   isContinueLoading?: boolean;
@@ -42,7 +43,8 @@ export function ImposterDrawRoundResultsScreen({
   roundNumber,
   totalRounds,
   roomCode,
-  remainingSeconds,
+  remainingSeconds = 0,
+  totalDurationSeconds = 10,
   continueLabel,
   waitingMessage,
   isContinueLoading = false,
@@ -71,6 +73,26 @@ export function ImposterDrawRoundResultsScreen({
         ? `تخمين الصورة: خاطئ (${selectedImageGuess})`
         : 'تخمين الصورة: لم يُرسل';
 
+  const progressMax = Math.max(totalDurationSeconds, 1);
+  const progressNow = Math.max(0, Math.min(remainingSeconds, totalDurationSeconds));
+  const progressPercent = Math.round((progressNow / progressMax) * 100);
+
+  const progressBar = (
+    <div
+      className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted"
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={progressMax}
+      aria-valuenow={progressNow}
+      aria-label={`الانتقال التلقائي ${progressNow} من ${progressMax} ثانية`}
+    >
+      <div
+        className="h-full rounded-full bg-wanas-accent transition-[width] duration-200 ease-linear"
+        style={{ width: `${progressPercent}%` }}
+      />
+    </div>
+  );
+
   return (
     <GameScreen ariaLabel="نتائج الجولة" maxWidth="4xl" className={className}>
       <GameHeader
@@ -80,11 +102,6 @@ export function ImposterDrawRoundResultsScreen({
         currentRound={roundNumber}
         totalRounds={totalRounds}
         phaseLabel="نتائج الجولة"
-        timer={
-          typeof remainingSeconds === 'number'
-            ? { remainingSeconds, format: 'seconds', lowTimeThreshold: 3 }
-            : undefined
-        }
       />
 
       <div className="flex flex-col gap-6 sm:gap-7">
@@ -148,18 +165,31 @@ export function ImposterDrawRoundResultsScreen({
         </GameCard>
 
         {continueLabel && onContinue ? (
-          <Button
-            size="lg"
-            className="w-full min-h-14"
-            loading={isContinueLoading}
-            onClick={onContinue}
+          <div className="mx-auto w-full max-w-md space-y-3">
+            <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
+              {waitingMessage ?? 'الجولة التالية تبدأ تلقائياً...'}
+            </p>
+            {progressBar}
+            <Button
+              size="lg"
+              className="w-full min-h-14 focus-visible:ring-offset-4"
+              loading={isContinueLoading}
+              onClick={onContinue}
+            >
+              {continueLabel}
+            </Button>
+          </div>
+        ) : waitingMessage ? (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mx-auto w-full max-w-md space-y-3 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-6 text-center shadow-sm"
           >
-            {continueLabel}
-          </Button>
-        ) : null}
-
-        {waitingMessage ? (
-          <p className="text-center text-sm text-wanas-text-secondary">{waitingMessage}</p>
+            <p className="wanas-game-helper font-medium text-wanas-text-secondary">
+              {waitingMessage}
+            </p>
+            {progressBar}
+          </div>
         ) : null}
       </div>
     </GameScreen>

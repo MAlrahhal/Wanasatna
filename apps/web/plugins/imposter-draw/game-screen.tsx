@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { GamePluginScreenProps, ImposterDrawPlayerView } from '@wanasatna/shared';
-import { IMPOSTER_DRAW_GAME_ID } from '@wanasatna/shared';
+import {
+  IMPOSTER_DRAW_GAME_ID,
+  IMPOSTER_DRAW_ROUND_RESULTS_SECONDS,
+  MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS,
+} from '@wanasatna/shared';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
@@ -218,7 +222,13 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
         playerCount={activeFinalResultsView.resultsLeaderboard.length}
         roomCode={room.code}
         gameName={IMPOSTER_DRAW_GAME_NAME}
-        returnStatusMessage={autoReturnMessage}
+        returnStatusMessage={
+          isHost && (isMatchCompletedPhase || shellFinished) ? null : autoReturnMessage
+        }
+        autoReturnSeconds={isMatchCompletedPhase ? remainingSeconds : undefined}
+        autoReturnTotalSeconds={
+          isMatchCompletedPhase ? MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS : undefined
+        }
         isReturnToLobbyLoading={isReturningToLobby}
         onReturnToLobby={
           isHost && (isMatchCompletedPhase || shellFinished) ? handleReturnToLobby : undefined
@@ -440,6 +450,7 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
           totalRounds={view.totalRounds}
           roomCode={room.code}
           remainingSeconds={remainingSeconds}
+          totalDurationSeconds={IMPOSTER_DRAW_ROUND_RESULTS_SECONDS}
           continueLabel={view.canContinueFromRoundResults ? view.roundResultsContinueLabel : null}
           waitingMessage={view.roundResultsWaitingMessage}
           isContinueLoading={isSubmittingAction}
