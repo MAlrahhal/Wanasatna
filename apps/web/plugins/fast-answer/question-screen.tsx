@@ -7,8 +7,6 @@ import { cn } from '@/lib/utils';
 
 export type FastAnswerQuestionScreenProps = {
   question: string;
-  categoryLabel?: string | null;
-  remainingSeconds: number;
   canSubmit: boolean;
   isSubmitting: boolean;
   incorrectFeedback?: string | null;
@@ -18,8 +16,6 @@ export type FastAnswerQuestionScreenProps = {
 
 export function FastAnswerQuestionScreen({
   question,
-  categoryLabel = null,
-  remainingSeconds,
   canSubmit,
   isSubmitting,
   incorrectFeedback = null,
@@ -46,27 +42,9 @@ export function FastAnswerQuestionScreen({
     setAnswer('');
   }
 
-  const urgent = remainingSeconds <= 5;
-
   return (
     <GameScreen ariaLabel="سؤال أسرع إجابة" maxWidth="3xl">
       <div className="flex flex-col gap-6 sm:gap-8">
-        <div className="flex flex-col items-center gap-2 text-center">
-          {categoryLabel ? (
-            <p className="text-xs font-medium text-wanas-text-muted sm:text-sm">
-              الفئة: {categoryLabel}
-            </p>
-          ) : null}
-          <p
-            className={cn(
-              'text-sm font-semibold tabular-nums',
-              urgent ? 'text-destructive' : 'text-wanas-text-muted',
-            )}
-          >
-            الوقت المتبقي: {remainingSeconds} ث
-          </p>
-        </div>
-
         <div className="wanas-game-card rounded-[2rem] px-5 py-10 text-center sm:px-10 sm:py-14">
           <p className="break-words text-2xl font-bold leading-snug tracking-tight text-wanas-text-primary min-[360px]:text-3xl sm:text-4xl">
             {question}

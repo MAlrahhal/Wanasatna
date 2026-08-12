@@ -14,7 +14,6 @@ export type FastAnswerRoundResultsScreenProps = {
   revealedAnswer: string;
   timedOut: boolean;
   winnerName: string | null;
-  categoryLabel?: string | null;
   roundResults: readonly FastAnswerRoundResultEntry[];
   currentPlayerId: string;
   roundNumber: number;
@@ -33,7 +32,6 @@ export function FastAnswerRoundResultsScreen({
   revealedAnswer,
   timedOut,
   winnerName,
-  categoryLabel = null,
   roundResults,
   currentPlayerId,
   roundNumber,
@@ -91,12 +89,6 @@ export function FastAnswerRoundResultsScreen({
       />
 
       <div className="flex flex-col gap-6 sm:gap-7">
-        {categoryLabel ? (
-          <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
-            الفئة: {categoryLabel}
-          </p>
-        ) : null}
-
         <div
           className={cn(
             'wanas-game-card rounded-[2rem] px-6 py-10 text-center sm:px-10 sm:py-12',

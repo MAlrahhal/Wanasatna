@@ -41,6 +41,14 @@ export function GameExperienceHeader({
           className,
         )}
       >
+        {meta.categoryLabel ? (
+          <p
+            className="mb-1.5 truncate text-center text-sm font-semibold text-white sm:mb-2 sm:text-base"
+            title={meta.categoryLabel}
+          >
+            {meta.categoryLabel}
+          </p>
+        ) : null}
         <div className="flex items-center justify-between gap-2 sm:gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-2.5">
             {meta.gameIcon ? (
@@ -55,14 +63,6 @@ export function GameExperienceHeader({
               <p className="truncate text-sm font-semibold text-[color:var(--wanas-game-text-on-structural)] sm:text-base">
                 {meta.gameName}
               </p>
-              {meta.categoryLabel ? (
-                <span
-                  className="mt-0.5 inline-flex max-w-full truncate rounded-md border border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] px-1.5 py-0.5 text-[10px] font-medium text-[color:var(--wanas-game-text-primary)] sm:text-[11px]"
-                  title={meta.categoryLabel}
-                >
-                  {meta.categoryLabel}
-                </span>
-              ) : null}
               {meta.phaseLabel ? (
                 <p className="truncate text-[11px] text-[color:var(--wanas-game-text-on-structural-muted)] sm:text-xs">
                   {meta.phaseLabel}

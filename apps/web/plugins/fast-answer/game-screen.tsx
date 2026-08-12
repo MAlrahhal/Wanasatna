@@ -207,8 +207,6 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
         <div className="space-y-3">
           <FastAnswerQuestionScreen
             question={view.question}
-            categoryLabel={view.categoryLabel}
-            remainingSeconds={remainingSeconds}
             canSubmit={false}
             isSubmitting={false}
           />
@@ -228,7 +226,6 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
           revealedAnswer={view.revealedAnswer}
           timedOut={view.timedOut}
           winnerName={view.winnerName}
-          categoryLabel={view.categoryLabel}
           roundResults={view.roundResults}
           currentPlayerId={player.id}
           roundNumber={view.currentRound}
@@ -265,8 +262,6 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
     return (
       <FastAnswerQuestionScreen
         question={view.question}
-        categoryLabel={view.categoryLabel}
-        remainingSeconds={remainingSeconds}
         canSubmit={view.canSubmitAnswer}
         isSubmitting={isSubmittingAction}
         incorrectFeedback={incorrectFeedback}
@@ -283,7 +278,6 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
           revealedAnswer={view.revealedAnswer}
           timedOut={view.timedOut}
           winnerName={view.winnerName}
-          categoryLabel={view.categoryLabel}
           roundResults={view.roundResults}
           currentPlayerId={player.id}
           roundNumber={view.currentRound}
