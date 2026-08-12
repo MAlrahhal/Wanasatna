@@ -3,7 +3,12 @@ import { pluginActionEvent, pluginStateEvent } from '../../plugin/events.js';
 export const DRAW_GUESS_GAME_ID = 'draw-guess' as const;
 
 export const DRAW_GUESS_DEFAULT_ROUNDS = 3;
-export const DRAW_GUESS_DEFAULT_DRAW_SECONDS = 60;
+export const DRAW_GUESS_DRAW_DURATION_SECONDS = 60;
+export const DRAW_GUESS_ROUND_RESULTS_DURATION_SECONDS = 10;
+/** @deprecated Prefer DRAW_GUESS_DRAW_DURATION_SECONDS */
+export const DRAW_GUESS_DEFAULT_DRAW_SECONDS = DRAW_GUESS_DRAW_DURATION_SECONDS;
+
+export type DrawGuessDrawerMode = 'random' | 'fixed';
 
 export type DrawGuessGamePhase = 'drawing' | 'round-results' | 'match-completed';
 
@@ -23,6 +28,7 @@ export type DrawStroke = {
 };
 
 export type DrawGuessRoundState = {
+  turnId: string;
   word: string;
   wordCategoryId: string;
   drawerPlayerId: string;
@@ -41,6 +47,9 @@ export type DrawGuessMatchState = {
   totalRounds: number;
   scores: Record<string, number>;
   matchStatus: 'in-progress' | 'completed';
+  drawerMode: DrawGuessDrawerMode;
+  fixedDrawerPlayerId: string | null;
+  usedWordTexts: string[];
   round: DrawGuessRoundState;
 };
 
@@ -65,6 +74,7 @@ export type DrawGuessPlayerView = {
   phaseRemainingSeconds: number;
   role: 'drawer' | 'guesser';
   secretWord: string | null;
+  turnId: string;
   drawerPlayerId: string;
   drawerName: string;
   strokes: DrawStroke[];
@@ -89,6 +99,7 @@ export type DrawGuessPlayerView = {
   roundResultsContinueLabel: string | null;
   roundResultsWaitingMessage: string | null;
   canGuess: boolean;
+  isMatchSpectator: boolean;
 };
 
 export const DRAW_GUESS_SYNC_EVENT = pluginActionEvent(DRAW_GUESS_GAME_ID, 'sync');
@@ -105,6 +116,7 @@ export const DRAW_GUESS_CLEAR_CANVAS_EVENT = pluginActionEvent(
   DRAW_GUESS_GAME_ID,
   'clear-canvas',
 );
+export const DRAW_GUESS_UNDO_EVENT = pluginActionEvent(DRAW_GUESS_GAME_ID, 'undo');
 export const DRAW_GUESS_SUBMIT_GUESS_EVENT = pluginActionEvent(
   DRAW_GUESS_GAME_ID,
   'submit-guess',
@@ -120,6 +132,7 @@ export const DRAW_GUESS_CANVAS_UPDATED_EVENT = pluginActionEvent(
 export const DRAW_GUESS_STATE_EVENT = pluginStateEvent(DRAW_GUESS_GAME_ID);
 
 export type DrawGuessStrokePayload = {
+  turnId: string;
   strokeId: string;
   tool: DrawGuessTool;
   color: string;
@@ -128,8 +141,13 @@ export type DrawGuessStrokePayload = {
 };
 
 export type DrawGuessStrokePointsPayload = {
+  turnId: string;
   strokeId: string;
   points: DrawStrokePoint[];
+};
+
+export type DrawGuessTurnScopedPayload = {
+  turnId: string;
 };
 
 export type DrawGuessSubmitGuessPayload = {
@@ -137,5 +155,11 @@ export type DrawGuessSubmitGuessPayload = {
 };
 
 export type DrawGuessCanvasUpdatedPayload = {
+  turnId: string;
   strokes: DrawStroke[];
+};
+
+export type DrawGuessLobbySettings = {
+  drawerMode: DrawGuessDrawerMode;
+  fixedPlayerId?: string;
 };

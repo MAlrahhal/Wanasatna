@@ -11,8 +11,9 @@ import {
 import { clearPhaseTimerRuntime } from '../plugins/bara-al-salafa/phase-timer.js';
 import { deleteBaraAlSalafaState } from '../plugins/bara-al-salafa/store.js';
 import { clearRoomRoundCategory } from './round-category-store.js';
-import { stopDrawGuessPhaseTimer } from '../plugins/draw-guess/phase-timer.js';
+import { clearDrawGuessPhaseTimerRuntime } from '../plugins/draw-guess/phase-timer.js';
 import { deleteDrawGuessState } from '../plugins/draw-guess/store.js';
+import { clearDrawGuessRoomDrawerSettings } from '../plugins/draw-guess/drawer-mode-store.js';
 import { clearFastAnswerPhaseTimerRuntime } from '../plugins/fast-answer/phase-timer.js';
 import { deleteFastAnswerState } from '../plugins/fast-answer/store.js';
 import { clearGuessingChallengePhaseTimerRuntime } from '../plugins/guessing-challenge/phase-timer.js';
@@ -40,8 +41,9 @@ export function cleanupPluginMatchState(roomId: string, gameId: string | null): 
   }
 
   if (gameId === DRAW_GUESS_GAME_ID) {
-    stopDrawGuessPhaseTimer(roomId);
+    clearDrawGuessPhaseTimerRuntime(roomId);
     deleteDrawGuessState(roomId);
+    clearDrawGuessRoomDrawerSettings(roomId);
   }
 
   if (gameId === IMPOSTER_DRAW_GAME_ID) {

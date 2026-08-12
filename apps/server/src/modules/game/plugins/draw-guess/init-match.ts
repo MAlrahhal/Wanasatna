@@ -3,6 +3,7 @@ import type { DrawGuessMatchState } from '@wanasatna/shared';
 import { DRAW_GUESS_GAME_ID } from '@wanasatna/shared';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { getGameShellByRoomId } from '../../game.service.js';
+import { getDrawGuessRoomDrawerSettings } from './drawer-mode-store.js';
 import { startDrawGuessPhaseTimerIfNeeded } from './phase-timer.js';
 import { createMatchState } from './state.js';
 import { getDrawGuessState, setDrawGuessState } from './store.js';
@@ -41,7 +42,14 @@ export function ensureDrawGuessMatchState(roomId: string): DrawGuessMatchState |
     return null;
   }
 
-  const match = createMatchState(roomId, matchPlayers, content.settings);
+  const drawerSettings = getDrawGuessRoomDrawerSettings(roomId);
+  const match = createMatchState(
+    roomId,
+    matchPlayers,
+    content.settings,
+    drawerSettings?.drawerMode ?? 'random',
+    drawerSettings?.fixedPlayerId ?? null,
+  );
   setDrawGuessState(roomId, match);
   return match;
 }

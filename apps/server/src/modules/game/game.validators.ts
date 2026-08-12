@@ -26,11 +26,27 @@ const guessingChallengeSettingsSchema = z.object({
   mode: z.enum(['1v1', '2v2']),
 });
 
+const drawGuessSettingsSchema = z
+  .object({
+    drawerMode: z.enum(['random', 'fixed']),
+    fixedPlayerId: z.string().trim().min(1).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.drawerMode === 'fixed' && !value.fixedPlayerId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'يجب اختيار لاعب ليكون الرسام.',
+        path: ['fixedPlayerId'],
+      });
+    }
+  });
+
 const startFromLobbySchema = z.object({
   gameId: z.string().trim().min(1, 'Game selection is required'),
   categoryId: z.string().trim().min(1).nullable().optional(),
   timingChallenge: timingChallengeSettingsSchema.optional(),
   guessingChallenge: guessingChallengeSettingsSchema.optional(),
+  drawGuess: drawGuessSettingsSchema.optional(),
 });
 
 type ValidationSuccess<T> = { success: true; data: T };

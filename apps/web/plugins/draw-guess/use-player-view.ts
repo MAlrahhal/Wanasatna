@@ -17,6 +17,7 @@ import {
   DRAW_GUESS_STROKE_POINTS_EVENT,
   DRAW_GUESS_SUBMIT_GUESS_EVENT,
   DRAW_GUESS_SYNC_EVENT,
+  DRAW_GUESS_UNDO_EVENT,
 } from '@wanasatna/shared';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
@@ -57,8 +58,10 @@ export function useDrawGuessPlayerView(enabled: boolean) {
   const [isLoading, setIsLoading] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [guessFeedback, setGuessFeedback] = useState<string | null>(null);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const hasViewRef = useRef(false);
+  const turnIdRef = useRef<string | null>(null);
 
   const syncView = useCallback(async () => {
     const isInitialLoad = !hasViewRef.current;
@@ -72,6 +75,7 @@ export function useDrawGuessPlayerView(enabled: boolean) {
 
     if (result.view) {
       hasViewRef.current = true;
+      turnIdRef.current = result.view.turnId;
       setView(result.view);
       setErrorMessage(null);
       setRemainingSeconds(result.view.phaseRemainingSeconds);
@@ -87,17 +91,23 @@ export function useDrawGuessPlayerView(enabled: boolean) {
   useEffect(() => {
     if (!enabled) {
       hasViewRef.current = false;
+      turnIdRef.current = null;
       setView(null);
       setErrorMessage(null);
       setIsLoading(false);
       setRemainingSeconds(0);
       setActionError(null);
+      setGuessFeedback(null);
       setIsSubmittingAction(false);
       return;
     }
 
     void syncView();
   }, [enabled, syncView]);
+
+  useEffect(() => {
+    turnIdRef.current = view?.turnId ?? null;
+  }, [view?.turnId]);
 
   useEffect(() => {
     if (!enabled) {
@@ -115,14 +125,20 @@ export function useDrawGuessPlayerView(enabled: boolean) {
         return;
       }
 
-      setView((current) =>
-        current
-          ? {
-              ...current,
-              strokes: payload.strokes,
-            }
-          : current,
-      );
+      setView((current) => {
+        if (!current) {
+          return current;
+        }
+
+        if (payload.turnId && payload.turnId !== current.turnId) {
+          return current;
+        }
+
+        return {
+          ...current,
+          strokes: payload.strokes,
+        };
+      });
     };
 
     const onStrokePoints = (payload: DrawGuessStrokePointsPayload) => {
@@ -130,14 +146,20 @@ export function useDrawGuessPlayerView(enabled: boolean) {
         return;
       }
 
-      setView((current) =>
-        current
-          ? {
-              ...current,
-              strokes: mergeStrokePoints(current.strokes, payload),
-            }
-          : current,
-      );
+      setView((current) => {
+        if (!current) {
+          return current;
+        }
+
+        if (payload.turnId && payload.turnId !== current.turnId) {
+          return current;
+        }
+
+        return {
+          ...current,
+          strokes: mergeStrokePoints(current.strokes, payload),
+        };
+      });
     };
 
     socket.on(DRAW_GUESS_PHASE_CHANGED_EVENT, onPhaseChanged);
@@ -152,7 +174,7 @@ export function useDrawGuessPlayerView(enabled: boolean) {
   }, [enabled, syncView]);
 
   useEffect(() => {
-    const locallyTimedPhases = new Set(['drawing', 'match-completed']);
+    const locallyTimedPhases = new Set(['drawing', 'round-results', 'match-completed']);
 
     if (!enabled || !view || !locallyTimedPhases.has(view.gamePhase)) {
       return;
@@ -177,9 +199,11 @@ export function useDrawGuessPlayerView(enabled: boolean) {
 
       setIsSubmittingAction(true);
       setActionError(null);
+      setGuessFeedback(null);
 
       const response = await emitPluginWithAck<{
         correct: boolean;
+        feedback?: string;
         view: DrawGuessPlayerView;
       }>(DRAW_GUESS_SUBMIT_GUESS_EVENT, { guess });
 
@@ -190,14 +214,22 @@ export function useDrawGuessPlayerView(enabled: boolean) {
       }
 
       setView(response.data.view);
+      turnIdRef.current = response.data.view.turnId;
       setRemainingSeconds(response.data.view.phaseRemainingSeconds);
+
+      if (!response.data.correct) {
+        setGuessFeedback(response.data.feedback ?? 'إجابة خاطئة');
+      } else {
+        setGuessFeedback(null);
+      }
+
       setIsSubmittingAction(false);
     },
     [enabled, isSubmittingAction],
   );
 
   const clearCanvas = useCallback(async () => {
-    if (!enabled || isSubmittingAction) {
+    if (!enabled || isSubmittingAction || !turnIdRef.current) {
       return;
     }
 
@@ -206,7 +238,30 @@ export function useDrawGuessPlayerView(enabled: boolean) {
 
     const response = await emitPluginWithAck<{ view: DrawGuessPlayerView }>(
       DRAW_GUESS_CLEAR_CANVAS_EVENT,
+      { turnId: turnIdRef.current },
     );
+
+    if (!response.success) {
+      setActionError(response.error.message);
+      setIsSubmittingAction(false);
+      return;
+    }
+
+    setView(response.data.view);
+    setIsSubmittingAction(false);
+  }, [enabled, isSubmittingAction]);
+
+  const undoStroke = useCallback(async () => {
+    if (!enabled || isSubmittingAction || !turnIdRef.current) {
+      return;
+    }
+
+    setIsSubmittingAction(true);
+    setActionError(null);
+
+    const response = await emitPluginWithAck<{ view: DrawGuessPlayerView }>(DRAW_GUESS_UNDO_EVENT, {
+      turnId: turnIdRef.current,
+    });
 
     if (!response.success) {
       setActionError(response.error.message);
@@ -237,6 +292,7 @@ export function useDrawGuessPlayerView(enabled: boolean) {
     }
 
     setView(response.data.view);
+    turnIdRef.current = response.data.view.turnId;
     setRemainingSeconds(response.data.view.phaseRemainingSeconds);
     setIsSubmittingAction(false);
   }, [enabled, isSubmittingAction]);
@@ -244,16 +300,19 @@ export function useDrawGuessPlayerView(enabled: boolean) {
   const strokeReadyPromisesRef = useRef(new Map<string, Promise<void>>());
 
   const emitStroke = useCallback(
-    async (payload: DrawGuessStrokePayload) => {
-      if (!enabled) {
+    async (payload: Omit<DrawGuessStrokePayload, 'turnId'>) => {
+      if (!enabled || !turnIdRef.current) {
         return;
       }
 
-      // Rely on canvas-updated / stroke-points broadcasts for stroke state so
-      // an early stroke ack cannot rewind points that arrived later.
+      const fullPayload: DrawGuessStrokePayload = {
+        ...payload,
+        turnId: turnIdRef.current,
+      };
+
       const strokePromise = emitPluginWithAck<{ view: DrawGuessPlayerView }>(
         DRAW_GUESS_STROKE_EVENT,
-        payload,
+        fullPayload,
       ).then(() => undefined);
 
       strokeReadyPromisesRef.current.set(payload.strokeId, strokePromise);
@@ -263,8 +322,8 @@ export function useDrawGuessPlayerView(enabled: boolean) {
   );
 
   const emitStrokePoints = useCallback(
-    async (payload: DrawGuessStrokePointsPayload) => {
-      if (!enabled) {
+    async (payload: Omit<DrawGuessStrokePointsPayload, 'turnId'>) => {
+      if (!enabled || !turnIdRef.current) {
         return;
       }
 
@@ -274,10 +333,10 @@ export function useDrawGuessPlayerView(enabled: boolean) {
         await ready;
       }
 
-      void emitPluginWithAck<{ view: DrawGuessPlayerView }>(
-        DRAW_GUESS_STROKE_POINTS_EVENT,
-        payload,
-      );
+      void emitPluginWithAck<{ view: DrawGuessPlayerView }>(DRAW_GUESS_STROKE_POINTS_EVENT, {
+        ...payload,
+        turnId: turnIdRef.current,
+      });
     },
     [enabled],
   );
@@ -288,9 +347,11 @@ export function useDrawGuessPlayerView(enabled: boolean) {
     isLoading,
     remainingSeconds,
     actionError,
+    guessFeedback,
     isSubmittingAction,
     submitGuess,
     clearCanvas,
+    undoStroke,
     continueFromRoundResults,
     emitStroke,
     emitStrokePoints,

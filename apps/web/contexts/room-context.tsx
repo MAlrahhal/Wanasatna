@@ -28,7 +28,9 @@ import {
   type RoomData,
   type RoomPlayerData,
   type GuessingChallengeMode,
+  type DrawGuessDrawerMode,
   type TimingChallengeSettings,
+  DRAW_GUESS_GAME_ID,
   GUESSING_CHALLENGE_GAME_ID,
   TIMING_CHALLENGE_DEFAULT_MAX_SECONDS,
   TIMING_CHALLENGE_DEFAULT_MIN_SECONDS,
@@ -88,6 +90,10 @@ type RoomContextValue = {
   setTimingChallengeSettings: (settings: TimingChallengeSettings) => void;
   guessingChallengeMode: GuessingChallengeMode;
   setGuessingChallengeMode: (mode: GuessingChallengeMode) => void;
+  drawGuessDrawerMode: DrawGuessDrawerMode;
+  setDrawGuessDrawerMode: (mode: DrawGuessDrawerMode) => void;
+  drawGuessFixedPlayerId: string | null;
+  setDrawGuessFixedPlayerId: (playerId: string) => void;
   lockRoom: () => Promise<void>;
   unlockRoom: () => Promise<void>;
   kickPlayer: (playerId: string) => Promise<void>;
@@ -177,6 +183,9 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   );
   const [guessingChallengeMode, setGuessingChallengeMode] =
     useState<GuessingChallengeMode>('1v1');
+  const [drawGuessDrawerMode, setDrawGuessDrawerMode] =
+    useState<DrawGuessDrawerMode>('random');
+  const [drawGuessFixedPlayerId, setDrawGuessFixedPlayerId] = useState<string | null>(null);
   const [teamSnapshot, setTeamSnapshot] = useState<PregameTeamSnapshot | null>(null);
   const [activeGameShell, setActiveGameShell] = useState<GameShellState | null>(null);
   // Latest shell for socket callbacks: listener closures must never act on a
@@ -846,6 +855,16 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         ...(selectedGameId === GUESSING_CHALLENGE_GAME_ID
           ? { guessingChallenge: { mode: guessingChallengeMode } }
           : {}),
+        ...(selectedGameId === DRAW_GUESS_GAME_ID
+          ? {
+              drawGuess: {
+                drawerMode: drawGuessDrawerMode,
+                ...(drawGuessDrawerMode === 'fixed' && drawGuessFixedPlayerId
+                  ? { fixedPlayerId: drawGuessFixedPlayerId }
+                  : {}),
+              },
+            }
+          : {}),
       },
     );
 
@@ -857,6 +876,8 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     setErrorMessage(null);
     router.push('/game');
   }, [
+    drawGuessDrawerMode,
+    drawGuessFixedPlayerId,
     guessingChallengeMode,
     isHost,
     router,
@@ -912,6 +933,10 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       setTimingChallengeSettings,
       guessingChallengeMode,
       setGuessingChallengeMode: setGuessingChallengeModeAndTeams,
+      drawGuessDrawerMode,
+      setDrawGuessDrawerMode,
+      drawGuessFixedPlayerId,
+      setDrawGuessFixedPlayerId,
       lockRoom,
       unlockRoom,
       kickPlayer,
@@ -946,6 +971,8 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       selectedRoundCategoryId,
       setGuessingChallengeModeAndTeams,
       setTimingChallengeSettings,
+      drawGuessDrawerMode,
+      drawGuessFixedPlayerId,
       startGame,
       status,
       teamSnapshot,

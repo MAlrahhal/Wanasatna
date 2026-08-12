@@ -11,6 +11,7 @@ import {
   GAME_SHELL_SYNC_EVENT,
   GUESSING_CHALLENGE_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
+  DRAW_GUESS_GAME_ID,
   getGameTeamCapability,
 } from '@wanasatna/shared';
 import {
@@ -37,6 +38,7 @@ import { clearPlayerRecoveryForTeardown } from './runtime/player-recovery.js';
 import { setRoomRoundCategory } from './runtime/round-category-store.js';
 import { applyGuessingChallengeLobbySettings } from './plugins/guessing-challenge/socket.handlers.js';
 import { applyTimingChallengeLobbySettings } from './plugins/timing-challenge/socket.handlers.js';
+import { applyDrawGuessLobbySettings } from './plugins/draw-guess/socket.handlers.js';
 import { getGuessingChallengeRoomMode } from './plugins/guessing-challenge/mode-store.js';
 import {
   loadConnectedLobbyPlayerIds,
@@ -350,7 +352,30 @@ export function registerGameShellStartFromLobbyHandler(io: Server, socket: Socke
             sendGameResponse(callback, teamValidation);
             return;
           }
-        } else if (!getGameTeamCapability(validation.data.gameId)) {
+        }
+
+        if (validation.data.gameId === DRAW_GUESS_GAME_ID) {
+          const connectedIds = await loadConnectedLobbyPlayerIds(roomId!);
+          const settingsResult = applyDrawGuessLobbySettings(
+            roomId!,
+            validation.data.drawGuess ?? { drawerMode: 'random' },
+            connectedIds,
+          );
+
+          if (!settingsResult.success) {
+            sendGameResponse(callback, {
+              success: false,
+              error: {
+                code: 'VALIDATION_ERROR',
+                message: settingsResult.error,
+              },
+            });
+            return;
+          }
+        } else if (
+          validation.data.gameId !== GUESSING_CHALLENGE_GAME_ID &&
+          !getGameTeamCapability(validation.data.gameId)
+        ) {
           clearTeamsIfGameChanged(roomId!, validation.data.gameId);
         }
 

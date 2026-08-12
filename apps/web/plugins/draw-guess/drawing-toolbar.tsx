@@ -6,11 +6,19 @@ import { cn } from '@/lib/utils';
 
 const PRESET_COLORS = [
   { id: 'black', value: '#111827', label: 'أسود' },
-  { id: 'red', value: '#DC2626', label: 'أحمر' },
-  { id: 'blue', value: '#2563EB', label: 'أزرق' },
-  { id: 'green', value: '#16A34A', label: 'أخضر' },
-  { id: 'orange', value: '#EA580C', label: 'برتقالي' },
-  { id: 'purple', value: '#7C3AED', label: 'بنفسجي' },
+  { id: 'white', value: '#FFFFFF', label: 'أبيض' },
+  { id: 'gray', value: '#9CA3AF', label: 'رمادي' },
+  { id: 'red', value: '#EF4444', label: 'أحمر' },
+  { id: 'dark-red', value: '#991B1B', label: 'أحمر غامق' },
+  { id: 'orange', value: '#F97316', label: 'برتقالي' },
+  { id: 'yellow', value: '#EAB308', label: 'أصفر' },
+  { id: 'green', value: '#22C55E', label: 'أخضر' },
+  { id: 'light-green', value: '#86EFAC', label: 'أخضر فاتح' },
+  { id: 'blue', value: '#3B82F6', label: 'أزرق' },
+  { id: 'dark-blue', value: '#1E3A8A', label: 'أزرق غامق' },
+  { id: 'light-blue', value: '#93C5FD', label: 'أزرق فاتح' },
+  { id: 'purple', value: '#A855F7', label: 'بنفسجي' },
+  { id: 'pink', value: '#EC4899', label: 'وردي' },
   { id: 'brown', value: '#92400E', label: 'بني' },
 ] as const;
 
@@ -22,9 +30,11 @@ export type DrawingToolbarProps = {
   size: number;
   disabled?: boolean;
   isClearing?: boolean;
+  isUndoing?: boolean;
   onToolChange: (tool: DrawGuessTool) => void;
   onColorChange: (color: string) => void;
   onSizeChange: (size: number) => void;
+  onUndo?: () => void;
   onClear: () => void;
   className?: string;
 };
@@ -35,16 +45,18 @@ export function DrawingToolbar({
   size,
   disabled = false,
   isClearing = false,
+  isUndoing = false,
   onToolChange,
   onColorChange,
   onSizeChange,
+  onUndo,
   onClear,
   className,
 }: DrawingToolbarProps) {
   return (
     <div
       className={cn(
-        'wanas-game-card flex flex-col gap-4 rounded-[1.25rem] p-4 sm:p-5',
+        'wanas-game-card flex flex-col gap-3 rounded-[1.25rem] p-3 sm:gap-4 sm:p-5',
         className,
       )}
     >
@@ -67,6 +79,18 @@ export function DrawingToolbar({
         >
           ممحاة
         </Button>
+        {onUndo ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={disabled}
+            loading={isUndoing}
+            onClick={onUndo}
+          >
+            تراجع
+          </Button>
+        ) : null}
         <Button
           type="button"
           size="sm"
@@ -95,10 +119,11 @@ export function DrawingToolbar({
                 aria-pressed={selected}
                 onClick={() => onColorChange(preset.value)}
                 className={cn(
-                  'size-9 rounded-full border-2 transition-transform',
+                  'size-9 shrink-0 rounded-full border-2 transition-transform sm:size-10',
                   selected
                     ? 'scale-110 border-wanas-accent ring-2 ring-wanas-accent/30'
                     : 'border-[color:var(--wanas-game-card-border)]',
+                  preset.value.toLowerCase() === '#ffffff' && 'shadow-inner',
                   (disabled || tool === 'erase') && 'opacity-50',
                 )}
                 style={{ backgroundColor: preset.value }}

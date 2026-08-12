@@ -14,10 +14,11 @@ import {
   DRAW_GUESS_STROKE_POINTS_EVENT,
   DRAW_GUESS_SUBMIT_GUESS_EVENT,
   DRAW_GUESS_SYNC_EVENT,
+  DRAW_GUESS_UNDO_EVENT,
   contentValidationToPluginError,
   validateGameStartContent,
 } from '@wanasatna/shared';
-import { createMatchState } from './state.js';
+import { createMatchState, serializeDrawGuessState } from './state.js';
 
 const metadata = {
   id: DRAW_GUESS_GAME_ID,
@@ -36,7 +37,18 @@ export function buildDrawGuessPluginDefinition(
     minPlayers: settings.minPlayers,
     maxPlayers: settings.maxPlayers,
     defaultSettings: settings as GamePluginSettings,
-    settingsSchema: [],
+    settingsSchema: [
+      {
+        id: 'drawerMode',
+        label: 'اختيار الرسام',
+        type: 'select',
+        defaultValue: 'random',
+        options: [
+          { value: 'random', label: 'عشوائي' },
+          { value: 'fixed', label: 'لاعب محدد' },
+        ],
+      },
+    ],
     validateStart: (_context, _pluginSettings) => {
       const connectedCount = _context.players.filter((player) => player.isConnected).length;
 
@@ -58,7 +70,7 @@ export function buildDrawGuessPluginDefinition(
     },
     createInitialState: (context, _pluginSettings) =>
       createMatchState(context.roomId, context.players, settings),
-    serializeState: (state) => state,
+    serializeState: (state) => serializeDrawGuessState(state as DrawGuessMatchState),
     deserializeState: (payload) => payload as DrawGuessMatchState,
     lifecycle: {},
     socket: {
@@ -68,6 +80,7 @@ export function buildDrawGuessPluginDefinition(
         stroke: DRAW_GUESS_STROKE_EVENT,
         strokePoints: DRAW_GUESS_STROKE_POINTS_EVENT,
         clearCanvas: DRAW_GUESS_CLEAR_CANVAS_EVENT,
+        undo: DRAW_GUESS_UNDO_EVENT,
         submitGuess: DRAW_GUESS_SUBMIT_GUESS_EVENT,
         continueRoundResults: DRAW_GUESS_CONTINUE_ROUND_RESULTS_EVENT,
         state: DRAW_GUESS_STATE_EVENT,

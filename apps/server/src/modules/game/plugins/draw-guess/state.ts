@@ -1,4 +1,5 @@
 import type {
+  DrawGuessDrawerMode,
   DrawGuessMatchState,
   DrawGuessPlayerView,
   DrawGuessRoundState,
@@ -7,13 +8,10 @@ import type {
   GameShellState,
 } from '@wanasatna/shared';
 import {
-  DRAW_GUESS_DEFAULT_DRAW_SECONDS,
   DRAW_GUESS_DEFAULT_ROUNDS,
 } from '@wanasatna/shared';
-import {
-  resolveDescriptionDurationSeconds,
-  resolveMatchRounds,
-} from '../../../../config/test-timers.js';
+import { randomUUID } from 'node:crypto';
+import { timedPhaseDurations } from '../../../../config/test-timers.js';
 import {
   buildLeaderboardEntries,
   buildResultsLeaderboardEntries,
@@ -27,14 +25,13 @@ const PHASE_LABELS = {
   'match-completed': 'انتهت المباراة',
 } as const;
 
-export function resolveTotalRounds(settings: GameContentSettings): number {
-  return resolveMatchRounds(settings.rounds, DRAW_GUESS_DEFAULT_ROUNDS);
+/** Product rule: exactly 3 rounds (not collapsed in test mode). */
+export function resolveTotalRounds(_settings?: GameContentSettings): number {
+  return DRAW_GUESS_DEFAULT_ROUNDS;
 }
 
-export function resolveDrawingDurationSeconds(settings: GameContentSettings): number {
-  return resolveDescriptionDurationSeconds(
-    settings.roundTime ?? DRAW_GUESS_DEFAULT_DRAW_SECONDS,
-  );
+export function resolveDrawingDurationSeconds(): number {
+  return timedPhaseDurations.drawGuessDrawing();
 }
 
 export function createInitialScores(playerIds: string[]): Record<string, number> {
@@ -51,34 +48,76 @@ export function withRound(
   };
 }
 
-export function pickDrawerPlayerId(playerIds: string[], roundNumber: number): string {
+export function pickRandomDrawerPlayerId(playerIds: readonly string[]): string {
   if (playerIds.length === 0) {
     throw new Error('No players available to pick a drawer.');
   }
 
-  const index = (Math.max(1, roundNumber) - 1) % playerIds.length;
+  const index = Math.floor(Math.random() * playerIds.length);
   return playerIds[index]!;
+}
+
+/**
+ * Fixed-drawer fallback: if the chosen drawer is unavailable, use the first
+ * connected participant in roster order (deterministic). If nobody is connected,
+ * fall back to the first match roster id.
+ */
+export function resolveDrawerPlayerId(options: {
+  drawerMode: DrawGuessDrawerMode;
+  fixedDrawerPlayerId: string | null;
+  playerIds: readonly string[];
+  connectedPlayerIds: readonly string[];
+}): string {
+  const pool =
+    options.connectedPlayerIds.length > 0 ? options.connectedPlayerIds : options.playerIds;
+
+  if (pool.length === 0) {
+    throw new Error('No players available to pick a drawer.');
+  }
+
+  if (options.drawerMode === 'fixed' && options.fixedDrawerPlayerId) {
+    if (pool.includes(options.fixedDrawerPlayerId)) {
+      return options.fixedDrawerPlayerId;
+    }
+
+    return pool[0]!;
+  }
+
+  return pickRandomDrawerPlayerId(pool);
 }
 
 export function createRoundState(
   roomId: string,
-  playerIds: string[],
-  settings: GameContentSettings,
-  roundNumber: number,
-): DrawGuessRoundState {
-  const wordEntry = pickDrawGuessWord(roomId);
-  const drawingDurationSeconds = resolveDrawingDurationSeconds(settings);
+  match: Pick<
+    DrawGuessMatchState,
+    'playerIds' | 'drawerMode' | 'fixedDrawerPlayerId' | 'usedWordTexts'
+  >,
+  _roundNumber: number,
+  connectedPlayerIds: readonly string[],
+): { round: DrawGuessRoundState; usedWordTexts: string[] } {
+  const wordEntry = pickDrawGuessWord(roomId, match.usedWordTexts);
+  const drawingDurationSeconds = resolveDrawingDurationSeconds();
+  const drawerPlayerId = resolveDrawerPlayerId({
+    drawerMode: match.drawerMode,
+    fixedDrawerPlayerId: match.fixedDrawerPlayerId,
+    playerIds: match.playerIds,
+    connectedPlayerIds,
+  });
 
   return {
-    word: wordEntry.text,
-    wordCategoryId: wordEntry.categoryId,
-    drawerPlayerId: pickDrawerPlayerId(playerIds, roundNumber),
-    gamePhase: 'drawing',
-    phaseRemainingSeconds: drawingDurationSeconds,
-    drawingDurationSeconds,
-    strokes: [],
-    correctGuesserPlayerId: null,
-    guessedCorrectly: false,
+    round: {
+      turnId: randomUUID(),
+      word: wordEntry.text,
+      wordCategoryId: wordEntry.categoryId,
+      drawerPlayerId,
+      gamePhase: 'drawing',
+      phaseRemainingSeconds: drawingDurationSeconds,
+      drawingDurationSeconds,
+      strokes: [],
+      correctGuesserPlayerId: null,
+      guessedCorrectly: false,
+    },
+    usedWordTexts: [...match.usedWordTexts, wordEntry.text],
   };
 }
 
@@ -86,12 +125,25 @@ export function createMatchState(
   roomId: string,
   players: GameShellPlayer[],
   settings: GameContentSettings,
+  drawerMode: DrawGuessDrawerMode = 'random',
+  fixedDrawerPlayerId: string | null = null,
 ): DrawGuessMatchState {
   if (players.length === 0) {
     throw new Error('No players available for Draw & Guess match.');
   }
 
   const playerIds = players.map((player) => player.id);
+  const connectedPlayerIds = players.filter((player) => player.isConnected).map((p) => p.id);
+  const base = {
+    playerIds,
+    drawerMode,
+    fixedDrawerPlayerId:
+      drawerMode === 'fixed' && fixedDrawerPlayerId && playerIds.includes(fixedDrawerPlayerId)
+        ? fixedDrawerPlayerId
+        : null,
+    usedWordTexts: [] as string[],
+  };
+  const { round, usedWordTexts } = createRoundState(roomId, base, 1, connectedPlayerIds);
 
   return {
     playerIds,
@@ -100,7 +152,10 @@ export function createMatchState(
     totalRounds: resolveTotalRounds(settings),
     scores: createInitialScores(playerIds),
     matchStatus: 'in-progress',
-    round: createRoundState(roomId, playerIds, settings, 1),
+    drawerMode: base.drawerMode,
+    fixedDrawerPlayerId: base.fixedDrawerPlayerId,
+    usedWordTexts,
+    round,
   };
 }
 
@@ -109,7 +164,7 @@ function buildRoundPhaseLabel(match: DrawGuessMatchState): string {
 }
 
 function buildRoundResultsInteractionView(
-  match: DrawGuessMatchState,
+  _match: DrawGuessMatchState,
   shell: GameShellState,
   playerId: string,
 ): Pick<
@@ -120,21 +175,12 @@ function buildRoundResultsInteractionView(
   | 'roundResultsWaitingMessage'
 > {
   const isHost = shell.hostPlayerId === playerId;
-  const isFinalRound = match.currentRound >= match.totalRounds;
 
   return {
     isHost,
     canContinueFromRoundResults: isHost,
-    roundResultsContinueLabel: isHost
-      ? isFinalRound
-        ? 'عرض النتائج النهائية'
-        : 'بدء الجولة التالية'
-      : null,
-    roundResultsWaitingMessage: !isHost
-      ? isFinalRound
-        ? 'بانتظار المضيف لعرض النتائج النهائية.'
-        : 'بانتظار المضيف لبدء الجولة التالية.'
-      : null,
+    roundResultsContinueLabel: isHost ? 'التالي الآن' : null,
+    roundResultsWaitingMessage: 'الجولة التالية تبدأ تلقائياً...',
   };
 }
 
@@ -147,6 +193,48 @@ export function getConnectedParticipantIds(
   return shell.players
     .filter((player) => player.isConnected && participantIds.has(player.id))
     .map((player) => player.id);
+}
+
+const EMPTY_RESULTS = {
+  roundResults: [] as DrawGuessPlayerView['roundResults'],
+  leaderboard: [] as DrawGuessPlayerView['leaderboard'],
+  resultsLeaderboard: [] as DrawGuessPlayerView['resultsLeaderboard'],
+  isHost: false,
+  canContinueFromRoundResults: false,
+  roundResultsContinueLabel: null,
+  roundResultsWaitingMessage: null,
+  canGuess: false,
+  isMatchSpectator: false,
+};
+
+export function buildDrawGuessSpectatorView(match: DrawGuessMatchState): DrawGuessPlayerView {
+  const round = match.round;
+  const revealWord =
+    round.gamePhase === 'round-results' || round.gamePhase === 'match-completed';
+
+  return {
+    gamePhase: round.gamePhase,
+    phaseLabel: 'الجولة جارية',
+    phaseRemainingSeconds: round.phaseRemainingSeconds,
+    role: 'guesser',
+    secretWord: null,
+    turnId: round.turnId,
+    drawerPlayerId: round.drawerPlayerId,
+    drawerName: match.playerNames[round.drawerPlayerId] ?? 'لاعب',
+    strokes: round.strokes,
+    currentRound: match.currentRound,
+    totalRounds: match.totalRounds,
+    matchStatus: match.matchStatus,
+    revealedWord: revealWord ? round.word : null,
+    correctGuesserPlayerId: revealWord ? round.correctGuesserPlayerId : null,
+    correctGuesserName:
+      revealWord && round.correctGuesserPlayerId
+        ? (match.playerNames[round.correctGuesserPlayerId] ?? 'لاعب')
+        : null,
+    guessedCorrectly: revealWord ? round.guessedCorrectly : false,
+    ...EMPTY_RESULTS,
+    isMatchSpectator: true,
+  };
 }
 
 export function buildDrawGuessPlayerView(
@@ -166,6 +254,7 @@ export function buildDrawGuessPlayerView(
     phaseRemainingSeconds: round.phaseRemainingSeconds,
     role: isDrawer ? 'drawer' : 'guesser',
     secretWord: isDrawer && isDrawingPhase ? round.word : null,
+    turnId: round.turnId,
     drawerPlayerId: round.drawerPlayerId,
     drawerName: match.playerNames[round.drawerPlayerId] ?? 'لاعب',
     strokes: round.strokes,
@@ -187,6 +276,7 @@ export function buildDrawGuessPlayerView(
     roundResultsContinueLabel: null,
     roundResultsWaitingMessage: null,
     canGuess: isDrawingPhase && !isDrawer && !round.guessedCorrectly,
+    isMatchSpectator: false,
   };
 
   if (round.gamePhase === 'round-results') {
@@ -212,4 +302,15 @@ export function buildDrawGuessPlayerView(
   }
 
   return baseView;
+}
+
+/** Sanitize match payloads so secret words are never serialized for clients. */
+export function serializeDrawGuessState(state: DrawGuessMatchState): DrawGuessMatchState {
+  return {
+    ...state,
+    round: {
+      ...state.round,
+      word: '',
+    },
+  };
 }

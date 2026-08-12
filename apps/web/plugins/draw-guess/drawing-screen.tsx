@@ -26,10 +26,12 @@ export type DrawingScreenProps = {
   canGuess: boolean;
   isSubmittingAction?: boolean;
   actionError?: string | null;
+  guessFeedback?: string | null;
   onSubmitGuess: (guess: string) => void;
   onClearCanvas: () => void;
-  onEmitStroke: (payload: DrawGuessStrokePayload) => void;
-  onEmitStrokePoints: (payload: DrawGuessStrokePointsPayload) => void;
+  onUndo: () => void;
+  onEmitStroke: (payload: Omit<DrawGuessStrokePayload, 'turnId'>) => void;
+  onEmitStrokePoints: (payload: Omit<DrawGuessStrokePointsPayload, 'turnId'>) => void;
   className?: string;
 };
 
@@ -45,8 +47,10 @@ export function DrawingScreen({
   canGuess,
   isSubmittingAction = false,
   actionError = null,
+  guessFeedback = null,
   onSubmitGuess,
   onClearCanvas,
+  onUndo,
   onEmitStroke,
   onEmitStrokePoints,
   className,
@@ -101,9 +105,11 @@ export function DrawingScreen({
             size={size}
             disabled={isSubmittingAction}
             isClearing={isSubmittingAction}
+            isUndoing={isSubmittingAction}
             onToolChange={setTool}
             onColorChange={setColor}
             onSizeChange={setSize}
+            onUndo={onUndo}
             onClear={onClearCanvas}
           />
         ) : (
@@ -111,6 +117,7 @@ export function DrawingScreen({
             disabled={!canGuess}
             isSubmitting={isSubmittingAction}
             errorMessage={actionError}
+            feedbackMessage={guessFeedback}
             onSubmit={onSubmitGuess}
           />
         )}

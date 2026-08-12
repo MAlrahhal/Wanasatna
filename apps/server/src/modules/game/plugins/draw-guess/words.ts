@@ -3,7 +3,10 @@ import { DRAW_GUESS_GAME_ID, pickRandomWordFromCategories } from '@wanasatna/sha
 import { getLoadedGameContent } from '../../../content/index.js';
 import { resolveEnabledCategoryFilter } from '../../runtime/round-category-store.js';
 
-export function pickDrawGuessWord(roomId: string): GameContentWord {
+export function pickDrawGuessWord(
+  roomId: string,
+  excludeTexts: readonly string[] = [],
+): GameContentWord {
   const content = getLoadedGameContent(DRAW_GUESS_GAME_ID);
 
   if (!content) {
@@ -13,6 +16,7 @@ export function pickDrawGuessWord(roomId: string): GameContentWord {
   const wordEntry = pickRandomWordFromCategories(
     content.bundle,
     resolveEnabledCategoryFilter(roomId) ?? content.settings.enabledCategories,
+    excludeTexts,
   );
 
   if (!wordEntry) {

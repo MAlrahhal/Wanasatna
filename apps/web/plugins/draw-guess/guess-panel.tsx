@@ -8,6 +8,7 @@ export type GuessPanelProps = {
   disabled?: boolean;
   isSubmitting?: boolean;
   errorMessage?: string | null;
+  feedbackMessage?: string | null;
   onSubmit: (guess: string) => void;
   className?: string;
 };
@@ -16,10 +17,12 @@ export function GuessPanel({
   disabled = false,
   isSubmitting = false,
   errorMessage = null,
+  feedbackMessage = null,
   onSubmit,
   className,
 }: GuessPanelProps) {
   const [guess, setGuess] = useState('');
+  const [shakeToken, setShakeToken] = useState(0);
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -32,6 +35,7 @@ export function GuessPanel({
 
     onSubmit(trimmed);
     setGuess('');
+    setShakeToken((token) => token + 1);
   }
 
   return (
@@ -73,6 +77,15 @@ export function GuessPanel({
       </div>
       {disabled ? (
         <p className="text-xs text-wanas-text-muted">الرسام لا يمكنه التخمين.</p>
+      ) : null}
+      {feedbackMessage ? (
+        <p
+          key={shakeToken}
+          className="animate-pulse text-sm font-medium text-wanas-accent-hover"
+          role="status"
+        >
+          {feedbackMessage}
+        </p>
       ) : null}
       {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
     </form>

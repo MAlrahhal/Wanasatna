@@ -8,12 +8,14 @@ import { finishGameShellForRoom } from '../../game.service.js';
 import { cleanupGameShellRuntime } from '../../game.lifecycle.js';
 import { broadcastGameShellState } from '../../game.timer.js';
 import {
-  startDrawGuessPhaseTimerIfNeeded,
+  clearDrawGuessPhaseTimerRuntime,
+  restartDrawGuessPhaseTimer,
   stopDrawGuessPhaseTimer,
 } from './phase-timer.js';
 import { applyRoundScores } from './scoring.js';
-import { createRoundState, withRound } from './state.js';
+import { createRoundState, getConnectedParticipantIds, withRound } from './state.js';
 import { deleteDrawGuessState, setDrawGuessState } from './store.js';
+import { clearDrawGuessRoomDrawerSettings } from './drawer-mode-store.js';
 
 function broadcastPhaseChanged(io: Server, roomId: string): void {
   io.to(getRoomChannel(roomId)).emit(DRAW_GUESS_PHASE_CHANGED_EVENT, {});
@@ -51,11 +53,11 @@ export function startRoundResults(
   const nextMatch = withRound(scoredMatch, {
     ...scoredMatch.round,
     gamePhase: 'round-results',
-    phaseRemainingSeconds: 0,
+    phaseRemainingSeconds: timedPhaseDurations.drawGuessRoundResults(),
   });
 
   setDrawGuessState(roomId, nextMatch);
-  stopDrawGuessPhaseTimer(roomId);
+  restartDrawGuessPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
 
   return nextMatch;
@@ -65,6 +67,7 @@ function startNextRound(
   io: Server,
   roomId: string,
   match: DrawGuessMatchState,
+  shell: GameShellState,
 ): DrawGuessMatchState {
   const content = getLoadedGameContent(DRAW_GUESS_GAME_ID);
 
@@ -73,15 +76,24 @@ function startNextRound(
   }
 
   const nextRoundNumber = match.currentRound + 1;
+  const connectedPlayerIds = getConnectedParticipantIds(shell, match);
+  const { round, usedWordTexts } = createRoundState(
+    roomId,
+    match,
+    nextRoundNumber,
+    connectedPlayerIds,
+  );
+
   const nextMatch: DrawGuessMatchState = {
     ...match,
     currentRound: nextRoundNumber,
     matchStatus: 'in-progress',
-    round: createRoundState(roomId, match.playerIds, content.settings, nextRoundNumber),
+    usedWordTexts,
+    round,
   };
 
   setDrawGuessState(roomId, nextMatch);
-  startDrawGuessPhaseTimerIfNeeded(io, roomId);
+  restartDrawGuessPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
 
   return nextMatch;
@@ -105,10 +117,29 @@ function startMatchCompletedPhase(
   );
 
   setDrawGuessState(roomId, nextMatch);
-  startDrawGuessPhaseTimerIfNeeded(io, roomId);
+  restartDrawGuessPhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
 
   return nextMatch;
+}
+
+export function advanceFromRoundResults(
+  io: Server,
+  roomId: string,
+  match: DrawGuessMatchState,
+  shell: GameShellState,
+): DrawGuessMatchState {
+  if (match.round.gamePhase !== 'round-results') {
+    return match;
+  }
+
+  stopDrawGuessPhaseTimer(roomId);
+
+  if (match.currentRound < match.totalRounds) {
+    return startNextRound(io, roomId, match, shell);
+  }
+
+  return startMatchCompletedPhase(io, roomId, match);
 }
 
 export function continueFromRoundResults(
@@ -126,18 +157,13 @@ export function continueFromRoundResults(
     return match;
   }
 
-  stopDrawGuessPhaseTimer(roomId);
-
-  if (match.currentRound < match.totalRounds) {
-    return startNextRound(io, roomId, match);
-  }
-
-  return startMatchCompletedPhase(io, roomId, match);
+  return advanceFromRoundResults(io, roomId, match, shell);
 }
 
 export function completeMatch(io: Server, roomId: string): void {
-  stopDrawGuessPhaseTimer(roomId);
+  clearDrawGuessPhaseTimerRuntime(roomId);
   deleteDrawGuessState(roomId);
+  clearDrawGuessRoomDrawerSettings(roomId);
 
   const nextShell = finishGameShellForRoom(roomId);
 

@@ -20,6 +20,8 @@ export type DrawGuessRoundResultsScreenProps = {
   roundNumber: number;
   totalRounds: number;
   roomCode: string;
+  remainingSeconds?: number;
+  totalDurationSeconds?: number;
   continueLabel?: string | null;
   waitingMessage?: string | null;
   isContinueLoading?: boolean;
@@ -37,6 +39,8 @@ export function DrawGuessRoundResultsScreen({
   roundNumber,
   totalRounds,
   roomCode,
+  remainingSeconds = 0,
+  totalDurationSeconds = 10,
   continueLabel,
   waitingMessage,
   isContinueLoading = false,
@@ -167,7 +171,28 @@ export function DrawGuessRoundResultsScreen({
         </GameCard>
 
         {continueLabel && onContinue ? (
-          <div className="mx-auto w-full max-w-md">
+          <div className="mx-auto w-full max-w-md space-y-3">
+            <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
+              {waitingMessage ?? 'الجولة التالية تبدأ تلقائياً...'}
+            </p>
+            <div
+              className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={Math.max(totalDurationSeconds, 1)}
+              aria-valuenow={Math.max(0, Math.min(remainingSeconds, totalDurationSeconds))}
+            >
+              <div
+                className="h-full rounded-full bg-wanas-accent transition-[width] duration-200 ease-linear"
+                style={{
+                  width: `${Math.round(
+                    (Math.max(0, Math.min(remainingSeconds, totalDurationSeconds)) /
+                      Math.max(totalDurationSeconds, 1)) *
+                      100,
+                  )}%`,
+                }}
+              />
+            </div>
             <Button
               size="lg"
               className="w-full min-h-14 focus-visible:ring-offset-4"
@@ -181,11 +206,29 @@ export function DrawGuessRoundResultsScreen({
           <div
             role="status"
             aria-live="polite"
-            className="mx-auto w-full max-w-md rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-6 text-center shadow-sm"
+            className="mx-auto w-full max-w-md space-y-3 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-6 text-center shadow-sm"
           >
             <p className="wanas-game-helper font-medium text-wanas-text-secondary">
               {waitingMessage}
             </p>
+            <div
+              className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={Math.max(totalDurationSeconds, 1)}
+              aria-valuenow={Math.max(0, Math.min(remainingSeconds, totalDurationSeconds))}
+            >
+              <div
+                className="h-full rounded-full bg-wanas-accent transition-[width] duration-200 ease-linear"
+                style={{
+                  width: `${Math.round(
+                    (Math.max(0, Math.min(remainingSeconds, totalDurationSeconds)) /
+                      Math.max(totalDurationSeconds, 1)) *
+                      100,
+                  )}%`,
+                }}
+              />
+            </div>
           </div>
         ) : null}
       </div>

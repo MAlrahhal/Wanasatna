@@ -10,6 +10,8 @@ import {
   DEFAULT_GAME_SHELL_COUNTDOWN_SECONDS,
   DEFAULT_GAME_SHELL_LOBBY_WAIT_MS,
   DEFAULT_PLAYER_RECOVERY_SECONDS,
+  DRAW_GUESS_DRAW_DURATION_SECONDS,
+  DRAW_GUESS_ROUND_RESULTS_DURATION_SECONDS,
 } from '@wanasatna/shared';
 import { env } from './env.js';
 
@@ -73,5 +75,11 @@ export const timedPhaseDurations = {
     env.testMode
       ? TEST_ROUND_RESULTS_SECONDS
       : BARA_AL_SALAFA_MATCH_RESULTS_DURATION_SECONDS,
+  drawGuessDrawing: () =>
+    resolveInteractivePhaseSeconds(DRAW_GUESS_DRAW_DURATION_SECONDS),
+  drawGuessRoundResults: () =>
+    env.testMode
+      ? TEST_ROUND_RESULTS_SECONDS
+      : DRAW_GUESS_ROUND_RESULTS_DURATION_SECONDS,
   shellCountdown: () => resolveShellCountdownSeconds(DEFAULT_GAME_SHELL_COUNTDOWN_SECONDS),
 };

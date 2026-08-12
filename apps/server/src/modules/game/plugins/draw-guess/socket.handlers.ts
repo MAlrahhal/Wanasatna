@@ -15,6 +15,7 @@ import {
   DRAW_GUESS_STROKE_POINTS_EVENT,
   DRAW_GUESS_SUBMIT_GUESS_EVENT,
   DRAW_GUESS_SYNC_EVENT,
+  DRAW_GUESS_UNDO_EVENT,
   isActiveMatchParticipant,
 } from '@wanasatna/shared';
 import { getRoomChannel } from '../../../room/room.utils.js';
@@ -24,12 +25,22 @@ import {
   isPlayerRecoveryActive,
   playerRecoveryBlockedError,
 } from '../../runtime/player-recovery.js';
+import {
+  applyDrawGuessLobbySettings,
+  clearDrawGuessRoomDrawerSettings,
+} from './drawer-mode-store.js';
 import { ensureDrawGuessMatchStateWithTimer } from './init-match.js';
 import { continueFromRoundResults, endDrawingRound } from './match-lifecycle.js';
-import { stopDrawGuessPhaseTimer } from './phase-timer.js';
-import { buildDrawGuessPlayerView, withRound } from './state.js';
+import { clearDrawGuessPhaseTimerRuntime } from './phase-timer.js';
+import {
+  buildDrawGuessPlayerView,
+  buildDrawGuessSpectatorView,
+  withRound,
+} from './state.js';
 import { deleteDrawGuessState, getDrawGuessState, setDrawGuessState } from './store.js';
 import { isCorrectGuess } from './words.js';
+
+export { applyDrawGuessLobbySettings };
 
 function gameNotReadyError(): Extract<GameActionResponse<never>, { success: false }> {
   return {
@@ -76,8 +87,9 @@ function recoveryBlockedResponse(
 }
 
 function clearDrawGuessRuntime(roomId: string): void {
-  stopDrawGuessPhaseTimer(roomId);
+  clearDrawGuessPhaseTimerRuntime(roomId);
   deleteDrawGuessState(roomId);
+  clearDrawGuessRoomDrawerSettings(roomId);
 }
 
 function respondWithView(
@@ -99,8 +111,13 @@ function respondWithView(
   });
 }
 
-function broadcastCanvasUpdated(io: Server, roomId: string, strokes: DrawStroke[]): void {
-  io.to(getRoomChannel(roomId)).emit(DRAW_GUESS_CANVAS_UPDATED_EVENT, { strokes });
+function broadcastCanvasUpdated(
+  io: Server,
+  roomId: string,
+  turnId: string,
+  strokes: DrawStroke[],
+): void {
+  io.to(getRoomChannel(roomId)).emit(DRAW_GUESS_CANVAS_UPDATED_EVENT, { turnId, strokes });
 }
 
 function isStrokePoint(value: unknown): value is { x: number; y: number } {
@@ -112,14 +129,25 @@ function isStrokePoint(value: unknown): value is { x: number; y: number } {
   return typeof point.x === 'number' && typeof point.y === 'number';
 }
 
+function parseTurnId(payload: unknown): string | null {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const turnId = (payload as { turnId?: unknown }).turnId;
+  return typeof turnId === 'string' && turnId.length > 0 ? turnId : null;
+}
+
 function parseStrokePayload(payload: unknown): DrawGuessStrokePayload | null {
   if (!payload || typeof payload !== 'object') {
     return null;
   }
 
   const data = payload as Partial<DrawGuessStrokePayload>;
+  const turnId = parseTurnId(payload);
 
   if (
+    !turnId ||
     typeof data.strokeId !== 'string' ||
     (data.tool !== 'draw' && data.tool !== 'erase') ||
     typeof data.color !== 'string' ||
@@ -131,6 +159,7 @@ function parseStrokePayload(payload: unknown): DrawGuessStrokePayload | null {
   }
 
   return {
+    turnId,
     strokeId: data.strokeId,
     tool: data.tool,
     color: data.color,
@@ -145,8 +174,10 @@ function parseStrokePointsPayload(payload: unknown): DrawGuessStrokePointsPayloa
   }
 
   const data = payload as Partial<DrawGuessStrokePointsPayload>;
+  const turnId = parseTurnId(payload);
 
   if (
+    !turnId ||
     typeof data.strokeId !== 'string' ||
     !Array.isArray(data.points) ||
     !data.points.every(isStrokePoint)
@@ -155,9 +186,26 @@ function parseStrokePointsPayload(payload: unknown): DrawGuessStrokePointsPayloa
   }
 
   return {
+    turnId,
     strokeId: data.strokeId,
     points: data.points,
   };
+}
+
+function assertActiveDrawerTurn(
+  match: NonNullable<ReturnType<typeof getDrawGuessState>>,
+  playerId: string,
+  turnId: string | null,
+): Extract<GameActionResponse<never>, { success: false }> | null {
+  if (!turnId || match.round.turnId !== turnId) {
+    return invalidActionError('انتهت جولة الرسم الحالية.');
+  }
+
+  if (match.round.gamePhase !== 'drawing' || match.round.drawerPlayerId !== playerId) {
+    return invalidActionError('فقط الرسام يمكنه الرسم.');
+  }
+
+  return null;
 }
 
 export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): void {
@@ -190,11 +238,6 @@ export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): voi
         return;
       }
 
-      if (!isActiveMatchParticipant(shell, playerId!)) {
-        sendGameResponse(callback, notParticipantError());
-        return;
-      }
-
       const match = ensureDrawGuessMatchStateWithTimer(io, roomId!);
 
       if (!match) {
@@ -202,8 +245,11 @@ export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): voi
         return;
       }
 
-      if (!match.playerIds.includes(playerId!)) {
-        sendGameResponse(callback, notParticipantError());
+      if (!isActiveMatchParticipant(shell, playerId!) || !match.playerIds.includes(playerId!)) {
+        sendGameResponse(callback, {
+          success: true,
+          data: { view: buildDrawGuessSpectatorView(match) },
+        });
         return;
       }
 
@@ -250,15 +296,17 @@ export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): voi
         return;
       }
 
-      if (match.round.gamePhase !== 'drawing' || match.round.drawerPlayerId !== playerId) {
-        sendGameResponse(callback, invalidActionError('فقط الرسام يمكنه الرسم.'));
-        return;
-      }
-
       const strokePayload = parseStrokePayload(payload);
 
       if (!strokePayload) {
         sendGameResponse(callback, invalidActionError('بيانات الرسم غير صالحة.'));
+        return;
+      }
+
+      const authError = assertActiveDrawerTurn(match, playerId!, strokePayload.turnId);
+
+      if (authError) {
+        sendGameResponse(callback, authError);
         return;
       }
 
@@ -287,7 +335,7 @@ export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): voi
       });
 
       setDrawGuessState(roomId!, nextMatch);
-      broadcastCanvasUpdated(io, roomId!, nextStrokes);
+      broadcastCanvasUpdated(io, roomId!, match.round.turnId, nextStrokes);
 
       sendGameResponse(callback, {
         success: true,
@@ -332,15 +380,17 @@ export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): voi
         return;
       }
 
-      if (match.round.gamePhase !== 'drawing' || match.round.drawerPlayerId !== playerId) {
-        sendGameResponse(callback, invalidActionError('فقط الرسام يمكنه الرسم.'));
-        return;
-      }
-
       const pointsPayload = parseStrokePointsPayload(payload);
 
       if (!pointsPayload) {
         sendGameResponse(callback, invalidActionError('بيانات نقاط الرسم غير صالحة.'));
+        return;
+      }
+
+      const authError = assertActiveDrawerTurn(match, playerId!, pointsPayload.turnId);
+
+      if (authError) {
+        sendGameResponse(callback, authError);
         return;
       }
 
@@ -382,7 +432,7 @@ export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): voi
     }
   });
 
-  socket.on(DRAW_GUESS_CLEAR_CANVAS_EVENT, async (_payload: unknown, callback) => {
+  socket.on(DRAW_GUESS_CLEAR_CANVAS_EVENT, async (payload: unknown, callback) => {
     const contextError = getGameSocketContext(socket);
 
     if (contextError) {
@@ -410,8 +460,11 @@ export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): voi
         return;
       }
 
-      if (match.round.gamePhase !== 'drawing' || match.round.drawerPlayerId !== playerId) {
-        sendGameResponse(callback, invalidActionError('فقط الرسام يمكنه مسح اللوحة.'));
+      const turnId = parseTurnId(payload);
+      const authError = assertActiveDrawerTurn(match, playerId!, turnId);
+
+      if (authError) {
+        sendGameResponse(callback, authError);
         return;
       }
 
@@ -421,7 +474,71 @@ export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): voi
       });
 
       setDrawGuessState(roomId!, nextMatch);
-      broadcastCanvasUpdated(io, roomId!, []);
+      broadcastCanvasUpdated(io, roomId!, match.round.turnId, []);
+
+      sendGameResponse(callback, {
+        success: true,
+        data: { view: buildDrawGuessPlayerView(nextMatch, playerId!, shell) },
+      });
+    } catch {
+      sendGameResponse(callback, {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Something went wrong. Please try again.',
+        },
+      });
+    }
+  });
+
+  socket.on(DRAW_GUESS_UNDO_EVENT, async (payload: unknown, callback) => {
+    const contextError = getGameSocketContext(socket);
+
+    if (contextError) {
+      sendGameResponse(callback, contextError);
+      return;
+    }
+
+    const { playerId, roomId } = socket.data;
+
+    if (recoveryBlockedResponse(roomId!, callback)) {
+      return;
+    }
+
+    try {
+      const shell = getGameShellByRoomId(roomId!);
+      const match = getDrawGuessState(roomId!);
+
+      if (!shell || shell.gameId !== DRAW_GUESS_GAME_ID || shell.phase !== 'PLAYING' || !match) {
+        sendGameResponse(callback, gameNotReadyError());
+        return;
+      }
+
+      if (!match.playerIds.includes(playerId!)) {
+        sendGameResponse(callback, notParticipantError());
+        return;
+      }
+
+      const turnId = parseTurnId(payload);
+      const authError = assertActiveDrawerTurn(match, playerId!, turnId);
+
+      if (authError) {
+        sendGameResponse(callback, authError);
+        return;
+      }
+
+      const nextStrokes =
+        match.round.strokes.length === 0
+          ? match.round.strokes
+          : match.round.strokes.slice(0, -1);
+
+      const nextMatch = withRound(match, {
+        ...match.round,
+        strokes: nextStrokes,
+      });
+
+      setDrawGuessState(roomId!, nextMatch);
+      broadcastCanvasUpdated(io, roomId!, match.round.turnId, nextStrokes);
 
       sendGameResponse(callback, {
         success: true,
@@ -491,6 +608,7 @@ export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): voi
           success: true,
           data: {
             correct: false,
+            feedback: 'إجابة خاطئة',
             view: buildDrawGuessPlayerView(match, playerId!, shell),
           },
         });

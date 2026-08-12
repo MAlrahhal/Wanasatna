@@ -3,9 +3,10 @@
 import type { LobbyGame, LobbyGameSettingsPlaceholder } from '@/lib/lobby/types';
 import { getGameCatalogEntry } from '@/lib/public/game-catalog';
 import { useRoom } from '@/contexts/room-context';
-import { GUESSING_CHALLENGE_GAME_ID, TIMING_CHALLENGE_GAME_ID } from '@wanasatna/shared';
+import { GUESSING_CHALLENGE_GAME_ID, TIMING_CHALLENGE_GAME_ID, DRAW_GUESS_GAME_ID } from '@wanasatna/shared';
 import { EmptyState } from './empty-state';
 import { LobbyPanel } from './lobby-ui';
+import { DrawGuessSettingsPanel } from './draw-guess-settings-panel';
 import { GuessingChallengeSettingsPanel } from './guessing-challenge-settings-panel';
 import { TimingChallengeSettingsPanel } from './timing-challenge-settings-panel';
 import { TeamAssignmentPanel } from './team-assignment-panel';
@@ -23,6 +24,10 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
     setTimingChallengeSettings,
     guessingChallengeMode,
     setGuessingChallengeMode,
+    drawGuessDrawerMode,
+    setDrawGuessDrawerMode,
+    drawGuessFixedPlayerId,
+    setDrawGuessFixedPlayerId,
     teamSnapshot,
     assignPlayerTeam,
     randomizeTeams,
@@ -31,6 +36,7 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
   const catalogEntry = selectedGame ? getGameCatalogEntry(selectedGame.id) : null;
   const isTimingChallenge = selectedGame?.id === TIMING_CHALLENGE_GAME_ID;
   const isGuessingChallenge = selectedGame?.id === GUESSING_CHALLENGE_GAME_ID;
+  const isDrawGuess = selectedGame?.id === DRAW_GUESS_GAME_ID;
   const showsTeams =
     Boolean(teamSnapshot) || Boolean(selectedGame && getGameTeamCapability(selectedGame.id));
 
@@ -83,6 +89,17 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
               mode={guessingChallengeMode}
               isHost={isHost}
               onChange={setGuessingChallengeMode}
+            />
+          ) : isDrawGuess ? (
+            <DrawGuessSettingsPanel
+              drawerMode={drawGuessDrawerMode}
+              fixedPlayerId={drawGuessFixedPlayerId}
+              players={players
+                .filter((player) => !player.isSpectator)
+                .map((player) => ({ id: player.id, name: player.name }))}
+              isHost={isHost}
+              onDrawerModeChange={setDrawGuessDrawerMode}
+              onFixedPlayerChange={setDrawGuessFixedPlayerId}
             />
           ) : (
             <div className="space-y-1.5">
