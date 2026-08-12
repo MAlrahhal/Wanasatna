@@ -165,7 +165,7 @@ export function RoleRevealScreen({
 
           <Button
             size="lg"
-            className="min-h-11 w-full focus-visible:ring-offset-4 sm:min-h-14"
+            className="min-h-11 w-full text-white focus-visible:ring-offset-4 sm:min-h-14"
             onClick={onAcknowledge}
             disabled={acknowledged || !onAcknowledge}
           >

@@ -24,7 +24,7 @@ function RevealImpostorContent({ impostorPlayer }: { impostorPlayer: RevealImpos
   return (
     <div className="bara-reveal-impostor-card flex w-full min-w-0 flex-col items-center justify-center px-2 py-10 text-center sm:py-14">
       <p className="text-base font-medium text-wanas-text-secondary sm:text-lg">برا السالفة:</p>
-      <h2 className="mt-2 max-w-full truncate text-3xl font-bold text-wanas-text-primary sm:text-4xl md:text-5xl">
+      <h2 className="mt-2 max-w-full break-words px-1 pb-1.5 text-3xl font-bold leading-[1.35] text-wanas-text-primary sm:text-4xl md:text-5xl">
         {impostorPlayer.name}
       </h2>
     </div>
