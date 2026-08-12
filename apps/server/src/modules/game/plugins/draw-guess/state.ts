@@ -9,6 +9,9 @@ import type {
 } from '@wanasatna/shared';
 import {
   DRAW_GUESS_DEFAULT_ROUNDS,
+  MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL,
+  MATCH_COMPLETED_WAITING_MESSAGE,
+  buildRoundResultsContinueCopy,
 } from '@wanasatna/shared';
 import { randomUUID } from 'node:crypto';
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
@@ -164,7 +167,7 @@ function buildRoundPhaseLabel(match: DrawGuessMatchState): string {
 }
 
 function buildRoundResultsInteractionView(
-  _match: DrawGuessMatchState,
+  match: DrawGuessMatchState,
   shell: GameShellState,
   playerId: string,
 ): Pick<
@@ -175,13 +178,9 @@ function buildRoundResultsInteractionView(
   | 'roundResultsWaitingMessage'
 > {
   const isHost = shell.hostPlayerId === playerId;
+  const isFinalRound = match.currentRound >= match.totalRounds;
 
-  return {
-    isHost,
-    canContinueFromRoundResults: isHost,
-    roundResultsContinueLabel: isHost ? 'التالي الآن' : null,
-    roundResultsWaitingMessage: 'الجولة التالية تبدأ تلقائياً...',
-  };
+  return buildRoundResultsContinueCopy({ isFinalRound, isHost });
 }
 
 export function getConnectedParticipantIds(
@@ -290,14 +289,17 @@ export function buildDrawGuessPlayerView(
   }
 
   if (round.gamePhase === 'match-completed') {
+    const isHost = shell.hostPlayerId === playerId;
+
     return {
       ...baseView,
       roundResults: [],
       resultsLeaderboard: buildResultsLeaderboardEntries(match),
       leaderboard: buildLeaderboardEntries(match),
-      canContinueFromRoundResults: false,
-      roundResultsContinueLabel: null,
-      roundResultsWaitingMessage: null,
+      isHost,
+      canContinueFromRoundResults: isHost,
+      roundResultsContinueLabel: isHost ? MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL : null,
+      roundResultsWaitingMessage: MATCH_COMPLETED_WAITING_MESSAGE,
     };
   }
 

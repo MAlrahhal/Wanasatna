@@ -313,12 +313,28 @@ test('word exclusion accumulates across rounds when alternatives exist', () => {
   assert.ok(r2.usedWordTexts.includes(r2.round.word));
 });
 
-test('round-results view exposes التالي الآن for host', () => {
-  const match = withRound(makeMatch(), makeRound({ gamePhase: 'round-results', phaseRemainingSeconds: 10 }));
+test('round-results view: mid-round next copy vs final-round copy', () => {
+  const mid = withRound(makeMatch({ currentRound: 1, totalRounds: 3 }), makeRound({ gamePhase: 'round-results', phaseRemainingSeconds: 10 }));
+  const final = withRound(makeMatch({ currentRound: 3, totalRounds: 3 }), makeRound({ gamePhase: 'round-results', phaseRemainingSeconds: 10 }));
   const shell = makeShell('p1');
-  const hostView = buildDrawGuessPlayerView(match, 'p1', shell);
-  assert.equal(hostView.roundResultsContinueLabel, 'التالي الآن');
-  assert.equal(hostView.canContinueFromRoundResults, true);
+
+  const midHost = buildDrawGuessPlayerView(mid, 'p1', shell);
+  assert.equal(midHost.roundResultsContinueLabel, 'التالي الآن');
+  assert.equal(midHost.roundResultsWaitingMessage, 'الجولة التالية تبدأ تلقائياً...');
+
+  const finalHost = buildDrawGuessPlayerView(final, 'p1', shell);
+  assert.equal(finalHost.roundResultsContinueLabel, 'عرض النتائج الآن');
+  assert.equal(finalHost.roundResultsWaitingMessage, 'سيتم عرض النتائج النهائية تلقائياً...');
+});
+
+test('match-completed view exposes host return CTA', () => {
+  const match = withRound(
+    makeMatch({ currentRound: 3, totalRounds: 3, matchStatus: 'completed' }),
+    makeRound({ gamePhase: 'match-completed', phaseRemainingSeconds: 30 }),
+  );
+  const hostView = buildDrawGuessPlayerView(match, 'p1', makeShell('p1'));
+  assert.equal(hostView.roundResultsContinueLabel, 'العودة إلى اللوبي');
+  assert.ok(hostView.roundResultsWaitingMessage?.includes('اللوبي'));
 });
 
 test('stale turnId mismatch is detectable against current round', () => {

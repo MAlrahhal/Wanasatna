@@ -5,7 +5,7 @@ import { timedPhaseDurations } from '../../../../config/test-timers.js';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { finishGameShellForRoom } from '../../game.service.js';
-import { cleanupGameShellRuntime } from '../../game.lifecycle.js';
+import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
 import { broadcastGameShellState } from '../../game.timer.js';
 import {
   clearDrawGuessPhaseTimerRuntime,
@@ -149,11 +149,16 @@ export function continueFromRoundResults(
   shell: GameShellState,
   hostPlayerId: string,
 ): DrawGuessMatchState {
-  if (match.round.gamePhase !== 'round-results') {
+  if (shell.hostPlayerId !== hostPlayerId) {
     return match;
   }
 
-  if (shell.hostPlayerId !== hostPlayerId) {
+  if (match.round.gamePhase === 'match-completed') {
+    completeMatch(io, roomId);
+    return match;
+  }
+
+  if (match.round.gamePhase !== 'round-results') {
     return match;
   }
 
@@ -171,4 +176,6 @@ export function completeMatch(io: Server, roomId: string): void {
     cleanupGameShellRuntime(roomId);
     broadcastGameShellState(io, nextShell);
   }
+
+  navigateRoomToLobby(io, roomId);
 }

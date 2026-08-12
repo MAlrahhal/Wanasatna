@@ -348,7 +348,7 @@ test('round-results: host can continue; non-host sees waiting message', () => {
   assert.ok(guestView.roundResultsWaitingMessage?.includes('تلقائيا'));
 });
 
-test('round-results final round: host sees التالي الآن', () => {
+test('round-results final round: host sees عرض النتائج الآن', () => {
   const shell = makeShell();
   const match = applyRoundScores(
     makeMatch({
@@ -360,7 +360,8 @@ test('round-results final round: host sees التالي الآن', () => {
   match.currentRound = 3;
 
   const hostView = buildBaraAlSalafaPlayerView(match, 'p1', shell);
-  assert.equal(hostView.roundResultsContinueLabel, 'التالي الآن');
+  assert.equal(hostView.roundResultsContinueLabel, 'عرض النتائج الآن');
+  assert.equal(hostView.roundResultsWaitingMessage, 'سيتم عرض النتائج النهائية تلقائياً...');
 });
 
 // --- Voting ---
@@ -496,14 +497,23 @@ test('after guess resolves: secret word revealed to everyone', () => {
   }
 });
 
-test('round-results host continue label is التالي الآن', () => {
+test('round-results host continue: next vs final round copy', () => {
   const shell = makeShell();
-  const match = applyRoundScores(
+  const midMatch = applyRoundScores(
     makeMatch({ gamePhase: 'round-results', votes: { p1: 'p2' }, guessedCorrectly: false }),
   );
-  const hostView = buildBaraAlSalafaPlayerView(match, 'p1', shell);
-  assert.equal(hostView.roundResultsContinueLabel, 'التالي الآن');
-  assert.equal(hostView.canContinueFromRoundResults, true);
+  const midHost = buildBaraAlSalafaPlayerView(midMatch, 'p1', shell);
+  assert.equal(midHost.roundResultsContinueLabel, 'التالي الآن');
+  assert.equal(midHost.roundResultsWaitingMessage, 'الجولة التالية تبدأ تلقائياً...');
+
+  const finalMatch = applyRoundScores(
+    makeMatch({ gamePhase: 'round-results', votes: { p1: 'p2' }, guessedCorrectly: false }),
+  );
+  finalMatch.currentRound = 3;
+  finalMatch.totalRounds = 3;
+  const finalHost = buildBaraAlSalafaPlayerView(finalMatch, 'p1', shell);
+  assert.equal(finalHost.roundResultsContinueLabel, 'عرض النتائج الآن');
+  assert.equal(finalHost.roundResultsWaitingMessage, 'سيتم عرض النتائج النهائية تلقائياً...');
 });
 
 test('spectator view hides word and impostor identity before reveal', () => {

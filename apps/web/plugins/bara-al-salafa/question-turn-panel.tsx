@@ -32,7 +32,7 @@ export function getQuestionTurnRole(
 function ConversationHeading({ askerName, targetName }: { askerName: string; targetName: string }) {
   return (
     <p className="text-pretty break-words text-lg font-semibold leading-relaxed text-wanas-text-primary sm:text-xl">
-      {askerName} يسأل {targetName}
+      {askerName} اسأل {targetName}
     </p>
   );
 }

@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { DrawGuessPlayerView, GamePluginScreenProps } from '@wanasatna/shared';
-import { DRAW_GUESS_GAME_ID, DRAW_GUESS_ROUND_RESULTS_DURATION_SECONDS } from '@wanasatna/shared';
+import {
+  DRAW_GUESS_GAME_ID,
+  DRAW_GUESS_ROUND_RESULTS_DURATION_SECONDS,
+  MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS,
+} from '@wanasatna/shared';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
@@ -14,7 +18,7 @@ import { DrawGuessRoundResultsScreen } from './round-results-screen';
 import { WaitingSpectatorScreen } from './waiting-spectator-screen';
 import { useDrawGuessPlayerView } from './use-player-view';
 
-const TIMED_DRAW_GUESS_PHASES = new Set(['drawing', 'round-results']);
+const TIMED_DRAW_GUESS_PHASES = new Set(['drawing', 'round-results', 'match-completed']);
 
 export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
   const { state: shellState, returnToLobby } = useGameShell();
@@ -100,7 +104,19 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
   useEffect(() => () => setExperienceMeta(null), [setExperienceMeta]);
 
   const handleReturnToLobby = useCallback(() => {
-    if (!isHost || shellPhase !== 'FINISHED' || isReturningToLobby) {
+    if (isReturningToLobby) {
+      return;
+    }
+
+    if (view?.gamePhase === 'match-completed' && isHost) {
+      setIsReturningToLobby(true);
+      void continueFromRoundResults().finally(() => {
+        setIsReturningToLobby(false);
+      });
+      return;
+    }
+
+    if (!isHost || shellPhase !== 'FINISHED') {
       return;
     }
 
@@ -108,15 +124,25 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
     void returnToLobby().finally(() => {
       setIsReturningToLobby(false);
     });
-  }, [isHost, isReturningToLobby, returnToLobby, shellPhase]);
+  }, [
+    continueFromRoundResults,
+    isHost,
+    isReturningToLobby,
+    returnToLobby,
+    shellPhase,
+    view?.gamePhase,
+  ]);
 
   if (showFinalMatchResults && room && player && activeFinalResultsView) {
     const shellFinished = shellPhase === 'FINISHED';
-    const returnStatusMessage = !shellFinished
-      ? 'جاري إنهاء المباراة...'
-      : !isHost
-        ? 'بانتظار المضيف للعودة إلى اللوبي.'
-        : null;
+    const isMatchCompletedPhase = activeFinalResultsView.gamePhase === 'match-completed';
+    const autoReturnMessage = isMatchCompletedPhase
+      ? `العودة إلى اللوبي تلقائياً خلال ${Math.max(0, remainingSeconds)} ثانية`
+      : !shellFinished
+        ? 'جاري إنهاء المباراة...'
+        : !isHost
+          ? 'بانتظار المضيف للعودة إلى اللوبي.'
+          : null;
 
     return (
       <MatchResultsScreen
@@ -133,9 +159,15 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
         playerCount={activeFinalResultsView.resultsLeaderboard.length}
         roomCode={room.code}
         gameName={DRAW_GUESS_GAME_NAME}
-        returnStatusMessage={returnStatusMessage}
+        returnStatusMessage={isHost && (isMatchCompletedPhase || shellFinished) ? null : autoReturnMessage}
+        autoReturnSeconds={isMatchCompletedPhase ? remainingSeconds : undefined}
+        autoReturnTotalSeconds={
+          isMatchCompletedPhase ? MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS : undefined
+        }
         isReturnToLobbyLoading={isReturningToLobby}
-        onReturnToLobby={isHost && shellFinished ? handleReturnToLobby : undefined}
+        onReturnToLobby={
+          isHost && (isMatchCompletedPhase || shellFinished) ? handleReturnToLobby : undefined
+        }
       />
     );
   }

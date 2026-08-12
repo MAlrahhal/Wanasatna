@@ -673,13 +673,26 @@ export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): voi
 
       const match = getDrawGuessState(roomId!);
 
-      if (!match || match.round.gamePhase !== 'round-results') {
+      if (
+        !match ||
+        (match.round.gamePhase !== 'round-results' &&
+          match.round.gamePhase !== 'match-completed')
+      ) {
         sendGameResponse(callback, gameNotReadyError());
         return;
       }
 
       continueFromRoundResults(io, roomId!, match, shell, playerId!);
-      respondWithView(callback, roomId!, playerId!);
+
+      if (getDrawGuessState(roomId!)) {
+        respondWithView(callback, roomId!, playerId!);
+        return;
+      }
+
+      sendGameResponse(callback, {
+        success: true,
+        data: {},
+      });
     } catch {
       sendGameResponse(callback, {
         success: false,

@@ -1,5 +1,10 @@
 import type { GameShellState } from '@wanasatna/shared';
 import type { BaraAlSalafaMatchState, BaraAlSalafaPlayerView } from '@wanasatna/shared';
+import {
+  MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL,
+  MATCH_COMPLETED_WAITING_MESSAGE,
+  buildRoundResultsContinueCopy,
+} from '@wanasatna/shared';
 import { getConnectedParticipantIds } from './free-questions.js';
 import {
   buildLeaderboardEntries,
@@ -96,7 +101,7 @@ function buildDescriptionView(
 }
 
 function buildRoundResultsInteractionView(
-  _match: BaraAlSalafaMatchState,
+  match: BaraAlSalafaMatchState,
   shell: GameShellState,
   playerId: string,
 ): Pick<
@@ -107,13 +112,9 @@ function buildRoundResultsInteractionView(
   | 'roundResultsWaitingMessage'
 > {
   const isHost = shell.hostPlayerId === playerId;
+  const isFinalRound = match.currentRound >= match.totalRounds;
 
-  return {
-    isHost,
-    canContinueFromRoundResults: isHost,
-    roundResultsContinueLabel: isHost ? 'التالي الآن' : null,
-    roundResultsWaitingMessage: 'الجولة التالية تبدأ تلقائياً...',
-  };
+  return buildRoundResultsContinueCopy({ isFinalRound, isHost });
 }
 
 function buildFreeQuestionsView(
@@ -514,8 +515,8 @@ export function buildBaraAlSalafaPlayerView(
       isFinalResults: true,
       isHost,
       canContinueFromRoundResults: isHost,
-      roundResultsContinueLabel: isHost ? 'العودة إلى اللوبي' : null,
-      roundResultsWaitingMessage: 'العودة إلى اللوبي تلقائياً خلال ثوانٍ...',
+      roundResultsContinueLabel: isHost ? MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL : null,
+      roundResultsWaitingMessage: MATCH_COMPLETED_WAITING_MESSAGE,
     };
   }
 
