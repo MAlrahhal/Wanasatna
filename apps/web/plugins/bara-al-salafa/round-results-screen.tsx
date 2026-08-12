@@ -44,16 +44,16 @@ function RoundSummaryCards({
   impostorPlayerName,
 }: Pick<RoundResultsScreenProps, 'revealedWord' | 'impostorPlayerName'>) {
   return (
-    <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-      <div className="wanas-game-card flex aspect-square min-h-0 flex-col items-center justify-center rounded-[1.35rem] px-3 py-4 text-center sm:px-4">
+    <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
+      <div className="wanas-game-card flex h-[7rem] flex-col items-center justify-center rounded-[1.15rem] px-3 py-3 text-center sm:h-[8.5rem] sm:px-4">
         <p className="text-[11px] font-medium text-wanas-text-muted sm:text-xs">برا السالفة</p>
-        <p className="mt-2 max-w-full truncate text-base font-bold text-wanas-text-primary sm:text-lg">
+        <p className="mt-1.5 max-w-full truncate text-base font-bold text-wanas-text-primary sm:text-lg">
           {impostorPlayerName}
         </p>
       </div>
-      <div className="wanas-game-card flex aspect-square min-h-0 flex-col items-center justify-center rounded-[1.35rem] px-3 py-4 text-center sm:px-4">
+      <div className="wanas-game-card flex h-[7rem] flex-col items-center justify-center rounded-[1.15rem] px-3 py-3 text-center sm:h-[8.5rem] sm:px-4">
         <p className="text-[11px] font-medium text-wanas-text-muted sm:text-xs">الكلمة</p>
-        <p className="mt-2 max-w-full break-words text-base font-bold text-wanas-text-primary sm:text-lg">
+        <p className="mt-1.5 max-w-full break-words text-base font-bold text-wanas-text-primary sm:text-lg">
           {revealedWord}
         </p>
       </div>
@@ -266,12 +266,10 @@ export function RoundResultsScreen({
         phaseLabel="نتائج الجولة"
       />
 
-      <div className="flex flex-col gap-5 sm:gap-6">
+      <div className="flex flex-col gap-4 sm:gap-5">
         <RoundSummaryCards revealedWord={revealedWord} impostorPlayerName={impostorPlayerName} />
 
-        <div className="mt-2 sm:mt-3">
-          <RoundPointsList roundResults={roundResults} currentPlayerId={currentPlayerId} />
-        </div>
+        <RoundPointsList roundResults={roundResults} currentPlayerId={currentPlayerId} />
 
         <RoundTransitionFooter
           continueLabel={continueLabel}
