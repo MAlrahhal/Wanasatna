@@ -13,7 +13,7 @@ import { timedPhaseDurations } from '../../../../config/test-timers.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { finishGameShellForRoom } from '../../game.service.js';
-import { cleanupGameShellRuntime } from '../../game.lifecycle.js';
+import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
 import { broadcastGameShellState } from '../../game.timer.js';
 import { resolveEnabledCategoryFilter } from '../../runtime/round-category-store.js';
 import { applyRoundScores } from './scoring.js';
@@ -146,6 +146,8 @@ export function completeMatchCompletedPhase(io: Server, roomId: string): void {
     cleanupGameShellRuntime(roomId);
     broadcastGameShellState(io, nextShell);
   }
+
+  navigateRoomToLobby(io, roomId);
 }
 
 export function cleanupBaraAlSalafaRuntime(roomId: string): void {

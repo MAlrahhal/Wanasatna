@@ -343,13 +343,26 @@ export function registerBaraAlSalafaSocketHandlers(io: Server, socket: Socket): 
 
       const match = getBaraAlSalafaState(roomId!);
 
-      if (!match || match.round.gamePhase !== 'round-results') {
+      if (
+        !match ||
+        (match.round.gamePhase !== 'round-results' &&
+          match.round.gamePhase !== 'match-completed')
+      ) {
         sendGameResponse(callback, gameNotReadyError());
         return;
       }
 
       applyHostContinueRoundResults(io, roomId!, match, shell, playerId!);
-      respondWithView(callback, roomId!, playerId!);
+
+      if (getBaraAlSalafaState(roomId!)) {
+        respondWithView(callback, roomId!, playerId!);
+        return;
+      }
+
+      sendGameResponse(callback, {
+        success: true,
+        data: {},
+      });
     } catch {
       sendGameResponse(callback, {
         success: false,

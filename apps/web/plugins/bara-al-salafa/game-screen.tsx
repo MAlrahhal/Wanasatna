@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { BaraAlSalafaPlayerView, GamePluginScreenProps } from '@wanasatna/shared';
+import { BARA_AL_SALAFA_MATCH_RESULTS_DURATION_SECONDS } from '@wanasatna/shared';
 import { GameScreen } from '@/components/game/game-card';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
@@ -37,6 +38,7 @@ const TIMED_BARA_PHASES = new Set([
   'impostor-guess',
   'impostor-guess-result',
   'round-results',
+  'match-completed',
 ]);
 
 const NOT_PARTICIPANT_ERROR = 'أنت لست مشاركاً في هذه الجولة.';
@@ -206,7 +208,20 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
   }, [guessSelection, isSubmittingAction, submitImpostorGuess, view?.hasSubmittedImpostorGuess]);
 
   const handleReturnToLobby = useCallback(() => {
-    if (!isHost || shellPhase !== 'FINISHED' || isReturningToLobby) {
+    if (isReturningToLobby) {
+      return;
+    }
+
+    // During match-completed, host skip finishes the match and navigates via server.
+    if (view?.gamePhase === 'match-completed' && isHost) {
+      setIsReturningToLobby(true);
+      void continueFromRoundResults().finally(() => {
+        setIsReturningToLobby(false);
+      });
+      return;
+    }
+
+    if (!isHost || shellPhase !== 'FINISHED') {
       return;
     }
 
@@ -214,22 +229,38 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     void returnToLobby().finally(() => {
       setIsReturningToLobby(false);
     });
-  }, [isHost, isReturningToLobby, returnToLobby, shellPhase]);
+  }, [
+    continueFromRoundResults,
+    isHost,
+    isReturningToLobby,
+    returnToLobby,
+    shellPhase,
+    view?.gamePhase,
+  ]);
 
   if (showFinalMatchResults && room && player && activeFinalResultsView) {
     const shellFinished = shellPhase === 'FINISHED';
-    const returnStatusMessage = !shellFinished
-      ? 'جاري إنهاء المباراة...'
-      : !isHost
-        ? 'بانتظار المضيف للعودة إلى اللوبي.'
-        : null;
+    const isMatchCompletedPhase = activeFinalResultsView.gamePhase === 'match-completed';
+    const autoReturnMessage = isMatchCompletedPhase
+      ? `العودة إلى اللوبي تلقائياً خلال ${Math.max(0, remainingSeconds)} ثانية`
+      : !shellFinished
+        ? 'جاري إنهاء المباراة...'
+        : !isHost
+          ? 'بانتظار المضيف للعودة إلى اللوبي.'
+          : null;
 
     return (
       <MatchResultsScreen
         {...mapMatchResultsLiveProps(activeFinalResultsView, player.id, room.code)}
-        returnStatusMessage={returnStatusMessage}
+        returnStatusMessage={isHost && (isMatchCompletedPhase || shellFinished) ? null : autoReturnMessage}
+        autoReturnSeconds={isMatchCompletedPhase ? remainingSeconds : undefined}
+        autoReturnTotalSeconds={
+          isMatchCompletedPhase ? BARA_AL_SALAFA_MATCH_RESULTS_DURATION_SECONDS : undefined
+        }
         isReturnToLobbyLoading={isReturningToLobby}
-        onReturnToLobby={isHost && shellFinished ? handleReturnToLobby : undefined}
+        onReturnToLobby={
+          isHost && (isMatchCompletedPhase || shellFinished) ? handleReturnToLobby : undefined
+        }
       />
     );
   }

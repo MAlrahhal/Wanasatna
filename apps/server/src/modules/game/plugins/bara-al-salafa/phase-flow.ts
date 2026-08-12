@@ -531,11 +531,17 @@ export function applyHostContinueRoundResults(
   shell: GameShellState,
   hostPlayerId: string,
 ): BaraAlSalafaMatchState {
-  if (match.round.gamePhase !== 'round-results') {
+  if (shell.hostPlayerId !== hostPlayerId) {
     return match;
   }
 
-  if (shell.hostPlayerId !== hostPlayerId) {
+  if (match.round.gamePhase === 'match-completed') {
+    stopPhaseTimer(roomId);
+    completeMatchCompletedPhase(io, roomId);
+    return match;
+  }
+
+  if (match.round.gamePhase !== 'round-results') {
     return match;
   }
 

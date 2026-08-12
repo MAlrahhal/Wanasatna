@@ -1,4 +1,5 @@
 import type { BaraAlSalafaPlayerView } from '@wanasatna/shared';
+import { BARA_AL_SALAFA_ROUND_RESULTS_DURATION_SECONDS } from '@wanasatna/shared';
 import type { LobbyPlayer } from '@/lib/lobby/types';
 import type { DirectedQuestionsScreenProps } from './directed-questions-screen';
 import type { ImpostorGuessOption } from './impostor-guess-screen';
@@ -174,6 +175,7 @@ export function mapRoundResultsLiveProps(
     roundNumber: view.currentRound,
     totalRounds: view.totalRounds,
     remainingSeconds,
+    totalDurationSeconds: BARA_AL_SALAFA_ROUND_RESULTS_DURATION_SECONDS,
     roomCode,
     continueLabel: view.canContinueFromRoundResults ? view.roundResultsContinueLabel : null,
     waitingMessage: view.roundResultsWaitingMessage,

@@ -29,6 +29,7 @@ import {
   BARA_AL_SALAFA_IMPOSTOR_GUESS_DURATION_SECONDS,
   BARA_AL_SALAFA_QUESTION_TURN_DURATION_SECONDS,
   BARA_AL_SALAFA_ROUND_RESULTS_DURATION_SECONDS,
+  BARA_AL_SALAFA_MATCH_RESULTS_DURATION_SECONDS,
   MAX_ROOM_PLAYERS,
 } from '@wanasatna/shared';
 import { resolveTotalRounds } from '../src/modules/game/plugins/bara-al-salafa/round-state.js';
@@ -523,7 +524,23 @@ test('free product: fixed 3 rounds and timer constants', () => {
   assert.equal(BARA_AL_SALAFA_VOTING_DURATION_SECONDS, 60);
   assert.equal(BARA_AL_SALAFA_IMPOSTOR_GUESS_DURATION_SECONDS, 60);
   assert.equal(BARA_AL_SALAFA_ROUND_RESULTS_DURATION_SECONDS, 10);
+  assert.equal(BARA_AL_SALAFA_MATCH_RESULTS_DURATION_SECONDS, 30);
   assert.equal(MAX_ROOM_PLAYERS, 8);
+});
+
+test('match-completed view exposes host return CTA and auto-lobby message', () => {
+  const shell = makeShell();
+  const match = makeMatch({ gamePhase: 'match-completed' });
+  match.matchStatus = 'completed';
+
+  const hostView = buildBaraAlSalafaPlayerView(match, 'p1', shell);
+  assert.equal(hostView.canContinueFromRoundResults, true);
+  assert.equal(hostView.roundResultsContinueLabel, 'العودة إلى اللوبي');
+  assert.ok(hostView.roundResultsWaitingMessage?.includes('اللوبي'));
+
+  const guestView = buildBaraAlSalafaPlayerView(match, 'p3', shell);
+  assert.equal(guestView.canContinueFromRoundResults, false);
+  assert.ok(guestView.roundResultsWaitingMessage?.includes('اللوبي'));
 });
 
 test('word picker avoids used words when alternatives exist', () => {

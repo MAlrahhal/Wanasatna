@@ -112,7 +112,7 @@ function buildRoundResultsInteractionView(
     isHost,
     canContinueFromRoundResults: isHost,
     roundResultsContinueLabel: isHost ? 'التالي الآن' : null,
-    roundResultsWaitingMessage: !isHost ? 'الجولة التالية تبدأ تلقائياً...' : null,
+    roundResultsWaitingMessage: 'الجولة التالية تبدأ تلقائياً...',
   };
 }
 
@@ -496,6 +496,8 @@ export function buildBaraAlSalafaPlayerView(
   }
 
   if (round.gamePhase === 'match-completed') {
+    const isHost = shell.hostPlayerId === playerId;
+
     return {
       ...baseView,
       role: 'player',
@@ -510,6 +512,10 @@ export function buildBaraAlSalafaPlayerView(
       leaderboard: buildLeaderboardEntries(match),
       matchPlayerCount: match.playerIds.length,
       isFinalResults: true,
+      isHost,
+      canContinueFromRoundResults: isHost,
+      roundResultsContinueLabel: isHost ? 'العودة إلى اللوبي' : null,
+      roundResultsWaitingMessage: 'العودة إلى اللوبي تلقائياً خلال ثوانٍ...',
     };
   }
 

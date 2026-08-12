@@ -69,6 +69,9 @@ export const timedPhaseDurations = {
     env.testMode
       ? TEST_ROUND_RESULTS_SECONDS
       : BARA_AL_SALAFA_ROUND_RESULTS_DURATION_SECONDS,
-  matchResults: () => resolveTimedPhaseSeconds(BARA_AL_SALAFA_MATCH_RESULTS_DURATION_SECONDS),
+  matchResults: () =>
+    env.testMode
+      ? TEST_ROUND_RESULTS_SECONDS
+      : BARA_AL_SALAFA_MATCH_RESULTS_DURATION_SECONDS,
   shellCountdown: () => resolveShellCountdownSeconds(DEFAULT_GAME_SHELL_COUNTDOWN_SECONDS),
 };

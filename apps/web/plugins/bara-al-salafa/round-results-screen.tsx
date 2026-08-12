@@ -39,22 +39,29 @@ export type RoundResultsScreenProps = {
   className?: string;
 };
 
-function RoundMetaLine({
+function RoundSummaryCards({
   revealedWord,
   impostorPlayerName,
 }: Pick<RoundResultsScreenProps, 'revealedWord' | 'impostorPlayerName'>) {
   return (
-    <p className="text-center text-xs text-wanas-text-muted sm:text-sm">
-      الكلمة: <span className="font-medium text-wanas-text-secondary">{revealedWord}</span>
-      <span className="mx-2 text-wanas-text-muted" aria-hidden>
-        ·
-      </span>
-      برا السالفة: <span className="font-medium text-wanas-text-secondary">{impostorPlayerName}</span>
-    </p>
+    <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+      <div className="wanas-game-card flex aspect-square min-h-0 flex-col items-center justify-center rounded-[1.35rem] px-3 py-4 text-center sm:px-4">
+        <p className="text-[11px] font-medium text-wanas-text-muted sm:text-xs">برا السالفة</p>
+        <p className="mt-2 max-w-full truncate text-base font-bold text-wanas-text-primary sm:text-lg">
+          {impostorPlayerName}
+        </p>
+      </div>
+      <div className="wanas-game-card flex aspect-square min-h-0 flex-col items-center justify-center rounded-[1.35rem] px-3 py-4 text-center sm:px-4">
+        <p className="text-[11px] font-medium text-wanas-text-muted sm:text-xs">الكلمة</p>
+        <p className="mt-2 max-w-full break-words text-base font-bold text-wanas-text-primary sm:text-lg">
+          {revealedWord}
+        </p>
+      </div>
+    </div>
   );
 }
 
-function RoundTransitionProgress({
+function RoundTransitionProgressBar({
   remainingSeconds,
   totalDurationSeconds,
 }: {
@@ -66,24 +73,18 @@ function RoundTransitionProgress({
   const progressPercent = Math.round((clampedRemaining / total) * 100);
 
   return (
-    <div className="mx-auto w-full max-w-md space-y-2" role="status" aria-live="polite">
-      <div className="flex items-center justify-between gap-2 text-[11px] font-medium text-wanas-text-muted">
-        <span>الانتقال التلقائي</span>
-        <span className="font-mono tabular-nums">{clampedRemaining}ث</span>
-      </div>
+    <div
+      className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted"
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={total}
+      aria-valuenow={clampedRemaining}
+      aria-label={`الانتقال التلقائي ${clampedRemaining} من ${total} ثانية`}
+    >
       <div
-        className="h-2.5 overflow-hidden rounded-full bg-wanas-surface-muted"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={total}
-        aria-valuenow={clampedRemaining}
-        aria-label={`الوقت المتبقي ${clampedRemaining} من ${total} ثانية`}
-      >
-        <div
-          className="h-full rounded-full bg-wanas-accent transition-[width] duration-200 ease-linear"
-          style={{ width: `${progressPercent}%` }}
-        />
-      </div>
+        className="h-full rounded-full bg-wanas-accent transition-[width] duration-200 ease-linear"
+        style={{ width: `${progressPercent}%` }}
+      />
     </div>
   );
 }
@@ -126,7 +127,9 @@ function RoundPointsList({
                 player.isImpostor
                   ? 'border-wanas-accent/25 bg-wanas-accent-soft/35'
                   : 'border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)]',
-                isTopScorer && !player.isImpostor && 'border-wanas-warning-border/70 bg-wanas-warning-surface/40',
+                isTopScorer &&
+                  !player.isImpostor &&
+                  'border-wanas-warning-border/70 bg-wanas-warning-surface/40',
               )}
               aria-current={isCurrentPlayer ? 'true' : undefined}
             >
@@ -186,13 +189,29 @@ function RoundTransitionFooter({
   waitingMessage,
   isContinueLoading,
   onContinue,
+  remainingSeconds,
+  totalDurationSeconds,
 }: Pick<
   RoundResultsScreenProps,
   'continueLabel' | 'waitingMessage' | 'isContinueLoading' | 'onContinue'
->) {
+> & {
+  remainingSeconds: number;
+  totalDurationSeconds: number;
+}) {
+  const progress = (
+    <RoundTransitionProgressBar
+      remainingSeconds={remainingSeconds}
+      totalDurationSeconds={totalDurationSeconds}
+    />
+  );
+
   if (continueLabel && onContinue) {
     return (
-      <div className="mx-auto w-full max-w-md">
+      <div className="mx-auto w-full max-w-md space-y-3">
+        <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
+          {waitingMessage ?? 'الجولة التالية تبدأ تلقائياً...'}
+        </p>
+        {progress}
         <Button
           size="lg"
           className="w-full min-h-14 focus-visible:ring-offset-4"
@@ -209,11 +228,12 @@ function RoundTransitionFooter({
     <div
       role="status"
       aria-live="polite"
-      className="mx-auto w-full max-w-md rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-6 text-center shadow-sm"
+      className="mx-auto w-full max-w-md space-y-3 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-5 text-center shadow-sm"
     >
       <p className="wanas-game-helper font-medium text-wanas-text-secondary">
-        {waitingMessage ?? 'الانتقال للمرحلة التالية تلقائياً...'}
+        {waitingMessage ?? 'الجولة التالية تبدأ تلقائياً...'}
       </p>
+      {progress}
     </div>
   );
 }
@@ -246,21 +266,20 @@ export function RoundResultsScreen({
         phaseLabel="نتائج الجولة"
       />
 
-      <div className="flex flex-col gap-6 sm:gap-7">
-        <RoundPointsList roundResults={roundResults} currentPlayerId={currentPlayerId} />
+      <div className="flex flex-col gap-5 sm:gap-6">
+        <RoundSummaryCards revealedWord={revealedWord} impostorPlayerName={impostorPlayerName} />
 
-        <RoundMetaLine revealedWord={revealedWord} impostorPlayerName={impostorPlayerName} />
-
-        <RoundTransitionProgress
-          remainingSeconds={remainingSeconds}
-          totalDurationSeconds={totalDurationSeconds}
-        />
+        <div className="mt-2 sm:mt-3">
+          <RoundPointsList roundResults={roundResults} currentPlayerId={currentPlayerId} />
+        </div>
 
         <RoundTransitionFooter
           continueLabel={continueLabel}
           waitingMessage={waitingMessage}
           isContinueLoading={isContinueLoading}
           onContinue={onContinue}
+          remainingSeconds={remainingSeconds}
+          totalDurationSeconds={totalDurationSeconds}
         />
       </div>
     </GameScreen>

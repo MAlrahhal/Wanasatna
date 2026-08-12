@@ -24,6 +24,8 @@ export type MatchResultsScreenProps = {
   roomCode: string;
   gameName?: string;
   returnStatusMessage?: string | null;
+  autoReturnSeconds?: number;
+  autoReturnTotalSeconds?: number;
   isReturnToLobbyLoading?: boolean;
   onReturnToLobby?: () => void;
   onPlayAgain?: () => void;
@@ -226,18 +228,58 @@ function MatchStats({
 
 function MatchActionsFooter({
   returnStatusMessage,
+  autoReturnSeconds,
+  autoReturnTotalSeconds,
   isReturnToLobbyLoading,
   onReturnToLobby,
   onPlayAgain,
 }: Pick<
   MatchResultsScreenProps,
-  'returnStatusMessage' | 'isReturnToLobbyLoading' | 'onReturnToLobby' | 'onPlayAgain'
+  | 'returnStatusMessage'
+  | 'autoReturnSeconds'
+  | 'autoReturnTotalSeconds'
+  | 'isReturnToLobbyLoading'
+  | 'onReturnToLobby'
+  | 'onPlayAgain'
 >) {
-  const isHost = Boolean(onReturnToLobby) && !returnStatusMessage;
+  const total = Math.max(autoReturnTotalSeconds ?? 30, 1);
+  const remaining = Math.max(0, autoReturnSeconds ?? 0);
+  const progressPercent =
+    typeof autoReturnSeconds === 'number'
+      ? Math.round((Math.min(remaining, total) / total) * 100)
+      : null;
 
-  if (isHost) {
+  const progressBar =
+    progressPercent === null ? null : (
+      <div
+        className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuenow={remaining}
+        aria-label={`العودة إلى اللوبي خلال ${remaining} ثانية`}
+      >
+        <div
+          className="h-full rounded-full bg-wanas-accent transition-[width] duration-200 ease-linear"
+          style={{ width: `${progressPercent}%` }}
+        />
+      </div>
+    );
+
+  const autoMessage =
+    typeof autoReturnSeconds === 'number'
+      ? `العودة إلى اللوبي تلقائياً خلال ${remaining} ثانية`
+      : null;
+
+  if (onReturnToLobby && !returnStatusMessage) {
     return (
       <div className="mx-auto flex w-full max-w-md flex-col gap-3">
+        {autoMessage ? (
+          <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
+            {autoMessage}
+          </p>
+        ) : null}
+        {progressBar}
         <Button
           size="lg"
           className="w-full min-h-14 focus-visible:ring-offset-4"
@@ -259,11 +301,12 @@ function MatchActionsFooter({
     <div
       role="status"
       aria-live="polite"
-      className="mx-auto w-full max-w-md rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-6 text-center shadow-sm"
+      className="mx-auto w-full max-w-md space-y-3 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-5 text-center shadow-sm"
     >
       <p className="wanas-game-helper font-medium text-wanas-text-secondary">
-        {returnStatusMessage ?? 'بانتظار المضيف...'}
+        {autoMessage ?? returnStatusMessage ?? 'بانتظار المضيف...'}
       </p>
+      {progressBar}
     </div>
   );
 }
@@ -276,6 +319,8 @@ export function MatchResultsScreen({
   roomCode,
   gameName = 'برا السالفة',
   returnStatusMessage = null,
+  autoReturnSeconds,
+  autoReturnTotalSeconds,
   isReturnToLobbyLoading = false,
   onReturnToLobby,
   onPlayAgain,
@@ -314,6 +359,8 @@ export function MatchResultsScreen({
 
         <MatchActionsFooter
           returnStatusMessage={returnStatusMessage}
+          autoReturnSeconds={autoReturnSeconds}
+          autoReturnTotalSeconds={autoReturnTotalSeconds}
           isReturnToLobbyLoading={isReturnToLobbyLoading}
           onReturnToLobby={onReturnToLobby}
           onPlayAgain={onPlayAgain}
