@@ -41,16 +41,8 @@ export function GameExperienceHeader({
           className,
         )}
       >
-        {meta.categoryLabel ? (
-          <p
-            className="mb-1.5 truncate text-center text-sm font-semibold text-white sm:mb-2 sm:text-base"
-            title={meta.categoryLabel}
-          >
-            {meta.categoryLabel}
-          </p>
-        ) : null}
-        <div className="flex items-center justify-between gap-2 sm:gap-3">
-          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-2.5">
+        <div className="relative flex items-center justify-between gap-2 sm:gap-3">
+          <div className="relative z-10 flex min-w-0 flex-1 items-center gap-2 sm:gap-2.5">
             {meta.gameIcon ? (
               <div
                 className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[color:var(--wanas-game-card)] text-base sm:size-10"
@@ -71,7 +63,16 @@ export function GameExperienceHeader({
             </div>
           </div>
 
-          <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+          {meta.categoryLabel ? (
+            <p
+              className="pointer-events-none absolute left-1/2 top-1/2 z-0 max-w-[min(100%,14rem)] -translate-x-1/2 -translate-y-1/2 truncate px-2 text-center text-sm font-semibold text-white sm:max-w-[min(100%,18rem)] sm:text-base"
+              title={meta.categoryLabel}
+            >
+              {meta.categoryLabel}
+            </p>
+          ) : null}
+
+          <div className="relative z-10 flex shrink-0 flex-wrap items-center justify-end gap-1.5">
             {showRound ? (
               <span className="inline-flex min-h-9 items-center rounded-lg border border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] px-2.5 text-[11px] font-semibold text-[color:var(--wanas-game-text-primary)] sm:text-xs">
                 {meta.currentRound}/{meta.totalRounds}

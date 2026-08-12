@@ -20,6 +20,11 @@ import {
   revealPrimaryAnswer,
 } from '../src/modules/game/plugins/fast-answer/answers.js';
 import {
+  chooseRoundCategoryId,
+  FAST_ANSWER_RANDOM_CATEGORY_ID,
+  FAST_ANSWER_RANDOM_CATEGORY_LABEL,
+} from '../src/modules/game/plugins/fast-answer/questions.js';
+import {
   applyRoundScores,
   buildRoundResultEntries,
   computePlayerRoundPoints,
@@ -99,6 +104,7 @@ function makeMatch(overrides?: Partial<FastAnswerMatchState>): FastAnswerMatchSt
     matchStatus: 'in-progress',
     lockedCategoryId: 'countries',
     lockedCategoryLabel: 'بلدان',
+    usedRoundCategoryIds: ['countries'],
     roundTimeSeconds: FAST_ANSWER_QUESTION_SECONDS,
     recentQuestionIds: ['q1'],
     round: makeRound(),
@@ -292,6 +298,41 @@ test('8-player match view builds', () => {
   const view = buildFastAnswerPlayerView(match, 'p1', makeShell(ids));
   assert.equal(view.leaderboard.length, 8);
   assert.equal(view.canSubmitAnswer, true);
+});
+
+test('fixed category picker always returns locked id', () => {
+  const pool = ['animals', 'food', 'series', 'games', 'tech'];
+  assert.equal(chooseRoundCategoryId('series', [], pool, () => 0), 'series');
+  assert.equal(chooseRoundCategoryId('series', ['animals', 'food'], pool, () => 4), 'series');
+});
+
+test('random category avoids repeats until pool exhausted', () => {
+  const pool = ['a', 'b', 'c', 'd', 'e'];
+  const used: string[] = [];
+
+  for (let round = 0; round < 5; round += 1) {
+    const id = chooseRoundCategoryId(FAST_ANSWER_RANDOM_CATEGORY_ID, used, pool, () => 0);
+    assert.equal(used.includes(id), false);
+    used.push(id);
+  }
+
+  assert.deepEqual(used, pool);
+
+  const reused = chooseRoundCategoryId(FAST_ANSWER_RANDOM_CATEGORY_ID, used, pool, () => 0);
+  assert.equal(reused, 'a');
+});
+
+test('random match public view keeps عشوائي while round has internal category', () => {
+  const match = makeMatch({
+    lockedCategoryId: FAST_ANSWER_RANDOM_CATEGORY_ID,
+    lockedCategoryLabel: FAST_ANSWER_RANDOM_CATEGORY_LABEL,
+    usedRoundCategoryIds: ['animals'],
+    round: makeRound({ categoryId: 'animals' }),
+  });
+  const view = buildFastAnswerPlayerView(match, 'p1', makeShell());
+  assert.equal(view.categoryId, FAST_ANSWER_RANDOM_CATEGORY_ID);
+  assert.equal(view.categoryLabel, FAST_ANSWER_RANDOM_CATEGORY_LABEL);
+  assert.equal(match.round.categoryId, 'animals');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

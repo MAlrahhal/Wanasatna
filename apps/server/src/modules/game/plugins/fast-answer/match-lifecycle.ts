@@ -73,8 +73,9 @@ function startNextRound(
   match: FastAnswerMatchState,
 ): FastAnswerMatchState {
   const nextRoundNumber = match.currentRound + 1;
-  const round = createRoundState(
+  const { round, usedRoundCategoryIds } = createRoundState(
     match.lockedCategoryId,
+    match.usedRoundCategoryIds,
     match.recentQuestionIds,
     match.roundTimeSeconds,
   );
@@ -82,6 +83,7 @@ function startNextRound(
     ...match,
     currentRound: nextRoundNumber,
     matchStatus: 'in-progress',
+    usedRoundCategoryIds,
     recentQuestionIds: appendRecentQuestionId(match.recentQuestionIds, round.questionId),
     round,
   };

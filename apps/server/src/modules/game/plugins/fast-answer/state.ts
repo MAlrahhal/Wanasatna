@@ -15,7 +15,12 @@ import {
 } from '@wanasatna/shared';
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
 import { revealPrimaryAnswer } from './answers.js';
-import { pickFastAnswerQuestion, resolveLockedFastAnswerCategory } from './questions.js';
+import {
+  FAST_ANSWER_RANDOM_CATEGORY_ID,
+  pickFastAnswerQuestion,
+  pickRoundCategoryId,
+  resolveMatchCategorySelection,
+} from './questions.js';
 import {
   buildLeaderboardEntries,
   buildResultsLeaderboardEntries,
@@ -58,25 +63,37 @@ export function remainingSecondsFromDeadline(deadlineAtMs: number | null, now = 
 }
 
 export function createRoundState(
-  lockedCategoryId: string,
+  matchCategoryId: string,
+  usedRoundCategoryIds: readonly string[],
   recentQuestionIds: readonly string[],
   roundTimeSeconds: number,
   now = Date.now(),
-): FastAnswerRoundState {
-  const question = pickFastAnswerQuestion(lockedCategoryId, recentQuestionIds);
+): { round: FastAnswerRoundState; usedRoundCategoryIds: string[] } {
+  const roundCategoryId = pickRoundCategoryId(matchCategoryId, usedRoundCategoryIds);
+  const question = pickFastAnswerQuestion(roundCategoryId, recentQuestionIds);
   const deadlineAtMs = now + roundTimeSeconds * 1000;
 
+  const nextUsed =
+    matchCategoryId === FAST_ANSWER_RANDOM_CATEGORY_ID
+      ? usedRoundCategoryIds.includes(roundCategoryId)
+        ? [...usedRoundCategoryIds]
+        : [...usedRoundCategoryIds, roundCategoryId]
+      : [...usedRoundCategoryIds];
+
   return {
-    roundId: randomUUID(),
-    gamePhase: 'question',
-    phaseRemainingSeconds: roundTimeSeconds,
-    questionId: question.id,
-    question: question.question,
-    categoryId: lockedCategoryId,
-    acceptedAnswers: question.acceptedAnswers,
-    deadlineAtMs,
-    winnerPlayerId: null,
-    timedOut: false,
+    round: {
+      roundId: randomUUID(),
+      gamePhase: 'question',
+      phaseRemainingSeconds: roundTimeSeconds,
+      questionId: question.id,
+      question: question.question,
+      categoryId: roundCategoryId,
+      acceptedAnswers: question.acceptedAnswers,
+      deadlineAtMs,
+      winnerPlayerId: null,
+      timedOut: false,
+    },
+    usedRoundCategoryIds: nextUsed,
   };
 }
 
@@ -89,10 +106,15 @@ export function createMatchState(
     throw new Error('No players available for Fast Answer match.');
   }
 
-  const locked = resolveLockedFastAnswerCategory(roomId);
+  const selection = resolveMatchCategorySelection(roomId);
   const playerIds = players.map((player) => player.id);
   const roundTimeSeconds = resolveRoundTimeSeconds(settings);
-  const round = createRoundState(locked.id, [], roundTimeSeconds);
+  const { round, usedRoundCategoryIds } = createRoundState(
+    selection.matchCategoryId,
+    [],
+    [],
+    roundTimeSeconds,
+  );
 
   return {
     playerIds,
@@ -101,8 +123,9 @@ export function createMatchState(
     totalRounds: resolveTotalRounds(settings),
     scores: createInitialScores(playerIds),
     matchStatus: 'in-progress',
-    lockedCategoryId: locked.id,
-    lockedCategoryLabel: locked.label,
+    lockedCategoryId: selection.matchCategoryId,
+    lockedCategoryLabel: selection.matchCategoryLabel,
+    usedRoundCategoryIds,
     roundTimeSeconds,
     recentQuestionIds: [round.questionId],
     round,

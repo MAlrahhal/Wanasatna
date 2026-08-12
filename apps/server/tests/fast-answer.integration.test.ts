@@ -171,6 +171,7 @@ async function syncView(client: TestClient) {
         question: string | null;
         roundId: string | null;
         categoryId: string | null;
+        categoryLabel: string | null;
         currentRound: number;
         totalRounds: number;
         canSubmitAnswer: boolean;
@@ -435,6 +436,75 @@ async function main(): Promise<void> {
     assert.equal(view.gamePhase, 'question');
     assert.equal(view.totalRounds, 5);
     assert.equal(view.categoryId, 'games');
+
+    for (const client of clients) {
+      client.socket.disconnect();
+    }
+  });
+
+  await runTest('random match keeps عشوائي publicly across rounds', async () => {
+    const { host, clients } = await startFastAnswerMatch(2, 'random');
+    const seenInternal: string[] = [];
+
+    for (let round = 1; round <= FAST_ANSWER_DEFAULT_ROUNDS; round += 1) {
+      const view = await waitFor(async () => {
+        const current = await syncView(host);
+        return current.gamePhase === 'question' && current.currentRound === round
+          ? current
+          : null;
+      }, 20000, `random question round ${round}`);
+
+      assert.equal(view.categoryId, 'random');
+      assert.equal(view.categoryLabel, 'عشوائي');
+      const entry = contentQuestions.find((item) => item.question === view.question);
+      assert.ok(entry);
+      seenInternal.push(entry!.categoryId);
+
+      const answer = answerForQuestion(view.question!);
+      const win = await ack<{ success: boolean; data?: { correct: boolean } }>(
+        clients[1]!.socket,
+        FAST_ANSWER_SUBMIT_ANSWER_EVENT,
+        { answer, roundId: view.roundId },
+      );
+      assert.ok(win.success && win.data?.correct);
+
+      const after = await waitFor(async () => {
+        const current = await syncView(host);
+        if (current.gamePhase === 'round-results' && current.currentRound === round) {
+          return current;
+        }
+        if (
+          round < FAST_ANSWER_DEFAULT_ROUNDS &&
+          current.gamePhase === 'question' &&
+          current.currentRound === round + 1
+        ) {
+          return current;
+        }
+        if (round === FAST_ANSWER_DEFAULT_ROUNDS && current.gamePhase === 'match-completed') {
+          return current;
+        }
+        return null;
+      }, 10000, `random post-win ${round}`);
+
+      assert.equal(after.categoryId, 'random');
+      assert.equal(after.categoryLabel, 'عشوائي');
+
+      if (after.gamePhase === 'round-results') {
+        const cont = await ack<{ success: boolean }>(
+          host.socket,
+          FAST_ANSWER_CONTINUE_ROUND_RESULTS_EVENT,
+        );
+        assert.ok(cont.success);
+      }
+    }
+
+    assert.equal(seenInternal.length, 5);
+    assert.equal(new Set(seenInternal).size, 5, 'prefer unique categories across 5 rounds');
+
+    const maybeFinal = await syncView(host).catch(() => null);
+    if (maybeFinal?.gamePhase === 'match-completed') {
+      await ack(host.socket, FAST_ANSWER_CONTINUE_ROUND_RESULTS_EVENT);
+    }
 
     for (const client of clients) {
       client.socket.disconnect();

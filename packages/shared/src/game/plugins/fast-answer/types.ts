@@ -34,9 +34,12 @@ export type FastAnswerMatchState = {
   totalRounds: number;
   scores: Record<string, number>;
   matchStatus: 'in-progress' | 'completed';
-  /** Locked at match start for all 5 rounds. */
+  /** Lobby selection: specific category id, or `random`. */
   lockedCategoryId: string;
+  /** Public header label — stays `عشوائي` for the whole match when random. */
   lockedCategoryLabel: string;
+  /** Internal categories already used in this match (random mode only). */
+  usedRoundCategoryIds: string[];
   roundTimeSeconds: number;
   recentQuestionIds: string[];
   round: FastAnswerRoundState;
