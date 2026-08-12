@@ -23,7 +23,7 @@ export function LobbyMarathonBanner() {
         disabled
         aria-disabled="true"
         className={cn(
-          'inline-flex h-11 min-h-[44px] w-full shrink-0 items-center justify-center rounded-full bg-wanas-accent px-6 text-sm font-bold text-[color:var(--wanas-background)] sm:w-auto',
+          'inline-flex h-11 min-h-[44px] w-full shrink-0 items-center justify-center rounded-full bg-wanas-accent px-6 text-sm font-bold text-white sm:w-auto',
           'disabled:cursor-not-allowed disabled:opacity-60',
         )}
       >

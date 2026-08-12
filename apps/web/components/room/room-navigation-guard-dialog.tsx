@@ -76,7 +76,7 @@ export function RoomNavigationGuardDialog({
             disabled={isLeaving}
             onClick={onStay}
             className={cn(
-              'inline-flex h-11 min-h-[44px] flex-1 items-center justify-center rounded-xl bg-wanas-accent px-4 text-sm font-semibold text-[color:var(--wanas-background)]',
+              'inline-flex h-11 min-h-[44px] flex-1 items-center justify-center rounded-xl bg-wanas-accent px-4 text-sm font-semibold text-white',
               'hover:bg-wanas-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/40 focus-visible:ring-offset-2',
               'disabled:cursor-not-allowed disabled:opacity-60',
             )}

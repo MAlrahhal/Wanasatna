@@ -51,7 +51,7 @@ export function GameCard({
   const cardContent = (
     <>
       {selected ? (
-        <span className="absolute start-2 top-2 inline-flex items-center gap-1 rounded-full bg-wanas-accent px-2 py-0.5 text-[9px] font-bold text-[color:var(--wanas-background)]">
+        <span className="absolute start-2 top-2 inline-flex items-center gap-1 rounded-full bg-wanas-accent px-2 py-0.5 text-[9px] font-bold text-white">
           ✓ مختارة
         </span>
       ) : null}

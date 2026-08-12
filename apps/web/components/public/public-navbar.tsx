@@ -11,7 +11,7 @@ import { shouldHideCreateRoomAction } from '@/lib/room/navigation-guard';
 import { cn } from '@/lib/utils';
 
 const createRoomButtonClassName = cn(
-  'inline-flex h-10 items-center justify-center rounded-2xl bg-wanas-accent px-4 text-sm font-semibold text-[color:var(--wanas-background)] shadow-sm',
+  'inline-flex h-10 items-center justify-center rounded-2xl bg-wanas-accent px-4 text-sm font-semibold text-white shadow-sm',
   'hover:bg-wanas-accent-hover',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-wanas-navbar',
 );

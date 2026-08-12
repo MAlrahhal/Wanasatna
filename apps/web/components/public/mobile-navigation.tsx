@@ -64,7 +64,7 @@ export function MobileNavigation({
               <button
                 type="button"
                 onClick={onCreateRoomOnHome}
-                className="inline-flex h-11 items-center justify-center rounded-2xl bg-wanas-accent text-sm font-semibold text-[color:var(--wanas-background)] hover:bg-wanas-accent-hover"
+                className="inline-flex h-11 items-center justify-center rounded-2xl bg-wanas-accent text-sm font-semibold text-white hover:bg-wanas-accent-hover"
               >
                 إنشاء غرفة
               </button>
@@ -72,7 +72,7 @@ export function MobileNavigation({
               <GuardedPublicLink
                 href={getHomeRoomActionsHref()}
                 onNavigate={onClose}
-                className="inline-flex h-11 items-center justify-center rounded-2xl bg-wanas-accent text-sm font-semibold text-[color:var(--wanas-background)] hover:bg-wanas-accent-hover"
+                className="inline-flex h-11 items-center justify-center rounded-2xl bg-wanas-accent text-sm font-semibold text-white hover:bg-wanas-accent-hover"
               >
                 إنشاء غرفة
               </GuardedPublicLink>

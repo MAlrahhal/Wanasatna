@@ -141,7 +141,7 @@ export function UiDialog({
                   'border border-wanas-success-border bg-wanas-success-surface text-wanas-success-dark',
                 variant !== 'error' &&
                   variant !== 'success' &&
-                  'bg-wanas-accent text-[color:var(--wanas-background)] hover:bg-wanas-accent-hover focus-visible:ring-wanas-accent/40',
+                  'bg-wanas-accent text-white hover:bg-wanas-accent-hover focus-visible:ring-wanas-accent/40',
               )}
             >
               {confirmLabel}

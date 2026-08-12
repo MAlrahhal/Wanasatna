@@ -73,7 +73,7 @@ export function HomePageClient() {
                 onClick={scrollToHomeRoomActions}
                 disabled={room.isCreating || room.isJoining}
                 className={cn(
-                  'inline-flex h-12 items-center justify-center rounded-[var(--wanas-radius-control)] border border-wanas-accent-hover bg-wanas-accent px-6 text-sm font-bold text-[color:var(--wanas-background)] shadow-[0_4px_0_var(--wanas-accent-hover)]',
+                  'inline-flex h-12 items-center justify-center rounded-[var(--wanas-radius-control)] border border-wanas-accent-hover bg-wanas-accent px-6 text-sm font-bold text-white shadow-[0_4px_0_var(--wanas-accent-hover)]',
                   'hover:-translate-y-0.5 hover:bg-wanas-primary-soft active:translate-y-1 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/40 focus-visible:ring-offset-2',
                   'disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-60 disabled:shadow-none',
                 )}

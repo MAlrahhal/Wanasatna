@@ -104,7 +104,7 @@ export function TimingChallengeRoundResultsScreen({
             type="button"
             disabled={isContinueLoading}
             onClick={onContinue}
-            className="h-12 min-h-[44px] rounded-xl bg-wanas-accent text-sm font-bold text-[color:var(--wanas-background)] hover:bg-wanas-accent-hover"
+            className="h-12 min-h-[44px] rounded-xl bg-wanas-accent text-sm font-bold text-white hover:bg-wanas-accent-hover"
           >
             {continueLabel}
           </Button>

@@ -31,7 +31,7 @@ export function ActiveRoomBanner() {
         <Link
           href={buildLobbyUrl(roomCode)}
           className={cn(
-            'inline-flex h-9 items-center justify-center rounded-full bg-wanas-accent px-4 text-xs font-semibold text-[color:var(--wanas-background)]',
+            'inline-flex h-9 items-center justify-center rounded-full bg-wanas-accent px-4 text-xs font-semibold text-white',
             'hover:bg-wanas-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/40 focus-visible:ring-offset-2',
           )}
         >

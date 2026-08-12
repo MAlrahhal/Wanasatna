@@ -126,7 +126,7 @@ export function LobbyStartGamePanel() {
         aria-busy={isStarting}
         onClick={() => void handleStartGame()}
         className={cn(
-          'inline-flex h-11 min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-wanas-accent text-sm font-bold text-[color:var(--wanas-background)]',
+          'inline-flex h-11 min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-wanas-accent text-sm font-bold text-white',
           'hover:bg-wanas-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/40 focus-visible:ring-offset-2',
           'disabled:cursor-not-allowed disabled:opacity-60',
         )}

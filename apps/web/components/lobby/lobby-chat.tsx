@@ -71,7 +71,7 @@ export function LobbyChat({ className }: LobbyChatProps) {
             disabled
             aria-disabled="true"
             aria-label="إرسال الرسالة"
-            className="inline-flex size-10 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full bg-wanas-accent text-sm text-[color:var(--wanas-background)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex size-10 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full bg-wanas-accent text-sm text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             ➤
           </button>

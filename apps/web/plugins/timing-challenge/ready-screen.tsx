@@ -53,7 +53,7 @@ export function ReadyScreen({
               unlockGameAudio();
               onReady();
             }}
-            className="h-12 min-h-[44px] min-w-[180px] rounded-xl bg-wanas-accent px-8 text-base font-bold text-[color:var(--wanas-background)] hover:bg-wanas-accent-hover disabled:opacity-60"
+            className="h-12 min-h-[44px] min-w-[180px] rounded-xl bg-wanas-accent px-8 text-base font-bold text-white hover:bg-wanas-accent-hover disabled:opacity-60"
           >
             {selfReady ? 'بانتظار الباقي...' : 'ابدأ'}
           </Button>

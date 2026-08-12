@@ -143,7 +143,7 @@ export function LobbyHeader({
           <button
             type="button"
             onClick={handleShareRoom}
-            className={cn(actionButtonClass, 'bg-wanas-accent text-[color:var(--wanas-background)] hover:bg-wanas-accent-hover')}
+            className={cn(actionButtonClass, 'bg-wanas-accent text-white hover:bg-wanas-accent-hover')}
           >
             مشاركة الغرفة
           </button>

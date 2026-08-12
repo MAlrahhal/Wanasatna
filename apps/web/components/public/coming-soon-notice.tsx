@@ -57,7 +57,7 @@ export function ComingSoonNotice({ open, title, description, onClose }: ComingSo
           type="button"
           onClick={onClose}
           className={cn(
-            'mt-6 inline-flex h-11 w-full items-center justify-center rounded-2xl bg-wanas-accent text-sm font-semibold text-[color:var(--wanas-background)]',
+            'mt-6 inline-flex h-11 w-full items-center justify-center rounded-2xl bg-wanas-accent text-sm font-semibold text-white',
             'hover:bg-wanas-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/40 focus-visible:ring-offset-2',
           )}
         >

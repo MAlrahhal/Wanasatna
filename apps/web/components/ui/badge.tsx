@@ -23,7 +23,7 @@ const variantClasses: Record<BadgeVariant, string> = {
   online: 'bg-wanas-success-surface text-wanas-success-dark border-wanas-success-border',
   offline: 'bg-wanas-surface-muted text-wanas-text-muted border-wanas-disabled',
   'coming-soon': 'bg-wanas-surface-muted text-wanas-text-muted border-wanas-disabled',
-  selected: 'bg-wanas-accent text-[color:var(--wanas-background)] border-wanas-accent',
+  selected: 'bg-wanas-accent text-white border-wanas-accent',
   'role-in': 'bg-wanas-primary-surface text-wanas-primary-dark border-wanas-premium-border',
   'role-out': 'bg-wanas-accent-soft text-wanas-accent-hover border-wanas-premium-border',
   impostor: 'bg-wanas-accent-soft text-wanas-accent-hover border-wanas-premium-border',

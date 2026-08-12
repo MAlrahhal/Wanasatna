@@ -64,7 +64,7 @@ export function GuessScreen({
                   }
                   onSubmit(parsed);
                 }}
-                className="h-12 min-h-[44px] rounded-xl bg-wanas-accent text-base font-bold text-[color:var(--wanas-background)] hover:bg-wanas-accent-hover disabled:opacity-60"
+                className="h-12 min-h-[44px] rounded-xl bg-wanas-accent text-base font-bold text-white hover:bg-wanas-accent-hover disabled:opacity-60"
               >
                 إرسال التخمين
               </Button>

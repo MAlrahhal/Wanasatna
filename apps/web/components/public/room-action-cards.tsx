@@ -34,7 +34,7 @@ export function RoomActionCards({
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <article className="wanas-panel border-t-2 border-t-wanas-accent p-5 sm:p-6">
           <div className="mb-4 flex items-center gap-3">
-            <span className="flex size-10 items-center justify-center rounded-[var(--wanas-radius-control)] bg-wanas-accent font-bold text-[color:var(--wanas-background)] shadow-[0_3px_0_var(--wanas-brand-navy)]">
+            <span className="flex size-10 items-center justify-center rounded-[var(--wanas-radius-control)] bg-wanas-accent font-bold text-white shadow-[0_3px_0_var(--wanas-brand-navy)]">
               +
             </span>
             <div>
@@ -59,7 +59,7 @@ export function RoomActionCards({
               disabled={isCreating || isJoining}
               aria-busy={isCreating}
               className={cn(
-                'inline-flex h-12 w-full items-center justify-center gap-2 rounded-[var(--wanas-radius-control)] border border-wanas-accent bg-wanas-accent text-sm font-bold text-[color:var(--wanas-background)] shadow-[0_4px_0_var(--wanas-brand-navy)]',
+                'inline-flex h-12 w-full items-center justify-center gap-2 rounded-[var(--wanas-radius-control)] border border-wanas-accent bg-wanas-accent text-sm font-bold text-white shadow-[0_4px_0_var(--wanas-brand-navy)]',
                 'hover:-translate-y-0.5 hover:border-wanas-accent-hover hover:bg-wanas-accent-hover active:translate-y-1 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/40 focus-visible:ring-offset-2',
                 'disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-60 disabled:shadow-none',
               )}
@@ -115,7 +115,7 @@ export function RoomActionCards({
               disabled={isJoining || isCreating}
               aria-busy={isJoining}
               className={cn(
-                'inline-flex h-12 w-full items-center justify-center gap-2 rounded-[var(--wanas-radius-control)] border border-wanas-accent bg-wanas-accent text-sm font-bold text-[color:var(--wanas-background)] shadow-[0_4px_0_var(--wanas-brand-navy)]',
+                'inline-flex h-12 w-full items-center justify-center gap-2 rounded-[var(--wanas-radius-control)] border border-wanas-accent bg-wanas-accent text-sm font-bold text-white shadow-[0_4px_0_var(--wanas-brand-navy)]',
                 'hover:-translate-y-0.5 hover:border-wanas-accent-hover hover:bg-wanas-accent-hover active:translate-y-1 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/40 focus-visible:ring-offset-2',
                 'disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-60 disabled:shadow-none',
               )}

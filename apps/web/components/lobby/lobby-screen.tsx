@@ -89,7 +89,7 @@ export function LobbyScreen() {
           action={
             <Link
               href="/"
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-wanas-accent px-5 text-sm font-bold text-[color:var(--wanas-background)] hover:bg-wanas-accent-hover"
+              className="inline-flex h-11 items-center justify-center rounded-xl bg-wanas-accent px-5 text-sm font-bold text-white hover:bg-wanas-accent-hover"
             >
               العودة للرئيسية
             </Link>

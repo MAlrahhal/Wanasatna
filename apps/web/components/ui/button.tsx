@@ -14,7 +14,7 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'border border-wanas-accent bg-wanas-accent text-[color:var(--wanas-background)] shadow-[0_4px_0_var(--wanas-brand-navy)] hover:-translate-y-0.5 hover:border-wanas-accent-hover hover:bg-wanas-accent-hover hover:shadow-[0_5px_0_var(--wanas-brand-navy)] active:translate-y-1 active:shadow-none focus-visible:ring-wanas-accent/45',
+    'border border-wanas-accent bg-wanas-accent text-white shadow-[0_4px_0_var(--wanas-brand-navy)] hover:-translate-y-0.5 hover:border-wanas-accent-hover hover:bg-wanas-accent-hover hover:shadow-[0_5px_0_var(--wanas-brand-navy)] active:translate-y-1 active:shadow-none focus-visible:ring-wanas-accent/45',
   secondary:
     'border border-wanas-primary-dark bg-transparent text-wanas-text-primary shadow-[var(--wanas-shadow-panel)] hover:-translate-y-0.5 hover:border-wanas-primary-soft hover:bg-wanas-surface-soft active:translate-y-0 active:shadow-none focus-visible:ring-wanas-accent/35',
   ghost:

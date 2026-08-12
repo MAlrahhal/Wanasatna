@@ -130,7 +130,7 @@ export function StopTimerScreen({
                   onStop();
                 }
               }}
-              className="mx-auto flex h-14 min-h-[44px] w-full max-w-sm items-center justify-center rounded-xl bg-wanas-accent text-base font-bold text-[color:var(--wanas-background)] hover:bg-wanas-accent-hover disabled:opacity-60"
+              className="mx-auto flex h-14 min-h-[44px] w-full max-w-sm items-center justify-center rounded-xl bg-wanas-accent text-base font-bold text-white hover:bg-wanas-accent-hover disabled:opacity-60"
             >
               {selfTimerRunning ? 'أوقف الآن' : 'اضغط لبدء المؤقت'}
             </Button>
