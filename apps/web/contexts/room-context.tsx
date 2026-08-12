@@ -850,7 +850,13 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         gameId: selectedGameId,
         categoryId: selectedRoundCategoryId,
         ...(selectedGameId === TIMING_CHALLENGE_GAME_ID
-          ? { timingChallenge: timingChallengeSettings }
+          ? {
+              timingChallenge: {
+                mode: timingChallengeSettings.mode,
+                minSeconds: timingChallengeSettings.minSeconds,
+                maxSeconds: timingChallengeSettings.maxSeconds,
+              },
+            }
           : {}),
         ...(selectedGameId === GUESSING_CHALLENGE_GAME_ID
           ? { guessingChallenge: { mode: guessingChallengeMode } }

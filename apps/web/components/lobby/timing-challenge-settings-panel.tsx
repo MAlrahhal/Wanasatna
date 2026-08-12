@@ -56,22 +56,6 @@ export function TimingChallengeSettingsPanel({
         })}
       </div>
 
-      <label className="flex items-center justify-between gap-3 rounded-lg border border-wanas-border bg-wanas-surface-soft px-3 py-2">
-        <span className="text-xs text-wanas-text-muted">عدد الجولات</span>
-        <select
-          disabled={!isHost}
-          value={settings.rounds}
-          onChange={(event) => update({ rounds: Number(event.target.value) })}
-          className="rounded-md border border-wanas-border bg-wanas-surface px-2 py-1 text-xs font-bold text-wanas-text-primary"
-        >
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((rounds) => (
-            <option key={rounds} value={rounds}>
-              {rounds}
-            </option>
-          ))}
-        </select>
-      </label>
-
       <div className="grid grid-cols-2 gap-2">
         <label className="rounded-lg border border-wanas-border bg-wanas-surface-soft px-3 py-2">
           <span className="block text-[11px] text-wanas-text-muted">الحد الأدنى (ث)</span>

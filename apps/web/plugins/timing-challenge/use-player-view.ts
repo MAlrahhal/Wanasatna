@@ -29,14 +29,24 @@ async function fetchPlayerView(): Promise<{
   return { view: response.data.view, errorMessage: null };
 }
 
+const LOCALLY_TIMED_PHASES = new Set([
+  'ready',
+  'guessing',
+  'stop-timer',
+  'round-results',
+  'match-completed',
+]);
+
 export function useTimingChallengePlayerView(enabled: boolean) {
   const [view, setView] = useState<TimingChallengePlayerView | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [actionError, setActionError] = useState<string | null>(null);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const hasViewRef = useRef(false);
   const actionLockRef = useRef(false);
+  const roundIdRef = useRef<string | null>(null);
 
   const syncView = useCallback(async () => {
     const isInitialLoad = !hasViewRef.current;
@@ -50,7 +60,9 @@ export function useTimingChallengePlayerView(enabled: boolean) {
 
     if (result.view) {
       hasViewRef.current = true;
+      roundIdRef.current = result.view.roundId;
       setView(result.view);
+      setRemainingSeconds(result.view.phaseRemainingSeconds);
       setErrorMessage(null);
     } else if (isInitialLoad) {
       setErrorMessage(result.errorMessage);
@@ -64,9 +76,11 @@ export function useTimingChallengePlayerView(enabled: boolean) {
   useEffect(() => {
     if (!enabled) {
       hasViewRef.current = false;
+      roundIdRef.current = null;
       setView(null);
       setErrorMessage(null);
       setIsLoading(false);
+      setRemainingSeconds(0);
       setActionError(null);
       setIsSubmittingAction(false);
       actionLockRef.current = false;
@@ -75,6 +89,10 @@ export function useTimingChallengePlayerView(enabled: boolean) {
 
     void syncView();
   }, [enabled, syncView]);
+
+  useEffect(() => {
+    roundIdRef.current = view?.roundId ?? null;
+  }, [view?.roundId]);
 
   useEffect(() => {
     if (!enabled) {
@@ -94,8 +112,24 @@ export function useTimingChallengePlayerView(enabled: boolean) {
     };
   }, [enabled, syncView]);
 
+  useEffect(() => {
+    if (!enabled || !view || !LOCALLY_TIMED_PHASES.has(view.gamePhase)) {
+      return;
+    }
+
+    setRemainingSeconds(view.phaseRemainingSeconds);
+
+    const intervalId = window.setInterval(() => {
+      setRemainingSeconds((current) => Math.max(0, current - 1));
+    }, 1000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [enabled, view?.gamePhase, view?.phaseRemainingSeconds]);
+
   const runAction = useCallback(
-    async (event: string, payload?: unknown) => {
+    async (event: string, payload?: Record<string, unknown>) => {
       if (!enabled || actionLockRef.current) {
         return;
       }
@@ -116,7 +150,12 @@ export function useTimingChallengePlayerView(enabled: boolean) {
         return;
       }
 
-      setView(response.data.view);
+      if (response.data.view) {
+        roundIdRef.current = response.data.view.roundId;
+        setView(response.data.view);
+        setRemainingSeconds(response.data.view.phaseRemainingSeconds);
+      }
+
       actionLockRef.current = false;
       setIsSubmittingAction(false);
     },
@@ -124,22 +163,37 @@ export function useTimingChallengePlayerView(enabled: boolean) {
   );
 
   const markReady = useCallback(async () => {
-    await runAction(TIMING_CHALLENGE_READY_EVENT);
+    if (!roundIdRef.current) {
+      return;
+    }
+    await runAction(TIMING_CHALLENGE_READY_EVENT, { roundId: roundIdRef.current });
   }, [runAction]);
 
   const submitGuess = useCallback(
     async (guessSeconds: number) => {
-      await runAction(TIMING_CHALLENGE_SUBMIT_GUESS_EVENT, { guessSeconds });
+      if (!roundIdRef.current) {
+        return;
+      }
+      await runAction(TIMING_CHALLENGE_SUBMIT_GUESS_EVENT, {
+        roundId: roundIdRef.current,
+        guessSeconds,
+      });
     },
     [runAction],
   );
 
   const startTimer = useCallback(async () => {
-    await runAction(TIMING_CHALLENGE_START_TIMER_EVENT);
+    if (!roundIdRef.current) {
+      return;
+    }
+    await runAction(TIMING_CHALLENGE_START_TIMER_EVENT, { roundId: roundIdRef.current });
   }, [runAction]);
 
   const stopTimer = useCallback(async () => {
-    await runAction(TIMING_CHALLENGE_STOP_TIMER_EVENT);
+    if (!roundIdRef.current) {
+      return;
+    }
+    await runAction(TIMING_CHALLENGE_STOP_TIMER_EVENT, { roundId: roundIdRef.current });
   }, [runAction]);
 
   const continueFromRoundResults = useCallback(async () => {
@@ -150,6 +204,7 @@ export function useTimingChallengePlayerView(enabled: boolean) {
     view,
     errorMessage,
     isLoading,
+    remainingSeconds,
     actionError,
     isSubmittingAction,
     markReady,

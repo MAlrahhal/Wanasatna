@@ -29,7 +29,6 @@ export function buildTimingChallengePluginDefinition(): GamePluginDefinition {
     maxPlayers: 8,
     defaultSettings: {
       mode: defaults.mode,
-      rounds: String(defaults.rounds),
       minSeconds: String(defaults.minSeconds),
       maxSeconds: String(defaults.maxSeconds),
     },
@@ -44,7 +43,6 @@ export function buildTimingChallengePluginDefinition(): GamePluginDefinition {
           { value: 'stop-timer', label: 'أوقف الوقت' },
         ],
       },
-      { id: 'rounds', label: 'عدد الجولات', type: 'number', defaultValue: String(defaults.rounds) },
       {
         id: 'minSeconds',
         label: 'الحد الأدنى (ث)',

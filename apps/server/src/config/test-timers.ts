@@ -18,6 +18,10 @@ import {
   IMPOSTER_DRAW_TURN_SECONDS,
   IMPOSTER_DRAW_VOTING_SECONDS,
   MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS,
+  TIMING_CHALLENGE_GUESS_SECONDS,
+  TIMING_CHALLENGE_READY_SECONDS,
+  TIMING_CHALLENGE_ROUND_RESULTS_SECONDS,
+  TIMING_CHALLENGE_STOP_PHASE_SECONDS,
 } from '@wanasatna/shared';
 import { env } from './env.js';
 
@@ -95,5 +99,11 @@ export const timedPhaseDurations = {
   imposterDrawGuessResult: () => resolveTimedPhaseSeconds(BARA_AL_SALAFA_GUESS_RESULT_DURATION_SECONDS),
   imposterDrawRoundResults: () =>
     env.testMode ? TEST_ROUND_RESULTS_SECONDS : IMPOSTER_DRAW_ROUND_RESULTS_SECONDS,
+  timingChallengeReady: () => resolveTimedPhaseSeconds(TIMING_CHALLENGE_READY_SECONDS),
+  timingChallengeGuess: () => resolveInteractivePhaseSeconds(TIMING_CHALLENGE_GUESS_SECONDS),
+  timingChallengeStopPhase: () =>
+    resolveInteractivePhaseSeconds(TIMING_CHALLENGE_STOP_PHASE_SECONDS),
+  timingChallengeRoundResults: () =>
+    env.testMode ? TEST_ROUND_RESULTS_SECONDS : TIMING_CHALLENGE_ROUND_RESULTS_SECONDS,
   shellCountdown: () => resolveShellCountdownSeconds(DEFAULT_GAME_SHELL_COUNTDOWN_SECONDS),
 };

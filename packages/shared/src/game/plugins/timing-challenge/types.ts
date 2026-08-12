@@ -3,6 +3,10 @@ import { pluginActionEvent, pluginStateEvent } from '../../plugin/events.js';
 export const TIMING_CHALLENGE_GAME_ID = 'timing-challenge' as const;
 
 export const TIMING_CHALLENGE_DEFAULT_ROUNDS = 3;
+export const TIMING_CHALLENGE_READY_SECONDS = 20;
+export const TIMING_CHALLENGE_GUESS_SECONDS = 30;
+export const TIMING_CHALLENGE_STOP_PHASE_SECONDS = 45;
+export const TIMING_CHALLENGE_ROUND_RESULTS_SECONDS = 10;
 export const TIMING_CHALLENGE_DEFAULT_MIN_SECONDS = 3;
 export const TIMING_CHALLENGE_DEFAULT_MAX_SECONDS = 15;
 export const TIMING_CHALLENGE_ABSOLUTE_MIN_SECONDS = 1;
@@ -20,6 +24,7 @@ export type TimingChallengeGamePhase =
 
 export type TimingChallengeSettings = {
   mode: TimingChallengeMode;
+  /** Always TIMING_CHALLENGE_DEFAULT_ROUNDS in production matches. */
   rounds: number;
   minSeconds: number;
   maxSeconds: number;
@@ -36,6 +41,7 @@ export type TimingChallengePlayerRoundState = {
 };
 
 export type TimingChallengeRoundState = {
+  roundId: string;
   gamePhase: TimingChallengeGamePhase;
   phaseRemainingSeconds: number;
   /** Authoritative target / hidden duration. Never leak before reveal. */
@@ -88,6 +94,7 @@ export type TimingChallengePlayerView = {
   phaseLabel: string;
   phaseRemainingSeconds: number;
   mode: TimingChallengeMode;
+  roundId: string;
   currentRound: number;
   totalRounds: number;
   matchStatus: 'in-progress' | 'completed';
@@ -118,6 +125,7 @@ export type TimingChallengePlayerView = {
   canContinueFromRoundResults: boolean;
   roundResultsContinueLabel: string | null;
   roundResultsWaitingMessage: string | null;
+  isMatchSpectator: boolean;
 };
 
 export const TIMING_CHALLENGE_SYNC_EVENT = pluginActionEvent(
@@ -150,6 +158,10 @@ export const TIMING_CHALLENGE_CONTINUE_ROUND_RESULTS_EVENT = pluginActionEvent(
 );
 export const TIMING_CHALLENGE_STATE_EVENT = pluginStateEvent(TIMING_CHALLENGE_GAME_ID);
 
-export type TimingChallengeSubmitGuessPayload = {
+export type TimingChallengeRoundScopedPayload = {
+  roundId: string;
+};
+
+export type TimingChallengeSubmitGuessPayload = TimingChallengeRoundScopedPayload & {
   guessSeconds: number;
 };

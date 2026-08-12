@@ -2,7 +2,13 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { GamePluginScreenProps, TimingChallengePlayerView } from '@wanasatna/shared';
-import { TIMING_CHALLENGE_GAME_ID } from '@wanasatna/shared';
+import {
+  MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS,
+  TIMING_CHALLENGE_GAME_ID,
+  TIMING_CHALLENGE_ROUND_RESULTS_SECONDS,
+} from '@wanasatna/shared';
+import { GameCard, GameScreen } from '@/components/game/game-card';
+import { GameHeader } from '@/components/game/game-header';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
@@ -34,6 +40,7 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
     view,
     errorMessage,
     isLoading,
+    remainingSeconds,
     actionError,
     isSubmittingAction,
     markReady,
@@ -81,10 +88,12 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
     setExperienceMeta({
       gameName: TIMING_CHALLENGE_GAME_NAME,
       gameIcon: TIMING_CHALLENGE_GAME_ICON,
-      phaseLabel: activeView.phaseLabel,
+      phaseLabel: activeView.isMatchSpectator ? 'مشاهدة' : activeView.phaseLabel,
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
-      leaderboardEntries: mapTimingChallengeLeaderboard(activeView, player.id, players),
+      leaderboardEntries: activeView.isMatchSpectator
+        ? []
+        : mapTimingChallengeLeaderboard(activeView, player.id, players),
     });
   }, [
     activeFinalResultsView,
@@ -100,7 +109,19 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
   useEffect(() => () => setExperienceMeta(null), [setExperienceMeta]);
 
   const handleReturnToLobby = useCallback(() => {
-    if (!isHost || shellPhase !== 'FINISHED' || isReturningToLobby) {
+    if (isReturningToLobby) {
+      return;
+    }
+
+    if (view?.gamePhase === 'match-completed' && isHost) {
+      setIsReturningToLobby(true);
+      void continueFromRoundResults().finally(() => {
+        setIsReturningToLobby(false);
+      });
+      return;
+    }
+
+    if (!isHost || shellPhase !== 'FINISHED') {
       return;
     }
 
@@ -108,15 +129,25 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
     void returnToLobby().finally(() => {
       setIsReturningToLobby(false);
     });
-  }, [isHost, isReturningToLobby, returnToLobby, shellPhase]);
+  }, [
+    continueFromRoundResults,
+    isHost,
+    isReturningToLobby,
+    returnToLobby,
+    shellPhase,
+    view?.gamePhase,
+  ]);
 
   if (showFinalMatchResults && room && player && activeFinalResultsView) {
     const shellFinished = shellPhase === 'FINISHED';
-    const returnStatusMessage = !shellFinished
-      ? 'جاري إنهاء المباراة...'
-      : !isHost
-        ? 'بانتظار المضيف للعودة إلى اللوبي.'
-        : null;
+    const isMatchCompletedPhase = activeFinalResultsView.gamePhase === 'match-completed';
+    const autoReturnMessage = isMatchCompletedPhase
+      ? `العودة إلى اللوبي تلقائياً خلال ${Math.max(0, remainingSeconds)} ثانية`
+      : !shellFinished
+        ? 'جاري إنهاء المباراة...'
+        : !isHost
+          ? 'بانتظار المضيف للعودة إلى اللوبي.'
+          : null;
 
     return (
       <MatchResultsScreen
@@ -133,9 +164,17 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
         playerCount={activeFinalResultsView.resultsLeaderboard.length}
         roomCode={room.code}
         gameName={TIMING_CHALLENGE_GAME_NAME}
-        returnStatusMessage={returnStatusMessage}
+        returnStatusMessage={
+          isHost && (isMatchCompletedPhase || shellFinished) ? null : autoReturnMessage
+        }
+        autoReturnSeconds={isMatchCompletedPhase ? remainingSeconds : undefined}
+        autoReturnTotalSeconds={
+          isMatchCompletedPhase ? MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS : undefined
+        }
         isReturnToLobbyLoading={isReturningToLobby}
-        onReturnToLobby={isHost && shellFinished ? handleReturnToLobby : undefined}
+        onReturnToLobby={
+          isHost && (isMatchCompletedPhase || shellFinished) ? handleReturnToLobby : undefined
+        }
       />
     );
   }
@@ -162,6 +201,25 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
 
   if (!view || !room || !player) {
     return null;
+  }
+
+  if (view.isMatchSpectator) {
+    return (
+      <GameScreen ariaLabel="مشاهدة">
+        <GameHeader
+          gameName={TIMING_CHALLENGE_GAME_NAME}
+          gameIcon={TIMING_CHALLENGE_GAME_ICON}
+          roomCode={room.code}
+          currentRound={view.currentRound}
+          totalRounds={view.totalRounds}
+          phaseLabel="مشاهدة"
+        />
+        <GameCard className="px-5 py-10 text-center">
+          <p className="text-lg font-semibold text-wanas-text-primary">أنت مشاهد</p>
+          <p className="mt-2 text-sm text-wanas-text-secondary">{view.phaseLabel}</p>
+        </GameCard>
+      </GameScreen>
+    );
   }
 
   if (view.gamePhase === 'ready') {
@@ -229,6 +287,8 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
           roundNumber={view.currentRound}
           totalRounds={view.totalRounds}
           roomCode={room.code}
+          remainingSeconds={remainingSeconds}
+          totalDurationSeconds={TIMING_CHALLENGE_ROUND_RESULTS_SECONDS}
           continueLabel={view.canContinueFromRoundResults ? view.roundResultsContinueLabel : null}
           waitingMessage={view.roundResultsWaitingMessage}
           isContinueLoading={isSubmittingAction}

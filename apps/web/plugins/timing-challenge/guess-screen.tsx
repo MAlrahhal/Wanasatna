@@ -50,7 +50,7 @@ export function GuessScreen({
                 value={value}
                 disabled={!canGuess || isSubmitting}
                 onChange={(event) => setValue(event.target.value)}
-                placeholder="مثال: 7.25"
+                placeholder=""
                 dir="ltr"
                 className="h-12 rounded-xl border border-wanas-border bg-wanas-surface-soft px-4 text-center font-mono text-xl font-bold text-wanas-text-primary outline-none focus:border-wanas-accent"
               />

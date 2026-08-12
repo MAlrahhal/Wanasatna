@@ -3,16 +3,20 @@ import type { GameShellState, TimingChallengeMatchState } from '@wanasatna/share
 import { TIMING_CHALLENGE_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
-import { finishGameShellForRoom } from '../../game.service.js';
-import { cleanupGameShellRuntime } from '../../game.lifecycle.js';
-import { broadcastGameShellState } from '../../game.timer.js';
+import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
+import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
 import {
-  startTimingChallengePhaseTimerIfNeeded,
+  clearTimingChallengePhaseTimerRuntime,
+  restartTimingChallengePhaseTimer,
   stopTimingChallengePhaseTimer,
 } from './phase-timer.js';
 import { applyRoundScores } from './scoring.js';
 import { createRoundState, withRound } from './state.js';
-import { deleteTimingChallengeState, setTimingChallengeState } from './store.js';
+import {
+  clearTimingChallengeSettings,
+  deleteTimingChallengeState,
+  setTimingChallengeState,
+} from './store.js';
 
 function broadcastPhaseChanged(io: Server, roomId: string): void {
   io.to(getRoomChannel(roomId)).emit(TIMING_CHALLENGE_PHASE_CHANGED_EVENT, {});
@@ -33,7 +37,7 @@ export function startHiddenTimingPhase(
   });
 
   setTimingChallengeState(roomId, nextMatch);
-  startTimingChallengePhaseTimerIfNeeded(io, roomId);
+  restartTimingChallengePhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
@@ -46,12 +50,12 @@ export function startGuessingPhase(
   const nextMatch = withRound(match, {
     ...match.round,
     gamePhase: 'guessing',
-    phaseRemainingSeconds: 0,
+    phaseRemainingSeconds: timedPhaseDurations.timingChallengeGuess(),
     hiddenEndsAtMs: match.round.hiddenEndsAtMs ?? Date.now(),
   });
 
   setTimingChallengeState(roomId, nextMatch);
-  stopTimingChallengePhaseTimer(roomId);
+  restartTimingChallengePhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
@@ -64,11 +68,11 @@ export function startStopTimerPhase(
   const nextMatch = withRound(match, {
     ...match.round,
     gamePhase: 'stop-timer',
-    phaseRemainingSeconds: 0,
+    phaseRemainingSeconds: timedPhaseDurations.timingChallengeStopPhase(),
   });
 
   setTimingChallengeState(roomId, nextMatch);
-  stopTimingChallengePhaseTimer(roomId);
+  restartTimingChallengePhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
@@ -86,11 +90,11 @@ export function startRoundResults(
   const nextMatch = withRound(scoredMatch, {
     ...scoredMatch.round,
     gamePhase: 'round-results',
-    phaseRemainingSeconds: 0,
+    phaseRemainingSeconds: timedPhaseDurations.timingChallengeRoundResults(),
   });
 
   setTimingChallengeState(roomId, nextMatch);
-  stopTimingChallengePhaseTimer(roomId);
+  restartTimingChallengePhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
@@ -100,16 +104,15 @@ function startNextRound(
   roomId: string,
   match: TimingChallengeMatchState,
 ): TimingChallengeMatchState {
-  const nextRoundNumber = match.currentRound + 1;
   const nextMatch: TimingChallengeMatchState = {
     ...match,
-    currentRound: nextRoundNumber,
+    currentRound: match.currentRound + 1,
     matchStatus: 'in-progress',
     round: createRoundState(match.playerIds, match.settings),
   };
 
   setTimingChallengeState(roomId, nextMatch);
-  stopTimingChallengePhaseTimer(roomId);
+  restartTimingChallengePhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
@@ -132,23 +135,17 @@ function startMatchCompletedPhase(
   );
 
   setTimingChallengeState(roomId, nextMatch);
-  startTimingChallengePhaseTimerIfNeeded(io, roomId);
+  restartTimingChallengePhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
 
-export function continueFromRoundResults(
+export function advanceFromRoundResults(
   io: Server,
   roomId: string,
   match: TimingChallengeMatchState,
-  shell: GameShellState,
-  hostPlayerId: string,
 ): TimingChallengeMatchState {
   if (match.round.gamePhase !== 'round-results') {
-    return match;
-  }
-
-  if (shell.hostPlayerId !== hostPlayerId) {
     return match;
   }
 
@@ -161,16 +158,42 @@ export function continueFromRoundResults(
   return startMatchCompletedPhase(io, roomId, match);
 }
 
-export function completeMatch(io: Server, roomId: string): void {
-  stopTimingChallengePhaseTimer(roomId);
-  deleteTimingChallengeState(roomId);
-
-  const nextShell = finishGameShellForRoom(roomId);
-
-  if (nextShell) {
-    cleanupGameShellRuntime(roomId);
-    broadcastGameShellState(io, nextShell);
+export function continueFromRoundResults(
+  io: Server,
+  roomId: string,
+  match: TimingChallengeMatchState,
+  shell: GameShellState,
+  hostPlayerId: string,
+): TimingChallengeMatchState {
+  if (shell.hostPlayerId !== hostPlayerId) {
+    return match;
   }
+
+  if (match.round.gamePhase === 'match-completed') {
+    completeMatch(io, roomId);
+    return match;
+  }
+
+  if (match.round.gamePhase !== 'round-results') {
+    return match;
+  }
+
+  return advanceFromRoundResults(io, roomId, match);
+}
+
+export function completeMatch(io: Server, roomId: string): void {
+  clearTimingChallengePhaseTimerRuntime(roomId);
+  deleteTimingChallengeState(roomId);
+  clearTimingChallengeSettings(roomId);
+
+  const shell = getGameShellByRoomId(roomId);
+  if (!shell) {
+    return;
+  }
+
+  cleanupGameShellRuntime(roomId);
+  deleteGameShell(roomId);
+  navigateRoomToLobby(io, roomId);
 }
 
 export function advanceFromReady(

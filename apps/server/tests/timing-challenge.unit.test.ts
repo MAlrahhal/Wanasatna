@@ -125,12 +125,14 @@ test('C: Mode A hides target before reveal', () => {
     round: {
       ...makeMatch('guess-time').round,
       gamePhase: 'guessing',
+      phaseRemainingSeconds: 30,
       targetMs: 8420,
     },
   });
   const view = buildTimingChallengePlayerView(match, 'p1', makeShell(['p1', 'p2', 'p3']));
   assert.equal(view.targetMs, null);
-  assert.equal(view.phaseRemainingSeconds, 0);
+  assert.equal(view.phaseRemainingSeconds, 30);
+  assert.ok(view.roundId.length > 0);
 });
 
 test('D/E/F: guess submission semantics via state + validation rules', () => {
@@ -421,9 +423,11 @@ test('AF/AG: waiting / non-participant cannot act', () => {
   });
   const shell = makeShell(['p1', 'p2', 'p3']);
   const waiterView = buildTimingChallengePlayerView(match, 'waiter', shell);
+  assert.equal(waiterView.isMatchSpectator, true);
   assert.equal(waiterView.canGuess, false);
   assert.equal(waiterView.canReady, false);
   assert.equal(waiterView.canStartTimer, false);
+  assert.deepEqual(waiterView.leaderboard, []);
 });
 
 test('AH/AI: host continue labels for mid vs final round', () => {
@@ -434,7 +438,8 @@ test('AH/AI: host continue labels for mid vs final round', () => {
   });
   const midView = buildTimingChallengePlayerView(mid, 'p1', makeShell(['p1', 'p2', 'p3']));
   assert.equal(midView.canContinueFromRoundResults, true);
-  assert.equal(midView.roundResultsContinueLabel, 'بدء الجولة التالية');
+  assert.equal(midView.roundResultsContinueLabel, 'التالي الآن');
+  assert.equal(midView.roundResultsWaitingMessage, 'الجولة التالية تبدأ تلقائياً...');
 
   const final = makeMatch('guess-time', {
     currentRound: 3,
@@ -442,11 +447,73 @@ test('AH/AI: host continue labels for mid vs final round', () => {
     round: { ...makeMatch('guess-time').round, gamePhase: 'round-results', targetMs: 5000 },
   });
   const finalView = buildTimingChallengePlayerView(final, 'p1', makeShell(['p1', 'p2', 'p3']));
-  assert.equal(finalView.roundResultsContinueLabel, 'عرض النتائج النهائية');
+  assert.equal(finalView.roundResultsContinueLabel, 'عرض النتائج الآن');
+  assert.equal(finalView.roundResultsWaitingMessage, 'سيتم عرض النتائج النهائية تلقائياً...');
+});
+
+test('exactly 3 rounds enforced; rounds input ignored', () => {
+  const normalized = normalizeTimingChallengeSettings({
+    mode: 'stop-timer',
+    rounds: 9,
+    minSeconds: 3,
+    maxSeconds: 15,
+  });
+  assert.ok(!('error' in normalized));
+  assert.equal(normalized.rounds, 3);
+
+  const match = createMatchState(
+    [
+      { id: 'p1', name: 'أ', isConnected: true, isHost: true, isReady: true },
+      { id: 'p2', name: 'ب', isConnected: true, isHost: false, isReady: true },
+    ],
+    { mode: 'guess-time', rounds: 9, minSeconds: 3, maxSeconds: 15 },
+  );
+  assert.equal(match.totalRounds, 3);
+  assert.equal(match.settings.rounds, 3);
+});
+
+test('no-submit scores 0; placement points 100/75/50/25', () => {
+  let match = makeMatch('guess-time', {
+    round: {
+      ...makeMatch('guess-time').round,
+      targetMs: 10000,
+      playerStates: {
+        p1: { ...createEmptyPlayerState(), guessMs: 10000, elapsedMs: 10000, errorMs: 0, signedDeltaMs: 0 },
+        p2: { ...createEmptyPlayerState(), guessMs: 10100, elapsedMs: 10100, errorMs: 100, signedDeltaMs: 100 },
+        p3: createEmptyPlayerState(),
+      },
+    },
+  });
+  match = applyRoundScores(match);
+  const results = buildRoundResultEntries(match);
+  const byId = Object.fromEntries(results.map((entry) => [entry.playerId, entry]));
+  assert.equal(byId.p1!.roundPoints, 100);
+  assert.equal(byId.p2!.roundPoints, 75);
+  assert.equal(byId.p3!.roundPoints, 0);
+  assert.equal(placementPoints(1), 100);
+  assert.equal(placementPoints(2), 75);
+  assert.equal(placementPoints(3), 50);
+  assert.equal(placementPoints(4), 25);
+});
+
+test('8-player match can start', () => {
+  const players = Array.from({ length: 8 }, (_, index) => ({
+    id: `p${index + 1}`,
+    name: `لاعب${index + 1}`,
+    isConnected: true,
+    isHost: index === 0,
+    isReady: true,
+  }));
+  const match = createMatchState(players, defaultTimingChallengeSettings());
+  assert.equal(match.playerIds.length, 8);
+  assert.equal(match.totalRounds, 3);
 });
 
 test('invalid settings rejected', () => {
-  assert.ok('error' in normalizeTimingChallengeSettings({ mode: 'guess-time', rounds: 0 }));
+  assert.ok(
+    'error' in
+      normalizeTimingChallengeSettings({ mode: 'guess-time', minSeconds: 10, maxSeconds: 5 }),
+  );
   assert.ok('error' in normalizeTimingChallengeSettings({ mode: 'nope' as never }));
 });
 

@@ -14,7 +14,6 @@ const setReadySchema = z.object({
 const timingChallengeSettingsSchema = z
   .object({
     mode: z.enum(['guess-time', 'stop-timer']),
-    rounds: z.number().int().min(1).max(10),
     minSeconds: z.number().min(1).max(60),
     maxSeconds: z.number().min(1).max(60),
   })

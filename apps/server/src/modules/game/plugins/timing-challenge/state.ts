@@ -8,6 +8,14 @@ import type {
   TimingChallengeSettings,
 } from '@wanasatna/shared';
 import {
+  TIMING_CHALLENGE_DEFAULT_ROUNDS,
+  buildRoundResultsContinueCopy,
+  MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL,
+  MATCH_COMPLETED_WAITING_MESSAGE,
+} from '@wanasatna/shared';
+import { randomUUID } from 'node:crypto';
+import { timedPhaseDurations } from '../../../../config/test-timers.js';
+import {
   buildLeaderboardEntries,
   buildResultsLeaderboardEntries,
   buildRoundResultEntries,
@@ -50,12 +58,11 @@ export function createRoundState(
   playerIds: string[],
   settings: TimingChallengeSettings,
 ): TimingChallengeRoundState {
-  const targetMs = pickTargetMs(settings);
-
   return {
+    roundId: randomUUID(),
     gamePhase: 'ready',
-    phaseRemainingSeconds: 0,
-    targetMs,
+    phaseRemainingSeconds: timedPhaseDurations.timingChallengeReady(),
+    targetMs: pickTargetMs(settings),
     hiddenStartedAtMs: null,
     hiddenEndsAtMs: null,
     playerStates: Object.fromEntries(playerIds.map((playerId) => [playerId, createEmptyPlayerState()])),
@@ -71,16 +78,20 @@ export function createMatchState(
   }
 
   const playerIds = players.map((player) => player.id);
+  const lockedSettings: TimingChallengeSettings = {
+    ...settings,
+    rounds: TIMING_CHALLENGE_DEFAULT_ROUNDS,
+  };
 
   return {
     playerIds,
     playerNames: Object.fromEntries(players.map((player) => [player.id, player.name])),
     currentRound: 1,
-    totalRounds: settings.rounds,
+    totalRounds: TIMING_CHALLENGE_DEFAULT_ROUNDS,
     scores: createInitialScores(playerIds),
     matchStatus: 'in-progress',
-    settings,
-    round: createRoundState(playerIds, settings),
+    settings: lockedSettings,
+    round: createRoundState(playerIds, lockedSettings),
   };
 }
 
@@ -95,7 +106,7 @@ export function getConnectedParticipantIds(
   return match.playerIds.filter((playerId) => connected.has(playerId));
 }
 
-function allConnectedReady(match: TimingChallengeMatchState, shell: GameShellState): boolean {
+export function allConnectedReady(match: TimingChallengeMatchState, shell: GameShellState): boolean {
   const connectedIds = getConnectedParticipantIds(match, shell);
   return (
     connectedIds.length > 0 &&
@@ -119,52 +130,13 @@ export function allConnectedStopped(match: TimingChallengeMatchState, shell: Gam
   );
 }
 
-export { allConnectedReady };
-
-function buildRoundResultsInteractionView(
+function buildPeers(
   match: TimingChallengeMatchState,
-  shell: GameShellState,
-  playerId: string,
-): Pick<
-  TimingChallengePlayerView,
-  | 'isHost'
-  | 'canContinueFromRoundResults'
-  | 'roundResultsContinueLabel'
-  | 'roundResultsWaitingMessage'
-> {
-  const isHost = shell.hostPlayerId === playerId;
-  const isFinalRound = match.currentRound >= match.totalRounds;
-
-  return {
-    isHost,
-    canContinueFromRoundResults: isHost && match.round.gamePhase === 'round-results',
-    roundResultsContinueLabel: isHost
-      ? isFinalRound
-        ? 'عرض النتائج النهائية'
-        : 'بدء الجولة التالية'
-      : null,
-    roundResultsWaitingMessage: isHost
-      ? null
-      : 'بانتظار المضيف للمتابعة...',
-  };
-}
-
-export function buildTimingChallengePlayerView(
-  match: TimingChallengeMatchState,
-  playerId: string,
-  shell: GameShellState,
-): TimingChallengePlayerView {
-  const self = match.round.playerStates[playerId] ?? createEmptyPlayerState();
+): TimingChallengePlayerView['peers'] {
   const phase = match.round.gamePhase;
   const mode = match.settings.mode;
-  const isParticipant = match.playerIds.includes(playerId);
-  const revealed = phase === 'round-results' || phase === 'match-completed';
 
-  // Mode A: hide target until reveal. Mode B: public from ready onward.
-  const publicTargetMs =
-    mode === 'guess-time' ? (revealed ? match.round.targetMs : null) : match.round.targetMs;
-
-  const peers = match.playerIds.map((peerId) => {
+  return match.playerIds.map((peerId) => {
     const state = match.round.playerStates[peerId] ?? createEmptyPlayerState();
     let status: TimingChallengePlayerView['peers'][number]['status'] = 'waiting';
 
@@ -184,49 +156,124 @@ export function buildTimingChallengePlayerView(
       status,
     };
   });
+}
+
+export function buildTimingChallengeSpectatorView(
+  match: TimingChallengeMatchState,
+): TimingChallengePlayerView {
+  const phase = match.round.gamePhase;
+  const mode = match.settings.mode;
+  const revealed = phase === 'round-results' || phase === 'match-completed';
+  const publicTargetMs =
+    mode === 'guess-time' ? (revealed ? match.round.targetMs : null) : match.round.targetMs;
 
   return {
     gamePhase: phase,
-    phaseLabel: `${PHASE_LABELS[phase]} — الجولة ${match.currentRound}/${match.totalRounds}`,
-    // Never leak Mode A remaining hidden duration through the countdown field.
+    phaseLabel: 'الجولة جارية',
     phaseRemainingSeconds: phase === 'hidden-timing' ? 0 : match.round.phaseRemainingSeconds,
     mode,
+    roundId: match.round.roundId,
+    currentRound: match.currentRound,
+    totalRounds: match.totalRounds,
+    matchStatus: match.matchStatus,
+    targetMs: publicTargetMs,
+    selfReady: false,
+    selfGuessMs: null,
+    selfSubmitted: false,
+    selfTimerRunning: false,
+    selfElapsedMs: null,
+    selfErrorMs: null,
+    selfSignedDeltaMs: null,
+    canReady: false,
+    canGuess: false,
+    canStartTimer: false,
+    canStopTimer: false,
+    peers: buildPeers(match),
+    roundResults: revealed ? buildRoundResultEntries(match) : [],
+    leaderboard: [],
+    resultsLeaderboard: revealed ? buildResultsLeaderboardEntries(match) : [],
+    isHost: false,
+    canContinueFromRoundResults: false,
+    roundResultsContinueLabel: null,
+    roundResultsWaitingMessage: null,
+    isMatchSpectator: true,
+  };
+}
+
+export function buildTimingChallengePlayerView(
+  match: TimingChallengeMatchState,
+  playerId: string,
+  shell: GameShellState,
+): TimingChallengePlayerView {
+  if (!match.playerIds.includes(playerId)) {
+    return buildTimingChallengeSpectatorView(match);
+  }
+
+  const self = match.round.playerStates[playerId] ?? createEmptyPlayerState();
+  const phase = match.round.gamePhase;
+  const mode = match.settings.mode;
+  const revealed = phase === 'round-results' || phase === 'match-completed';
+  const publicTargetMs =
+    mode === 'guess-time' ? (revealed ? match.round.targetMs : null) : match.round.targetMs;
+
+  const base: TimingChallengePlayerView = {
+    gamePhase: phase,
+    phaseLabel: `${PHASE_LABELS[phase]} — الجولة ${match.currentRound}/${match.totalRounds}`,
+    phaseRemainingSeconds: phase === 'hidden-timing' ? 0 : match.round.phaseRemainingSeconds,
+    mode,
+    roundId: match.round.roundId,
     currentRound: match.currentRound,
     totalRounds: match.totalRounds,
     matchStatus: match.matchStatus,
     targetMs: publicTargetMs,
     selfReady: self.ready,
     selfGuessMs: self.guessMs,
-    selfSubmitted:
-      mode === 'guess-time' ? self.guessMs !== null : self.elapsedMs !== null,
+    selfSubmitted: mode === 'guess-time' ? self.guessMs !== null : self.elapsedMs !== null,
     selfTimerRunning:
-      mode === 'stop-timer' &&
-      self.timerStartedAtMs !== null &&
-      self.elapsedMs === null,
+      mode === 'stop-timer' && self.timerStartedAtMs !== null && self.elapsedMs === null,
     selfElapsedMs: self.elapsedMs,
     selfErrorMs: self.errorMs,
     selfSignedDeltaMs: self.signedDeltaMs,
-    canReady: isParticipant && phase === 'ready' && !self.ready,
-    canGuess:
-      isParticipant &&
-      mode === 'guess-time' &&
-      phase === 'guessing' &&
-      self.guessMs === null,
+    canReady: phase === 'ready' && !self.ready,
+    canGuess: mode === 'guess-time' && phase === 'guessing' && self.guessMs === null,
     canStartTimer:
-      isParticipant &&
-      mode === 'stop-timer' &&
-      phase === 'stop-timer' &&
-      self.timerStartedAtMs === null,
+      mode === 'stop-timer' && phase === 'stop-timer' && self.timerStartedAtMs === null,
     canStopTimer:
-      isParticipant &&
       mode === 'stop-timer' &&
       phase === 'stop-timer' &&
       self.timerStartedAtMs !== null &&
       self.elapsedMs === null,
-    peers,
+    peers: buildPeers(match),
     roundResults: revealed ? buildRoundResultEntries(match) : [],
     leaderboard: buildLeaderboardEntries(match),
-    resultsLeaderboard: buildResultsLeaderboardEntries(match),
-    ...buildRoundResultsInteractionView(match, shell, playerId),
+    resultsLeaderboard: revealed ? buildResultsLeaderboardEntries(match) : [],
+    isHost: shell.hostPlayerId === playerId,
+    canContinueFromRoundResults: false,
+    roundResultsContinueLabel: null,
+    roundResultsWaitingMessage: null,
+    isMatchSpectator: false,
   };
+
+  if (phase === 'round-results') {
+    return {
+      ...base,
+      ...buildRoundResultsContinueCopy({
+        isFinalRound: match.currentRound >= match.totalRounds,
+        isHost: shell.hostPlayerId === playerId,
+      }),
+    };
+  }
+
+  if (phase === 'match-completed') {
+    const isHost = shell.hostPlayerId === playerId;
+    return {
+      ...base,
+      isHost,
+      canContinueFromRoundResults: isHost,
+      roundResultsContinueLabel: isHost ? MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL : null,
+      roundResultsWaitingMessage: MATCH_COMPLETED_WAITING_MESSAGE,
+    };
+  }
+
+  return base;
 }

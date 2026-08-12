@@ -17,6 +17,8 @@ type RoundResultsScreenProps = {
   roundNumber: number;
   totalRounds: number;
   roomCode: string;
+  remainingSeconds?: number;
+  totalDurationSeconds?: number;
   continueLabel?: string | null;
   waitingMessage?: string | null;
   isContinueLoading?: boolean;
@@ -31,12 +33,33 @@ export function TimingChallengeRoundResultsScreen({
   roundNumber,
   totalRounds,
   roomCode,
+  remainingSeconds = 0,
+  totalDurationSeconds = 10,
   continueLabel,
   waitingMessage,
   isContinueLoading = false,
   onContinue,
 }: RoundResultsScreenProps) {
   const winner = roundResults.find((entry) => entry.placement === 1) ?? null;
+  const progressMax = Math.max(totalDurationSeconds, 1);
+  const progressNow = Math.max(0, Math.min(remainingSeconds, totalDurationSeconds));
+  const progressPercent = Math.round((progressNow / progressMax) * 100);
+
+  const progressBar = (
+    <div
+      className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted"
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={progressMax}
+      aria-valuenow={progressNow}
+      aria-label={`الانتقال التلقائي ${progressNow} من ${progressMax} ثانية`}
+    >
+      <div
+        className="h-full rounded-full bg-wanas-accent transition-[width] duration-200 ease-linear"
+        style={{ width: `${progressPercent}%` }}
+      />
+    </div>
+  );
 
   return (
     <GameScreen ariaLabel="نتائج الجولة" maxWidth="4xl">
@@ -66,8 +89,7 @@ export function TimingChallengeRoundResultsScreen({
         <GameCard className="p-3 sm:p-4">
           <ul className="space-y-2">
             {roundResults.map((entry) => {
-              const valueMs =
-                mode === 'guess-time' ? entry.guessMs : entry.elapsedMs;
+              const valueMs = mode === 'guess-time' ? entry.guessMs : entry.elapsedMs;
 
               return (
                 <li
@@ -99,18 +121,32 @@ export function TimingChallengeRoundResultsScreen({
           </ul>
         </GameCard>
 
-        {onContinue && continueLabel ? (
-          <Button
-            type="button"
-            disabled={isContinueLoading}
-            onClick={onContinue}
-            className="h-12 min-h-[44px] rounded-xl bg-wanas-accent text-sm font-bold text-white hover:bg-wanas-accent-hover"
+        {continueLabel && onContinue ? (
+          <div className="mx-auto w-full max-w-md space-y-3">
+            <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
+              {waitingMessage ?? 'الجولة التالية تبدأ تلقائياً...'}
+            </p>
+            {progressBar}
+            <Button
+              size="lg"
+              className="w-full min-h-14 focus-visible:ring-offset-4"
+              loading={isContinueLoading}
+              onClick={onContinue}
+            >
+              {continueLabel}
+            </Button>
+          </div>
+        ) : waitingMessage ? (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mx-auto w-full max-w-md space-y-3 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-6 text-center shadow-sm"
           >
-            {continueLabel}
-          </Button>
-        ) : null}
-        {waitingMessage ? (
-          <p className="text-center text-xs font-medium text-wanas-text-muted">{waitingMessage}</p>
+            <p className="wanas-game-helper font-medium text-wanas-text-secondary">
+              {waitingMessage}
+            </p>
+            {progressBar}
+          </div>
         ) : null}
       </div>
     </GameScreen>

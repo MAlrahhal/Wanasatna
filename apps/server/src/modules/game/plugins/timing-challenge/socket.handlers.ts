@@ -31,6 +31,7 @@ import {
   allConnectedReady,
   allConnectedStopped,
   buildTimingChallengePlayerView,
+  buildTimingChallengeSpectatorView,
   withRound,
 } from './state.js';
 import {
@@ -82,6 +83,26 @@ function clearTimingChallengeRuntime(roomId: string): void {
   clearTimingChallengeSettings(roomId);
 }
 
+function parseRoundId(payload: unknown): string | null {
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const roundId = (payload as { roundId?: unknown }).roundId;
+  return typeof roundId === 'string' && roundId.length > 0 ? roundId : null;
+}
+
+function assertCurrentRound(
+  match: NonNullable<ReturnType<typeof getTimingChallengeState>>,
+  roundId: string | null,
+): Extract<GameActionResponse<never>, { success: false }> | null {
+  if (!roundId || match.round.roundId !== roundId) {
+    return invalidActionError('انتهت هذه الجولة.');
+  }
+
+  return null;
+}
+
 function respondWithView(
   callback: ((response: GameActionResponse<{ view: unknown }>) => void) | undefined,
   roomId: string,
@@ -95,9 +116,13 @@ function respondWithView(
     return;
   }
 
+  const view = match.playerIds.includes(playerId)
+    ? buildTimingChallengePlayerView(match, playerId, shell)
+    : buildTimingChallengeSpectatorView(match);
+
   sendGameResponse(callback, {
     success: true,
-    data: { view: buildTimingChallengePlayerView(match, playerId, shell) },
+    data: { view },
   });
 }
 
@@ -122,14 +147,39 @@ export function registerTimingChallengeSocketHandlers(io: Server, socket: Socket
       return;
     }
 
-    if (shell.phase === 'PLAYING') {
-      ensureTimingChallengeMatchStateWithTimer(io, roomId!);
+    if (shell.phase === 'FINISHED') {
+      clearTimingChallengeRuntime(roomId!);
+      sendGameResponse(callback, gameNotReadyError());
+      return;
     }
 
-    respondWithView(callback, roomId!, playerId!);
+    if (shell.phase !== 'PLAYING') {
+      sendGameResponse(callback, gameNotReadyError());
+      return;
+    }
+
+    const match = ensureTimingChallengeMatchStateWithTimer(io, roomId!);
+
+    if (!match) {
+      sendGameResponse(callback, gameNotReadyError());
+      return;
+    }
+
+    if (!isActiveMatchParticipant(shell, playerId!) || !match.playerIds.includes(playerId!)) {
+      sendGameResponse(callback, {
+        success: true,
+        data: { view: buildTimingChallengeSpectatorView(match) },
+      });
+      return;
+    }
+
+    sendGameResponse(callback, {
+      success: true,
+      data: { view: buildTimingChallengePlayerView(match, playerId!, shell) },
+    });
   });
 
-  socket.on(TIMING_CHALLENGE_READY_EVENT, (_payload: unknown, callback) => {
+  socket.on(TIMING_CHALLENGE_READY_EVENT, (payload: unknown, callback) => {
     const contextError = getGameSocketContext(socket);
 
     if (contextError) {
@@ -151,8 +201,14 @@ export function registerTimingChallengeSocketHandlers(io: Server, socket: Socket
       return;
     }
 
-    if (!isActiveMatchParticipant(shell, playerId!)) {
+    if (!match.playerIds.includes(playerId!)) {
       sendGameResponse(callback, notParticipantError());
+      return;
+    }
+
+    const roundError = assertCurrentRound(match, parseRoundId(payload));
+    if (roundError) {
+      sendGameResponse(callback, roundError);
       return;
     }
 
@@ -192,87 +248,7 @@ export function registerTimingChallengeSocketHandlers(io: Server, socket: Socket
     respondWithView(callback, roomId!, playerId!);
   });
 
-  socket.on(
-    TIMING_CHALLENGE_SUBMIT_GUESS_EVENT,
-    (payload: TimingChallengeSubmitGuessPayload, callback) => {
-      const contextError = getGameSocketContext(socket);
-
-      if (contextError) {
-        sendGameResponse(callback, contextError);
-        return;
-      }
-
-      const { roomId, playerId } = socket.data;
-
-      if (recoveryBlockedResponse(roomId!, callback)) {
-        return;
-      }
-
-      const shell = getGameShellByRoomId(roomId!);
-      const match = getTimingChallengeState(roomId!);
-
-      if (!shell || !match) {
-        sendGameResponse(callback, gameNotReadyError());
-        return;
-      }
-
-      if (!isActiveMatchParticipant(shell, playerId!)) {
-        sendGameResponse(callback, notParticipantError());
-        return;
-      }
-
-      if (match.settings.mode !== 'guess-time' || match.round.gamePhase !== 'guessing') {
-        sendGameResponse(callback, invalidActionError('لا يمكن التخمين الآن.'));
-        return;
-      }
-
-      const playerState = match.round.playerStates[playerId!];
-
-      if (!playerState) {
-        sendGameResponse(callback, notParticipantError());
-        return;
-      }
-
-      if (playerState.guessMs !== null) {
-        sendGameResponse(callback, invalidActionError('تم إرسال تخمينك مسبقاً.'));
-        return;
-      }
-
-      const guessSeconds = Number(payload?.guessSeconds);
-
-      if (!Number.isFinite(guessSeconds) || guessSeconds < 0 || guessSeconds > 120) {
-        sendGameResponse(callback, invalidActionError('قيمة التخمين غير صالحة.'));
-        return;
-      }
-
-      const guessMs = Math.round(guessSeconds * 1000);
-      let nextMatch = withRound(match, {
-        ...match.round,
-        playerStates: {
-          ...match.round.playerStates,
-          [playerId!]: {
-            ...playerState,
-            guessMs,
-            errorMs: Math.abs(guessMs - match.round.targetMs),
-            signedDeltaMs: guessMs - match.round.targetMs,
-            elapsedMs: guessMs,
-          },
-        },
-      });
-
-      setTimingChallengeState(roomId!, nextMatch);
-
-      if (allConnectedGuessed(nextMatch, shell)) {
-        nextMatch = startRoundResults(io, roomId!, nextMatch);
-      } else {
-        broadcastPhase(io, roomId!);
-      }
-
-      respondWithView(callback, roomId!, playerId!);
-    },
-  );
-
-  socket.on(TIMING_CHALLENGE_START_TIMER_EVENT, (_payload: unknown, callback) => {
+  socket.on(TIMING_CHALLENGE_SUBMIT_GUESS_EVENT, (payload: unknown, callback) => {
     const contextError = getGameSocketContext(socket);
 
     if (contextError) {
@@ -294,8 +270,97 @@ export function registerTimingChallengeSocketHandlers(io: Server, socket: Socket
       return;
     }
 
-    if (!isActiveMatchParticipant(shell, playerId!)) {
+    if (!match.playerIds.includes(playerId!)) {
       sendGameResponse(callback, notParticipantError());
+      return;
+    }
+
+    const roundError = assertCurrentRound(match, parseRoundId(payload));
+    if (roundError) {
+      sendGameResponse(callback, roundError);
+      return;
+    }
+
+    if (match.settings.mode !== 'guess-time' || match.round.gamePhase !== 'guessing') {
+      sendGameResponse(callback, invalidActionError('لا يمكن التخمين الآن.'));
+      return;
+    }
+
+    const playerState = match.round.playerStates[playerId!];
+
+    if (!playerState) {
+      sendGameResponse(callback, notParticipantError());
+      return;
+    }
+
+    if (playerState.guessMs !== null) {
+      sendGameResponse(callback, invalidActionError('تم إرسال تخمينك مسبقاً.'));
+      return;
+    }
+
+    const guessSeconds = Number((payload as TimingChallengeSubmitGuessPayload | null)?.guessSeconds);
+
+    if (!Number.isFinite(guessSeconds) || guessSeconds < 0 || guessSeconds > 120) {
+      sendGameResponse(callback, invalidActionError('قيمة التخمين غير صالحة.'));
+      return;
+    }
+
+    const guessMs = Math.round(guessSeconds * 1000);
+    let nextMatch = withRound(match, {
+      ...match.round,
+      playerStates: {
+        ...match.round.playerStates,
+        [playerId!]: {
+          ...playerState,
+          guessMs,
+          errorMs: Math.abs(guessMs - match.round.targetMs),
+          signedDeltaMs: guessMs - match.round.targetMs,
+          elapsedMs: guessMs,
+        },
+      },
+    });
+
+    setTimingChallengeState(roomId!, nextMatch);
+
+    if (allConnectedGuessed(nextMatch, shell)) {
+      nextMatch = startRoundResults(io, roomId!, nextMatch);
+    } else {
+      broadcastPhase(io, roomId!);
+    }
+
+    respondWithView(callback, roomId!, playerId!);
+  });
+
+  socket.on(TIMING_CHALLENGE_START_TIMER_EVENT, (payload: unknown, callback) => {
+    const contextError = getGameSocketContext(socket);
+
+    if (contextError) {
+      sendGameResponse(callback, contextError);
+      return;
+    }
+
+    const { roomId, playerId } = socket.data;
+
+    if (recoveryBlockedResponse(roomId!, callback)) {
+      return;
+    }
+
+    const shell = getGameShellByRoomId(roomId!);
+    const match = getTimingChallengeState(roomId!);
+
+    if (!shell || !match) {
+      sendGameResponse(callback, gameNotReadyError());
+      return;
+    }
+
+    if (!match.playerIds.includes(playerId!)) {
+      sendGameResponse(callback, notParticipantError());
+      return;
+    }
+
+    const roundError = assertCurrentRound(match, parseRoundId(payload));
+    if (roundError) {
+      sendGameResponse(callback, roundError);
       return;
     }
 
@@ -332,7 +397,7 @@ export function registerTimingChallengeSocketHandlers(io: Server, socket: Socket
     respondWithView(callback, roomId!, playerId!);
   });
 
-  socket.on(TIMING_CHALLENGE_STOP_TIMER_EVENT, (_payload: unknown, callback) => {
+  socket.on(TIMING_CHALLENGE_STOP_TIMER_EVENT, (payload: unknown, callback) => {
     const contextError = getGameSocketContext(socket);
 
     if (contextError) {
@@ -354,8 +419,14 @@ export function registerTimingChallengeSocketHandlers(io: Server, socket: Socket
       return;
     }
 
-    if (!isActiveMatchParticipant(shell, playerId!)) {
+    if (!match.playerIds.includes(playerId!)) {
       sendGameResponse(callback, notParticipantError());
+      return;
+    }
+
+    const roundError = assertCurrentRound(match, parseRoundId(payload));
+    if (roundError) {
+      sendGameResponse(callback, roundError);
       return;
     }
 
@@ -420,10 +491,15 @@ export function registerTimingChallengeSocketHandlers(io: Server, socket: Socket
     }
 
     const { roomId, playerId } = socket.data;
+
+    if (recoveryBlockedResponse(roomId!, callback)) {
+      return;
+    }
+
     const shell = getGameShellByRoomId(roomId!);
     const match = getTimingChallengeState(roomId!);
 
-    if (!shell || !match) {
+    if (!shell || !match || shell.phase !== 'PLAYING') {
       sendGameResponse(callback, gameNotReadyError());
       return;
     }
@@ -436,8 +512,22 @@ export function registerTimingChallengeSocketHandlers(io: Server, socket: Socket
       return;
     }
 
+    if (
+      match.round.gamePhase !== 'round-results' &&
+      match.round.gamePhase !== 'match-completed'
+    ) {
+      sendGameResponse(callback, gameNotReadyError());
+      return;
+    }
+
     continueFromRoundResults(io, roomId!, match, shell, playerId!);
-    respondWithView(callback, roomId!, playerId!);
+
+    if (getTimingChallengeState(roomId!)) {
+      respondWithView(callback, roomId!, playerId!);
+      return;
+    }
+
+    sendGameResponse(callback, { success: true, data: {} });
   });
 }
 

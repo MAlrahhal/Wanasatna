@@ -3,24 +3,26 @@ import type { TimingChallengeMatchState } from '@wanasatna/shared';
 import { TIMING_CHALLENGE_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
-import { completeMatch, startGuessingPhase } from './match-lifecycle.js';
+import {
+  advanceFromReady,
+  advanceFromRoundResults,
+  completeMatch,
+  startGuessingPhase,
+  startRoundResults,
+} from './match-lifecycle.js';
 import { getTimingChallengeState, setTimingChallengeState } from './store.js';
 import { withRound } from './state.js';
 
 const timersByRoomId = new Map<string, ReturnType<typeof setInterval>>();
 const pausedRoomIds = new Set<string>();
-/** Wall-clock remaining for Mode A while recovery pauses progression. */
 const pausedHiddenRemainingMsByRoomId = new Map<string, number>();
 
-const TIMERLESS_PHASES = new Set<TimingChallengeMatchState['round']['gamePhase']>([
+const TIMED_PHASES = new Set<TimingChallengeMatchState['round']['gamePhase']>([
   'ready',
+  'hidden-timing',
   'guessing',
   'stop-timer',
   'round-results',
-]);
-
-const TIMED_TICK_PHASES = new Set<TimingChallengeMatchState['round']['gamePhase']>([
-  'hidden-timing',
   'match-completed',
 ]);
 
@@ -51,10 +53,7 @@ export function resumeTimingChallengePhaseTimer(io: Server, roomId: string): voi
 
   const match = getTimingChallengeState(roomId);
 
-  if (
-    remainingMs !== undefined &&
-    match?.round.gamePhase === 'hidden-timing'
-  ) {
+  if (remainingMs !== undefined && match?.round.gamePhase === 'hidden-timing') {
     setTimingChallengeState(
       roomId,
       withRound(match, {
@@ -77,11 +76,15 @@ export function stopTimingChallengePhaseTimer(roomId: string): void {
   }
 }
 
-/** Clears pause bookkeeping when a match is cleaned up. */
 export function clearTimingChallengePhaseTimerRuntime(roomId: string): void {
   stopTimingChallengePhaseTimer(roomId);
   pausedRoomIds.delete(roomId);
   pausedHiddenRemainingMsByRoomId.delete(roomId);
+}
+
+export function restartTimingChallengePhaseTimer(io: Server, roomId: string): void {
+  stopTimingChallengePhaseTimer(roomId);
+  startTimingChallengePhaseTimerIfNeeded(io, roomId);
 }
 
 function handlePhaseTimerExpired(
@@ -89,8 +92,30 @@ function handlePhaseTimerExpired(
   roomId: string,
   match: TimingChallengeMatchState,
 ): void {
+  const shell = getGameShellByRoomId(roomId);
+
+  if (!shell || shell.phase !== 'PLAYING') {
+    stopTimingChallengePhaseTimer(roomId);
+    return;
+  }
+
+  if (match.round.gamePhase === 'ready') {
+    advanceFromReady(io, roomId, match);
+    return;
+  }
+
   if (match.round.gamePhase === 'hidden-timing') {
     startGuessingPhase(io, roomId, match);
+    return;
+  }
+
+  if (match.round.gamePhase === 'guessing' || match.round.gamePhase === 'stop-timer') {
+    startRoundResults(io, roomId, match);
+    return;
+  }
+
+  if (match.round.gamePhase === 'round-results') {
+    advanceFromRoundResults(io, roomId, match);
     return;
   }
 
@@ -106,20 +131,16 @@ export function startTimingChallengePhaseTimerIfNeeded(io: Server, roomId: strin
 
   const match = getTimingChallengeState(roomId);
 
-  if (!match || TIMERLESS_PHASES.has(match.round.gamePhase)) {
+  if (!match || !TIMED_PHASES.has(match.round.gamePhase)) {
     return;
   }
 
   if (match.round.gamePhase === 'hidden-timing' && match.round.hiddenEndsAtMs) {
-    const remainingMs = match.round.hiddenEndsAtMs - Date.now();
-
-    if (remainingMs <= 0) {
+    if (match.round.hiddenEndsAtMs - Date.now() <= 0) {
       handlePhaseTimerExpired(io, roomId, match);
       return;
     }
-  }
-
-  if (match.round.phaseRemainingSeconds <= 0 && match.round.gamePhase === 'match-completed') {
+  } else if (match.round.phaseRemainingSeconds <= 0) {
     handlePhaseTimerExpired(io, roomId, match);
     return;
   }
@@ -127,7 +148,7 @@ export function startTimingChallengePhaseTimerIfNeeded(io: Server, roomId: strin
   const intervalId = setInterval(() => {
     const currentMatch = getTimingChallengeState(roomId);
 
-    if (!currentMatch || TIMERLESS_PHASES.has(currentMatch.round.gamePhase)) {
+    if (!currentMatch || !TIMED_PHASES.has(currentMatch.round.gamePhase)) {
       stopTimingChallengePhaseTimer(roomId);
       return;
     }
@@ -157,14 +178,12 @@ export function startTimingChallengePhaseTimerIfNeeded(io: Server, roomId: strin
 
     setTimingChallengeState(roomId, nextMatch);
 
-    if (TIMED_TICK_PHASES.has(currentMatch.round.gamePhase)) {
-      // Mode A: do not broadcast countdown ticks that could leak remaining time.
-      if (currentMatch.round.gamePhase !== 'hidden-timing') {
-        io.to(getRoomChannel(roomId)).emit(TIMING_CHALLENGE_PHASE_CHANGED_EVENT, {});
-      }
+    // Mode A: do not broadcast countdown ticks that could leak remaining time.
+    if (currentMatch.round.gamePhase !== 'hidden-timing') {
+      io.to(getRoomChannel(roomId)).emit(TIMING_CHALLENGE_PHASE_CHANGED_EVENT, {});
     }
 
-    if (remainingSeconds <= 0 && currentMatch.round.gamePhase === 'match-completed') {
+    if (remainingSeconds <= 0 && currentMatch.round.gamePhase !== 'hidden-timing') {
       handlePhaseTimerExpired(io, roomId, nextMatch);
     }
   }, 1000);

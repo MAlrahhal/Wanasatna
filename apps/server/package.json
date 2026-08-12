@@ -15,6 +15,7 @@
     "test:unit": "tsx tests/unit.test.ts",
     "test:plugin-registry": "tsx tests/plugin-registry.unit.test.ts",
     "test:timing-challenge": "tsx tests/timing-challenge.unit.test.ts",
+    "test:timing-challenge:integration": "tsx tests/timing-challenge.integration.test.ts",
     "test:fast-answer": "tsx tests/fast-answer.unit.test.ts",
     "test:fast-answer:integration": "tsx tests/fast-answer.integration.test.ts",
     "test:draw-guess": "tsx tests/draw-guess.unit.test.ts",
