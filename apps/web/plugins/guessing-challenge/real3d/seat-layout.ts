@@ -17,9 +17,12 @@ const SEAT_CAMERA_X = 0.26;
 /**
  * Other-seat X (seat 0 teammate on +X / right).
  */
-const TEAMMATE_X = 1.45;
-/** Neighboring-seat Z (camera at 1.65 looking -Z). Higher = beside player, not across the rug. */
-const TEAMMATE_Z = 1.15;
+const TEAMMATE_X = 1.22;
+/**
+ * Same depth as the local camera (z=1.65) so looking sideways is eye-to-eye.
+ * Bean head is ~0.08 behind the seat origin after Y=π.
+ */
+const TEAMMATE_Z = 1.53;
 
 export type RemoteAvatarFacing = 'toward-camera' | 'same-as-local';
 

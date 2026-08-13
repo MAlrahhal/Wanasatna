@@ -405,15 +405,15 @@ test('2v2 seats are mirrored and teammate is not in the camera near field', () =
     const tm = teammateSeatPosition(seat);
     const depth = cam[2] - tm[2];
     const side = Math.abs(tm[0] - cam[0]);
-    assert.ok(depth > 0.35, `seat ${seat} teammate must sit slightly in front of the camera`);
-    assert.ok(depth < 1.0, `seat ${seat} teammate must sit beside the local seat, not across the room`);
-    assert.ok(side > 1.5, `seat ${seat} teammate must sit beside, not in the aisle`);
+    assert.ok(Math.abs(depth) < 0.25, `seat ${seat} teammate head-depth should match the local camera (eye-to-eye)`);
+    assert.ok(tm[2] > 1.35, `seat ${seat} teammate must sit beside the local seat, not across the room`);
+    assert.ok(side > 1.2 && side < 1.65, `seat ${seat} teammate must sit in the neighboring chair`);
     assert.ok(Math.abs(tm[0]) > Math.abs(cam[0]), 'teammate is outward of the local seat');
     const head = new THREE.Vector3(tm[0], 1.05, tm[2]);
     const camPos = new THREE.Vector3(cam[0], cam[1], cam[2]);
     const headDist = head.distanceTo(camPos);
-    assert.ok(headDist > 1.7, `seat ${seat} teammate must not sit inside the camera`);
-    assert.ok(headDist < 2.4, `seat ${seat} teammate must stay a neighboring seat`);
+    assert.ok(headDist > 1.25, `seat ${seat} teammate must not sit inside the camera`);
+    assert.ok(headDist < 1.85, `seat ${seat} teammate must stay a neighboring seat`);
 
     const camera = new THREE.PerspectiveCamera(55, 1.8, 0.15, 40);
     camera.position.copy(camPos);
