@@ -15,12 +15,15 @@ export const CAMERA_FOV = 55;
 /** 2v2: sit slightly off center so the outer wall has space and seats mirror. */
 const SEAT_CAMERA_X = 0.26;
 /**
- * Other-seat X (seat 0 teammate on +X / right). Kept on the same side as the
- * camera offset; magnitude sits between the old near seat and the too-far seat.
+ * Other-seat X (seat 0 teammate on +X / right).
  */
 const TEAMMATE_X = 1.58;
-/** Farther from camera along -Z so the side companion is not near-plane huge. */
-const TEAMMATE_Z = -1.05;
+/**
+ * Neighboring-seat Z. Camera is at z=1.65 looking -Z (toward opponents).
+ * Negative Z pushes the teammate FORWARD into the room; keep this near the
+ * local camera so they sit beside the player, not across the rug.
+ */
+const TEAMMATE_Z = 1.05;
 
 export type RemoteAvatarFacing = 'toward-camera' | 'same-as-local';
 
