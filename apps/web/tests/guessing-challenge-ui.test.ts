@@ -6,12 +6,19 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import * as THREE from 'three';
 import { getGameCatalogEntry } from '@/lib/public/game-catalog';
 import { mockLobbyGames, mockGameSettingsByGameId } from '@/lib/lobby/mock-games';
 import { getHomeGameShowcase } from '@/lib/home/game-showcase';
 import { getGameRoundCategories } from '@/lib/game/round-categories/registry';
 import { resolveIdentityCardText, splitIdentityDisplayLines } from '../plugins/guessing-challenge/identity-display';
 import { detectWebGLSupport } from '../plugins/guessing-challenge/scene-props';
+import {
+  cameraPositionForSeat,
+  mapRemoteLookPitch,
+  mapRemoteLookYaw,
+  teammateSeatPosition,
+} from '../plugins/guessing-challenge/real3d/seat-layout';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -282,11 +289,19 @@ test('2v2 seating faces opponents; shared card + name anchors', () => {
   const opponent = readPlugin('real3d/low-poly-opponent.tsx');
   const bean = readPlugin('real3d/bean-character.tsx');
   const hands = readPlugin('real3d/first-person-hands.tsx');
+  const layout = readPlugin('real3d/seat-layout.ts');
 
   assert.match(inner, /userData=\{\{ testId: 'gc-teammate-seat'/);
   assert.match(inner, /userData=\{\{ testId: 'gc-opponent-pair' \}\}/);
-  assert.match(inner, /position=\{\[x, 0, 1\.4\]\}/);
-  assert.match(inner, /selfSeat === 0 \? 1\.1 : -1\.1/);
+  assert.match(inner, /teammateSeatPosition/);
+  assert.match(inner, /cameraPositionForSeat/);
+  assert.match(inner, /mapRemoteLookYaw/);
+  assert.match(inner, /same-as-local/);
+  assert.match(inner, /toward-camera/);
+  assert.match(layout, /TEAMMATE_Z/);
+  assert.match(layout, /SEAT_CAMERA_X/);
+  assert.doesNotMatch(inner, /position=\{\[x, 0, 1\.4\]\}/);
+  assert.doesNotMatch(inner, /selfSeat === 0 \? 1\.1 : -1\.1/);
   assert.match(inner, /Math\.PI/);
   assert.match(inner, /-2\.15/);
   assert.match(bean, /lookYaw \* 0\.62/);
@@ -366,6 +381,87 @@ test('lobby category is locked for the whole guessing-challenge match', () => {
   const panel = readFileSync(join(root, 'components/lobby/round-category-panel.tsx'), 'utf8');
   assert.match(panel, /GUESSING_CHALLENGE_GAME_ID/);
   assert.match(panel, /تُقفل الفئة عند بدء المباراة وتستخدم لكل الجولات الأربع/);
+});
+
+test('2v2 seats are mirrored and teammate is not in the camera near field', () => {
+  const blue0Cam = cameraPositionForSeat('2v2', 0);
+  const blue1Cam = cameraPositionForSeat('2v2', 1);
+  const red0Cam = cameraPositionForSeat('2v2', 0);
+  const red1Cam = cameraPositionForSeat('2v2', 1);
+  const tm0 = teammateSeatPosition(0);
+  const tm1 = teammateSeatPosition(1);
+
+  assert.equal(blue0Cam[0], -blue1Cam[0]);
+  assert.equal(blue0Cam[0], red0Cam[0]);
+  assert.equal(blue1Cam[0], red1Cam[0]);
+  assert.equal(tm0[0], -tm1[0]);
+  assert.ok(tm0[0] > 0, 'seat 0 teammate sits to the right');
+  assert.ok(tm1[0] < 0, 'seat 1 teammate sits to the left');
+  assert.equal(cameraPositionForSeat('1v1', 0)[0], 0);
+  assert.equal(cameraPositionForSeat('1v1', 1)[0], 0);
+
+  for (const seat of [0, 1] as const) {
+    const cam = cameraPositionForSeat('2v2', seat);
+    const tm = teammateSeatPosition(seat);
+    const depth = cam[2] - tm[2];
+    const side = Math.abs(tm[0] - cam[0]);
+    assert.ok(depth > 0.9, `seat ${seat} teammate must sit well in front of camera`);
+    assert.ok(side > 1.0, `seat ${seat} teammate must sit beside, not in the aisle`);
+    assert.ok(Math.abs(tm[0]) > Math.abs(cam[0]), 'teammate is outward of the local seat');
+
+    const camera = new THREE.PerspectiveCamera(55, 1.8, 0.15, 40);
+    camera.position.set(cam[0], cam[1], cam[2]);
+    camera.quaternion.setFromEuler(new THREE.Euler(0, 0, 0, 'YXZ'));
+    camera.updateMatrixWorld();
+    const tmNdc = new THREE.Vector3(tm[0], 1.05, tm[2]).project(camera);
+    const oppNdc = new THREE.Vector3(0, 1.05, -2.2).project(camera);
+    assert.ok(Math.abs(tmNdc.x) > 1, `seat ${seat} teammate must not sit in the forward frustum center`);
+    assert.ok(Math.abs(oppNdc.x) < 0.35, `seat ${seat} opponents stay in view`);
+  }
+});
+
+test('remote look yaw maps look-left to world left for every 2v2 facing', () => {
+  const lookLeft = 0.6;
+  const lookRight = -0.6;
+  assert.equal(mapRemoteLookYaw(lookLeft, 'same-as-local'), lookLeft);
+  assert.equal(mapRemoteLookYaw(lookLeft, 'toward-camera'), -lookLeft);
+  assert.equal(mapRemoteLookYaw(lookRight, 'toward-camera'), -lookRight);
+  assert.equal(mapRemoteLookPitch(0.4), 0.4);
+  assert.equal(mapRemoteLookPitch(-0.3), -0.3);
+
+  function beanFaceWorldX(parentYaw: number, mappedLookYaw: number): number {
+    const parent = new THREE.Group();
+    parent.rotation.y = parentYaw;
+    const head = new THREE.Group();
+    head.rotation.y = mappedLookYaw * 0.62;
+    parent.add(head);
+    parent.updateMatrixWorld(true);
+    return new THREE.Vector3(0, 0, 1).applyQuaternion(
+      head.getWorldQuaternion(new THREE.Quaternion()),
+    ).x;
+  }
+
+  assert.ok(beanFaceWorldX(Math.PI, mapRemoteLookYaw(lookLeft, 'same-as-local')) < 0);
+  assert.ok(beanFaceWorldX(0, mapRemoteLookYaw(lookLeft, 'toward-camera')) < 0);
+  assert.ok(beanFaceWorldX(Math.PI, mapRemoteLookYaw(lookRight, 'same-as-local')) > 0);
+  assert.ok(beanFaceWorldX(0, mapRemoteLookYaw(lookRight, 'toward-camera')) > 0);
+
+  function beanFaceWorldY(parentYaw: number, mappedLookPitch: number): number {
+    const parent = new THREE.Group();
+    parent.rotation.y = parentYaw;
+    const head = new THREE.Group();
+    head.rotation.x = mappedLookPitch * 0.45;
+    parent.add(head);
+    parent.updateMatrixWorld(true);
+    return new THREE.Vector3(0, 0, 1).applyQuaternion(
+      head.getWorldQuaternion(new THREE.Quaternion()),
+    ).y;
+  }
+
+  const lookUp = 0.5;
+  const teammatePitchY = beanFaceWorldY(Math.PI, mapRemoteLookPitch(lookUp));
+  const opponentPitchY = beanFaceWorldY(0, mapRemoteLookPitch(lookUp));
+  assert.equal(Math.sign(teammatePitchY), Math.sign(opponentPitchY));
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

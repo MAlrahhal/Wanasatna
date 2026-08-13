@@ -1,7 +1,7 @@
 'use client';
 
-import { Canvas } from '@react-three/fiber';
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import type { GuessingChallengeSceneProps, GuessingChallengeTeamSeat } from '../scene-props';
 import { FirstPersonGameScene } from '../first-person-game-scene';
 import { resolveIdentityCardText } from '../identity-display';
@@ -11,6 +11,13 @@ import { LookControls, type LookControlsHandle } from './look-controls';
 import { BeanCharacter } from './bean-character';
 import { LoungeRoom, OrangeArmchair } from './lounge-room';
 import { LowPolyOpponent } from './low-poly-opponent';
+import {
+  CAMERA_FOV,
+  cameraPositionForSeat,
+  mapRemoteLookPitch,
+  mapRemoteLookYaw,
+  teammateSeatPosition,
+} from './seat-layout';
 import './real3d-scene.css';
 
 const YAW_1V1 = (38 * Math.PI) / 180;
@@ -41,6 +48,15 @@ function opponentTint(
   return 'opponent';
 }
 
+function CameraAnchor({ position }: { position: [number, number, number] }) {
+  const { camera } = useThree();
+  const [x, y, z] = position;
+  useLayoutEffect(() => {
+    camera.position.set(x, y, z);
+  }, [camera, x, y, z]);
+  return null;
+}
+
 function TeammateSeat({
   teammate,
   selfTeam,
@@ -52,17 +68,19 @@ function TeammateSeat({
   selfSeat: 0 | 1;
   reduceMotion: boolean;
 }) {
-  // Beside the camera (same depth), NOT in front — facing opponents (-Z).
+  // Beside the local seat, mid-room — facing opponents (-Z).
   // selfSeat 0 → teammate on +x (right); selfSeat 1 → -x (left).
   // Looking sideways shows a side profile; body never faces the local camera.
   // no local third-person body
-  const x = selfSeat === 0 ? 1.1 : -1.1;
+  const position = teammateSeatPosition(selfSeat);
   const tint = selfTeam === 'red' ? 'red' : 'blue';
   const teamDot = selfTeam === 'red' ? 'red' : 'blue';
+  const lookYaw = mapRemoteLookYaw(teammate.lookYaw ?? 0, 'same-as-local');
+  const lookPitch = mapRemoteLookPitch(teammate.lookPitch ?? 0);
 
   return (
     <group
-      position={[x, 0, 1.4]}
+      position={position}
       // Face opponents (-Z). Without π, the bean stares into the local camera.
       rotation={[0, Math.PI, 0]}
       userData={{ testId: 'gc-teammate-seat', facing: 'opponents' }}
@@ -71,8 +89,8 @@ function TeammateSeat({
       <group position={[0, 0.4, 0.06]}>
         <BeanCharacter
           teamTint={tint}
-          lookYaw={teammate.lookYaw ?? 0}
-          lookPitch={teammate.lookPitch ?? 0}
+          lookYaw={lookYaw}
+          lookPitch={lookPitch}
           reduceMotion={reduceMotion}
           holdHand="both"
           nameBadge={
@@ -130,22 +148,26 @@ function SceneContent({
   const oppDot = props.selfTeam === 'blue' ? 'red' : props.selfTeam === 'red' ? 'blue' : 'opponent';
 
   const opponents = useMemo(() => {
-    if (props.opponents && props.opponents.length > 0) {
-      return props.opponents;
-    }
-    return [
-      {
-        playerId: 'opponent',
-        name: props.opponentName,
-        seat: 0 as const,
-      },
-    ];
+    const list =
+      props.opponents && props.opponents.length > 0
+        ? [...props.opponents]
+        : [
+            {
+              playerId: 'opponent',
+              name: props.opponentName,
+              seat: 0 as const,
+            },
+          ];
+    list.sort((left, right) => left.seat - right.seat);
+    return list;
   }, [props.opponents, props.opponentName]);
 
   const yawLimit = is2v2 ? YAW_2V2 : YAW_1V1;
+  const cameraPosition = cameraPositionForSeat(matchMode, props.selfSeat);
 
   return (
     <>
+      <CameraAnchor position={cameraPosition} />
       <color attach="background" args={['#2e1065']} />
       <fog attach="fog" args={['#3b0764', 8, 18]} />
       <ambientLight intensity={0.45} color="#fce7f3" />
@@ -207,8 +229,8 @@ function SceneContent({
             reachToward={[0.42, 0.48, 0.42]}
             teamTint={oppTint}
             teamDot={oppDot}
-            lookYaw={opponents[0].lookYaw ?? 0}
-            lookPitch={opponents[0].lookPitch ?? 0}
+            lookYaw={mapRemoteLookYaw(opponents[0].lookYaw ?? 0, 'toward-camera')}
+            lookPitch={mapRemoteLookPitch(opponents[0].lookPitch ?? 0)}
             highlight={props.opponentHighlight}
             reduceMotion={reduceMotion}
             position={[-0.62, 0, -2.2]}
@@ -223,8 +245,8 @@ function SceneContent({
             reachToward={[-0.42, 0.48, 0.42]}
             teamTint={oppTint}
             teamDot={oppDot}
-            lookYaw={opponents[1].lookYaw ?? 0}
-            lookPitch={opponents[1].lookPitch ?? 0}
+            lookYaw={mapRemoteLookYaw(opponents[1].lookYaw ?? 0, 'toward-camera')}
+            lookPitch={mapRemoteLookPitch(opponents[1].lookPitch ?? 0)}
             highlight={props.opponentHighlight}
             reduceMotion={reduceMotion}
             position={[0.62, 0, -2.2]}
@@ -240,8 +262,8 @@ function SceneContent({
           holdHand="both"
           teamTint={oppTint}
           teamDot={oppDot}
-          lookYaw={opponents[0]?.lookYaw ?? 0}
-          lookPitch={opponents[0]?.lookPitch ?? 0}
+          lookYaw={mapRemoteLookYaw(opponents[0]?.lookYaw ?? 0, 'toward-camera')}
+          lookPitch={mapRemoteLookPitch(opponents[0]?.lookPitch ?? 0)}
           highlight={props.opponentHighlight}
           labelPrefix={revealed ? `${opponents[0]?.name ?? props.opponentName} كان` : undefined}
           reduceMotion={reduceMotion}
@@ -305,7 +327,12 @@ export function Real3DSceneInner(props: GuessingChallengeSceneProps) {
         <Canvas
           shadows
           dpr={[1, 1.5]}
-          camera={{ position: [0, 1.35, 1.65], fov: 55, near: 0.15, far: 40 }}
+          camera={{
+            position: cameraPositionForSeat(props.matchMode, props.selfSeat),
+            fov: CAMERA_FOV,
+            near: 0.15,
+            far: 40,
+          }}
           gl={{ antialias: true, powerPreference: 'high-performance' }}
           onCreated={({ gl }) => {
             gl.setClearColor('#2e1065');
