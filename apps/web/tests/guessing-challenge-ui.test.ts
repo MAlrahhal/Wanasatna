@@ -405,17 +405,21 @@ test('2v2 seats are mirrored and teammate is not in the camera near field', () =
     const tm = teammateSeatPosition(seat);
     const depth = cam[2] - tm[2];
     const side = Math.abs(tm[0] - cam[0]);
-    assert.ok(depth > 0.9, `seat ${seat} teammate must sit well in front of camera`);
-    assert.ok(side > 1.0, `seat ${seat} teammate must sit beside, not in the aisle`);
+    assert.ok(depth > 2.0, `seat ${seat} teammate must sit well in front of camera`);
+    assert.ok(side > 1.7, `seat ${seat} teammate must sit beside, not in the aisle`);
     assert.ok(Math.abs(tm[0]) > Math.abs(cam[0]), 'teammate is outward of the local seat');
+    const head = new THREE.Vector3(tm[0], 1.05, tm[2]);
+    const camPos = new THREE.Vector3(cam[0], cam[1], cam[2]);
+    assert.ok(head.distanceTo(camPos) > 2.9, `seat ${seat} camera→teammate must be neighboring-chair distance`);
 
     const camera = new THREE.PerspectiveCamera(55, 1.8, 0.15, 40);
-    camera.position.set(cam[0], cam[1], cam[2]);
+    camera.position.copy(camPos);
     camera.quaternion.setFromEuler(new THREE.Euler(0, 0, 0, 'YXZ'));
     camera.updateMatrixWorld();
-    const tmNdc = new THREE.Vector3(tm[0], 1.05, tm[2]).project(camera);
+    const tmNdc = head.clone().project(camera);
     const oppNdc = new THREE.Vector3(0, 1.05, -2.2).project(camera);
-    assert.ok(Math.abs(tmNdc.x) > 1, `seat ${seat} teammate must not sit in the forward frustum center`);
+    assert.ok(Math.abs(tmNdc.x) > 0.7, `seat ${seat} teammate stays on the side`);
+    assert.ok(Math.abs(tmNdc.x) < 1.2, `seat ${seat} teammate remains a side presence`);
     assert.ok(Math.abs(oppNdc.x) < 0.35, `seat ${seat} opponents stay in view`);
   }
 });
