@@ -1,6 +1,9 @@
 import type { Server } from 'socket.io';
 import type { GameActionResponse, GameShellPlayerRecoveryPayload } from '@wanasatna/shared';
-import { GAME_SHELL_PLAYER_RECOVERY_EVENT } from '@wanasatna/shared';
+import {
+  GAME_SHELL_PLAYER_RECOVERY_EVENT,
+  GUESSING_CHALLENGE_GAME_ID,
+} from '@wanasatna/shared';
 import { resolvePlayerRecoverySeconds } from '../../../config/test-timers.js';
 import { getRoomChannel } from '../../room/room.utils.js';
 import { getGameShellByRoomId, syncGameShell } from '../game.service.js';
@@ -31,6 +34,7 @@ import {
   pauseGuessingChallengePhaseTimer,
   resumeGuessingChallengePhaseTimer,
 } from '../plugins/guessing-challenge/phase-timer.js';
+import { reconcileGuessingChallengeConnectivity } from '../plugins/guessing-challenge/match-lifecycle.js';
 import {
   pauseJudgePhaseTimer,
   resumeJudgePhaseTimer,
@@ -182,7 +186,8 @@ function startRecovery(io: Server, roomId: string, connectedCount: number, minim
   pauseGuessingChallengePhaseTimer(roomId);
   stopGameShellTimer(roomId);
 
-  const deadlineAt = Date.now() + resolvePlayerRecoverySeconds() * 1000;
+  const recoverySeconds = resolvePlayerRecoverySeconds();
+  const deadlineAt = Date.now() + recoverySeconds * 1000;
 
   const intervalId = setInterval(() => {
     void handleRecoveryTick(io, roomId);
@@ -225,6 +230,15 @@ async function handleRecoveryTick(io: Server, roomId: string): Promise<void> {
   }
 
   broadcastGameShellState(io, refreshedShell);
+  reconcileGuessingChallengeConnectivity(io, roomId, refreshedShell);
+
+  if (refreshedShell.gameId === GUESSING_CHALLENGE_GAME_ID) {
+    if (isPlayerRecoveryActive(roomId)) {
+      cancelPlayerRecovery(io, roomId);
+    }
+
+    return;
+  }
 
   const connectedCount = countConnectedEligibleParticipants(refreshedShell);
 
@@ -274,6 +288,15 @@ export async function evaluatePlayerRecovery(io: Server, roomId: string): Promis
   }
 
   broadcastGameShellState(io, refreshedShell);
+  reconcileGuessingChallengeConnectivity(io, roomId, refreshedShell);
+
+  if (refreshedShell.gameId === GUESSING_CHALLENGE_GAME_ID) {
+    if (isPlayerRecoveryActive(roomId)) {
+      cancelPlayerRecovery(io, roomId);
+    }
+
+    return;
+  }
 
   const minimumCount = getGameMinPlayers(refreshedShell.gameId);
 

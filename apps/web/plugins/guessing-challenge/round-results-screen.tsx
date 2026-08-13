@@ -2,10 +2,8 @@
 
 import { useMemo } from 'react';
 import type { GuessingChallengePlayerView } from '@wanasatna/shared';
-import { GUESSING_CHALLENGE_GAME_ID } from '@wanasatna/shared';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
-import { RoundCategoryPanel } from '@/components/lobby/round-category-panel';
 import { Button } from '@/components/ui/button';
 import {
   GUESSING_CHALLENGE_GAME_ICON,
@@ -17,18 +15,20 @@ export type GuessingChallengeRoundResultsScreenProps = {
   view: GuessingChallengePlayerView;
   currentPlayerId: string;
   roomCode: string;
+  remainingSeconds?: number;
+  totalDurationSeconds?: number;
   isContinueLoading?: boolean;
   onContinue?: () => void;
-  onSelectNextCategory?: (categoryId: string) => void;
 };
 
 export function GuessingChallengeRoundResultsScreen({
   view,
   currentPlayerId,
   roomCode,
+  remainingSeconds = 0,
+  totalDurationSeconds = 10,
   isContinueLoading = false,
   onContinue,
-  onSelectNextCategory,
 }: GuessingChallengeRoundResultsScreenProps) {
   const sortedResults = useMemo(
     () =>
@@ -88,6 +88,13 @@ export function GuessingChallengeRoundResultsScreen({
     view.mode === '2v2'
       ? (view.opponents[0]?.name ?? view.opponent.name)
       : (opponentReveal?.name ?? view.opponent.name);
+  const selfWon = view.winningTeamId !== null && view.winningTeamId === view.selfTeam;
+  const opponentWon =
+    view.winningTeamId !== null &&
+    view.selfTeam !== null &&
+    view.winningTeamId !== view.selfTeam;
+  const progressMax = Math.max(1, totalDurationSeconds);
+  const progressNow = Math.max(0, Math.min(remainingSeconds, totalDurationSeconds));
 
   return (
     <GameScreen ariaLabel="نتائج الجولة" maxWidth="4xl">
@@ -124,8 +131,8 @@ export function GuessingChallengeRoundResultsScreen({
           opponentIdentity={opponentIdentity}
           selfIdentity={selfReveal?.identity ?? view.self.revealedIdentity}
           selfHidden={false}
-          opponentHighlight={Boolean(opponentReveal?.isWinner)}
-          selfHighlight={Boolean(selfReveal?.isWinner)}
+          opponentHighlight={opponentWon}
+          selfHighlight={selfWon}
           showSpecialCards={false}
         />
 
@@ -149,30 +156,39 @@ export function GuessingChallengeRoundResultsScreen({
           </ul>
         </GameCard>
 
-        {view.currentRound < view.totalRounds ? (
-          <RoundCategoryPanel
-            gameId={GUESSING_CHALLENGE_GAME_ID}
-            selectedCategoryId={view.nextCategoryId}
-            isHost={view.isHost}
-            isActiveMatch
-            onSelectCategory={(categoryId) => onSelectNextCategory?.(categoryId)}
-          />
-        ) : null}
-
         {view.canContinueFromRoundResults && onContinue ? (
-          <Button
-            type="button"
-            size="lg"
-            className="w-full"
-            disabled={isContinueLoading}
-            onClick={onContinue}
-          >
-            {view.roundResultsContinueLabel ?? 'بدء الجولة التالية'}
-          </Button>
+          <div className="space-y-2.5">
+            <p className="text-center text-sm text-wanas-text-muted">
+              {view.roundResultsWaitingMessage}
+            </p>
+            <div className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted">
+              <div
+                className="h-full rounded-full bg-wanas-accent transition-[width]"
+                style={{ width: `${Math.round((progressNow / progressMax) * 100)}%` }}
+              />
+            </div>
+            <Button
+              type="button"
+              size="lg"
+              className="w-full"
+              disabled={isContinueLoading}
+              onClick={onContinue}
+            >
+              {view.roundResultsContinueLabel}
+            </Button>
+          </div>
         ) : (
-          <p className="text-center text-sm text-wanas-text-muted">
-            {view.roundResultsWaitingMessage ?? 'بانتظار المضيف...'}
-          </p>
+          <div className="space-y-2.5">
+            <p className="text-center text-sm text-wanas-text-muted">
+              {view.roundResultsWaitingMessage}
+            </p>
+            <div className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted">
+              <div
+                className="h-full rounded-full bg-wanas-accent transition-[width]"
+                style={{ width: `${Math.round((progressNow / progressMax) * 100)}%` }}
+              />
+            </div>
+          </div>
         )}
       </div>
     </GameScreen>

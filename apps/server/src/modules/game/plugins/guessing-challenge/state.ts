@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type {
   GameContentSettings,
   GameShellPlayer,
@@ -20,15 +21,19 @@ import {
   GUESSING_CHALLENGE_LOOK_THROTTLE_MS,
   GUESSING_CHALLENGE_MAX_GUESS_LENGTH,
   GUESSING_CHALLENGE_YELLOW_QUESTIONS,
+  MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL,
+  MATCH_COMPLETED_WAITING_MESSAGE,
+  buildRoundResultsContinueCopy,
 } from '@wanasatna/shared';
-import { resolveMatchRounds } from '../../../../config/test-timers.js';
-import { getRoomRoundCategory } from '../../runtime/round-category-store.js';
+import { timedPhaseDurations } from '../../../../config/test-timers.js';
 import {
   getIdentitiesForCategory,
   identityMatchesGuess,
   pickReplacementIdentity,
+  pickRoundCategoryId,
   pickTwoIdentities,
-  resolveCategoryPool,
+  resolveMatchCategorySelection,
+  GUESSING_CHALLENGE_RANDOM_CATEGORY_ID,
 } from './identities.js';
 import {
   buildLeaderboardEntries,
@@ -52,7 +57,8 @@ const MAX_RECENT_IDENTITY_IDS = 32;
 const lookThrottleByKey = new Map<string, number>();
 
 export function resolveTotalRounds(settings: GameContentSettings): number {
-  return resolveMatchRounds(settings.rounds, GUESSING_CHALLENGE_DEFAULT_ROUNDS);
+  void settings;
+  return GUESSING_CHALLENGE_DEFAULT_ROUNDS;
 }
 
 export function resolveGuessingChallengeMode(
@@ -81,6 +87,30 @@ export function withRound(
   round: GuessingChallengeRoundState,
 ): GuessingChallengeMatchState {
   return { ...match, round };
+}
+
+export function remainingSecondsFromDeadline(
+  deadlineAtMs: number | null,
+  now = Date.now(),
+): number {
+  if (deadlineAtMs === null) {
+    return 0;
+  }
+
+  return Math.max(0, Math.ceil((deadlineAtMs - now) / 1000));
+}
+
+function createTurnTiming(now = Date.now()): {
+  turnId: string;
+  phaseRemainingSeconds: number;
+  deadlineAtMs: number;
+} {
+  const seconds = timedPhaseDurations.guessingChallengeTurn();
+  return {
+    turnId: randomUUID(),
+    phaseRemainingSeconds: seconds,
+    deadlineAtMs: now + seconds * 1000,
+  };
 }
 
 export function createInitialScores(playerIds: string[]): Record<string, number> {
@@ -149,11 +179,44 @@ export function getTeamPlayerIds(
   return match.playerIds.filter((playerId) => match.teamByPlayerId[playerId] === teamId);
 }
 
+export function isGuessingChallengePlayerDeparted(
+  match: GuessingChallengeMatchState,
+  playerId: string,
+): boolean {
+  return match.departedPlayerIds.includes(playerId);
+}
+
+export function getEligibleTeamPlayerIds(
+  match: GuessingChallengeMatchState,
+  teamId: GuessingChallengeTeamId,
+): string[] {
+  return getTeamPlayerIds(match, teamId).filter(
+    (playerId) => !isGuessingChallengePlayerDeparted(match, playerId),
+  );
+}
+
+export function markGuessingChallengePlayerDeparted(
+  match: GuessingChallengeMatchState,
+  playerId: string,
+): GuessingChallengeMatchState {
+  if (
+    !match.playerIds.includes(playerId) ||
+    isGuessingChallengePlayerDeparted(match, playerId)
+  ) {
+    return match;
+  }
+
+  return {
+    ...match,
+    departedPlayerIds: [...match.departedPlayerIds, playerId],
+  };
+}
+
 export function getTeamSeat0PlayerId(
   match: GuessingChallengeMatchState,
   teamId: GuessingChallengeTeamId,
 ): string | null {
-  const members = getTeamPlayerIds(match, teamId).sort(
+  const members = getEligibleTeamPlayerIds(match, teamId).sort(
     (left, right) => (match.seatByPlayerId[left] ?? 0) - (match.seatByPlayerId[right] ?? 0),
   );
   return members[0] ?? null;
@@ -170,12 +233,15 @@ function toVisibleIdentity(
 }
 
 export function createRoundState(
-  roomId: string,
+  matchCategoryId: string,
+  usedRoundCategoryIds: readonly string[],
   teamByPlayerId: Record<string, GuessingChallengeTeamId>,
   startingTeamId: GuessingChallengeTeamId,
   recentIdentityIds: readonly string[],
-): GuessingChallengeRoundState {
-  const { categoryId, identities } = resolveCategoryPool(roomId);
+  now = Date.now(),
+): { round: GuessingChallengeRoundState; usedRoundCategoryIds: string[] } {
+  const categoryId = pickRoundCategoryId(matchCategoryId, usedRoundCategoryIds);
+  const identities = getIdentitiesForCategory(categoryId);
   const [identityBlue, identityRed] = pickTwoIdentities(identities, recentIdentityIds);
 
   if (!Object.values(teamByPlayerId).includes('blue') || !Object.values(teamByPlayerId).includes('red')) {
@@ -183,22 +249,31 @@ export function createRoundState(
   }
 
   return {
-    gamePhase: 'playing',
-    phaseRemainingSeconds: 0,
-    resolvedCategoryId: categoryId,
-    identitiesByTeamId: {
-      blue: identityBlue,
-      red: identityRed,
+    round: {
+      roundId: randomUUID(),
+      ...createTurnTiming(now),
+      gamePhase: 'playing',
+      resolvedCategoryId: categoryId,
+      identitiesByTeamId: {
+        blue: identityBlue,
+        red: identityRed,
+      },
+      usedIdentityIds: [identityBlue.id, identityRed.id],
+      currentTurnTeamId: startingTeamId,
+      startingTeamId,
+      yellowQuestionsRemaining: null,
+      winningTeamId: null,
+      winningPlayerId: null,
+      winningGuess: null,
+      identityChangedNoticeTeamId: null,
+      cardConfirm: null,
+      scoresApplied: false,
     },
-    usedIdentityIds: [identityBlue.id, identityRed.id],
-    currentTurnTeamId: startingTeamId,
-    startingTeamId,
-    yellowQuestionsRemaining: null,
-    winningTeamId: null,
-    winningPlayerId: null,
-    winningGuess: null,
-    identityChangedNoticeTeamId: null,
-    cardConfirm: null,
+    usedRoundCategoryIds:
+      matchCategoryId === GUESSING_CHALLENGE_RANDOM_CATEGORY_ID &&
+      !usedRoundCategoryIds.includes(categoryId)
+        ? [...usedRoundCategoryIds, categoryId]
+        : [...usedRoundCategoryIds],
   };
 }
 
@@ -215,11 +290,15 @@ export function createMatchState(
   const mode = modeOverride ?? resolveGuessingChallengeMode(settings);
   const expected = requiredPlayerCountForMode(mode);
 
-  if (players.length !== expected) {
+  const assignedPlayers = teamAssignment
+    ? players.filter((player) => teamAssignment.teamByPlayerId[player.id])
+    : players;
+
+  if (assignedPlayers.length !== expected) {
     throw new Error(`Guessing Challenge ${mode} requires exactly ${expected} players.`);
   }
 
-  const playerIds = players.map((player) => player.id);
+  const playerIds = assignedPlayers.map((player) => player.id);
   const { teamByPlayerId, seatByPlayerId } = teamAssignment ?? assignTeams(playerIds, mode);
 
   for (const playerId of playerIds) {
@@ -229,12 +308,19 @@ export function createMatchState(
   }
 
   const startingTeamId: GuessingChallengeTeamId = 'blue';
-  const round = createRoundState(roomId, teamByPlayerId, startingTeamId, []);
+  const category = resolveMatchCategorySelection(roomId);
+  const { round, usedRoundCategoryIds } = createRoundState(
+    category.matchCategoryId,
+    [],
+    teamByPlayerId,
+    startingTeamId,
+    [],
+  );
 
   return {
     mode,
     playerIds,
-    playerNames: Object.fromEntries(players.map((player) => [player.id, player.name])),
+    playerNames: Object.fromEntries(assignedPlayers.map((player) => [player.id, player.name])),
     teamByPlayerId,
     seatByPlayerId,
     teamCards: createInitialTeamCards(),
@@ -245,6 +331,10 @@ export function createMatchState(
     totalRounds: resolveTotalRounds(settings),
     matchStatus: 'in-progress',
     nextStartingTeamId: 'red',
+    lockedCategoryId: category.matchCategoryId,
+    lockedCategoryLabel: category.matchCategoryLabel,
+    usedRoundCategoryIds,
+    departedPlayerIds: [],
     recentIdentityIds: [...round.usedIdentityIds],
     round,
   };
@@ -275,7 +365,10 @@ export function getConnectedParticipantIds(
     shell.players.filter((player) => player.isConnected).map((player) => player.id),
   );
 
-  return match.playerIds.filter((playerId) => connected.has(playerId));
+  return match.playerIds.filter(
+    (playerId) =>
+      connected.has(playerId) && !isGuessingChallengePlayerDeparted(match, playerId),
+  );
 }
 
 export function getConnectedTeamPlayerIds(
@@ -365,8 +458,20 @@ export function clearLookThrottleForRoom(roomId: string): void {
   }
 }
 
+export function isEligibleGuessingChallengeActor(
+  match: GuessingChallengeMatchState,
+  playerId: string,
+): boolean {
+  return (
+    match.playerIds.includes(playerId) && !isGuessingChallengePlayerDeparted(match, playerId)
+  );
+}
+
 function isOnCurrentTurnTeam(match: GuessingChallengeMatchState, playerId: string): boolean {
-  return match.teamByPlayerId[playerId] === match.round.currentTurnTeamId;
+  return (
+    isEligibleGuessingChallengeActor(match, playerId) &&
+    match.teamByPlayerId[playerId] === match.round.currentTurnTeamId
+  );
 }
 
 function clearCardConfirm(round: GuessingChallengeRoundState): GuessingChallengeRoundState {
@@ -376,12 +481,25 @@ function clearCardConfirm(round: GuessingChallengeRoundState): GuessingChallenge
   return { ...round, cardConfirm: null };
 }
 
-function passTurn(match: GuessingChallengeMatchState): GuessingChallengeMatchState {
+export function matchesGuessingChallengeGeneration(
+  match: GuessingChallengeMatchState,
+  roundId: string,
+  turnId: string,
+): boolean {
+  return match.round.roundId === roundId && match.round.turnId === turnId;
+}
+
+export function advanceAfterQuestionUnit(
+  match: GuessingChallengeMatchState,
+  now = Date.now(),
+): GuessingChallengeMatchState {
   const remaining = match.round.yellowQuestionsRemaining;
+  const turnTiming = createTurnTiming(now);
 
   if (remaining !== null && remaining > 1) {
     return withRound(match, {
       ...clearCardConfirm(match.round),
+      ...turnTiming,
       yellowQuestionsRemaining: remaining - 1,
       identityChangedNoticeTeamId: null,
     });
@@ -391,6 +509,7 @@ function passTurn(match: GuessingChallengeMatchState): GuessingChallengeMatchSta
 
   return withRound(match, {
     ...clearCardConfirm(match.round),
+    ...turnTiming,
     currentTurnTeamId: nextTeamId,
     yellowQuestionsRemaining: null,
     identityChangedNoticeTeamId: null,
@@ -400,16 +519,38 @@ function passTurn(match: GuessingChallengeMatchState): GuessingChallengeMatchSta
 export function endQuestionTurn(
   match: GuessingChallengeMatchState,
   playerId: string,
+  roundId = match.round.roundId,
+  turnId = match.round.turnId,
 ): { ok: true; match: GuessingChallengeMatchState } | { ok: false; message: string } {
   if (match.round.gamePhase !== 'playing' || match.round.winningTeamId) {
     return { ok: false, message: 'انتهت هذه الجولة.' };
+  }
+
+  if (!matchesGuessingChallengeGeneration(match, roundId, turnId)) {
+    return { ok: false, message: 'انتهى هذا الدور.' };
   }
 
   if (!isOnCurrentTurnTeam(match, playerId)) {
     return { ok: false, message: 'ليس دورك الآن' };
   }
 
-  return { ok: true, match: passTurn(match) };
+  return { ok: true, match: advanceAfterQuestionUnit(match) };
+}
+
+export function expireGuessingChallengeTurn(
+  match: GuessingChallengeMatchState,
+  roundId: string,
+  turnId: string,
+): GuessingChallengeMatchState | null {
+  if (
+    match.round.gamePhase !== 'playing' ||
+    match.round.winningTeamId ||
+    !matchesGuessingChallengeGeneration(match, roundId, turnId)
+  ) {
+    return null;
+  }
+
+  return advanceAfterQuestionUnit(match);
 }
 
 function activateYellowCard(
@@ -435,6 +576,7 @@ function activateYellowCard(
       },
       round: {
         ...clearCardConfirm(match.round),
+        ...createTurnTiming(),
         yellowQuestionsRemaining: GUESSING_CHALLENGE_YELLOW_QUESTIONS,
         identityChangedNoticeTeamId: null,
       },
@@ -463,7 +605,10 @@ function activateRedCard(
   const replacement = pickReplacementIdentity(pool, {
     currentOpponentId: opponentIdentity.id,
     ownIdentityId: ownIdentity.id,
+    currentOpponentValue: opponentIdentity.value,
+    ownIdentityValue: ownIdentity.value,
     usedIdentityIds: match.round.usedIdentityIds,
+    recentIdentityIds: match.recentIdentityIds,
   });
 
   if (!replacement) {
@@ -491,6 +636,16 @@ function activateRedCard(
   };
 }
 
+function activateSpecialCard(
+  match: GuessingChallengeMatchState,
+  teamId: GuessingChallengeTeamId,
+  card: GuessingChallengeSpecialCard,
+) {
+  return card === 'yellow'
+    ? activateYellowCard(match, teamId)
+    : activateRedCard(match, teamId);
+}
+
 /**
  * Confirm special-card use.
  * 1v1: single confirm activates.
@@ -503,6 +658,9 @@ export function confirmSpecialCard(
   shell: GameShellState,
   playerId: string,
   card: GuessingChallengeSpecialCard,
+  roundId?: string,
+  turnId?: string,
+  requestId?: string,
 ):
   | { ok: true; activated: boolean; match: GuessingChallengeMatchState }
   | { ok: false; message: string; match: GuessingChallengeMatchState | null } {
@@ -510,6 +668,13 @@ export function confirmSpecialCard(
 
   if (!match || match.round.gamePhase !== 'playing' || match.round.winningTeamId) {
     return { ok: false, message: 'انتهت هذه الجولة.', match };
+  }
+
+  const actionRoundId = roundId ?? match.round.roundId;
+  const actionTurnId = turnId ?? match.round.turnId;
+
+  if (!matchesGuessingChallengeGeneration(match, actionRoundId, actionTurnId)) {
+    return { ok: false, message: 'انتهى هذا الدور.', match };
   }
 
   if (!isOnCurrentTurnTeam(match, playerId)) {
@@ -546,12 +711,21 @@ export function confirmSpecialCard(
   let confirmedPlayerIds: string[];
 
   if (existing && existing.card === card && existing.teamId === teamId) {
-    if (existing.confirmedPlayerIds.includes(playerId)) {
-      // Duplicate confirm ignored — return current state.
-      return { ok: true, activated: false, match };
+    if (existing.roundId !== actionRoundId || existing.turnId !== actionTurnId) {
+      return { ok: false, message: 'طلب البطاقة لم يعد صالحاً.', match };
     }
-    confirmedPlayerIds = [...existing.confirmedPlayerIds, playerId];
+
+    if (requestId && requestId !== existing.requestId) {
+      return { ok: false, message: 'طلب البطاقة لم يعد صالحاً.', match };
+    }
+
+    confirmedPlayerIds = existing.confirmedPlayerIds.includes(playerId)
+      ? existing.confirmedPlayerIds
+      : [...existing.confirmedPlayerIds, playerId];
   } else {
+    if (existing || requestId) {
+      return { ok: false, message: 'طلب البطاقة لم يعد صالحاً.', match };
+    }
     confirmedPlayerIds = [playerId];
   }
 
@@ -561,15 +735,21 @@ export function confirmSpecialCard(
   if (!allConfirmed) {
     const nextMatch = withRound(match, {
       ...match.round,
-      cardConfirm: { card, teamId, confirmedPlayerIds },
+      cardConfirm: {
+        requestId: existing?.requestId ?? randomUUID(),
+        roundId: actionRoundId,
+        turnId: actionTurnId,
+        card,
+        teamId,
+        confirmedPlayerIds,
+      },
       identityChangedNoticeTeamId: null,
     });
     setMatch(nextMatch);
     return { ok: true, activated: false, match: nextMatch };
   }
 
-  const activated =
-    card === 'yellow' ? activateYellowCard(match, teamId) : activateRedCard(match, teamId);
+  const activated = activateSpecialCard(match, teamId, card);
 
   if (!activated.ok) {
     return { ok: false, message: activated.message, match };
@@ -577,6 +757,48 @@ export function confirmSpecialCard(
 
   setMatch(activated.match);
   return { ok: true, activated: true, match: activated.match };
+}
+
+export function reconcilePendingCardConfirm(
+  match: GuessingChallengeMatchState,
+  shell: GameShellState,
+):
+  | { changed: false; activated: false; match: GuessingChallengeMatchState }
+  | { changed: true; activated: boolean; match: GuessingChallengeMatchState } {
+  const confirm = match.round.cardConfirm;
+  if (!confirm) {
+    return { changed: false, activated: false, match };
+  }
+
+  if (
+    match.round.gamePhase !== 'playing' ||
+    !matchesGuessingChallengeGeneration(match, confirm.roundId, confirm.turnId)
+  ) {
+    return {
+      changed: true,
+      activated: false,
+      match: withRound(match, clearCardConfirm(match.round)),
+    };
+  }
+
+  const requiredIds = getConnectedTeamPlayerIds(match, shell, confirm.teamId);
+  if (
+    requiredIds.length === 0 ||
+    !requiredIds.every((playerId) => confirm.confirmedPlayerIds.includes(playerId))
+  ) {
+    return { changed: false, activated: false, match };
+  }
+
+  const activated = activateSpecialCard(match, confirm.teamId, confirm.card);
+  if (!activated.ok) {
+    return {
+      changed: true,
+      activated: false,
+      match: withRound(match, clearCardConfirm(match.round)),
+    };
+  }
+
+  return { changed: true, activated: true, match: activated.match };
 }
 
 /**
@@ -588,6 +810,9 @@ export function rejectSpecialCard(
   setMatch: (match: GuessingChallengeMatchState) => void,
   shell: GameShellState,
   playerId: string,
+  roundId?: string,
+  turnId?: string,
+  requestId?: string,
 ):
   | { ok: true; match: GuessingChallengeMatchState }
   | { ok: false; message: string; match: GuessingChallengeMatchState | null } {
@@ -597,13 +822,27 @@ export function rejectSpecialCard(
     return { ok: false, message: 'انتهت هذه الجولة.', match };
   }
 
+  const actionRoundId = roundId ?? match.round.roundId;
+  const actionTurnId = turnId ?? match.round.turnId;
+  const actionRequestId = requestId ?? match.round.cardConfirm?.requestId ?? '';
+
+  if (!matchesGuessingChallengeGeneration(match, actionRoundId, actionTurnId)) {
+    return { ok: false, message: 'انتهى هذا الدور.', match };
+  }
+
   const teamId = match.teamByPlayerId[playerId];
   if (!teamId) {
     return { ok: false, message: 'لست مشاركاً في هذه المباراة.', match };
   }
 
   const confirm = match.round.cardConfirm;
-  if (!confirm || confirm.teamId !== teamId) {
+  if (
+    !confirm ||
+    confirm.teamId !== teamId ||
+    confirm.requestId !== actionRequestId ||
+    confirm.roundId !== actionRoundId ||
+    confirm.turnId !== actionTurnId
+  ) {
     return { ok: false, message: 'لا يوجد طلب بطاقة معلّق.', match };
   }
 
@@ -629,6 +868,8 @@ export function applyFinalGuess(
   setMatch: (match: GuessingChallengeMatchState) => void,
   playerId: string,
   guess: string,
+  roundId?: string,
+  turnId?: string,
 ):
   | { accepted: true; correct: true; match: GuessingChallengeMatchState }
   | { accepted: true; correct: false; match: GuessingChallengeMatchState }
@@ -637,6 +878,13 @@ export function applyFinalGuess(
 
   if (!match || match.round.gamePhase !== 'playing' || match.round.winningTeamId) {
     return { accepted: false, message: 'انتهت هذه الجولة.', match };
+  }
+
+  const actionRoundId = roundId ?? match.round.roundId;
+  const actionTurnId = turnId ?? match.round.turnId;
+
+  if (!matchesGuessingChallengeGeneration(match, actionRoundId, actionTurnId)) {
+    return { accepted: false, message: 'انتهى هذا الدور.', match };
   }
 
   if (!isOnCurrentTurnTeam(match, playerId)) {
@@ -664,6 +912,7 @@ export function applyFinalGuess(
     // Wrong guess always ends the turn (including any yellow sequence).
     const nextMatch = withRound(match, {
       ...clearCardConfirm(match.round),
+      ...createTurnTiming(),
       currentTurnTeamId: opponentTeamId,
       yellowQuestionsRemaining: null,
       identityChangedNoticeTeamId: null,
@@ -677,6 +926,8 @@ export function applyFinalGuess(
     winningTeamId: teamId,
     winningPlayerId: playerId,
     winningGuess: normalized,
+    deadlineAtMs: null,
+    phaseRemainingSeconds: 0,
     yellowQuestionsRemaining: null,
     identityChangedNoticeTeamId: null,
   });
@@ -711,15 +962,24 @@ function buildRoundResultsInteractionView(
   const isHost = shell.hostPlayerId === playerId;
   const isFinalRound = match.currentRound >= match.totalRounds;
 
+  if (match.round.gamePhase === 'round-results') {
+    return buildRoundResultsContinueCopy({ isFinalRound, isHost });
+  }
+
+  if (match.round.gamePhase === 'match-completed') {
+    return {
+      isHost,
+      canContinueFromRoundResults: isHost,
+      roundResultsContinueLabel: isHost ? MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL : null,
+      roundResultsWaitingMessage: MATCH_COMPLETED_WAITING_MESSAGE,
+    };
+  }
+
   return {
     isHost,
-    canContinueFromRoundResults: isHost && match.round.gamePhase === 'round-results',
-    roundResultsContinueLabel: isHost
-      ? isFinalRound
-        ? 'عرض النتائج النهائية'
-        : 'بدء الجولة التالية'
-      : null,
-    roundResultsWaitingMessage: isHost ? null : 'بانتظار المضيف...',
+    canContinueFromRoundResults: false,
+    roundResultsContinueLabel: null,
+    roundResultsWaitingMessage: null,
   };
 }
 
@@ -734,14 +994,18 @@ function buildCardConfirmStatus(
     return null;
   }
 
-  const requiredCount = Math.max(1, getConnectedTeamPlayerIds(match, shell, teamId).length);
-  const confirmedCount = confirm.confirmedPlayerIds.length;
+  const requiredIds = getConnectedTeamPlayerIds(match, shell, teamId);
+  const requiredCount = Math.max(1, requiredIds.length);
+  const confirmedCount = requiredIds.filter((id) =>
+    confirm.confirmedPlayerIds.includes(id),
+  ).length;
   const selfConfirmed = confirm.confirmedPlayerIds.includes(playerId);
   const requestingPlayerId = confirm.confirmedPlayerIds[0] ?? playerId;
   const requestingPlayerName = match.playerNames[requestingPlayerId] ?? 'زميلك';
   const cardTitle = confirm.card === 'yellow' ? 'البطاقة الصفراء' : 'البطاقة الحمراء';
 
   return {
+    requestId: confirm.requestId,
     card: confirm.card,
     confirmedCount,
     requiredCount,
@@ -773,7 +1037,10 @@ export function buildGuessingChallengePlayerView(
 ): GuessingChallengePlayerView {
   const phase = match.round.gamePhase;
   const revealed = phase === 'round-results' || phase === 'match-completed';
-  const isParticipant = match.playerIds.includes(playerId);
+  const isParticipant =
+    match.playerIds.includes(playerId) &&
+    !isGuessingChallengePlayerDeparted(match, playerId);
+  const isMatchSpectator = !isParticipant;
   const selfTeam = match.teamByPlayerId[playerId] ?? null;
   const selfSeat = match.seatByPlayerId[playerId] ?? null;
   const opponentTeamId = selfTeam ? getOpponentTeamId(selfTeam) : null;
@@ -841,65 +1108,85 @@ export function buildGuessingChallengePlayerView(
         }
       : null;
 
+  const hideSecrets = isMatchSpectator && phase === 'playing';
+
   return {
     gamePhase: phase,
-    phaseLabel: `${PHASE_LABELS[phase]} — الجولة ${match.currentRound}/${match.totalRounds}`,
-    phaseRemainingSeconds: match.round.phaseRemainingSeconds,
-    categoryId: match.round.resolvedCategoryId,
-    nextCategoryId: getRoomRoundCategory(shell.roomId) ?? 'random',
+    phaseLabel: isMatchSpectator
+      ? 'الجولة جارية'
+      : `${PHASE_LABELS[phase]} — الجولة ${match.currentRound}/${match.totalRounds}`,
+    phaseRemainingSeconds:
+      phase === 'playing'
+        ? remainingSecondsFromDeadline(match.round.deadlineAtMs)
+        : match.round.phaseRemainingSeconds,
+    deadlineAtMs: phase === 'playing' ? match.round.deadlineAtMs : null,
+    roundId: match.round.roundId,
+    turnId: match.round.turnId,
+    categoryId: match.lockedCategoryId,
+    categoryLabel: match.lockedCategoryLabel,
     currentRound: match.currentRound,
     totalRounds: match.totalRounds,
     matchStatus: match.matchStatus,
     mode: match.mode,
-    selfTeam,
-    selfSeat,
+    selfTeam: hideSecrets ? null : selfTeam,
+    selfSeat: hideSecrets ? null : selfSeat,
     currentTurnPlayerId: turnRepresentativeId,
     currentTurnTeamId: turnTeamId,
     currentTurnPlayerName: turnName,
-    isMyTurn,
-    turnInstruction: !isParticipant
-      ? null
-      : isMyTurn
-        ? 'اسأل خصمك سؤالًا'
-        : phase === 'playing'
-          ? `استمع للسؤال وأجب بنعم أو لا`
-          : null,
+    isMyTurn: hideSecrets ? false : isMyTurn,
+    turnInstruction:
+      hideSecrets || !isParticipant
+        ? null
+        : isMyTurn
+          ? 'اسأل خصمك سؤالًا'
+          : phase === 'playing'
+            ? `استمع للسؤال وأجب بنعم أو لا`
+            : null,
     self: {
       playerId,
       name: match.playerNames[playerId] ?? 'لاعب',
       identityHidden: true,
-      revealedIdentity: revealed && ownIdentity ? toVisibleIdentity(ownIdentity) : null,
-      yellowCardAvailable: !teamCards.yellowUsed,
-      redCardAvailable: !teamCards.redUsed,
+      revealedIdentity:
+        hideSecrets || !revealed || !ownIdentity ? null : toVisibleIdentity(ownIdentity),
+      yellowCardAvailable: hideSecrets ? false : !teamCards.yellowUsed,
+      redCardAvailable: hideSecrets ? false : !teamCards.redUsed,
     },
-    teammate,
+    teammate: hideSecrets ? null : teammate,
     opponent: {
-      playerId: primaryOpponent?.playerId ?? '',
-      name: primaryOpponent?.name ?? 'خصم',
-      visibleIdentity: visibleOpponentIdentity,
+      playerId: hideSecrets ? '' : (primaryOpponent?.playerId ?? ''),
+      name: hideSecrets ? 'خصم' : (primaryOpponent?.name ?? 'خصم'),
+      visibleIdentity: hideSecrets ? null : visibleOpponentIdentity,
     },
-    opponents,
-    yellowQuestionsRemaining: isMyTurn ? match.round.yellowQuestionsRemaining : null,
-    canEndQuestion: isMyTurn,
-    canGuess: isMyTurn,
+    opponents: hideSecrets
+      ? []
+      : opponents,
+    yellowQuestionsRemaining: hideSecrets || !isMyTurn ? null : match.round.yellowQuestionsRemaining,
+    canEndQuestion: hideSecrets ? false : isMyTurn,
+    canGuess: hideSecrets ? false : isMyTurn,
     canUseYellow:
-      isMyTurn && !teamCards.yellowUsed && match.round.yellowQuestionsRemaining === null,
-    canUseRed: isMyTurn && !teamCards.redUsed,
+      !hideSecrets &&
+      isMyTurn &&
+      !teamCards.yellowUsed &&
+      match.round.yellowQuestionsRemaining === null,
+    canUseRed: hideSecrets ? false : isMyTurn && !teamCards.redUsed,
     cardConfirmStatus:
-      selfTeam && isParticipant
-        ? buildCardConfirmStatus(match, shell, playerId, selfTeam)
-        : null,
+      hideSecrets || !selfTeam || !isParticipant
+        ? null
+        : buildCardConfirmStatus(match, shell, playerId, selfTeam),
     identityChangedNotice:
+      !hideSecrets &&
       selfTeam !== null &&
       match.round.identityChangedNoticeTeamId === selfTeam &&
       phase === 'playing',
-    revealEntries: revealed ? buildRevealEntries(match) : [],
-    winnerName: revealed ? buildWinnerName(match) : null,
-    winningGuess: revealed ? match.round.winningGuess : null,
-    roundResults: revealed ? buildRoundResultEntries(match) : [],
+    revealEntries: revealed && !hideSecrets ? buildRevealEntries(match) : [],
+    winnerName: revealed && !hideSecrets ? buildWinnerName(match) : null,
+    winningTeamId: revealed && !hideSecrets ? match.round.winningTeamId : null,
+    winningGuess: revealed && !hideSecrets ? match.round.winningGuess : null,
+    roundResults: revealed && !hideSecrets ? buildRoundResultEntries(match) : [],
     leaderboard: buildLeaderboardEntries(match),
     resultsLeaderboard: buildResultsLeaderboardEntries(match),
     ...buildRoundResultsInteractionView(match, shell, playerId),
+    isMatchSpectator,
   };
 }
 

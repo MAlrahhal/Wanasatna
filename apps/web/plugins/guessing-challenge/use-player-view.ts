@@ -11,7 +11,6 @@ import {
   GUESSING_CHALLENGE_LOOK_EVENT,
   GUESSING_CHALLENGE_LOOK_UPDATE_EVENT,
   GUESSING_CHALLENGE_PHASE_CHANGED_EVENT,
-  GUESSING_CHALLENGE_SET_CATEGORY_EVENT,
   GUESSING_CHALLENGE_SUBMIT_FINAL_GUESS_EVENT,
   GUESSING_CHALLENGE_SYNC_EVENT,
   GUESSING_CHALLENGE_REJECT_CARD_EVENT,
@@ -82,6 +81,7 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [guessFeedback, setGuessFeedback] = useState<string | null>(null);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
+  const [remainingSeconds, setRemainingSeconds] = useState(0);
   const hasViewRef = useRef(false);
 
   const syncView = useCallback(async () => {
@@ -116,11 +116,44 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
       setActionError(null);
       setGuessFeedback(null);
       setIsSubmittingAction(false);
+      setRemainingSeconds(0);
       return;
     }
 
     void syncView();
   }, [enabled, syncView]);
+
+  useEffect(() => {
+    if (!enabled || !view) {
+      return;
+    }
+
+    setGuessFeedback(null);
+
+    if (view.gamePhase === 'playing' && view.deadlineAtMs) {
+      const updateRemaining = () => {
+        setRemainingSeconds(
+          Math.max(0, Math.ceil((view.deadlineAtMs! - Date.now()) / 1000)),
+        );
+      };
+      updateRemaining();
+      const intervalId = window.setInterval(updateRemaining, 250);
+      return () => window.clearInterval(intervalId);
+    }
+
+    setRemainingSeconds(view.phaseRemainingSeconds);
+    const intervalId = window.setInterval(() => {
+      setRemainingSeconds((current) => Math.max(0, current - 1));
+    }, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [
+    enabled,
+    view?.deadlineAtMs,
+    view?.gamePhase,
+    view?.phaseRemainingSeconds,
+    view?.roundId,
+    view?.turnId,
+  ]);
 
   useEffect(() => {
     if (!enabled) {
@@ -168,7 +201,9 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
         return;
       }
 
-      setView(response.data.view);
+      if (response.data?.view) {
+        setView(response.data.view);
+      }
       if (typeof response.data.guessFeedback === 'string') {
         setGuessFeedback(response.data.guessFeedback);
       } else if (response.data.guessCorrect) {
@@ -180,38 +215,76 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
   );
 
   const endQuestion = useCallback(() => {
-    void runAction(GUESSING_CHALLENGE_END_QUESTION_EVENT);
-  }, [runAction]);
+    if (!view) {
+      return;
+    }
+    void runAction(GUESSING_CHALLENGE_END_QUESTION_EVENT, {
+      roundId: view.roundId,
+      turnId: view.turnId,
+    });
+  }, [runAction, view]);
 
   const submitFinalGuess = useCallback(
     (guess: string) => {
-      void runAction(GUESSING_CHALLENGE_SUBMIT_FINAL_GUESS_EVENT, { guess });
+      if (!view) {
+        return;
+      }
+      void runAction(GUESSING_CHALLENGE_SUBMIT_FINAL_GUESS_EVENT, {
+        guess,
+        roundId: view.roundId,
+        turnId: view.turnId,
+      });
     },
-    [runAction],
+    [runAction, view],
   );
 
   const useYellowCard = useCallback(() => {
-    void runAction(GUESSING_CHALLENGE_USE_YELLOW_CARD_EVENT);
-  }, [runAction]);
+    if (!view) {
+      return;
+    }
+    void runAction(GUESSING_CHALLENGE_USE_YELLOW_CARD_EVENT, {
+      roundId: view.roundId,
+      turnId: view.turnId,
+      requestId:
+        view.cardConfirmStatus?.card === 'yellow'
+          ? view.cardConfirmStatus.requestId
+          : undefined,
+    });
+  }, [runAction, view]);
 
   const useRedCard = useCallback(() => {
-    void runAction(GUESSING_CHALLENGE_USE_RED_CARD_EVENT);
-  }, [runAction]);
+    if (!view) {
+      return;
+    }
+    void runAction(GUESSING_CHALLENGE_USE_RED_CARD_EVENT, {
+      roundId: view.roundId,
+      turnId: view.turnId,
+      requestId:
+        view.cardConfirmStatus?.card === 'red'
+          ? view.cardConfirmStatus.requestId
+          : undefined,
+    });
+  }, [runAction, view]);
 
   const rejectCard = useCallback(() => {
-    void runAction(GUESSING_CHALLENGE_REJECT_CARD_EVENT);
-  }, [runAction]);
+    if (!view?.cardConfirmStatus) {
+      return;
+    }
+    void runAction(GUESSING_CHALLENGE_REJECT_CARD_EVENT, {
+      roundId: view.roundId,
+      turnId: view.turnId,
+      requestId: view.cardConfirmStatus.requestId,
+    });
+  }, [runAction, view]);
 
   const continueFromRoundResults = useCallback(() => {
-    void runAction(GUESSING_CHALLENGE_CONTINUE_ROUND_RESULTS_EVENT);
-  }, [runAction]);
-
-  const setNextRoundCategory = useCallback(
-    (categoryId: string | null) => {
-      void runAction(GUESSING_CHALLENGE_SET_CATEGORY_EVENT, { categoryId });
-    },
-    [runAction],
-  );
+    if (!view) {
+      return;
+    }
+    void runAction(GUESSING_CHALLENGE_CONTINUE_ROUND_RESULTS_EVENT, {
+      roundId: view.roundId,
+    });
+  }, [runAction, view]);
 
   const emitLook = useCallback(
     (yaw: number, pitch: number) => {
@@ -230,13 +303,13 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
     actionError,
     guessFeedback,
     isSubmittingAction,
+    remainingSeconds,
     endQuestion,
     submitFinalGuess,
     useYellowCard,
     useRedCard,
     rejectCard,
     continueFromRoundResults,
-    setNextRoundCategory,
     emitLook,
   };
 }

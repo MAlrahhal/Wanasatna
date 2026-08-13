@@ -1,14 +1,18 @@
 import type { Server } from 'socket.io';
 import type { GameShellState, GuessingChallengeMatchState } from '@wanasatna/shared';
-import { GUESSING_CHALLENGE_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
+import {
+  GUESSING_CHALLENGE_GAME_ID,
+  GUESSING_CHALLENGE_PHASE_CHANGED_EVENT,
+} from '@wanasatna/shared';
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
-import { finishGameShellForRoom } from '../../game.service.js';
-import { cleanupGameShellRuntime } from '../../game.lifecycle.js';
-import { broadcastGameShellState } from '../../game.timer.js';
+import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
+import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
+import { clearRoomRoundCategory } from '../../runtime/round-category-store.js';
 import { clearGuessingChallengeRoomMode } from './mode-store.js';
 import {
-  startGuessingChallengePhaseTimerIfNeeded,
+  clearGuessingChallengePhaseTimerRuntime,
+  restartGuessingChallengePhaseTimer,
   stopGuessingChallengePhaseTimer,
 } from './phase-timer.js';
 import { applyRoundScores } from './scoring.js';
@@ -16,9 +20,16 @@ import {
   appendRecentIdentityIds,
   clearLookThrottleForRoom,
   createRoundState,
+  getEligibleTeamPlayerIds,
+  markGuessingChallengePlayerDeparted,
+  reconcilePendingCardConfirm,
   withRound,
 } from './state.js';
-import { deleteGuessingChallengeState, setGuessingChallengeState } from './store.js';
+import {
+  deleteGuessingChallengeState,
+  getGuessingChallengeState,
+  setGuessingChallengeState,
+} from './store.js';
 
 function broadcastPhaseChanged(io: Server, roomId: string): void {
   io.to(getRoomChannel(roomId)).emit(GUESSING_CHALLENGE_PHASE_CHANGED_EVENT, {});
@@ -40,12 +51,13 @@ export function startRoundResults(
   const nextMatch = withRound(scoredMatch, {
     ...scoredMatch.round,
     gamePhase: 'round-results',
-    phaseRemainingSeconds: 0,
+    phaseRemainingSeconds: timedPhaseDurations.guessingChallengeRoundResults(),
+    deadlineAtMs: null,
     cardConfirm: null,
   });
 
   setGuessingChallengeState(roomId, nextMatch);
-  stopGuessingChallengePhaseTimer(roomId);
+  restartGuessingChallengePhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
@@ -56,9 +68,9 @@ function startNextRound(
   match: GuessingChallengeMatchState,
 ): GuessingChallengeMatchState {
   const startingTeamId = match.nextStartingTeamId;
-  // Preserve match-scoped teamCards — do not reset between rounds.
-  const round = createRoundState(
-    roomId,
+  const { round, usedRoundCategoryIds } = createRoundState(
+    match.lockedCategoryId,
+    match.usedRoundCategoryIds,
     match.teamByPlayerId,
     startingTeamId,
     match.recentIdentityIds,
@@ -69,16 +81,18 @@ function startNextRound(
     currentRound: match.currentRound + 1,
     matchStatus: 'in-progress',
     nextStartingTeamId: startingTeamId === 'blue' ? 'red' : 'blue',
+    usedRoundCategoryIds,
     recentIdentityIds: appendRecentIdentityIds(match.recentIdentityIds, round.usedIdentityIds),
     round,
   };
 
   setGuessingChallengeState(roomId, nextMatch);
+  restartGuessingChallengePhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
 
-function startMatchCompletedPhase(
+export function startGuessingChallengeMatchCompletedPhase(
   io: Server,
   roomId: string,
   match: GuessingChallengeMatchState,
@@ -92,28 +106,26 @@ function startMatchCompletedPhase(
       ...match.round,
       gamePhase: 'match-completed',
       phaseRemainingSeconds: timedPhaseDurations.matchResults(),
+      deadlineAtMs: null,
+      winningTeamId: match.round.gamePhase === 'playing' ? null : match.round.winningTeamId,
+      winningPlayerId: match.round.gamePhase === 'playing' ? null : match.round.winningPlayerId,
+      winningGuess: match.round.gamePhase === 'playing' ? null : match.round.winningGuess,
       cardConfirm: null,
     },
   );
 
   setGuessingChallengeState(roomId, nextMatch);
-  startGuessingChallengePhaseTimerIfNeeded(io, roomId);
+  restartGuessingChallengePhaseTimer(io, roomId);
   broadcastPhaseChanged(io, roomId);
   return nextMatch;
 }
 
-export function continueFromRoundResults(
+export function advanceFromGuessingChallengeRoundResults(
   io: Server,
   roomId: string,
   match: GuessingChallengeMatchState,
-  shell: GameShellState,
-  hostPlayerId: string,
 ): GuessingChallengeMatchState {
   if (match.round.gamePhase !== 'round-results') {
-    return match;
-  }
-
-  if (shell.hostPlayerId !== hostPlayerId) {
     return match;
   }
 
@@ -123,21 +135,106 @@ export function continueFromRoundResults(
     return startNextRound(io, roomId, match);
   }
 
-  return startMatchCompletedPhase(io, roomId, match);
+  return startGuessingChallengeMatchCompletedPhase(io, roomId, match);
+}
+
+export function continueFromRoundResults(
+  io: Server,
+  roomId: string,
+  match: GuessingChallengeMatchState,
+  shell: GameShellState,
+  hostPlayerId: string,
+): GuessingChallengeMatchState {
+  if (shell.hostPlayerId !== hostPlayerId) {
+    return match;
+  }
+
+  const current = getGuessingChallengeState(roomId) ?? match;
+
+  if (current.round.gamePhase === 'match-completed') {
+    completeMatch(io, roomId);
+    return current;
+  }
+
+  return advanceFromGuessingChallengeRoundResults(io, roomId, current);
 }
 
 export function completeMatch(io: Server, roomId: string): void {
-  stopGuessingChallengePhaseTimer(roomId);
+  clearGuessingChallengePhaseTimerRuntime(roomId);
   clearLookThrottleForRoom(roomId);
   clearGuessingChallengeRoomMode(roomId);
+  clearRoomRoundCategory(roomId);
   deleteGuessingChallengeState(roomId);
 
-  const nextShell = finishGameShellForRoom(roomId);
-
-  if (nextShell) {
-    cleanupGameShellRuntime(roomId);
-    broadcastGameShellState(io, nextShell);
+  const shell = getGameShellByRoomId(roomId);
+  if (!shell) {
+    return;
   }
+
+  cleanupGameShellRuntime(roomId);
+  deleteGameShell(roomId);
+  navigateRoomToLobby(io, roomId);
+}
+
+export function reconcileGuessingChallengeConnectivity(
+  io: Server,
+  roomId: string,
+  shellOverride?: GameShellState,
+): GuessingChallengeMatchState | null {
+  const match = getGuessingChallengeState(roomId);
+  const shell = shellOverride ?? getGameShellByRoomId(roomId);
+
+  if (!match || !shell || shell.gameId !== GUESSING_CHALLENGE_GAME_ID) {
+    return match;
+  }
+
+  const reconciled = reconcilePendingCardConfirm(match, shell);
+  if (!reconciled.changed) {
+    return match;
+  }
+
+  setGuessingChallengeState(roomId, reconciled.match);
+  if (reconciled.activated) {
+    restartGuessingChallengePhaseTimer(io, roomId);
+  }
+  broadcastPhaseChanged(io, roomId);
+  return reconciled.match;
+}
+
+export function handleGuessingChallengePermanentLeave(
+  io: Server,
+  roomId: string,
+  playerId: string,
+): void {
+  const match = getGuessingChallengeState(roomId);
+  const shell = getGameShellByRoomId(roomId);
+
+  if (!match || !shell || shell.gameId !== GUESSING_CHALLENGE_GAME_ID) {
+    return;
+  }
+
+  const nextMatch = markGuessingChallengePlayerDeparted(match, playerId);
+  if (nextMatch === match) {
+    return;
+  }
+
+  setGuessingChallengeState(roomId, nextMatch);
+
+  const blueRemaining = getEligibleTeamPlayerIds(nextMatch, 'blue').length;
+  const redRemaining = getEligibleTeamPlayerIds(nextMatch, 'red').length;
+  if (blueRemaining === 0 || redRemaining === 0) {
+    startGuessingChallengeMatchCompletedPhase(io, roomId, nextMatch);
+    return;
+  }
+
+  const reconciled = reconcilePendingCardConfirm(nextMatch, shell);
+  if (reconciled.changed) {
+    setGuessingChallengeState(roomId, reconciled.match);
+    if (reconciled.activated) {
+      restartGuessingChallengePhaseTimer(io, roomId);
+    }
+  }
+  broadcastPhaseChanged(io, roomId);
 }
 
 export { broadcastPhaseChanged };

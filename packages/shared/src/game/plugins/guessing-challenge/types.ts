@@ -6,6 +6,8 @@ export const GUESSING_CHALLENGE_DEFAULT_ROUNDS = 4;
 export const GUESSING_CHALLENGE_MAX_GUESS_LENGTH = 80;
 export const GUESSING_CHALLENGE_WINNER_POINTS = 100;
 export const GUESSING_CHALLENGE_YELLOW_QUESTIONS = 3;
+export const GUESSING_CHALLENGE_TURN_SECONDS = 45;
+export const GUESSING_CHALLENGE_ROUND_RESULTS_SECONDS = 10;
 export const GUESSING_CHALLENGE_LOOK_THROTTLE_MS = 100;
 
 export type GuessingChallengeMode = '1v1' | '2v2';
@@ -41,6 +43,9 @@ export type GuessingChallengeTeamCards = {
 };
 
 export type GuessingChallengeCardConfirm = {
+  requestId: string;
+  roundId: string;
+  turnId: string;
   card: GuessingChallengeSpecialCard;
   teamId: GuessingChallengeTeamId;
   confirmedPlayerIds: string[];
@@ -52,8 +57,11 @@ export type GuessingChallengeLookDirection = {
 };
 
 export type GuessingChallengeRoundState = {
+  roundId: string;
+  turnId: string;
   gamePhase: GuessingChallengeGamePhase;
   phaseRemainingSeconds: number;
+  deadlineAtMs: number | null;
   resolvedCategoryId: string;
   /** Server-only map of teamId → secret identity (one shared identity per team). */
   identitiesByTeamId: Record<GuessingChallengeTeamId, GuessingChallengeIdentitySecret>;
@@ -68,6 +76,7 @@ export type GuessingChallengeRoundState = {
   winningGuess: string | null;
   identityChangedNoticeTeamId: GuessingChallengeTeamId | null;
   cardConfirm: GuessingChallengeCardConfirm | null;
+  scoresApplied: boolean;
 };
 
 export type GuessingChallengeMatchState = {
@@ -86,6 +95,11 @@ export type GuessingChallengeMatchState = {
   totalRounds: number;
   matchStatus: 'in-progress' | 'completed';
   nextStartingTeamId: GuessingChallengeTeamId;
+  lockedCategoryId: string;
+  lockedCategoryLabel: string;
+  usedRoundCategoryIds: string[];
+  /** Permanent Leave/Kick, distinct from temporary socket disconnect. */
+  departedPlayerIds: string[];
   recentIdentityIds: string[];
   round: GuessingChallengeRoundState;
 };
@@ -130,6 +144,7 @@ export type GuessingChallengeTeammateView = {
 };
 
 export type GuessingChallengeCardConfirmStatus = {
+  requestId: string;
   card: GuessingChallengeSpecialCard;
   confirmedCount: number;
   requiredCount: number;
@@ -144,8 +159,11 @@ export type GuessingChallengePlayerView = {
   gamePhase: GuessingChallengeGamePhase;
   phaseLabel: string;
   phaseRemainingSeconds: number;
+  deadlineAtMs: number | null;
+  roundId: string;
+  turnId: string;
   categoryId: string | null;
-  nextCategoryId: string | null;
+  categoryLabel: string | null;
   currentRound: number;
   totalRounds: number;
   matchStatus: 'in-progress' | 'completed';
@@ -184,6 +202,7 @@ export type GuessingChallengePlayerView = {
   identityChangedNotice: boolean;
   revealEntries: GuessingChallengeRevealEntry[];
   winnerName: string | null;
+  winningTeamId: GuessingChallengeTeamId | null;
   winningGuess: string | null;
   roundResults: GuessingChallengeRoundResultEntry[];
   leaderboard: GuessingChallengeLeaderboardEntry[];
@@ -198,6 +217,7 @@ export type GuessingChallengePlayerView = {
   canContinueFromRoundResults: boolean;
   roundResultsContinueLabel: string | null;
   roundResultsWaitingMessage: string | null;
+  isMatchSpectator: boolean;
 };
 
 export const GUESSING_CHALLENGE_SYNC_EVENT = pluginActionEvent(
@@ -235,10 +255,6 @@ export const GUESSING_CHALLENGE_CONTINUE_ROUND_RESULTS_EVENT = pluginActionEvent
   GUESSING_CHALLENGE_GAME_ID,
   'continue-round-results',
 );
-export const GUESSING_CHALLENGE_SET_CATEGORY_EVENT = pluginActionEvent(
-  GUESSING_CHALLENGE_GAME_ID,
-  'set-category',
-);
 /** Client → server look direction (throttled server-side). */
 export const GUESSING_CHALLENGE_LOOK_EVENT = pluginActionEvent(
   GUESSING_CHALLENGE_GAME_ID,
@@ -253,10 +269,22 @@ export const GUESSING_CHALLENGE_STATE_EVENT = pluginStateEvent(GUESSING_CHALLENG
 
 export type GuessingChallengeSubmitFinalGuessPayload = {
   guess: string;
+  roundId: string;
+  turnId: string;
 };
 
-export type GuessingChallengeSetCategoryPayload = {
-  categoryId: string | null;
+export type GuessingChallengeTurnActionPayload = {
+  roundId: string;
+  turnId: string;
+};
+
+export type GuessingChallengeCardActionPayload = GuessingChallengeTurnActionPayload & {
+  /** Required when approving/rejecting an existing 2v2 request. */
+  requestId?: string;
+};
+
+export type GuessingChallengeContinuePayload = {
+  roundId: string;
 };
 
 export type GuessingChallengeLookPayload = {

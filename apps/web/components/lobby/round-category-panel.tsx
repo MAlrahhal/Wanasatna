@@ -1,6 +1,6 @@
 'use client';
 
-import { FAST_ANSWER_GAME_ID, JUDGE_GAME_ID, WHO_WROTE_IT_GAME_ID } from '@wanasatna/shared';
+import { FAST_ANSWER_GAME_ID, GUESSING_CHALLENGE_GAME_ID, JUDGE_GAME_ID, WHO_WROTE_IT_GAME_ID } from '@wanasatna/shared';
 import {
   getGameRoundCategories,
   type RoundCategory,
@@ -68,7 +68,8 @@ export function RoundCategoryPanel({
   const lockForMatch =
     gameId === FAST_ANSWER_GAME_ID ||
     gameId === WHO_WROTE_IT_GAME_ID ||
-    gameId === JUDGE_GAME_ID;
+    gameId === JUDGE_GAME_ID ||
+    gameId === GUESSING_CHALLENGE_GAME_ID;
 
   if (lockForMatch && isActiveMatch) {
     return null;
@@ -91,7 +92,9 @@ export function RoundCategoryPanel({
       : gameId === WHO_WROTE_IT_GAME_ID
         ? 'تُقفل الفئة عند بدء المباراة وتستخدم لكل الجولات الثلاث'
         : gameId === JUDGE_GAME_ID
-          ? 'تُقفل الفئة عند بدء المباراة، ويأخذ كل لاعب دور القاضي مرة واحدة'
+        ? 'تُقفل الفئة عند بدء المباراة، ويأخذ كل لاعب دور القاضي مرة واحدة'
+        : gameId === GUESSING_CHALLENGE_GAME_ID
+          ? 'تُقفل الفئة عند بدء المباراة وتستخدم لكل الجولات الأربع'
           : 'سيتم استخدام هذه الفئة فقط للجولة القادمة، ويمكن تغييرها قبل كل جولة جديدة';
 
   return (

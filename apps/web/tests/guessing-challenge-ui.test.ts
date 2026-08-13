@@ -308,5 +308,38 @@ test('card request sound helper exists once-per-request', () => {
   assert.match(panel, /playSoftCardRequestPing\(\)/);
 });
 
+test('authoritative generations are sent with every gameplay mutation', () => {
+  const hook = readPlugin('use-player-view.ts');
+  assert.match(hook, /roundId:\s*view\.roundId/);
+  assert.match(hook, /turnId:\s*view\.turnId/);
+  assert.match(hook, /requestId:\s*view\.cardConfirmStatus\.requestId/);
+  assert.match(hook, /deadlineAtMs/);
+  assert.match(hook, /remainingSeconds/);
+  assert.doesNotMatch(hook, /GUESSING_CHALLENGE_SET_CATEGORY_EVENT/);
+});
+
+test('minimal spectator screen replaces participant controls', () => {
+  const game = readPlugin('game-screen.tsx');
+  assert.match(game, /view\.isMatchSpectator && view\.gamePhase === 'playing'/);
+  assert.match(game, /أنت مشاهد حالياً/);
+  assert.match(game, /remainingSeconds/);
+  assert.match(game, /MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS/);
+});
+
+test('round results use authoritative team winner and no category control', () => {
+  const results = readPlugin('round-results-screen.tsx');
+  assert.match(results, /view\.winningTeamId === view\.selfTeam/);
+  assert.match(results, /opponentHighlight=\{opponentWon\}/);
+  assert.match(results, /remainingSeconds/);
+  assert.doesNotMatch(results, /RoundCategoryPanel/);
+  assert.doesNotMatch(results, /nextCategoryId/);
+});
+
+test('lobby category is locked for the whole guessing-challenge match', () => {
+  const panel = readFileSync(join(root, 'components/lobby/round-category-panel.tsx'), 'utf8');
+  assert.match(panel, /GUESSING_CHALLENGE_GAME_ID/);
+  assert.match(panel, /تُقفل الفئة عند بدء المباراة وتستخدم لكل الجولات الأربع/);
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

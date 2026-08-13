@@ -4,11 +4,23 @@ import type {
 } from '@wanasatna/shared';
 import {
   GUESSING_CHALLENGE_GAME_ID,
-  resolveEnabledCategoryIds,
 } from '@wanasatna/shared';
 import { getLoadedGameContent } from '../../../content/index.js';
-import { resolveEnabledCategoryFilter } from '../../runtime/round-category-store.js';
+import { getRoomRoundCategory } from '../../runtime/round-category-store.js';
 import { isCorrectAnswer } from '../fast-answer/answers.js';
+
+export const GUESSING_CHALLENGE_RANDOM_CATEGORY_ID = 'random';
+export const GUESSING_CHALLENGE_RANDOM_CATEGORY_LABEL = 'عشوائي';
+
+export type GuessingChallengeCategoryOption = {
+  id: string;
+  label: string;
+};
+
+export type GuessingChallengeMatchCategory = {
+  matchCategoryId: string;
+  matchCategoryLabel: string;
+};
 
 export function questionToIdentity(question: GameContentQuestion): GuessingChallengeIdentitySecret {
   return {
@@ -31,48 +43,84 @@ function shuffleInPlace<T>(items: T[]): T[] {
   return items;
 }
 
-export function resolveCategoryPool(
-  roomId: string,
-): { categoryId: string; identities: GuessingChallengeIdentitySecret[] } {
+function loadContent() {
   const content = getLoadedGameContent(GUESSING_CHALLENGE_GAME_ID);
 
   if (!content) {
     throw new Error('Guessing Challenge content is not loaded.');
   }
 
+  return content;
+}
+
+export function getValidCategoryOptions(): GuessingChallengeCategoryOption[] {
+  const content = loadContent();
   const questions = content.bundle.questions ?? [];
-  const filter = resolveEnabledCategoryFilter(roomId);
-  const enabledCategoryIds = resolveEnabledCategoryIds(
-    content.bundle.categories,
-    filter ?? content.settings.enabledCategories,
+
+  return content.bundle.categories
+    .filter((category) => category.enabled)
+    .filter(
+      (category) =>
+        questions.filter((question) => question.categoryId === category.id).length >= 2,
+    )
+    .map((category) => ({ id: category.id, label: category.name }));
+}
+
+export function resolveMatchCategorySelection(roomId: string): GuessingChallengeMatchCategory {
+  const options = getValidCategoryOptions();
+  const requested = getRoomRoundCategory(roomId);
+
+  if (requested && requested !== GUESSING_CHALLENGE_RANDOM_CATEGORY_ID) {
+    const selected = options.find((option) => option.id === requested);
+    if (selected) {
+      return {
+        matchCategoryId: selected.id,
+        matchCategoryLabel: selected.label,
+      };
+    }
+  }
+
+  return {
+    matchCategoryId: GUESSING_CHALLENGE_RANDOM_CATEGORY_ID,
+    matchCategoryLabel: GUESSING_CHALLENGE_RANDOM_CATEGORY_LABEL,
+  };
+}
+
+export function chooseRoundCategoryId(
+  matchCategoryId: string,
+  usedRoundCategoryIds: readonly string[],
+  validCategoryIds: readonly string[],
+  randomIndex: (exclusiveMax: number) => number = (exclusiveMax) =>
+    Math.floor(Math.random() * exclusiveMax),
+): string {
+  if (validCategoryIds.length === 0) {
+    throw new Error('Not enough identities available for Guessing Challenge.');
+  }
+
+  if (
+    matchCategoryId !== GUESSING_CHALLENGE_RANDOM_CATEGORY_ID &&
+    validCategoryIds.includes(matchCategoryId)
+  ) {
+    return matchCategoryId;
+  }
+
+  const used = new Set(usedRoundCategoryIds);
+  const unused = validCategoryIds.filter((categoryId) => !used.has(categoryId));
+  const candidates = unused.length > 0 ? unused : [...validCategoryIds];
+  const rawIndex = randomIndex(candidates.length);
+  const index = Math.max(0, Math.min(candidates.length - 1, rawIndex));
+  return candidates[index]!;
+}
+
+export function pickRoundCategoryId(
+  matchCategoryId: string,
+  usedRoundCategoryIds: readonly string[],
+): string {
+  return chooseRoundCategoryId(
+    matchCategoryId,
+    usedRoundCategoryIds,
+    getValidCategoryOptions().map((option) => option.id),
   );
-
-  if (filter && filter.length === 1) {
-    const categoryId = filter[0]!;
-    const identities = questions
-      .filter((question) => question.categoryId === categoryId)
-      .map(questionToIdentity);
-
-    if (identities.length < 2) {
-      throw new Error('Not enough identities in the selected category.');
-    }
-
-    return { categoryId, identities };
-  }
-
-  const categoryIds = shuffleInPlace([...enabledCategoryIds]);
-
-  for (const categoryId of categoryIds) {
-    const identities = questions
-      .filter((question) => question.categoryId === categoryId)
-      .map(questionToIdentity);
-
-    if (identities.length >= 2) {
-      return { categoryId, identities };
-    }
-  }
-
-  throw new Error('Not enough identities available for Guessing Challenge.');
 }
 
 export function pickTwoIdentities(
@@ -85,10 +133,11 @@ export function pickTwoIdentities(
 
   const recent = new Set(recentIdentityIds);
   const fresh = pool.filter((identity) => !recent.has(identity.id));
-  const source = fresh.length >= 2 ? fresh : [...pool];
-  const shuffled = shuffleInPlace([...source]);
-  const first = shuffled[0]!;
-  const second = shuffled.find((identity) => identity.id !== first.id);
+  const preferred = shuffleInPlace([...fresh]);
+  const fallback = shuffleInPlace(pool.filter((identity) => recent.has(identity.id)));
+  const ordered = [...preferred, ...fallback];
+  const first = ordered[0]!;
+  const second = ordered.find((identity) => identity.id !== first.id);
 
   if (!second) {
     throw new Error('Failed to pick two distinct identities.');
@@ -100,11 +149,7 @@ export function pickTwoIdentities(
 export function getIdentitiesForCategory(
   categoryId: string,
 ): GuessingChallengeIdentitySecret[] {
-  const content = getLoadedGameContent(GUESSING_CHALLENGE_GAME_ID);
-
-  if (!content) {
-    return [];
-  }
+  const content = loadContent();
 
   return (content.bundle.questions ?? [])
     .filter((question) => question.categoryId === categoryId)
@@ -116,20 +161,32 @@ export function pickReplacementIdentity(
   options: {
     currentOpponentId: string;
     ownIdentityId: string;
+    currentOpponentValue?: string;
+    ownIdentityValue?: string;
     usedIdentityIds: readonly string[];
+    recentIdentityIds?: readonly string[];
   },
 ): GuessingChallengeIdentitySecret | null {
-  const used = new Set(options.usedIdentityIds);
+  const used = new Set([
+    ...options.usedIdentityIds,
+    ...(options.recentIdentityIds ?? []),
+  ]);
   const candidates = pool.filter(
     (identity) =>
       identity.id !== options.currentOpponentId &&
       identity.id !== options.ownIdentityId &&
+      identity.value !== options.currentOpponentValue &&
+      identity.value !== options.ownIdentityValue &&
       !used.has(identity.id),
   );
 
   const fallback = pool.filter(
     (identity) =>
       identity.id !== options.currentOpponentId && identity.id !== options.ownIdentityId,
+  ).filter(
+    (identity) =>
+      identity.value !== options.currentOpponentValue &&
+      identity.value !== options.ownIdentityValue,
   );
 
   const source = candidates.length > 0 ? candidates : fallback;

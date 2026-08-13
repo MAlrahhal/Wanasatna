@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { GamePluginScreenProps, GuessingChallengePlayerView } from '@wanasatna/shared';
-import { GUESSING_CHALLENGE_GAME_ID } from '@wanasatna/shared';
+import {
+  GUESSING_CHALLENGE_GAME_ID,
+  GUESSING_CHALLENGE_ROUND_RESULTS_SECONDS,
+  MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS,
+} from '@wanasatna/shared';
+import { GameCard, GameScreen } from '@/components/game/game-card';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
@@ -18,7 +23,7 @@ import { useGuessingChallengePlayerView } from './use-player-view';
 
 export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
   const { state: shellState, returnToLobby } = useGameShell();
-  const { room, player, players } = useRoom();
+  const { room, player, players, isHost } = useRoom();
   const setExperienceMeta = useSetGameExperienceMeta();
   const isGuessingGame = shellState?.gameId === GUESSING_CHALLENGE_GAME_ID;
   const shellPhase = shellState?.phase;
@@ -35,13 +40,13 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
     actionError,
     guessFeedback,
     isSubmittingAction,
+    remainingSeconds,
     endQuestion,
     submitFinalGuess,
     useYellowCard,
     useRedCard,
     rejectCard,
     continueFromRoundResults,
-    setNextRoundCategory,
     emitLook,
   } = useGuessingChallengePlayerView(pluginEnabled);
 
@@ -82,8 +87,16 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
       gameName: GUESSING_CHALLENGE_GAME_NAME,
       gameIcon: GUESSING_CHALLENGE_GAME_ICON,
       phaseLabel: activeView.phaseLabel,
+      categoryLabel: activeView.categoryLabel
+        ? `الفئة: ${activeView.categoryLabel}`
+        : undefined,
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
+      timer: {
+        remainingSeconds,
+        format: 'seconds' as const,
+        lowTimeThreshold: 5,
+      },
       leaderboardEntries: mapGuessingChallengeLeaderboard(activeView, player.id, players),
     });
   }, [
@@ -92,6 +105,7 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
     player,
     players,
     pluginEnabled,
+    remainingSeconds,
     setExperienceMeta,
     showFinalMatchResults,
     view,
@@ -102,9 +116,19 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
       return;
     }
     setIsReturningToLobby(true);
-    await returnToLobby();
+    if (view?.gamePhase === 'match-completed' && isHost) {
+      await continueFromRoundResults();
+    } else {
+      await returnToLobby();
+    }
     setIsReturningToLobby(false);
-  }, [isReturningToLobby, returnToLobby]);
+  }, [
+    continueFromRoundResults,
+    isHost,
+    isReturningToLobby,
+    returnToLobby,
+    view?.gamePhase,
+  ]);
 
   if (!isGuessingGame || !room || !player) {
     return null;
@@ -126,6 +150,16 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
         playerCount={activeFinalResultsView.resultsLeaderboard.length}
         roomCode={room.code}
         gameName={GUESSING_CHALLENGE_GAME_NAME}
+        autoReturnSeconds={
+          activeFinalResultsView.gamePhase === 'match-completed'
+            ? remainingSeconds
+            : undefined
+        }
+        autoReturnTotalSeconds={
+          activeFinalResultsView.gamePhase === 'match-completed'
+            ? MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS
+            : undefined
+        }
         isReturnToLobbyLoading={isReturningToLobby}
         onReturnToLobby={
           activeFinalResultsView.isHost
@@ -135,7 +169,9 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
             : undefined
         }
         returnStatusMessage={
-          activeFinalResultsView.isHost ? null : 'بانتظار المضيف للعودة إلى اللوبي...'
+          activeFinalResultsView.isHost
+            ? null
+            : 'العودة إلى اللوبي تلقائياً خلال ثوانٍ...'
         }
       />
     );
@@ -161,6 +197,19 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
     return null;
   }
 
+  if (view.isMatchSpectator && view.gamePhase === 'playing') {
+    return (
+      <GameScreen ariaLabel="مشاهدة تحدي التخمين" maxWidth="3xl">
+        <GameCard className="px-5 py-8 text-center">
+          <p className="text-lg font-semibold text-wanas-text-primary">الجولة جارية</p>
+          <p className="mt-2 text-sm text-wanas-text-muted">
+            أنت مشاهد حالياً، وبتشارك في المباراة القادمة.
+          </p>
+        </GameCard>
+      </GameScreen>
+    );
+  }
+
   if (view.gamePhase === 'round-results') {
     return (
       <GuessingChallengeRoundResultsScreen
@@ -168,10 +217,9 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
         currentPlayerId={player.id}
         roomCode={room.code}
         isContinueLoading={isSubmittingAction}
+        remainingSeconds={remainingSeconds}
+        totalDurationSeconds={GUESSING_CHALLENGE_ROUND_RESULTS_SECONDS}
         onContinue={continueFromRoundResults}
-        onSelectNextCategory={(categoryId) => {
-          void setNextRoundCategory(categoryId);
-        }}
       />
     );
   }

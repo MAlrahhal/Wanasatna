@@ -1,6 +1,7 @@
 import type { Server } from 'socket.io';
 import { TEAM_SNAPSHOT_EVENT } from '@wanasatna/shared';
 import { getRoomChannel } from '../../room/room.utils.js';
+import { handleGuessingChallengePermanentLeave } from '../plugins/guessing-challenge/match-lifecycle.js';
 import { handleJudgePermanentLeave } from '../plugins/judge/match-lifecycle.js';
 import {
   clearTeamsForRoom,
@@ -31,6 +32,7 @@ export async function onRoomPlayerRemoved(
   }
 
   handleJudgePermanentLeave(io, roomId, playerId);
+  handleGuessingChallengePermanentLeave(io, roomId, playerId);
 
   const eligible = await loadEligibleLobbyPlayerIds(roomId);
   const snapshot = removePlayerFromPregameTeams(roomId, playerId, eligible);

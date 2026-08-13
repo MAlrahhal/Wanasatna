@@ -14,6 +14,10 @@ function compareArabicName(left: string, right: string): number {
  * without double-awarding.
  */
 export function applyRoundScores(match: GuessingChallengeMatchState): GuessingChallengeMatchState {
+  if (match.round.gamePhase !== 'playing' || match.round.scoresApplied) {
+    return match;
+  }
+
   const winningTeamId = match.round.winningTeamId;
   if (!winningTeamId) {
     return match;
@@ -25,13 +29,21 @@ export function applyRoundScores(match: GuessingChallengeMatchState): GuessingCh
   const scores = { ...match.scores };
   for (const playerId of match.playerIds) {
     const teamId = match.teamByPlayerId[playerId];
-    if (!teamId) {
+    if (!teamId || match.departedPlayerIds.includes(playerId)) {
       continue;
     }
     scores[playerId] = teamScores[teamId] ?? 0;
   }
 
-  return { ...match, teamScores, scores };
+  return {
+    ...match,
+    teamScores,
+    scores,
+    round: {
+      ...match.round,
+      scoresApplied: true,
+    },
+  };
 }
 
 export function buildRoundResultEntries(
@@ -42,7 +54,8 @@ export function buildRoundResultEntries(
   return [...match.playerIds]
     .map((playerId) => {
       const teamId = match.teamByPlayerId[playerId];
-      const isWinner = teamId === winningTeamId;
+      const isWinner =
+        teamId === winningTeamId && !match.departedPlayerIds.includes(playerId);
       return {
         playerId,
         name: match.playerNames[playerId] ?? 'لاعب',
@@ -79,11 +92,20 @@ export function buildLeaderboardEntries(
 }
 
 export function buildResultsLeaderboardEntries(match: GuessingChallengeMatchState) {
-  return buildLeaderboardEntries(match).map((entry, index) => ({
-    playerId: entry.playerId,
-    name: entry.name,
-    totalPoints: entry.score,
-    rank: index + 1,
-    isFirstPlace: index === 0,
-  }));
+  const entries = buildLeaderboardEntries(match);
+  let previousScore: number | null = null;
+  let previousRank = 0;
+
+  return entries.map((entry, index) => {
+    const rank = previousScore === entry.score ? previousRank : index + 1;
+    previousScore = entry.score;
+    previousRank = rank;
+    return {
+      playerId: entry.playerId,
+      name: entry.name,
+      totalPoints: entry.score,
+      rank,
+      isFirstPlace: rank === 1,
+    };
+  });
 }

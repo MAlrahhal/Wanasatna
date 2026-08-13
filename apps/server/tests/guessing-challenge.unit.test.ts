@@ -10,26 +10,38 @@ import type {
   GuessingChallengeRoundState,
 } from '@wanasatna/shared';
 import {
+  GUESSING_CHALLENGE_DEFAULT_ROUNDS,
+  GUESSING_CHALLENGE_TURN_SECONDS,
   GUESSING_CHALLENGE_WINNER_POINTS,
   GUESSING_CHALLENGE_YELLOW_QUESTIONS,
 } from '@wanasatna/shared';
 import { registerAllGameContent } from '../src/modules/content/index.js';
 import { isCorrectAnswer } from '../src/modules/game/plugins/fast-answer/answers.js';
 import {
+  GUESSING_CHALLENGE_RANDOM_CATEGORY_ID,
+  chooseRoundCategoryId,
   getIdentitiesForCategory,
   pickReplacementIdentity,
   pickTwoIdentities,
 } from '../src/modules/game/plugins/guessing-challenge/identities.js';
-import { applyRoundScores } from '../src/modules/game/plugins/guessing-challenge/scoring.js';
 import {
+  applyRoundScores,
+  buildResultsLeaderboardEntries,
+} from '../src/modules/game/plugins/guessing-challenge/scoring.js';
+import {
+  advanceAfterQuestionUnit,
   applyFinalGuess,
   assignTeams,
   buildGuessingChallengePlayerView,
   confirmSpecialCard,
+  createRoundState,
   rejectSpecialCard,
   createInitialTeamCards,
   createInitialTeamScores,
   endQuestionTurn,
+  expireGuessingChallengeTurn,
+  markGuessingChallengePlayerDeparted,
+  reconcilePendingCardConfirm,
   getOpponentTeamId,
   viewContainsSecretLeak,
   withRound,
@@ -74,8 +86,12 @@ function makeIdentity(
   };
 }
 
-function makeShell(playerIds: string[] = ['p1', 'p2']): GameShellState {
+function makeShell(
+  playerIds: string[] = ['p1', 'p2'],
+  connectedIds: string[] = playerIds,
+): GameShellState {
   const names = ['محمد', 'خالد', 'سارة', 'نورة'];
+  const connected = new Set(connectedIds);
   return {
     shellId: 'shell-gc',
     roomId: 'room-gc',
@@ -85,7 +101,7 @@ function makeShell(playerIds: string[] = ['p1', 'p2']): GameShellState {
     players: playerIds.map((id, index) => ({
       id,
       name: names[index] ?? `لاعب${index + 1}`,
-      isConnected: true,
+      isConnected: connected.has(id),
       isHost: index === 0,
       isReady: true,
     })),
@@ -106,8 +122,11 @@ function makeRound(overrides?: Partial<GuessingChallengeRoundState>): GuessingCh
   const idRed = makeIdentity('id-red', 'ليونيل ميسي', ['ميسي']);
 
   return {
+    roundId: 'round-1',
+    turnId: 'turn-1',
     gamePhase: 'playing',
-    phaseRemainingSeconds: 0,
+    phaseRemainingSeconds: 45,
+    deadlineAtMs: Date.now() + 45_000,
     resolvedCategoryId: 'football',
     identitiesByTeamId: { blue: idBlue, red: idRed },
     usedIdentityIds: [idBlue.id, idRed.id],
@@ -119,6 +138,7 @@ function makeRound(overrides?: Partial<GuessingChallengeRoundState>): GuessingCh
     winningGuess: null,
     identityChangedNoticeTeamId: null,
     cardConfirm: null,
+    scoresApplied: false,
     ...overrides,
   };
 }
@@ -139,6 +159,10 @@ function makeMatch1v1(overrides?: Partial<GuessingChallengeMatchState>): Guessin
     totalRounds: 4,
     matchStatus: 'in-progress',
     nextStartingTeamId: 'red',
+    lockedCategoryId: 'football',
+    lockedCategoryLabel: 'كرة قدم',
+    usedRoundCategoryIds: ['football'],
+    departedPlayerIds: [],
     recentIdentityIds: ['id-blue', 'id-red'],
     round: makeRound(),
     ...overrides,
@@ -162,6 +186,10 @@ function makeMatch2v2(overrides?: Partial<GuessingChallengeMatchState>): Guessin
     totalRounds: 4,
     matchStatus: 'in-progress',
     nextStartingTeamId: 'red',
+    lockedCategoryId: 'football',
+    lockedCategoryLabel: 'كرة قدم',
+    usedRoundCategoryIds: ['football'],
+    departedPlayerIds: [],
     recentIdentityIds: ['id-blue', 'id-red'],
     round: makeRound(),
     ...overrides,
@@ -183,6 +211,9 @@ function confirmCard(
     shell,
     playerId,
     card,
+    state.round.roundId,
+    state.round.turnId,
+    state.round.cardConfirm?.requestId,
   );
 }
 
@@ -198,6 +229,22 @@ test('A plugin registers correctly', () => {
 test('C mode player-count requirements', () => {
   const plugin = getGamePluginDefinition('guessing-challenge');
   assert.ok(plugin?.validateStart);
+
+  const ok1v1 = plugin.validateStart(
+    {
+      roomId: 'r-1v1',
+      shellId: '',
+      gameId: 'guessing-challenge',
+      hostPlayerId: '1',
+      phase: 'WAITING',
+      players: [
+        { id: '1', name: 'a', isConnected: true, isHost: true, isReady: true },
+        { id: '2', name: 'b', isConnected: true, isHost: false, isReady: true },
+      ],
+    },
+    { mode: '1v1' },
+  );
+  assert.equal(ok1v1.success, true);
 
   const tooManyFor1v1 = plugin.validateStart(
     {
@@ -215,6 +262,23 @@ test('C mode player-count requirements', () => {
     { mode: '1v1' },
   );
   assert.equal(tooManyFor1v1.success, false);
+
+  const threeFor2v2 = plugin.validateStart(
+    {
+      roomId: 'r-three',
+      shellId: '',
+      gameId: 'guessing-challenge',
+      hostPlayerId: '1',
+      phase: 'WAITING',
+      players: [
+        { id: '1', name: 'a', isConnected: true, isHost: true, isReady: true },
+        { id: '2', name: 'b', isConnected: true, isHost: false, isReady: true },
+        { id: '3', name: 'c', isConnected: true, isHost: false, isReady: true },
+      ],
+    },
+    { mode: '2v2' },
+  );
+  assert.equal(threeFor2v2.success, false);
 
   const ok2v2 = plugin.validateStart(
     {
@@ -696,7 +760,14 @@ test('teamCards persist when advancing to next round', () => {
 test('cardConfirm cleared on turn change', () => {
   let match = makeMatch2v2({
     round: makeRound({
-      cardConfirm: { card: 'yellow', teamId: 'blue', confirmedPlayerIds: ['p1'] },
+      cardConfirm: {
+        requestId: 'req-1',
+        roundId: 'round-1',
+        turnId: 'turn-1',
+        card: 'yellow',
+        teamId: 'blue',
+        confirmedPlayerIds: ['p1'],
+      },
     }),
   });
   const step = endQuestionTurn(match, 'p1');
@@ -704,6 +775,415 @@ test('cardConfirm cleared on turn change', () => {
   if (step.ok) {
     assert.equal(step.match.round.cardConfirm, null);
   }
+});
+
+test('production match contract is four rounds with 45-second turns', () => {
+  assert.equal(GUESSING_CHALLENGE_DEFAULT_ROUNDS, 4);
+  assert.equal(GUESSING_CHALLENGE_TURN_SECONDS, 45);
+  const match = makeMatch1v1();
+  assert.equal(match.totalRounds, 4);
+  assert.equal(match.round.phaseRemainingSeconds, 45);
+});
+
+test('normal completion creates a fresh turn generation and rejects stale repeat', () => {
+  const match = makeMatch1v1();
+  const oldTurnId = match.round.turnId;
+  const first = endQuestionTurn(match, 'p1', match.round.roundId, oldTurnId);
+  assert.equal(first.ok, true);
+  if (!first.ok) return;
+  assert.notEqual(first.match.round.turnId, oldTurnId);
+  assert.equal(first.match.round.currentTurnTeamId, 'red');
+  const stale = endQuestionTurn(first.match, 'p1', match.round.roundId, oldTurnId);
+  assert.equal(stale.ok, false);
+});
+
+test('turn timeout auto-passes and stale timeout cannot mutate new turn', () => {
+  const match = makeMatch1v1();
+  const advanced = expireGuessingChallengeTurn(
+    match,
+    match.round.roundId,
+    match.round.turnId,
+  );
+  assert.ok(advanced);
+  assert.equal(advanced.round.currentTurnTeamId, 'red');
+  assert.notEqual(advanced.round.turnId, match.round.turnId);
+  assert.equal(
+    expireGuessingChallengeTurn(advanced, match.round.roundId, match.round.turnId),
+    null,
+  );
+});
+
+test('stale guess and stale card request reject when same team returns later', () => {
+  const initial = makeMatch1v1();
+  const afterBlue = advanceAfterQuestionUnit(initial);
+  const blueAgain = advanceAfterQuestionUnit(afterBlue);
+  assert.equal(blueAgain.round.currentTurnTeamId, 'blue');
+
+  let state = blueAgain;
+  const staleGuess = applyFinalGuess(
+    () => state,
+    (next) => {
+      state = next;
+    },
+    'p1',
+    'رونالدو',
+    initial.round.roundId,
+    initial.round.turnId,
+  );
+  assert.equal(staleGuess.accepted, false);
+
+  const staleCard = confirmSpecialCard(
+    () => state,
+    (next) => {
+      state = next;
+    },
+    makeShell(),
+    'p1',
+    'yellow',
+    initial.round.roundId,
+    initial.round.turnId,
+  );
+  assert.equal(staleCard.ok, false);
+});
+
+test('yellow activation and every unit receive fresh 45-second generations', () => {
+  let match = makeMatch1v1();
+  const before = match.round.turnId;
+  const yellow = confirmCard(match, makeShell(), 'p1', 'yellow');
+  assert.equal(yellow.ok, true);
+  if (!yellow.ok) return;
+  match = yellow.match;
+  assert.equal(match.round.yellowQuestionsRemaining, 3);
+  assert.notEqual(match.round.turnId, before);
+  assert.equal(match.round.phaseRemainingSeconds, 45);
+
+  const ids = [match.round.turnId];
+  for (let index = 0; index < 3; index += 1) {
+    const next = expireGuessingChallengeTurn(
+      match,
+      match.round.roundId,
+      match.round.turnId,
+    );
+    assert.ok(next);
+    match = next;
+    ids.push(match.round.turnId);
+    assert.equal(match.round.phaseRemainingSeconds, 45);
+  }
+  assert.equal(new Set(ids).size, 4);
+  assert.equal(match.round.currentTurnTeamId, 'red');
+});
+
+test('pending 2v2 card auto-activates when unconfirmed teammate disconnects', () => {
+  let match = makeMatch2v2();
+  const shell = makeShell(['p1', 'p2', 'p3', 'p4']);
+  const first = confirmSpecialCard(
+    () => match,
+    (next) => {
+      match = next;
+    },
+    shell,
+    'p1',
+    'yellow',
+    match.round.roundId,
+    match.round.turnId,
+  );
+  assert.equal(first.ok, true);
+  assert.equal(match.round.yellowQuestionsRemaining, null);
+
+  const disconnectedShell = makeShell(
+    ['p1', 'p2', 'p3', 'p4'],
+    ['p1', 'p2', 'p4'],
+  );
+  const reconciled = reconcilePendingCardConfirm(match, disconnectedShell);
+  assert.equal(reconciled.changed, true);
+  assert.equal(reconciled.activated, true);
+  assert.equal(reconciled.match.round.yellowQuestionsRemaining, 3);
+  assert.equal(reconciled.match.teamCards.blue.yellowUsed, true);
+});
+
+test('turn transition cancels pending card and stale approval rejects', () => {
+  let match = makeMatch2v2();
+  const shell = makeShell(['p1', 'p2', 'p3', 'p4']);
+  const first = confirmSpecialCard(
+    () => match,
+    (next) => {
+      match = next;
+    },
+    shell,
+    'p1',
+    'red',
+    match.round.roundId,
+    match.round.turnId,
+  );
+  assert.equal(first.ok, true);
+  const pending = match.round.cardConfirm!;
+  const advanced = expireGuessingChallengeTurn(
+    match,
+    match.round.roundId,
+    match.round.turnId,
+  )!;
+  assert.equal(advanced.round.cardConfirm, null);
+
+  let current = advanced;
+  const stale = confirmSpecialCard(
+    () => current,
+    (next) => {
+      current = next;
+    },
+    shell,
+    'p3',
+    'red',
+    pending.roundId,
+    pending.turnId,
+    pending.requestId,
+  );
+  assert.equal(stale.ok, false);
+});
+
+test('random category prefers unused; fixed category remains fixed', () => {
+  const pool = ['animals', 'food', 'cars'];
+  assert.equal(
+    chooseRoundCategoryId('food', ['food'], pool, () => 2),
+    'food',
+  );
+  assert.equal(
+    chooseRoundCategoryId(
+      GUESSING_CHALLENGE_RANDOM_CATEGORY_ID,
+      ['animals'],
+      pool,
+      () => 0,
+    ),
+    'food',
+  );
+});
+
+test('random remains public while round uses an internal category', () => {
+  const match = makeMatch1v1({
+    lockedCategoryId: GUESSING_CHALLENGE_RANDOM_CATEGORY_ID,
+    lockedCategoryLabel: 'عشوائي',
+    round: makeRound({ resolvedCategoryId: 'football' }),
+  });
+  const view = buildGuessingChallengePlayerView(match, 'p1', makeShell());
+  assert.equal(view.categoryId, GUESSING_CHALLENGE_RANDOM_CATEGORY_ID);
+  assert.equal(view.categoryLabel, 'عشوائي');
+  assert.equal(JSON.stringify(view).includes('resolvedCategoryId'), false);
+});
+
+test('four random rounds consume unused valid categories first', () => {
+  const teams = assignTeams(['p1', 'p2'], '1v1').teamByPlayerId;
+  let usedCategories: string[] = [];
+  let recentIdentities: string[] = [];
+  const resolved: string[] = [];
+
+  for (let roundNumber = 0; roundNumber < 4; roundNumber += 1) {
+    const created = createRoundState(
+      GUESSING_CHALLENGE_RANDOM_CATEGORY_ID,
+      usedCategories,
+      teams,
+      roundNumber % 2 === 0 ? 'blue' : 'red',
+      recentIdentities,
+    );
+    resolved.push(created.round.resolvedCategoryId);
+    usedCategories = created.usedRoundCategoryIds;
+    recentIdentities = [...recentIdentities, ...created.round.usedIdentityIds];
+  }
+
+  assert.equal(new Set(resolved).size, 4);
+});
+
+test('specific match category remains internal category for all four rounds', () => {
+  const teams = assignTeams(['p1', 'p2'], '1v1').teamByPlayerId;
+  let recent: string[] = [];
+  for (let roundNumber = 0; roundNumber < 4; roundNumber += 1) {
+    const created = createRoundState(
+      'football',
+      [],
+      teams,
+      roundNumber % 2 === 0 ? 'blue' : 'red',
+      recent,
+    );
+    assert.equal(created.round.resolvedCategoryId, 'football');
+    assert.ok(
+      Object.values(created.round.identitiesByTeamId).every(
+        (identity) => identity.categoryId === 'football',
+      ),
+    );
+    recent = [...recent, ...created.round.usedIdentityIds];
+  }
+});
+
+test('identity picker consumes remaining fresh alternative before reuse', () => {
+  const pool = [
+    makeIdentity('a', 'أ'),
+    makeIdentity('b', 'ب'),
+    makeIdentity('c', 'ج'),
+  ];
+  const picked = pickTwoIdentities(pool, ['a', 'b']);
+  assert.ok(picked.some((identity) => identity.id === 'c'));
+  assert.notEqual(picked[0].id, picked[1].id);
+});
+
+test('spectator receives no identities or controls', () => {
+  const match = makeMatch2v2();
+  const view = buildGuessingChallengePlayerView(
+    match,
+    'spectator',
+    makeShell(['p1', 'p2', 'p3', 'p4', 'spectator']),
+  );
+  assert.equal(view.isMatchSpectator, true);
+  assert.equal(view.selfTeam, null);
+  assert.equal(view.opponents.length, 0);
+  assert.equal(view.opponent.visibleIdentity, null);
+  assert.equal(view.canGuess, false);
+  assert.equal(view.canEndQuestion, false);
+  assert.equal(view.canUseYellow, false);
+  assert.equal(JSON.stringify(view).includes('acceptedAnswers'), false);
+});
+
+test('departed teammate receives no future mirrored score', () => {
+  let match = markGuessingChallengePlayerDeparted(makeMatch2v2(), 'p3');
+  assert.equal(
+    endQuestionTurn(match, 'p3', match.round.roundId, match.round.turnId).ok,
+    false,
+  );
+  match = withRound(match, {
+    ...match.round,
+    winningTeamId: 'blue',
+    winningPlayerId: 'p1',
+  });
+  match = applyRoundScores(match);
+  assert.equal(match.scores.p1, 100);
+  assert.equal(match.scores.p3, 0);
+});
+
+test('tie-safe final rankings share rank one', () => {
+  const rankings = buildResultsLeaderboardEntries(makeMatch1v1());
+  assert.equal(rankings[0]?.rank, 1);
+  assert.equal(rankings[1]?.rank, 1);
+  assert.equal(rankings[0]?.isFirstPlace, true);
+  assert.equal(rankings[1]?.isFirstPlace, true);
+});
+
+test('all four 2v2 seats receive authoritative winning team', () => {
+  const match = makeMatch2v2({
+    round: makeRound({
+      gamePhase: 'round-results',
+      winningTeamId: 'red',
+      winningPlayerId: 'p2',
+      winningGuess: 'ميسي',
+    }),
+  });
+  const shell = makeShell(['p1', 'p2', 'p3', 'p4']);
+  for (const playerId of match.playerIds) {
+    const view = buildGuessingChallengePlayerView(match, playerId, shell);
+    assert.equal(view.winningTeamId, 'red');
+    assert.equal(
+      view.roundResults.find((entry) => entry.playerId === playerId)?.isWinner,
+      match.teamByPlayerId[playerId] === 'red',
+    );
+  }
+});
+
+test('starting team alternates blue/red/blue/red across four rounds', () => {
+  let starting: GuessingChallengeMatchState['nextStartingTeamId'] = 'blue';
+  const seen: string[] = [];
+  for (let roundNumber = 1; roundNumber <= 4; roundNumber += 1) {
+    seen.push(starting);
+    starting = starting === 'blue' ? 'red' : 'blue';
+  }
+  assert.deepEqual(seen, ['blue', 'red', 'blue', 'red']);
+  assert.equal(makeMatch1v1().round.startingTeamId, 'blue');
+  assert.equal(makeMatch1v1().nextStartingTeamId, 'red');
+});
+
+test('omitted requestId still joins the current 2v2 pending card', () => {
+  let match = makeMatch2v2();
+  const shell = makeShell(['p1', 'p2', 'p3', 'p4']);
+  const first = confirmSpecialCard(
+    () => match,
+    (next) => {
+      match = next;
+    },
+    shell,
+    'p1',
+    'yellow',
+    match.round.roundId,
+    match.round.turnId,
+  );
+  assert.equal(first.ok, true);
+  const second = confirmSpecialCard(
+    () => match,
+    (next) => {
+      match = next;
+    },
+    shell,
+    'p3',
+    'yellow',
+    match.round.roundId,
+    match.round.turnId,
+  );
+  assert.equal(second.ok, true);
+  if (second.ok) {
+    assert.equal(second.activated, true);
+  }
+});
+
+test('departed player playing view hides secrets and cannot act', () => {
+  const match = markGuessingChallengePlayerDeparted(makeMatch2v2(), 'p3');
+  const view = buildGuessingChallengePlayerView(
+    match,
+    'p3',
+    makeShell(['p1', 'p2', 'p3', 'p4']),
+  );
+  assert.equal(view.isMatchSpectator, true);
+  assert.equal(view.opponent.visibleIdentity, null);
+  assert.equal(view.canGuess, false);
+  assert.equal(view.canUseYellow, false);
+  assert.equal(viewContainsSecretLeak(view, match.round.identitiesByTeamId.blue!), false);
+  assert.equal(viewContainsSecretLeak(view, match.round.identitiesByTeamId.red!), false);
+});
+
+test('duplicate correct guess cannot score twice', () => {
+  let match = makeMatch1v1();
+  const first = applyFinalGuess(
+    () => match,
+    (next) => {
+      match = next;
+    },
+    'p1',
+    'رونالدو',
+    match.round.roundId,
+    match.round.turnId,
+  );
+  assert.equal(first.accepted, true);
+  if (first.accepted) {
+    assert.equal(first.correct, true);
+  }
+  const second = applyFinalGuess(
+    () => match,
+    (next) => {
+      match = next;
+    },
+    'p1',
+    'رونالدو',
+    match.round.roundId,
+    match.round.turnId,
+  );
+  assert.equal(second.accepted, false);
+  match = applyRoundScores(match);
+  match = applyRoundScores(match);
+  assert.equal(match.teamScores.blue, GUESSING_CHALLENGE_WINNER_POINTS);
+});
+
+test('entire team permanent leave leaves no eligible actors', () => {
+  let match = markGuessingChallengePlayerDeparted(makeMatch2v2(), 'p2');
+  match = markGuessingChallengePlayerDeparted(match, 'p4');
+  assert.equal(match.departedPlayerIds.length, 2);
+  const scored = applyRoundScores(
+    withRound(match, { ...match.round, winningTeamId: null }),
+  );
+  assert.equal(scored.teamScores.red, 0);
+  assert.equal(scored.teamScores.blue, 0);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

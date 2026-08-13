@@ -48,12 +48,16 @@ export function ensureGuessingChallengeMatchState(
   const roomMode = getGuessingChallengeRoomMode(roomId);
   const mode = resolveGuessingChallengeMode(content.settings, roomMode);
   const expected = requiredPlayerCountForMode(mode);
+  const pregame = getPregameTeams(roomId);
+  const assignedPlayers = pregame
+    ? matchPlayers.filter((player) => pregame.blue.includes(player.id) || pregame.red.includes(player.id))
+    : matchPlayers;
 
-  if (matchPlayers.length !== expected || !matchPlayers.some((player) => player.isConnected)) {
+  if (assignedPlayers.length !== expected || !assignedPlayers.some((player) => player.isConnected)) {
     return null;
   }
 
-  const playerIds = matchPlayers.map((player) => player.id);
+  const playerIds = assignedPlayers.map((player) => player.id);
   const teamValidation = validatePregameTeamsForStart({
     roomId,
     gameId: GUESSING_CHALLENGE_GAME_ID,
@@ -65,10 +69,8 @@ export function ensureGuessingChallengeMatchState(
     return null;
   }
 
-  const pregame = getPregameTeams(roomId);
   const teamAssignment = pregame ? toTeamMaps(pregame) : teamValidation.data;
-
-  const match = createMatchState(roomId, matchPlayers, content.settings, mode, teamAssignment);
+  const match = createMatchState(roomId, assignedPlayers, content.settings, mode, teamAssignment);
   setGuessingChallengeState(roomId, match);
   return match;
 }
