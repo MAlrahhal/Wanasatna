@@ -21,8 +21,8 @@ import {
 import './real3d-scene.css';
 
 const YAW_1V1 = (38 * Math.PI) / 180;
-/** Wider yaw so local player can look sideways at teammate. */
-const YAW_2V2 = (55 * Math.PI) / 180;
+/** 90° yaw so the local player can look to the far room corner / teammate. */
+const YAW_2V2 = (90 * Math.PI) / 180;
 const PITCH_LIMIT = (18 * Math.PI) / 180;
 
 function usePrefersReducedMotion(): boolean {
