@@ -322,27 +322,31 @@ export function Real3DSceneInner(props: GuessingChallengeSceneProps) {
         </Canvas>
       </div>
 
-      <div className="mt-2 flex items-center justify-between gap-2 px-1">
+      <div className="mt-2 flex items-end justify-between gap-3 px-2 pb-1">
         <button
           type="button"
           onClick={() => look?.recenter()}
-          className="rounded-lg border border-orange-400/35 bg-violet-950/70 px-3 py-1.5 text-xs font-semibold text-orange-100"
+          className="shrink-0 rounded-xl border border-orange-400/35 bg-violet-950/70 px-3 py-2 text-xs font-semibold leading-5 text-orange-100"
           data-testid="gc-recenter-camera"
         >
           إعادة توسيط النظر
         </button>
         {props.mode === 'playing' && props.turnTitle ? (
           <div
-            className="rounded-lg border border-orange-400/25 bg-violet-950/55 px-3 py-1.5 text-right"
+            className="min-w-0 max-w-[min(100%,18rem)] overflow-visible rounded-xl border border-orange-400/25 bg-violet-950/70 px-3.5 py-2 text-right shadow-sm"
             data-testid="gc-turn-indicator"
             dir="rtl"
           >
-            <p className="text-xs font-semibold text-orange-100">{props.turnTitle}</p>
+            <p className="text-xs font-semibold leading-5 break-words text-orange-100">
+              {props.turnTitle}
+            </p>
             {props.turnInstruction ? (
-              <p className="text-[0.65rem] text-violet-100/80">{props.turnInstruction}</p>
+              <p className="mt-0.5 text-[0.7rem] leading-4 break-words text-violet-100/85">
+                {props.turnInstruction}
+              </p>
             ) : null}
             {props.yellowQuestionsRemaining != null ? (
-              <p className="text-[0.65rem] font-semibold text-amber-200">
+              <p className="mt-0.5 text-[0.7rem] font-semibold leading-4 text-amber-200">
                 🟨 المتبقي: {props.yellowQuestionsRemaining}
               </p>
             ) : null}

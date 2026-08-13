@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useState } from 'react';
 import * as THREE from 'three';
+import { splitIdentityDisplayLines } from '../identity-display';
 
 export type IdentityCardMeshProps = {
   text: string;
@@ -33,6 +34,36 @@ function fitFontSize(text: string, maxPx: number, minPx: number): number {
   // Longer Arabic phrases scale down; keep padding from borders.
   const scaled = Math.floor(720 / (len * 0.55));
   return Math.max(minPx, Math.min(maxPx, scaled));
+}
+
+function wrapIdentityLines(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+): string[] {
+  const preferred = splitIdentityDisplayLines(text);
+  if (preferred.length > 1) {
+    return preferred;
+  }
+
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (words.length <= 1) {
+    return [text.trim()];
+  }
+
+  const lines: string[] = [];
+  let current = words[0]!;
+  for (const word of words.slice(1)) {
+    const trial = `${current} ${word}`;
+    if (ctx.measureText(trial).width <= maxWidth) {
+      current = trial;
+    } else {
+      lines.push(current);
+      current = word;
+    }
+  }
+  lines.push(current);
+  return lines;
 }
 
 function paintCard(
@@ -80,13 +111,41 @@ function paintCard(
     ctx.globalAlpha = 1;
   }
 
-  const size = fitFontSize(display, 220, 72);
+  const maxWidth = w - 160;
+  const topBound = label ? 140 : 90;
+  const bottomBound = h - 90;
+  const availableHeight = Math.max(120, bottomBound - topBound);
+
+  let size = fitFontSize(display, 200, 64);
+  let lines = splitIdentityDisplayLines(display);
   ctx.font = `800 ${size}px ${fontStack}`;
-  // Soft shadow for contrast on white face
+
+  const fits = () => {
+    const widest = Math.max(...lines.map((line) => ctx.measureText(line).width), 0);
+    const blockHeight = lines.length * size * 1.18;
+    return widest <= maxWidth && blockHeight <= availableHeight;
+  };
+
+  while (size > 64 && !fits()) {
+    size -= 4;
+    ctx.font = `800 ${size}px ${fontStack}`;
+    lines = wrapIdentityLines(ctx, display, maxWidth);
+  }
+  lines = wrapIdentityLines(ctx, display, maxWidth);
+
+  ctx.font = `800 ${size}px ${fontStack}`;
   ctx.shadowColor = 'rgba(15, 23, 42, 0.22)';
   ctx.shadowBlur = 3;
   ctx.shadowOffsetY = 2;
-  ctx.fillText(display, w / 2, label ? 250 : h / 2 + 8);
+
+  const lineHeight = size * 1.18;
+  const blockHeight = lines.length * lineHeight;
+  const centerY = label ? (topBound + bottomBound) / 2 : h / 2 + 8;
+  let y = centerY - blockHeight / 2 + lineHeight / 2;
+  for (const line of lines) {
+    ctx.fillText(line, w / 2, y);
+    y += lineHeight;
+  }
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;

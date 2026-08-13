@@ -10,7 +10,7 @@ import { getGameCatalogEntry } from '@/lib/public/game-catalog';
 import { mockLobbyGames, mockGameSettingsByGameId } from '@/lib/lobby/mock-games';
 import { getHomeGameShowcase } from '@/lib/home/game-showcase';
 import { getGameRoundCategories } from '@/lib/game/round-categories/registry';
-import { resolveIdentityCardText } from '../plugins/guessing-challenge/identity-display';
+import { resolveIdentityCardText, splitIdentityDisplayLines } from '../plugins/guessing-challenge/identity-display';
 import { detectWebGLSupport } from '../plugins/guessing-challenge/scene-props';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -71,6 +71,11 @@ test('A/B identity helper: own hidden, opponent visible text', () => {
     resolveIdentityCardText({ type: 'text', value: 'بطريق', imageUrl: null }, false),
     'بطريق',
   );
+  assert.deepEqual(splitIdentityDisplayLines('كريستيانو رونالدو'), [
+    'كريستيانو',
+    'رونالدو',
+  ]);
+  assert.deepEqual(splitIdentityDisplayLines('ميسي'), ['ميسي']);
 });
 
 test('A lazy Real3D loader + CSS fallback exist', () => {
@@ -250,6 +255,15 @@ test('plugin registry does not eagerly import three', () => {
   assert.doesNotMatch(gameplay, /from ['"]@react-three/);
 });
 
+test('turn indicator is not clipped by the scene wrapper', () => {
+  const playing = readPlugin('playing-screen.tsx');
+  const inner = readPlugin('real3d/real3d-scene-inner.tsx');
+  assert.doesNotMatch(playing, /relative overflow-hidden rounded-\[1\.5rem\]/);
+  assert.match(inner, /gc-turn-indicator/);
+  assert.match(inner, /overflow-visible/);
+  assert.match(inner, /break-words/);
+});
+
 test('I primary actions remain DOM outside canvas', () => {
   const playing = readPlugin('playing-screen.tsx');
   assert.match(playing, /gc-primary-actions/);
@@ -269,7 +283,7 @@ test('2v2 seating faces opponents; shared card + name anchors', () => {
   assert.match(inner, /Math\.PI/);
   assert.match(inner, /-2\.15/);
   assert.match(bean, /lookYaw \* 0\.62/);
-  assert.match(bean, /-lookPitch \* 0\.45/);
+  assert.match(bean, /headPitch = lookPitch \* 0\.45/);
   assert.match(hands, /blank=\{!revealed\}/);
   assert.match(inner, /sharedCard: true/);
   assert.match(inner, /holdHand="right"/);
@@ -284,6 +298,8 @@ test('2v2 seating faces opponents; shared card + name anchors', () => {
   assert.match(cardMesh, /meshBasicMaterial/);
   assert.match(cardMesh, /paintCard/);
   assert.match(cardMesh, /blank/);
+  assert.match(cardMesh, /splitIdentityDisplayLines/);
+  assert.match(cardMesh, /wrapIdentityLines/);
   assert.doesNotMatch(cardMesh, /from '@react-three\/drei'/);
   const specialPanel = readPlugin('special-cards-panel.tsx');
   assert.match(specialPanel, /createPortal/);

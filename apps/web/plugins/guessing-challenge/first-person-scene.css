@@ -212,10 +212,11 @@
 .gc-fp-turn {
   margin-top: 0.35rem;
   width: 100%;
+  overflow: visible;
   border-radius: 0.9rem;
   border: 1px solid rgb(251 146 60 / 0.35);
   background: rgb(76 29 149 / 0.55);
-  padding: 0.55rem 0.75rem;
+  padding: 0.7rem 0.9rem;
   text-align: center;
 }
 

@@ -2,7 +2,7 @@
 
 import type { GuessingChallengeVisibleIdentity } from '@wanasatna/shared';
 import { cn } from '@/lib/utils';
-import { resolveIdentityCardText } from './identity-display';
+import { resolveIdentityCardText, splitIdentityDisplayLines } from './identity-display';
 
 export type GuessingChallengeIdentityCardProps = {
   label: string;
@@ -27,6 +27,7 @@ export function GuessingChallengeIdentityCard({
 }: GuessingChallengeIdentityCardProps) {
   const display = resolveIdentityCardText(identity, hidden);
   const isHidden = hidden || !identity;
+  const displayLines = splitIdentityDisplayLines(display);
 
   return (
     <div
@@ -47,13 +48,13 @@ export function GuessingChallengeIdentityCard({
       <p
         data-testid={dataTestId ? `${dataTestId}-value` : undefined}
         className={cn(
-          'mt-1.5 break-words font-bold',
+          'mt-1.5 whitespace-pre-line break-words text-center font-bold leading-tight',
           size === 'distant' ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl',
           isHidden ? 'text-wanas-text-muted' : 'text-wanas-text-primary',
           highlight && 'text-wanas-success-dark',
         )}
       >
-        {display}
+        {displayLines.join('\n')}
       </p>
     </div>
   );

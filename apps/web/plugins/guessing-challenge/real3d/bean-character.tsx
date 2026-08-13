@@ -66,9 +66,9 @@ export function BeanCharacter({
   const breath = useRef(0);
   const colors = useMemo(() => TINTS[teamTint], [teamTint]);
   // Network look: +yaw = look left, +pitch = look up (matches LookControls emit).
-  // Bean face is on +Z. +rot.y → turn left; -rot.x → tip back (look up).
+  // Bean face is on +Z. +rot.y → turn left; +rot.x → tip toward the camera (look up).
   const headYaw = lookYaw * 0.62;
-  const headPitch = -lookPitch * 0.45;
+  const headPitch = lookPitch * 0.45;
 
   useFrame((_, delta) => {
     if (reduceMotion) {

@@ -117,7 +117,7 @@ export function GuessingChallengePlayingScreen({
           </p>
         ) : null}
 
-        <div className="relative overflow-hidden rounded-[1.5rem]">
+        <div className="relative rounded-[1.5rem]">
           <GameplayScene
             mode="playing"
             matchMode={view.mode}
