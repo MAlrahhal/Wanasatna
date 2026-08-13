@@ -18,9 +18,9 @@ const SEAT_CAMERA_X = 0.26;
  * Other-seat X (seat 0 teammate on +X / right). Kept on the same side as the
  * camera offset; magnitude sits between the old near seat and the too-far seat.
  */
-const TEAMMATE_X = 1.52;
-/** Teammate world Z. Between too-close (0.08) and too-far (-0.7). */
-const TEAMMATE_Z = -0.28;
+const TEAMMATE_X = 1.58;
+/** Farther from camera along -Z so the side companion is not near-plane huge. */
+const TEAMMATE_Z = -1.05;
 
 export type RemoteAvatarFacing = 'toward-camera' | 'same-as-local';
 
