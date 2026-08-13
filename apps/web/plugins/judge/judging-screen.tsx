@@ -23,11 +23,11 @@ export function JudgeJudgingScreen({
   isJudge,
   canSelect,
   isSubmitting,
-  isSpectator = false,
   actionError = null,
   onSelectWinner,
 }: JudgeJudgingScreenProps) {
   const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(null);
+  const canInteract = isJudge && canSelect && !isSubmitting;
 
   return (
     <GameScreen ariaLabel="القاضي يختار" maxWidth="4xl">
@@ -38,56 +38,36 @@ export function JudgeJudgingScreen({
           </p>
         </div>
 
-        {isJudge ? (
-          <>
-            <p className="text-center text-sm font-semibold text-wanas-text-primary">
-              اختر أفضل إجابة
-            </p>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {answers.map((answer) => (
-                <JudgeAnswerCard
-                  key={answer.answerId}
-                  text={answer.text}
-                  selectable={canSelect}
-                  selected={selectedAnswerId === answer.answerId}
-                  disabled={isSubmitting || !canSelect}
-                  onSelect={() => setSelectedAnswerId(answer.answerId)}
-                />
-              ))}
-            </div>
-            {canSelect && selectedAnswerId ? (
-              <div className="flex justify-center">
-                <Button
-                  type="button"
-                  size="lg"
-                  loading={isSubmitting}
-                  onClick={() => onSelectWinner(selectedAnswerId)}
-                  className="min-h-12 min-w-48"
-                >
-                  تأكيد الاختيار
-                </Button>
-              </div>
-            ) : null}
-          </>
-        ) : (
-          <div className="wanas-game-card rounded-[1.25rem] px-5 py-6 text-center">
-            <p className="text-lg font-semibold text-wanas-text-primary">
-              القاضي يختار أفضل إجابة...
-            </p>
-            {isSpectator && answers.length > 0 ? (
-              <ul className="mt-4 space-y-1.5 text-right">
-                {answers.map((answer) => (
-                  <li
-                    key={answer.answerId}
-                    className="rounded-lg border border-wanas-border bg-wanas-surface-soft px-3 py-2 text-sm text-wanas-text-primary"
-                  >
-                    «{answer.text}»
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+        <p className="text-center text-sm font-semibold text-wanas-text-primary">
+          {isJudge ? 'اختر أفضل إجابة' : 'القاضي يختار أفضل إجابة...'}
+        </p>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {answers.map((answer) => (
+            <JudgeAnswerCard
+              key={answer.answerId}
+              text={answer.text}
+              selectable={canInteract}
+              selected={canInteract && selectedAnswerId === answer.answerId}
+              disabled={!canInteract}
+              onSelect={canInteract ? () => setSelectedAnswerId(answer.answerId) : undefined}
+            />
+          ))}
+        </div>
+
+        {canInteract && selectedAnswerId ? (
+          <div className="flex justify-center">
+            <Button
+              type="button"
+              size="lg"
+              loading={isSubmitting}
+              onClick={() => onSelectWinner(selectedAnswerId)}
+              className="min-h-12 min-w-48"
+            >
+              تأكيد الاختيار
+            </Button>
           </div>
-        )}
+        ) : null}
 
         {actionError ? (
           <p className="text-center text-sm text-destructive">{actionError}</p>
