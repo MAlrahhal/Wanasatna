@@ -17,13 +17,9 @@ const SEAT_CAMERA_X = 0.26;
 /**
  * Other-seat X (seat 0 teammate on +X / right).
  */
-const TEAMMATE_X = 1.58;
-/**
- * Neighboring-seat Z. Camera is at z=1.65 looking -Z (toward opponents).
- * Negative Z pushes the teammate FORWARD into the room; keep this near the
- * local camera so they sit beside the player, not across the rug.
- */
-const TEAMMATE_Z = 1.05;
+const TEAMMATE_X = 1.45;
+/** Neighboring-seat Z (camera at 1.65 looking -Z). Higher = beside player, not across the rug. */
+const TEAMMATE_Z = 1.15;
 
 export type RemoteAvatarFacing = 'toward-camera' | 'same-as-local';
 
