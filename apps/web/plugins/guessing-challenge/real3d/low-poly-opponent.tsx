@@ -15,6 +15,7 @@ export type SeatedOpponentProps = {
   teamDot?: 'blue' | 'red' | 'opponent';
   lookYaw?: number;
   lookPitch?: number;
+  lookYawScale?: number;
   reachToward?: [number, number, number] | null;
   holdHand?: 'both' | 'left' | 'right';
   highlight?: boolean;
@@ -91,6 +92,7 @@ export function LowPolyOpponent({
   teamDot = 'opponent',
   lookYaw = 0,
   lookPitch = 0,
+  lookYawScale,
   reachToward = null,
   holdHand = 'both',
   highlight = false,
@@ -113,6 +115,7 @@ export function LowPolyOpponent({
           teamTint={teamTint}
           lookYaw={lookYaw}
           lookPitch={lookPitch}
+          lookYawScale={lookYawScale}
           reduceMotion={reduceMotion}
           reachToward={reachToward}
           holdHand={holdHand}

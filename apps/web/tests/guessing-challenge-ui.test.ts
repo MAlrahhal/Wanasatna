@@ -304,7 +304,8 @@ test('2v2 seating faces opponents; shared card + name anchors', () => {
   assert.doesNotMatch(inner, /selfSeat === 0 \? 1\.1 : -1\.1/);
   assert.match(inner, /Math\.PI/);
   assert.match(inner, /-2\.15/);
-  assert.match(bean, /lookYaw \* 0\.62/);
+  assert.match(bean, /lookYaw \* lookYawScale/);
+  assert.match(inner, /lookYawScale=\{yawLimit\}/);
   assert.match(bean, /headPitch = lookPitch \* 0\.45/);
   assert.match(hands, /blank/);
   assert.doesNotMatch(hands, /blank=\{!revealed\}/);
@@ -439,7 +440,7 @@ test('remote look yaw maps look-left to world left for every 2v2 facing', () => 
     const parent = new THREE.Group();
     parent.rotation.y = parentYaw;
     const head = new THREE.Group();
-    head.rotation.y = mappedLookYaw * 0.62;
+    head.rotation.y = mappedLookYaw * (Math.PI / 2);
     parent.add(head);
     parent.updateMatrixWorld(true);
     return new THREE.Vector3(0, 0, 1).applyQuaternion(

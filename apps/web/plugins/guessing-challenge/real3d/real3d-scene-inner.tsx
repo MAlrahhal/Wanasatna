@@ -62,11 +62,13 @@ function TeammateSeat({
   selfTeam,
   selfSeat,
   reduceMotion,
+  lookYawScale,
 }: {
   teammate: GuessingChallengeTeamSeat;
   selfTeam?: 'blue' | 'red';
   selfSeat: 0 | 1;
   reduceMotion: boolean;
+  lookYawScale: number;
 }) {
   // Beside the local seat, mid-room — facing opponents (-Z).
   // selfSeat 0 → teammate on +x (right); selfSeat 1 → -x (left).
@@ -91,6 +93,7 @@ function TeammateSeat({
           teamTint={tint}
           lookYaw={lookYaw}
           lookPitch={lookPitch}
+          lookYawScale={lookYawScale}
           reduceMotion={reduceMotion}
           holdHand="both"
           nameBadge={
@@ -231,6 +234,7 @@ function SceneContent({
             teamDot={oppDot}
             lookYaw={mapRemoteLookYaw(opponents[0].lookYaw ?? 0, 'toward-camera')}
             lookPitch={mapRemoteLookPitch(opponents[0].lookPitch ?? 0)}
+            lookYawScale={yawLimit}
             highlight={props.opponentHighlight}
             reduceMotion={reduceMotion}
             position={[-0.62, 0, -2.2]}
@@ -247,6 +251,7 @@ function SceneContent({
             teamDot={oppDot}
             lookYaw={mapRemoteLookYaw(opponents[1].lookYaw ?? 0, 'toward-camera')}
             lookPitch={mapRemoteLookPitch(opponents[1].lookPitch ?? 0)}
+            lookYawScale={yawLimit}
             highlight={props.opponentHighlight}
             reduceMotion={reduceMotion}
             position={[0.62, 0, -2.2]}
@@ -264,6 +269,7 @@ function SceneContent({
           teamDot={oppDot}
           lookYaw={mapRemoteLookYaw(opponents[0]?.lookYaw ?? 0, 'toward-camera')}
           lookPitch={mapRemoteLookPitch(opponents[0]?.lookPitch ?? 0)}
+          lookYawScale={yawLimit}
           highlight={props.opponentHighlight}
           labelPrefix={revealed ? `${opponents[0]?.name ?? props.opponentName} كان` : undefined}
           reduceMotion={reduceMotion}
@@ -279,6 +285,7 @@ function SceneContent({
           selfTeam={props.selfTeam}
           selfSeat={props.selfSeat ?? 0}
           reduceMotion={reduceMotion}
+          lookYawScale={yawLimit}
         />
       ) : null}
     </>

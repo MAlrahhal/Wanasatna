@@ -11,6 +11,11 @@ export type BeanCharacterProps = {
   teamTint?: BeanTeamTint;
   lookYaw?: number;
   lookPitch?: number;
+  /**
+   * Radians at lookYaw=±1. Pass the camera yaw limit so remote heads match
+   * first-person look (90° in 2v2).
+   */
+  lookYawScale?: number;
   holdCard?: ReactNode;
   /** Offset for arm reach toward a shared card (2v2). */
   reachToward?: [number, number, number] | null;
@@ -53,6 +58,7 @@ export function BeanCharacter({
   teamTint = 'opponent',
   lookYaw = 0,
   lookPitch = 0,
+  lookYawScale = 0.62,
   holdCard = null,
   reachToward = null,
   holdHand = 'both',
@@ -66,8 +72,9 @@ export function BeanCharacter({
   const breath = useRef(0);
   const colors = useMemo(() => TINTS[teamTint], [teamTint]);
   // Network look: +yaw = look left, +pitch = look up (matches LookControls emit).
-  // Bean face is on +Z. +rot.y → turn left; +rot.x → tip toward the camera (look up).
-  const headYaw = lookYaw * 0.62;
+  // lookYaw is normalized -1..1. Scale by the camera yaw limit so remotes see
+  // the same head turn the looker actually made.
+  const headYaw = lookYaw * lookYawScale;
   const headPitch = lookPitch * 0.45;
 
   useFrame((_, delta) => {
