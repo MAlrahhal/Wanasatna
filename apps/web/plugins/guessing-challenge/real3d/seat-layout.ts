@@ -15,16 +15,12 @@ export const CAMERA_FOV = 55;
 /** 2v2: sit slightly off center so the outer wall has space and seats mirror. */
 const SEAT_CAMERA_X = 0.26;
 /**
- * Other-seat X (seat 0 teammate on +X / right). Receding in Z without a matching
- * lateral step pulls the teammate toward screen center, so X tracks depth.
+ * Other-seat X (seat 0 teammate on +X / right). Kept on the same side as the
+ * camera offset; magnitude sits between the old near seat and the too-far seat.
  */
-const TEAMMATE_X = 1.78;
-/**
- * Teammate world Z. Camera looks down -Z from z=1.65; smaller Z is farther
- * along view. 0.32→0.08 only added ~0.2m of Euclidean distance because lateral
- * offset dominated. Y=π also puts the chair-back toward the camera.
- */
-const TEAMMATE_Z = -0.7;
+const TEAMMATE_X = 1.52;
+/** Teammate world Z. Between too-close (0.08) and too-far (-0.7). */
+const TEAMMATE_Z = -0.28;
 
 export type RemoteAvatarFacing = 'toward-camera' | 'same-as-local';
 

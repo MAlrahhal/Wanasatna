@@ -405,12 +405,14 @@ test('2v2 seats are mirrored and teammate is not in the camera near field', () =
     const tm = teammateSeatPosition(seat);
     const depth = cam[2] - tm[2];
     const side = Math.abs(tm[0] - cam[0]);
-    assert.ok(depth > 2.0, `seat ${seat} teammate must sit well in front of camera`);
-    assert.ok(side > 1.7, `seat ${seat} teammate must sit beside, not in the aisle`);
+    assert.ok(depth > 1.7, `seat ${seat} teammate must sit well in front of camera`);
+    assert.ok(side > 1.5, `seat ${seat} teammate must sit beside, not in the aisle`);
     assert.ok(Math.abs(tm[0]) > Math.abs(cam[0]), 'teammate is outward of the local seat');
     const head = new THREE.Vector3(tm[0], 1.05, tm[2]);
     const camPos = new THREE.Vector3(cam[0], cam[1], cam[2]);
-    assert.ok(head.distanceTo(camPos) > 2.9, `seat ${seat} camera→teammate must be neighboring-chair distance`);
+    const headDist = head.distanceTo(camPos);
+    assert.ok(headDist > 2.45, `seat ${seat} must stay farther than the giant near-camera layout`);
+    assert.ok(headDist < 2.85, `seat ${seat} must stay closer than the disconnected far layout`);
 
     const camera = new THREE.PerspectiveCamera(55, 1.8, 0.15, 40);
     camera.position.copy(camPos);
