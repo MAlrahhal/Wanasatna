@@ -17,10 +17,10 @@ const SEAT_CAMERA_X = 0.26;
 /** Other-seat X in viewer space (seat 0 teammate on +X / right). */
 const TEAMMATE_X = 1.32;
 /**
- * Teammate world Z. Must stay well in front of the camera (z=1.65) after the
- * Y=π chair-back flip — previously z=1.4 put the chair in the near frustum.
+ * Teammate world Z. Further from the camera than the near-seat placement
+ * (was 1.4, then 0.32) so the side companion stays visible without dominating.
  */
-const TEAMMATE_Z = 0.32;
+const TEAMMATE_Z = 0.08;
 
 export type RemoteAvatarFacing = 'toward-camera' | 'same-as-local';
 
