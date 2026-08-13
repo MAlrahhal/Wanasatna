@@ -96,9 +96,23 @@ export function GuessingChallengePlayingScreen({
 
   const guessPrompt = view.mode === '2v2' ? 'ما هي هوية فريقكم؟' : 'من تعتقد أنك؟';
   const composingGuessRef = useRef(false);
+  const turnInstruction = view.isMyTurn
+    ? view.mode === '2v2'
+      ? 'اسأل الفريق الثاني سؤالاً إجابته نعم أو لا، وحاول تعرف شخصيتكم.'
+      : 'اسأل خصمك سؤالاً إجابته نعم أو لا، وحاول تعرف شخصيتك.'
+    : view.mode === '2v2'
+      ? 'جاوبوا على سؤالهم بنعم أو لا وانتظروا دوركم.'
+      : 'جاوب بنعم أو لا وانتظر دورك.';
+
+  useEffect(() => {
+    if (!view.canGuess) {
+      setShowGuessForm(false);
+      setGuess('');
+    }
+  }, [view.canGuess]);
 
   function submitCurrentGuess(): void {
-    if (isSubmittingAction || !guess.trim()) {
+    if (isSubmittingAction || !view.canGuess || !guess.trim()) {
       return;
     }
     onSubmitGuess(guess);
@@ -107,7 +121,7 @@ export function GuessingChallengePlayingScreen({
   }
 
   return (
-    <GameScreen ariaLabel="تحدي التخمين" maxWidth="4xl">
+    <GameScreen ariaLabel="تحدي التخمين" maxWidth="4xl" className="min-w-0 gap-3 sm:gap-4">
       <GameHeader
         gameName={GUESSING_CHALLENGE_GAME_NAME}
         gameIcon={GUESSING_CHALLENGE_GAME_ICON}
@@ -142,7 +156,7 @@ export function GuessingChallengePlayingScreen({
             selfHidden
             isMyTurn={view.isMyTurn}
             turnTitle={view.isMyTurn ? 'دورك' : `دور ${view.currentTurnPlayerName ?? 'الخصم'}`}
-            turnInstruction={view.turnInstruction}
+            turnInstruction={turnInstruction}
             yellowQuestionsRemaining={view.yellowQuestionsRemaining}
             showSpecialCards={false}
             onLookChange={onLookChange}
@@ -172,7 +186,7 @@ export function GuessingChallengePlayingScreen({
           <p className="text-center text-sm font-medium text-rose-300">{actionError}</p>
         ) : null}
 
-        {showGuessForm ? (
+        {showGuessForm && view.canGuess ? (
           <form
             className="wanas-game-card rounded-2xl border border-border p-4 sm:p-5"
             data-testid="gc-final-guess-panel"
@@ -204,7 +218,7 @@ export function GuessingChallengePlayingScreen({
               }}
               maxLength={80}
               placeholder="اكتب إجابتك..."
-              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-wanas-text-primary outline-none focus:border-cyan-400/60"
+              className="min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-wanas-text-primary outline-none focus:border-cyan-400/60"
               dir="rtl"
             />
             <div className="mt-3 flex flex-wrap gap-2">
@@ -230,28 +244,30 @@ export function GuessingChallengePlayingScreen({
           </form>
         ) : null}
 
-        <div className="flex flex-col gap-2 sm:gap-3" data-testid="gc-primary-actions">
-          <Button
-            type="button"
-            size="lg"
-            data-testid="gc-end-question"
-            disabled={!view.canEndQuestion || isSubmittingAction || showGuessForm}
-            onClick={onEndQuestion}
-            className="w-full"
-          >
-            أنهيت سؤالي
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            data-testid="gc-open-guess"
-            disabled={!view.canGuess || isSubmittingAction}
-            onClick={() => setShowGuessForm(true)}
-            className="w-full"
-          >
-            🎯 عرفت الإجابة
-          </Button>
-        </div>
+        {view.isMyTurn ? (
+          <div className="flex flex-col gap-2 sm:gap-3" data-testid="gc-primary-actions">
+            <Button
+              type="button"
+              size="lg"
+              data-testid="gc-end-question"
+              disabled={!view.canEndQuestion || isSubmittingAction || showGuessForm}
+              onClick={onEndQuestion}
+              className="w-full min-h-12"
+            >
+              أنهيت سؤالي
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              data-testid="gc-open-guess"
+              disabled={!view.canGuess || isSubmittingAction}
+              onClick={() => setShowGuessForm(true)}
+              className="w-full min-h-11"
+            >
+              عرفت الإجابة
+            </Button>
+          </div>
+        ) : null}
       </div>
     </GameScreen>
   );

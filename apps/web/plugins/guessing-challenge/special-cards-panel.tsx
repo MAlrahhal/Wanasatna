@@ -63,17 +63,24 @@ export function GuessingChallengeSpecialCardsPanel({
   const [mounted, setMounted] = useState(false);
   const lastPingKey = useRef<string | null>(null);
 
+  const wasReviewingRequest = useRef(false);
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Close local popup when pending confirm is cleared (reject / activate).
   useEffect(() => {
-    if (!cardConfirmStatus && detailCard) {
-      // Keep popup open only if user opened it manually for available cards.
-      // If they were reviewing a teammate request, close it.
+    if (cardConfirmStatus && !cardConfirmStatus.selfConfirmed) {
+      wasReviewingRequest.current = true;
+      return;
     }
-  }, [cardConfirmStatus, detailCard]);
+    if (!cardConfirmStatus) {
+      if (wasReviewingRequest.current) {
+        setDetailCard(null);
+      }
+      wasReviewingRequest.current = false;
+    }
+  }, [cardConfirmStatus]);
 
   const teammateRequest =
     cardConfirmStatus && !cardConfirmStatus.selfConfirmed ? cardConfirmStatus : null;
@@ -159,11 +166,11 @@ export function GuessingChallengeSpecialCardsPanel({
               ) : null}
 
               <div className="mt-4 flex flex-wrap gap-2">
-                {detailAvailable ? (
+                {detailAvailable && (detailCanUse || isReviewingTeammateRequest) ? (
                   <Button
                     type="button"
                     data-testid="gc-confirm-card-use"
-                    disabled={disabled || !detailCanUse || Boolean(confirmForDetail?.selfConfirmed)}
+                    disabled={disabled || Boolean(confirmForDetail?.selfConfirmed)}
                     onClick={() => {
                       if (detailCard === 'yellow') {
                         onUseYellow();
@@ -179,7 +186,7 @@ export function GuessingChallengeSpecialCardsPanel({
                   </Button>
                 ) : (
                   <Button type="button" disabled data-testid="gc-confirm-card-use">
-                    تم الاستخدام
+                    {detailAvailable ? 'ليست دور فريقكم' : 'تم الاستخدام'}
                   </Button>
                 )}
                 {isReviewingTeammateRequest && onRejectCard ? (
@@ -299,6 +306,7 @@ function PhysicalMiniCard({
     <button
       type="button"
       onClick={onOpen}
+      aria-label={`${copy.title} — ${used ? 'تم الاستخدام' : 'متاحة'}`}
       data-testid={variant === 'yellow' ? 'gc-yellow-card' : 'gc-red-card'}
       data-available={available ? 'true' : 'false'}
       data-compact="true"

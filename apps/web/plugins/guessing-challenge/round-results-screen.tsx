@@ -93,11 +93,13 @@ export function GuessingChallengeRoundResultsScreen({
     view.winningTeamId !== null &&
     view.selfTeam !== null &&
     view.winningTeamId !== view.selfTeam;
+  const winningIdentity =
+    view.revealEntries.find((entry) => entry.isWinner)?.identity?.value ?? null;
   const progressMax = Math.max(1, totalDurationSeconds);
   const progressNow = Math.max(0, Math.min(remainingSeconds, totalDurationSeconds));
 
   return (
-    <GameScreen ariaLabel="نتائج الجولة" maxWidth="4xl">
+    <GameScreen ariaLabel="نتائج الجولة" maxWidth="4xl" className="min-w-0 gap-3 sm:gap-4">
       <GameHeader
         gameName={GUESSING_CHALLENGE_GAME_NAME}
         gameIcon={GUESSING_CHALLENGE_GAME_ICON}
@@ -107,16 +109,22 @@ export function GuessingChallengeRoundResultsScreen({
         phaseLabel="نتائج الجولة"
       />
 
-      <div className="flex flex-col gap-4 sm:gap-5">
-        <div className="wanas-game-card rounded-[1.75rem] border-wanas-success-border/80 bg-wanas-success-surface px-5 py-6 text-center sm:px-8">
-          <p className="text-xl font-bold text-wanas-success-dark sm:text-2xl">
-            🎉 {view.winnerName ?? 'لاعب'} فاز بالجولة
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="wanas-game-card rounded-2xl border-wanas-success-border/80 bg-wanas-success-surface px-4 py-3 text-center sm:px-5 sm:py-3.5">
+          <p className="text-base font-bold break-words text-wanas-success-dark sm:text-lg">
+            {view.winnerName ?? 'لاعب'} فاز بالجولة
           </p>
-          {view.winningGuess ? (
-            <p className="mt-2 text-sm text-wanas-text-primary">
-              التخمين الفائز: «{view.winningGuess}»
+          {winningIdentity ? (
+            <p className="mt-1 text-sm font-semibold break-words text-wanas-text-primary">
+              الهوية: {winningIdentity}
             </p>
           ) : null}
+          {view.winningGuess ? (
+            <p className="mt-0.5 text-xs break-words text-wanas-text-muted">
+              التخمين: «{view.winningGuess}»
+            </p>
+          ) : null}
+          <p className="mt-1 text-xs font-semibold text-wanas-success-dark">+100</p>
         </div>
 
         <GameplayScene
@@ -144,11 +152,11 @@ export function GuessingChallengeRoundResultsScreen({
                 key={entry.playerId}
                 className="flex items-center justify-between rounded-xl border border-border px-3 py-2 text-sm"
               >
-                <span className="font-medium text-wanas-text-primary">
+                <span className="min-w-0 break-words font-medium text-wanas-text-primary">
                   {entry.name}
                   {entry.isWinner ? ' ⭐' : ''}
                 </span>
-                <span className="text-wanas-text-muted">
+                <span className="shrink-0 text-wanas-text-muted">
                   +{entry.roundPoints} · الإجمالي {entry.totalPoints}
                 </span>
               </li>

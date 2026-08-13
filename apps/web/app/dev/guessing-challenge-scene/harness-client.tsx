@@ -44,7 +44,7 @@ export function GuessingChallengeSceneHarness() {
         selfHidden: true,
         isMyTurn: true,
         turnTitle: 'دورك',
-        turnInstruction: 'اسأل خصمك سؤالًا',
+        turnInstruction: 'اسأل الفريق الثاني سؤالاً إجابته نعم أو لا، وحاول تعرف شخصيتكم.',
         showSpecialCards: false,
       };
     }
@@ -60,7 +60,7 @@ export function GuessingChallengeSceneHarness() {
       selfHidden: true,
       isMyTurn: true,
       turnTitle: 'دورك',
-      turnInstruction: 'اسأل خصمك سؤالًا',
+        turnInstruction: 'اسأل خصمك سؤالاً إجابته نعم أو لا، وحاول تعرف شخصيتك.',
       showSpecialCards: false,
       opponents: [
         { playerId: 'opponent', name: 'علي', seat: 0, lookYaw: demoLook.yaw, lookPitch: demoLook.pitch },

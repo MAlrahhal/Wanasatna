@@ -7,7 +7,7 @@ import {
   GUESSING_CHALLENGE_ROUND_RESULTS_SECONDS,
   MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS,
 } from '@wanasatna/shared';
-import { GameCard, GameScreen } from '@/components/game/game-card';
+import { GameScreen } from '@/components/game/game-card';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
@@ -17,9 +17,29 @@ import {
 } from '@/lib/game/guessing-challenge-brand';
 import { mapGuessingChallengeLeaderboard } from '@/lib/game/map-guessing-challenge-leaderboard';
 import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-screen';
+import { GameplayScene } from './gameplay-scene';
 import { GuessingChallengePlayingScreen } from './playing-screen';
 import { GuessingChallengeRoundResultsScreen } from './round-results-screen';
 import { useGuessingChallengePlayerView } from './use-player-view';
+
+function conciseGuessingChallengePhaseLabel(view: GuessingChallengePlayerView): string {
+  if (view.isMatchSpectator) {
+    return 'مشاهدة';
+  }
+  if (view.gamePhase === 'round-results') {
+    return 'نتائج الجولة';
+  }
+  if (view.gamePhase === 'match-completed') {
+    return 'النتائج النهائية';
+  }
+  if (view.isMyTurn) {
+    return 'دورك';
+  }
+  if (view.currentTurnPlayerName) {
+    return `دور ${view.currentTurnPlayerName}`;
+  }
+  return 'التخمين';
+}
 
 export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
   const { state: shellState, returnToLobby } = useGameShell();
@@ -86,7 +106,7 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
     setExperienceMeta({
       gameName: GUESSING_CHALLENGE_GAME_NAME,
       gameIcon: GUESSING_CHALLENGE_GAME_ICON,
-      phaseLabel: activeView.phaseLabel,
+      phaseLabel: conciseGuessingChallengePhaseLabel(activeView),
       categoryLabel: activeView.categoryLabel
         ? `الفئة: ${activeView.categoryLabel}`
         : undefined,
@@ -199,13 +219,23 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
 
   if (view.isMatchSpectator && view.gamePhase === 'playing') {
     return (
-      <GameScreen ariaLabel="مشاهدة تحدي التخمين" maxWidth="3xl">
-        <GameCard className="px-5 py-8 text-center">
-          <p className="text-lg font-semibold text-wanas-text-primary">الجولة جارية</p>
-          <p className="mt-2 text-sm text-wanas-text-muted">
-            أنت مشاهد حالياً، وبتشارك في المباراة القادمة.
-          </p>
-        </GameCard>
+      <GameScreen ariaLabel="مشاهدة تحدي التخمين" maxWidth="4xl" className="min-w-0 gap-3 sm:gap-4">
+        <p className="text-center text-sm font-semibold text-wanas-text-muted">
+          أنت مشاهد حالياً
+        </p>
+        <GameplayScene
+          mode="playing"
+          matchMode={view.mode}
+          opponentName={view.currentTurnPlayerName ?? 'لاعب'}
+          selfName="مشاهد"
+          opponentIdentity={null}
+          selfIdentity={null}
+          selfHidden
+          isMyTurn={false}
+          turnTitle={`دور ${view.currentTurnPlayerName ?? 'فريق'}`}
+          turnInstruction="راقب الدور الحالي. لا يمكنك التخمين أو استخدام البطاقات."
+          showSpecialCards={false}
+        />
       </GameScreen>
     );
   }

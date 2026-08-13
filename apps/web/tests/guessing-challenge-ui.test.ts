@@ -161,6 +161,8 @@ test('C/D/E/F/G playing screen wires GameplayScene + side special cards + matchM
   assert.match(specialPanel, /موافقة/);
   assert.match(specialPanel, /رفض/);
   assert.match(specialPanel, /gc-reject-card-use/);
+  assert.match(specialPanel, /ليست دور فريقكم/);
+  assert.match(specialPanel, /aria-label/);
   assert.doesNotMatch(specialPanel, /بدلاً من سؤال واحد/);
   assert.doesNotMatch(specialPanel, /عشوائية/);
 
@@ -365,14 +367,34 @@ test('minimal spectator screen replaces participant controls', () => {
   const game = readPlugin('game-screen.tsx');
   assert.match(game, /view\.isMatchSpectator && view\.gamePhase === 'playing'/);
   assert.match(game, /أنت مشاهد حالياً/);
+  assert.match(game, /GameplayScene/);
+  assert.match(game, /showSpecialCards=\{false\}/);
+  assert.match(game, /opponentIdentity=\{null\}/);
+  assert.match(game, /conciseGuessingChallengePhaseLabel/);
+  assert.doesNotMatch(game, /phaseLabel: activeView\.phaseLabel/);
+  assert.doesNotMatch(game, /الجولة جارية/);
   assert.match(game, /remainingSeconds/);
   assert.match(game, /MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS/);
+});
+
+test('playing copy makes yes/no social mechanic obvious', () => {
+  const playing = readPlugin('playing-screen.tsx');
+  const css = readPlugin('real3d/real3d-scene.css');
+  assert.match(playing, /اسأل الفريق الثاني سؤالاً إجابته نعم أو لا/);
+  assert.match(playing, /جاوبوا على سؤالهم بنعم أو لا وانتظروا دوركم/);
+  assert.match(playing, /view\.canGuess/);
+  assert.match(playing, /view\.isMyTurn \?/);
+  assert.match(css, /touch-action:\s*pan-y/);
+  assert.match(css, /touch-action:\s*none/);
 });
 
 test('round results use authoritative team winner and no category control', () => {
   const results = readPlugin('round-results-screen.tsx');
   assert.match(results, /view\.winningTeamId === view\.selfTeam/);
   assert.match(results, /opponentHighlight=\{opponentWon\}/);
+  assert.match(results, /entry\.isWinner/);
+  assert.match(results, /الهوية:/);
+  assert.match(results, /\+100/);
   assert.match(results, /remainingSeconds/);
   assert.doesNotMatch(results, /RoundCategoryPanel/);
   assert.doesNotMatch(results, /nextCategoryId/);

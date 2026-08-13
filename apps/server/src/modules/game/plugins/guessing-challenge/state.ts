@@ -1138,9 +1138,13 @@ export function buildGuessingChallengePlayerView(
       hideSecrets || !isParticipant
         ? null
         : isMyTurn
-          ? 'اسأل خصمك سؤالًا'
+          ? match.mode === '2v2'
+            ? 'اسأل الفريق الثاني سؤالاً إجابته نعم أو لا، وحاول تعرف شخصيتكم.'
+            : 'اسأل خصمك سؤالاً إجابته نعم أو لا، وحاول تعرف شخصيتك.'
           : phase === 'playing'
-            ? `استمع للسؤال وأجب بنعم أو لا`
+            ? match.mode === '2v2'
+              ? 'جاوبوا على سؤالهم بنعم أو لا وانتظروا دوركم.'
+              : 'جاوب بنعم أو لا وانتظر دورك.'
             : null,
     self: {
       playerId,

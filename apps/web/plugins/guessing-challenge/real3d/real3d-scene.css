@@ -6,13 +6,15 @@
   overflow: visible;
   border: 1px solid rgba(167, 139, 250, 0.35);
   background: #2e1065;
-  touch-action: none;
+  touch-action: pan-y;
   width: 100%;
 }
 
 .gc-real3d-canvas-shell canvas {
   border-radius: 1.5rem;
   display: block;
+  touch-action: none;
+  width: 100%;
 }
 
 @media (max-width: 639px) {
