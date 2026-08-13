@@ -19,10 +19,10 @@ export function FirstPersonGameScene({
   opponentName,
   selfName,
   opponentIdentity,
-  selfIdentity,
+  selfIdentity: _selfIdentity,
   selfHidden,
   opponentHighlight = false,
-  selfHighlight = false,
+  selfHighlight: _selfHighlight = false,
   isMyTurn = false,
   turnTitle = null,
   turnInstruction = null,
@@ -150,29 +150,14 @@ export function FirstPersonGameScene({
             <span className="gc-fp-glove is-left" />
             <span className="gc-fp-glove is-right" />
           </div>
-          <div
-            className={cn(
-              'gc-fp-self-card relative w-full max-w-[18rem]',
-              revealed && 'is-revealed gc-fp-reveal-in',
-            )}
-          >
-            {revealed ? (
-              <GuessingChallengeIdentityCard
-                label="كنت"
-                identity={selfIdentity}
-                highlight={selfHighlight}
-                size="foreground"
-                data-testid="gc-self-identity"
-              />
-            ) : (
-              <GuessingChallengeIdentityCard
-                label={`${selfName} · هويتك`}
-                identity={null}
-                hidden={selfHidden}
-                size="foreground"
-                data-testid="gc-self-identity"
-              />
-            )}
+          <div className="gc-fp-self-card relative w-full max-w-[18rem]">
+            <GuessingChallengeIdentityCard
+              label={`${selfName} · هويتك`}
+              identity={null}
+              hidden={selfHidden || revealed}
+              size="foreground"
+              data-testid="gc-self-identity"
+            />
           </div>
 
           {!revealed && turnTitle ? (

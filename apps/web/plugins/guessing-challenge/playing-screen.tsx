@@ -95,6 +95,16 @@ export function GuessingChallengePlayingScreen({
       : 'تم تغيير هويتك بواسطة البطاقة الحمراء';
 
   const guessPrompt = view.mode === '2v2' ? 'ما هي هوية فريقكم؟' : 'من تعتقد أنك؟';
+  const composingGuessRef = useRef(false);
+
+  function submitCurrentGuess(): void {
+    if (isSubmittingAction || !guess.trim()) {
+      return;
+    }
+    onSubmitGuess(guess);
+    setGuess('');
+    setShowGuessForm(false);
+  }
 
   return (
     <GameScreen ariaLabel="تحدي التخمين" maxWidth="4xl">
@@ -163,14 +173,35 @@ export function GuessingChallengePlayingScreen({
         ) : null}
 
         {showGuessForm ? (
-          <div
+          <form
             className="wanas-game-card rounded-2xl border border-border p-4 sm:p-5"
             data-testid="gc-final-guess-panel"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (composingGuessRef.current) {
+                return;
+              }
+              submitCurrentGuess();
+            }}
           >
             <p className="mb-3 text-sm font-semibold text-wanas-text-primary">{guessPrompt}</p>
             <input
               value={guess}
               onChange={(event) => setGuess(event.target.value)}
+              onCompositionStart={() => {
+                composingGuessRef.current = true;
+              }}
+              onCompositionEnd={() => {
+                composingGuessRef.current = false;
+              }}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter') {
+                  return;
+                }
+                if (event.nativeEvent.isComposing || event.keyCode === 229 || composingGuessRef.current) {
+                  event.preventDefault();
+                }
+              }}
               maxLength={80}
               placeholder="اكتب إجابتك..."
               className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-wanas-text-primary outline-none focus:border-cyan-400/60"
@@ -178,14 +209,9 @@ export function GuessingChallengePlayingScreen({
             />
             <div className="mt-3 flex flex-wrap gap-2">
               <Button
-                type="button"
+                type="submit"
                 data-testid="gc-confirm-guess"
                 disabled={isSubmittingAction || !guess.trim()}
-                onClick={() => {
-                  onSubmitGuess(guess);
-                  setGuess('');
-                  setShowGuessForm(false);
-                }}
               >
                 تأكيد التخمين
               </Button>
@@ -201,7 +227,7 @@ export function GuessingChallengePlayingScreen({
                 إلغاء
               </Button>
             </div>
-          </div>
+          </form>
         ) : null}
 
         <div className="flex flex-col gap-2 sm:gap-3" data-testid="gc-primary-actions">

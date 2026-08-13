@@ -75,6 +75,8 @@ test('A/B identity helper: own hidden, opponent visible text', () => {
     'كريستيانو',
     'رونالدو',
   ]);
+  assert.deepEqual(splitIdentityDisplayLines('صراع العروش'), ['صراع', 'العروش']);
+  assert.deepEqual(splitIdentityDisplayLines('برج إيفل'), ['برج', 'إيفل']);
   assert.deepEqual(splitIdentityDisplayLines('ميسي'), ['ميسي']);
 });
 
@@ -117,6 +119,11 @@ test('C/D/E/F/G playing screen wires GameplayScene + side special cards + matchM
   assert.match(playing, /gc-end-question/);
   assert.match(playing, /gc-open-guess/);
   assert.match(playing, /gc-final-guess-panel/);
+  assert.match(playing, /onSubmit=/);
+  assert.match(playing, /type="submit"/);
+  assert.match(playing, /isComposing/);
+  assert.match(playing, /composingGuessRef/);
+  assert.match(playing, /submitCurrentGuess/);
   assert.match(playing, /showSpecialCards=\{false\}/);
   assert.match(playing, /matchMode=\{view\.mode\}/);
   assert.match(playing, /onLookChange=\{onLookChange\}/);
@@ -284,7 +291,9 @@ test('2v2 seating faces opponents; shared card + name anchors', () => {
   assert.match(inner, /-2\.15/);
   assert.match(bean, /lookYaw \* 0\.62/);
   assert.match(bean, /headPitch = lookPitch \* 0\.45/);
-  assert.match(hands, /blank=\{!revealed\}/);
+  assert.match(hands, /blank/);
+  assert.doesNotMatch(hands, /blank=\{!revealed\}/);
+  assert.doesNotMatch(hands, /resolveIdentityCardText/);
   assert.match(inner, /sharedCard: true/);
   assert.match(inner, /holdHand="right"/);
   assert.match(inner, /holdHand="left"/);
@@ -300,6 +309,8 @@ test('2v2 seating faces opponents; shared card + name anchors', () => {
   assert.match(cardMesh, /blank/);
   assert.match(cardMesh, /splitIdentityDisplayLines/);
   assert.match(cardMesh, /wrapIdentityLines/);
+  assert.match(cardMesh, /widest/);
+  assert.doesNotMatch(cardMesh, /fitFontSize/);
   assert.doesNotMatch(cardMesh, /from '@react-three\/drei'/);
   const specialPanel = readPlugin('special-cards-panel.tsx');
   assert.match(specialPanel, /createPortal/);

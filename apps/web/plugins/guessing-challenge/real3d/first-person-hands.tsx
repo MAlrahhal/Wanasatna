@@ -4,7 +4,6 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useRef } from 'react';
 import * as THREE from 'three';
 import type { GuessingChallengeVisibleIdentity } from '@wanasatna/shared';
-import { resolveIdentityCardText } from '../identity-display';
 import { IdentityCardMesh } from './identity-card-mesh';
 
 type FirstPersonHandsProps = {
@@ -17,14 +16,15 @@ type FirstPersonHandsProps = {
 };
 
 /**
- * Orange sleeves + white gloves holding self ??? / revealed card in camera foreground.
+ * Orange sleeves + white gloves holding the local blank card in camera foreground.
+ * Revealed own-identity text is not painted here — Round Results owns that reveal.
  */
 export function FirstPersonHands({
   selfName: _selfName,
   selfHidden: _selfHidden,
-  selfIdentity,
-  revealed,
-  selfHighlight = false,
+  selfIdentity: _selfIdentity,
+  revealed: _revealed,
+  selfHighlight: _selfHighlight = false,
   reduceMotion = false,
 }: FirstPersonHandsProps) {
   const group = useRef<THREE.Group>(null);
@@ -43,8 +43,6 @@ export function FirstPersonHands({
       group.current.translateY(y);
     }
   });
-
-  const cardText = revealed ? resolveIdentityCardText(selfIdentity, false) : '';
 
   return (
     <group ref={group}>
@@ -90,15 +88,13 @@ export function FirstPersonHands({
         <pointLight intensity={0.85} distance={2.2} color="#fff7ed" position={[0, 0.2, 0.35]} />
         <group position={[0, 0.06, 0.1]} rotation={[Math.PI + 0.2, 0, 0]}>
           <IdentityCardMesh
-            text={cardText}
-            blank={!revealed}
-            label={revealed ? 'كنت' : undefined}
-            highlight={selfHighlight && revealed}
+            text=""
+            blank
             width={0.42}
             height={0.28}
-            flipKey={revealed ? 'revealed' : 'blank'}
+            flipKey="blank"
             reduceMotion={reduceMotion}
-            testId={revealed ? 'gc-self-identity-revealed' : 'gc-self-identity'}
+            testId="gc-self-identity"
           />
         </group>
       </group>

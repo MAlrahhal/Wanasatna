@@ -29,13 +29,6 @@ function resolveFontStack(): string {
   return `${family}, "Segoe UI", Tahoma, Arial, sans-serif`;
 }
 
-function fitFontSize(text: string, maxPx: number, minPx: number): number {
-  const len = Math.max(1, Array.from(text).length);
-  // Longer Arabic phrases scale down; keep padding from borders.
-  const scaled = Math.floor(720 / (len * 0.55));
-  return Math.max(minPx, Math.min(maxPx, scaled));
-}
-
 function wrapIdentityLines(
   ctx: CanvasRenderingContext2D,
   text: string,
@@ -111,36 +104,43 @@ function paintCard(
     ctx.globalAlpha = 1;
   }
 
-  const maxWidth = w - 160;
-  const topBound = label ? 140 : 90;
-  const bottomBound = h - 90;
-  const availableHeight = Math.max(120, bottomBound - topBound);
+  const maxWidth = w - 140;
+  const topBound = label ? 140 : 80;
+  const bottomBound = h - 80;
+  const availableHeight = Math.max(160, bottomBound - topBound);
+  const maxPx = 220;
+  const minPx = 72;
+  const lineHeightRatio = 1.12;
 
-  let size = fitFontSize(display, 200, 64);
+  let size = maxPx;
   let lines = splitIdentityDisplayLines(display);
-  ctx.font = `800 ${size}px ${fontStack}`;
 
-  const fits = () => {
-    const widest = Math.max(...lines.map((line) => ctx.measureText(line).width), 0);
-    const blockHeight = lines.length * size * 1.18;
-    return widest <= maxWidth && blockHeight <= availableHeight;
+  const measure = (fontSize: number, candidate: string[]) => {
+    ctx.font = `800 ${fontSize}px ${fontStack}`;
+    const widest = Math.max(...candidate.map((line) => ctx.measureText(line).width), 0);
+    const blockHeight = candidate.length * fontSize * lineHeightRatio;
+    return { widest, blockHeight };
   };
 
-  while (size > 64 && !fits()) {
-    size -= 4;
+  while (size > minPx) {
     ctx.font = `800 ${size}px ${fontStack}`;
     lines = wrapIdentityLines(ctx, display, maxWidth);
+    const { widest, blockHeight } = measure(size, lines);
+    if (widest <= maxWidth && blockHeight <= availableHeight) {
+      break;
+    }
+    size -= 4;
   }
+  ctx.font = `800 ${size}px ${fontStack}`;
   lines = wrapIdentityLines(ctx, display, maxWidth);
 
-  ctx.font = `800 ${size}px ${fontStack}`;
   ctx.shadowColor = 'rgba(15, 23, 42, 0.22)';
   ctx.shadowBlur = 3;
   ctx.shadowOffsetY = 2;
 
-  const lineHeight = size * 1.18;
+  const lineHeight = size * lineHeightRatio;
   const blockHeight = lines.length * lineHeight;
-  const centerY = label ? (topBound + bottomBound) / 2 : h / 2 + 8;
+  const centerY = label ? (topBound + bottomBound) / 2 : h / 2;
   let y = centerY - blockHeight / 2 + lineHeight / 2;
   for (const line of lines) {
     ctx.fillText(line, w / 2, y);
