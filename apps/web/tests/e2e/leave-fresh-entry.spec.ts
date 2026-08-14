@@ -3,10 +3,10 @@
  * without reloading: URL `/`, no ActiveRoomSession, no invite prefill of the left room.
  */
 import { test, expect, type Page } from '@playwright/test';
-import { enterLobbyCreate, enterLobbyJoin, waitForRoster } from './helpers';
+import { confirmLeaveRoom, enterLobbyCreate, enterLobbyJoin, waitForRoster } from './helpers';
 
 async function leaveLobby(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'مغادرة الغرفة' }).first().click();
+  await confirmLeaveRoom(page);
   await page.waitForFunction(() => sessionStorage.getItem('wanasatna:active-room-session') === null, null, {
     timeout: 20_000,
   });
@@ -81,7 +81,7 @@ test.describe('Leave fresh-entry reset', () => {
     const sectionB = b.locator('#start-play');
     await sectionB.locator('#join-name').fill('عبدالله');
     await sectionB.locator('#join-code').fill(roomB);
-    await sectionB.getByRole('button', { name: 'انضم الآن' }).click();
+    await sectionB.getByRole('button', { name: 'دخول الغرفة' }).click();
     await b.waitForURL(new RegExp(`/lobby\\?code=${roomB}$`), { timeout: 30_000 });
     await b.waitForTimeout(1500);
     expect(b.url()).toMatch(new RegExp(`/lobby\\?code=${roomB}$`));
@@ -130,7 +130,7 @@ test.describe('Leave fresh-entry reset', () => {
 
     const section = guest.locator('#start-play');
     await section.locator('#join-name').fill('ضيف');
-    await section.getByRole('button', { name: 'انضم الآن' }).click();
+    await section.getByRole('button', { name: 'دخول الغرفة' }).click();
     await guest.waitForURL(new RegExp(`/lobby\\?code=${code}$`), { timeout: 30_000 });
     await waitForRoster(host, ['مضيف', 'ضيف']);
 
@@ -150,7 +150,7 @@ test.describe('Leave fresh-entry reset', () => {
     await guest.waitForSelector('#start-play');
     const section = guest.locator('#start-play');
     await section.locator('#join-name').fill('ضيف');
-    await section.getByRole('button', { name: 'انضم الآن' }).click();
+    await section.getByRole('button', { name: 'دخول الغرفة' }).click();
     await guest.waitForURL(new RegExp(`/lobby\\?code=${code}$`), { timeout: 30_000 });
 
     await leaveLobby(guest);

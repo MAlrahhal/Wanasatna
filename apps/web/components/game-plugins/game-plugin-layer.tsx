@@ -14,6 +14,7 @@ import { GameExperienceShell } from '@/components/game-experience/game-experienc
 import { GameExperienceProvider } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
+import { SystemStatus } from '@/components/ui/system-status';
 import { BaraAlSalafaCountdownLive } from '@/plugins/bara-al-salafa/bara-al-salafa-countdown-live';
 import { DrawGuessCountdownLive } from '@/plugins/draw-guess/draw-guess-countdown-live';
 import { FastAnswerCountdownLive } from '@/plugins/fast-answer/fast-answer-countdown-live';
@@ -71,9 +72,11 @@ function CountdownForGame({ gameId }: { gameId: string }) {
 
 function PluginMatchStarting() {
   return (
-    <section className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-      <p className="text-sm text-muted-foreground">جاري بدء اللعبة...</p>
-    </section>
+    <SystemStatus
+      tone="loading"
+      title="جاري بدء اللعبة..."
+      className="mx-auto max-w-lg"
+    />
   );
 }
 

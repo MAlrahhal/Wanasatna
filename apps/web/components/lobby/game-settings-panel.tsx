@@ -54,8 +54,9 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
     >
       {!selectedGame ? (
         <EmptyState
-          title="اختر لعبة لعرض إعداداتها."
-          description="ستظهر هنا إعدادات اللعبة المختارة."
+          compact
+          title="لم يتم اختيار لعبة"
+          description="اختر لعبة من القائمة لعرض إعداداتها."
         />
       ) : (
         <div className="space-y-3">
@@ -75,7 +76,6 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
                 <p className="mt-0.5 text-[11px] text-wanas-text-muted">{catalogEntry?.playerRange}</p>
               </div>
             </div>
-            <p className="mt-2 text-xs leading-5 text-wanas-text-muted">{selectedGame.description}</p>
           </div>
 
           {isTimingChallenge ? (
@@ -101,18 +101,21 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
               onDrawerModeChange={setDrawGuessDrawerMode}
               onFixedPlayerChange={setDrawGuessFixedPlayerId}
             />
-          ) : (
+          ) : settings.length > 0 ? (
             <div className="space-y-1.5">
+              <p className="text-[11px] font-medium text-wanas-text-muted">إعدادات ثابتة لهذه اللعبة.</p>
               {settings.map((setting) => (
                 <div
                   key={setting.id}
-                  className="flex items-center justify-between rounded-lg border border-wanas-border bg-wanas-surface-soft px-3 py-2"
+                  className="flex min-h-11 items-center justify-between rounded-lg border border-wanas-border bg-wanas-surface-soft px-3 py-2"
                 >
                   <span className="text-xs text-wanas-text-muted">{setting.label}</span>
                   <span className="text-xs font-bold text-wanas-text-primary">{setting.value}</span>
                 </div>
               ))}
             </div>
+          ) : (
+            <p className="text-xs leading-5 text-wanas-text-muted">لا توجد إعدادات إضافية لهذه اللعبة.</p>
           )}
 
           {showsTeams ? (

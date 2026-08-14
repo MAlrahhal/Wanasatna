@@ -1,5 +1,5 @@
 import { test, expect, type Page, type BrowserContext } from '@playwright/test';
-import { enterLobbyCreate, enterLobbyJoin, waitForRoster } from './helpers';
+import { confirmLeaveRoom, enterLobbyCreate, enterLobbyJoin, waitForRoster } from './helpers';
 
 type IdentityDump = {
   url: string;
@@ -85,7 +85,7 @@ async function dumpIdentity(page: Page): Promise<IdentityDump> {
 }
 
 async function leaveRoom(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'مغادرة الغرفة' }).first().click();
+  await confirmLeaveRoom(page);
   await page.waitForURL((url) => url.pathname === '/' || url.pathname === '', { timeout: 20_000 });
 }
 

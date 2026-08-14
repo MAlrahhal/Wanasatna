@@ -2,6 +2,8 @@
 
 import { BARA_AL_SALAFA_GAME_ID } from '@wanasatna/shared';
 import { useGameShell } from '@/contexts/game-shell-context';
+import { Button } from '@/components/ui/button';
+import { SystemStatus } from '@/components/ui/system-status';
 import { GameShellHostControls } from './game-shell-host-controls';
 import { GameShellPhaseBadge } from './game-shell-phase-badge';
 import { GameShellPhaseMessage } from './game-shell-phase-message';
@@ -15,13 +17,10 @@ export function GameShellScreen() {
     return (
       <div className="mx-auto flex min-h-[60vh] w-full max-w-4xl flex-col justify-center gap-4 p-6">
         {errorMessage ? (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {errorMessage}
-          </div>
-        ) : null}
-        <div className="rounded-2xl border border-dashed border-border bg-muted/20 p-8 text-center">
-          <p className="text-sm text-muted-foreground">جاري تحميل shell اللعبة...</p>
-        </div>
+          <SystemStatus tone="error" title="تعذر تحميل اللعبة" description={errorMessage} />
+        ) : (
+          <SystemStatus tone="loading" title="جاري تجهيز اللعبة..." />
+        )}
       </div>
     );
   }
@@ -33,29 +32,23 @@ export function GameShellScreen() {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 p-4 md:p-6">
       {errorMessage ? (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {errorMessage}
-        </div>
+        <SystemStatus tone="error" title="حدث خطأ" description={errorMessage} />
       ) : null}
 
-      <header className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+      <header className="rounded-[var(--wanas-radius-card)] border border-wanas-border bg-wanas-surface p-4 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">Game Shell</p>
+            <p className="text-sm text-wanas-text-muted">إطار اللعبة</p>
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-xl font-bold text-foreground">
+              <h1 className="text-xl font-bold text-wanas-text-primary">
                 {state.gameId ?? 'إطار اللعبة العام'}
               </h1>
               <GameShellPhaseBadge phase={state.phase} />
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => void syncShell()}
-            className="inline-flex h-10 items-center justify-center rounded-lg border border-border bg-background px-4 text-sm font-medium text-foreground"
-          >
+          <Button type="button" variant="outline" size="sm" onClick={() => void syncShell()}>
             مزامنة الحالة
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -70,17 +63,13 @@ export function GameShellScreen() {
       <GameShellPlayers players={state.players} />
 
       {(state.phase === 'WAITING' && !showIntegratedControls) || isHost ? (
-        <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-          <h2 className="mb-3 text-base font-semibold text-foreground">التحكم</h2>
+        <section className="rounded-[var(--wanas-radius-card)] border border-wanas-border bg-wanas-surface p-4 shadow-sm">
+          <h2 className="mb-3 text-base font-semibold text-wanas-text-primary">التحكم</h2>
           <div className="flex flex-wrap gap-2">
             {!isHost && state.phase === 'WAITING' && !showIntegratedControls ? (
-              <button
-                type="button"
-                onClick={() => void setReady(!isReady)}
-                className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground"
-              >
+              <Button type="button" onClick={() => void setReady(!isReady)}>
                 {isReady ? 'إلغاء الجاهزية' : 'أنا جاهز'}
-              </button>
+              </Button>
             ) : null}
             {isHost ? (
               <GameShellHostControls

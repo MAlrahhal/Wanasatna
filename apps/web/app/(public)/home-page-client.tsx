@@ -2,16 +2,18 @@
 
 import Link from 'next/link';
 import { useEffect } from 'react';
+import { HomeActiveRoomResume } from '@/components/public/active-room-banner';
 import { FeatureCard } from '@/components/public/feature-card';
 import { GamePreviewCard } from '@/components/public/game-cards';
 import { RoomActionCards } from '@/components/public/room-action-cards';
 import { SectionHeader } from '@/components/public/section-header';
+import { Button } from '@/components/ui/button';
+import { SystemStatus } from '@/components/ui/system-status';
 import { BRAND_NAME_AR } from '@/lib/public/brand';
 import { getFeaturedGames } from '@/lib/public/game-catalog';
 import { HOME_ROOM_ACTIONS_ID, PUBLIC_ROUTES } from '@/lib/public/routes';
 import { scrollToHomeRoomActions } from '@/lib/public/scroll-to-room-actions';
 import { useRoomActions } from '@/lib/public/use-room-actions';
-import { cn } from '@/lib/utils';
 
 const benefitChips = ['بدون تسجيل', 'حتى 8 لاعب', 'عربي بالكامل'] as const;
 
@@ -30,6 +32,9 @@ function scrollToRoomActionsIfHash() {
 export function HomePageClient() {
   const room = useRoomActions();
   const featuredGames = getFeaturedGames();
+  const hasFieldError = Boolean(room.fieldErrors.playerName || room.fieldErrors.joinCode);
+  const playerNameError = room.fieldErrors.playerName ? (room.errorMessage ?? undefined) : undefined;
+  const joinCodeError = room.fieldErrors.joinCode ? (room.errorMessage ?? undefined) : undefined;
 
   useEffect(() => {
     scrollToRoomActionsIfHash();
@@ -40,10 +45,7 @@ export function HomePageClient() {
   return (
     <main className="overflow-x-hidden">
       <section className="relative overflow-hidden border-b border-wanas-border">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -start-6 top-8 text-white/15"
-        >
+        <div aria-hidden className="pointer-events-none absolute -start-6 top-8 text-white/15">
           <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
             <path d="M6 9h12v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9Z" stroke="currentColor" strokeWidth="1.5" />
             <path d="M8 9V7a4 4 0 1 1 8 0v2" stroke="currentColor" strokeWidth="1.5" />
@@ -68,21 +70,18 @@ export function HomePageClient() {
               أنشئ غرفة، شارك الرمز مع أصحابك، وابدؤوا اللعب خلال ثوانٍ — بدون تسجيل.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="lg"
                 onClick={scrollToHomeRoomActions}
                 disabled={room.isCreating || room.isJoining}
-                className={cn(
-                  'inline-flex h-12 items-center justify-center rounded-[var(--wanas-radius-control)] border border-wanas-accent-hover bg-wanas-accent px-6 text-sm font-bold text-white shadow-[0_4px_0_var(--wanas-accent-hover)]',
-                  'hover:-translate-y-0.5 hover:bg-wanas-primary-soft active:translate-y-1 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/40 focus-visible:ring-offset-2',
-                  'disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-60 disabled:shadow-none',
-                )}
               >
-                إنشاء غرفة
-              </button>
+                ابدأ اللعب
+              </Button>
               <Link
                 href={PUBLIC_ROUTES.games}
-                className="inline-flex h-12 items-center justify-center rounded-[var(--wanas-radius-control)] border border-wanas-border bg-wanas-surface px-6 text-sm font-bold text-wanas-text-primary shadow-[var(--wanas-shadow-panel)] transition-all hover:-translate-y-0.5 hover:border-wanas-accent hover:bg-wanas-surface-soft"
+                className="inline-flex h-12 min-h-12 items-center justify-center rounded-[var(--wanas-radius-control)] border border-wanas-border bg-transparent px-6 text-sm font-semibold text-wanas-text-primary hover:border-wanas-accent hover:bg-wanas-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/30 focus-visible:ring-offset-2"
               >
                 استعراض الألعاب
               </Link>
@@ -92,10 +91,10 @@ export function HomePageClient() {
       </section>
 
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 sm:py-12 lg:gap-12">
-        {room.errorMessage ? (
-          <div role="alert" className="rounded-2xl border border-wanas-error-border bg-wanas-error-surface px-4 py-3 text-sm text-wanas-error">
-            {room.errorMessage}
-          </div>
+        <HomeActiveRoomResume />
+
+        {room.errorMessage && !hasFieldError ? (
+          <SystemStatus tone="error" title="تعذر إكمال العملية" description={room.errorMessage} />
         ) : null}
 
         <RoomActionCards
@@ -107,8 +106,8 @@ export function HomePageClient() {
           onJoinRoom={room.handleJoinRoom}
           isCreating={room.isCreating}
           isJoining={room.isJoining}
-          playerNameError={room.fieldErrors.playerName}
-          joinCodeError={room.fieldErrors.joinCode}
+          playerNameError={playerNameError}
+          joinCodeError={joinCodeError}
         />
 
         <section>
@@ -162,21 +161,22 @@ export function HomePageClient() {
               تصفّح المكتبة الكاملة مع حالة التوفر وعدد اللاعبين.
             </p>
             <span className="mt-4 inline-flex text-sm font-bold text-wanas-primary-dark group-hover:underline">
-              الانتقال إلى الألعاب ←
+              الانتقال إلى الألعاب
             </span>
           </Link>
-          <Link
-            href={PUBLIC_ROUTES.premium}
-            className="wanas-interactive-card group border-t-2 border-t-wanas-premium p-5"
-          >
-            <h3 className="text-xl font-bold text-wanas-text-primary">{BRAND_NAME_AR} بريميوم</h3>
+          <div className="wanas-panel p-5">
+            <p className="text-[11px] font-semibold text-wanas-text-muted">قريباً — غير متاح حالياً</p>
+            <h3 className="mt-2 text-xl font-bold text-wanas-text-primary">{BRAND_NAME_AR} بريميوم</h3>
             <p className="mt-2 text-sm leading-7 text-wanas-text-muted">
               مزايا إضافية اختيارية — اللعب الأساسي يبقى بدون حساب.
             </p>
-            <span className="mt-4 inline-flex text-sm font-bold text-wanas-premium-dark group-hover:underline">
-              تعرّف على بريميوم ←
-            </span>
-          </Link>
+            <Link
+              href={PUBLIC_ROUTES.premium}
+              className="mt-4 inline-flex text-sm font-medium text-wanas-text-muted hover:text-wanas-text-secondary hover:underline"
+            >
+              تعرّف على بريميوم
+            </Link>
+          </div>
         </section>
       </div>
     </main>

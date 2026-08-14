@@ -1,8 +1,8 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'danger' | 'success';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'danger' | 'destructive' | 'success';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -23,29 +23,38 @@ const variantClasses: Record<ButtonVariant, string> = {
     'border border-wanas-border bg-transparent text-wanas-text-primary hover:border-wanas-accent hover:bg-wanas-surface-soft active:translate-y-0.5 focus-visible:ring-wanas-accent/30',
   danger:
     'border border-wanas-error-border bg-wanas-error-surface text-wanas-error hover:bg-wanas-error-surface-strong active:scale-[0.98] focus-visible:ring-wanas-error/35',
+  destructive:
+    'border border-wanas-error-border bg-wanas-error-surface text-wanas-error hover:bg-wanas-error-surface-strong active:scale-[0.98] focus-visible:ring-wanas-error/35',
   success:
     'border border-wanas-success-border bg-wanas-success-surface text-wanas-success-dark hover:bg-wanas-success-border-light active:scale-[0.98] focus-visible:ring-wanas-success/35',
 };
 
-const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'h-10 min-h-10 rounded-[var(--wanas-radius-control)] px-3.5 text-xs',
-  md: 'h-11 min-h-11 rounded-[var(--wanas-radius-control)] px-4 text-sm',
-  lg: 'h-13 min-h-13 rounded-[var(--wanas-radius-control)] px-6 text-base',
+const spinnerClasses: Record<ButtonVariant, string> = {
+  primary: 'border-white/35 border-t-white',
+  secondary: 'border-wanas-text-muted/35 border-t-wanas-text-primary',
+  ghost: 'border-wanas-text-muted/35 border-t-wanas-text-primary',
+  outline: 'border-wanas-text-muted/35 border-t-wanas-text-primary',
+  danger: 'border-wanas-error/30 border-t-wanas-error',
+  destructive: 'border-wanas-error/30 border-t-wanas-error',
+  success: 'border-wanas-success/30 border-t-wanas-success-dark',
 };
 
-export function Button({
-  variant = 'primary',
-  size = 'md',
-  loading = false,
-  disabled,
-  className,
-  children,
-  ...props
-}: ButtonProps) {
+const sizeClasses: Record<ButtonSize, string> = {
+  sm: 'h-9 min-h-9 rounded-[var(--wanas-radius-control)] px-3 text-xs',
+  md: 'h-11 min-h-11 rounded-[var(--wanas-radius-control)] px-4 text-sm',
+  lg: 'h-12 min-h-12 rounded-[var(--wanas-radius-control)] px-6 text-base',
+};
+
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { variant = 'primary', size = 'md', loading = false, disabled, className, children, ...props },
+  ref,
+) {
   return (
     <button
+      ref={ref}
       type="button"
       disabled={disabled || loading}
+      aria-busy={loading || undefined}
       className={cn(
         'inline-flex items-center justify-center gap-2 font-semibold',
         'transition-all duration-200 ease-out',
@@ -57,8 +66,11 @@ export function Button({
       )}
       {...props}
     >
-      {loading ? <Spinner size={size === 'lg' ? 'md' : 'sm'} className="border-white/30 border-t-white" /> : null}
+      {loading ? (
+        <Spinner size={size === 'lg' ? 'md' : 'sm'} className={spinnerClasses[variant]} />
+      ) : null}
       {children}
     </button>
   );
-}
+});
+

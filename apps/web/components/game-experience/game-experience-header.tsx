@@ -6,6 +6,7 @@ import { GameTimerChip } from '@/components/game/game-timer-chip';
 import { Button } from '@/components/ui/button';
 import { UiDialog } from '@/components/ui/dialog';
 import { useRoom } from '@/contexts/room-context';
+import { normalizeExperiencePhaseLabel } from '@/lib/game/experience-meta';
 import type { GameExperienceMeta } from '@/lib/game/shell-types';
 import { cn } from '@/lib/utils';
 import { GameRoomManagementDialog } from './game-room-management-dialog';
@@ -15,6 +16,20 @@ type GameExperienceHeaderProps = {
   mobilePanelControls?: ReactNode;
   className?: string;
 };
+
+function GearIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M12 3.5v2.2M12 18.3v2.2M4.9 7.1l1.6 1.6M17.5 15.3l1.6 1.6M3.5 12h2.2M18.3 12h2.2M4.9 16.9l1.6-1.6M17.5 8.7l1.6-1.6"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 export function GameExperienceHeader({
   meta,
@@ -31,6 +46,12 @@ export function GameExperienceHeader({
     typeof meta.totalRounds === 'number' &&
     meta.totalRounds > 0;
 
+  const phaseLabel = normalizeExperiencePhaseLabel(meta.phaseLabel);
+  const centerLabel = meta.centerLabel?.trim() || undefined;
+  const categoryLabel = meta.categoryLabel?.trim() || undefined;
+  const primaryCenter = centerLabel ?? categoryLabel;
+  const secondaryChip = centerLabel && categoryLabel ? categoryLabel : undefined;
+
   return (
     <>
       <header
@@ -41,8 +62,8 @@ export function GameExperienceHeader({
           className,
         )}
       >
-        <div className="relative flex items-center justify-between gap-2 sm:gap-3">
-          <div className="relative z-10 flex min-w-0 flex-1 items-center gap-2 sm:gap-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center md:gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-2.5 md:flex-none">
             {meta.gameIcon ? (
               <div
                 className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[color:var(--wanas-game-card)] text-base sm:size-10"
@@ -52,37 +73,39 @@ export function GameExperienceHeader({
               </div>
             ) : null}
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-[color:var(--wanas-game-text-on-structural)] sm:text-base">
+              <p className="line-clamp-2 text-sm font-semibold leading-5 text-[color:var(--wanas-game-text-on-structural)] sm:text-base sm:leading-6">
                 {meta.gameName}
               </p>
-              {meta.phaseLabel ? (
-                <p className="truncate text-[11px] text-[color:var(--wanas-game-text-on-structural-muted)] sm:text-xs">
-                  {meta.phaseLabel}
+              {phaseLabel ? (
+                <p className="line-clamp-2 text-xs leading-5 text-[color:var(--wanas-game-text-on-structural-muted)] sm:text-sm">
+                  {phaseLabel}
                 </p>
               ) : null}
             </div>
           </div>
 
-          {meta.centerLabel || meta.categoryLabel ? (
+          {primaryCenter ? (
             <p
-              className="pointer-events-none absolute left-1/2 top-1/2 z-0 max-w-[min(100%,14rem)] -translate-x-1/2 -translate-y-1/2 truncate px-2 text-center text-sm font-semibold text-white sm:max-w-[min(100%,18rem)] sm:text-base"
-              title={meta.centerLabel ?? meta.categoryLabel}
+              className="line-clamp-2 max-w-[min(100%,16rem)] px-2 text-center text-sm font-semibold leading-5 text-white sm:max-w-[min(100%,20rem)] sm:text-base sm:leading-6 md:justify-self-center"
+              title={primaryCenter}
             >
-              {meta.centerLabel ?? meta.categoryLabel}
+              {primaryCenter}
             </p>
-          ) : null}
+          ) : (
+            <span className="hidden md:block" />
+          )}
 
-          <div className="relative z-10 flex shrink-0 flex-wrap items-center justify-end gap-1.5">
-            {meta.centerLabel && meta.categoryLabel ? (
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-1.5 md:justify-self-end">
+            {secondaryChip ? (
               <span
-                className="inline-flex max-w-[7rem] truncate rounded-lg border border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] px-2 py-1 text-[11px] font-semibold text-[color:var(--wanas-game-text-primary)] sm:max-w-[12rem] sm:text-xs"
-                title={meta.categoryLabel}
+                className="inline-flex max-w-[10rem] items-center rounded-lg border border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] px-2.5 py-1 text-xs font-semibold leading-5 text-[color:var(--wanas-game-text-primary)] sm:max-w-[14rem]"
+                title={secondaryChip}
               >
-                {meta.categoryLabel}
+                {secondaryChip}
               </span>
             ) : null}
             {showRound ? (
-              <span className="inline-flex min-h-9 items-center rounded-lg border border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] px-2.5 text-[11px] font-semibold text-[color:var(--wanas-game-text-primary)] sm:text-xs">
+              <span className="inline-flex min-h-9 items-center rounded-lg border border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] px-2.5 text-xs font-semibold leading-5 text-[color:var(--wanas-game-text-primary)]">
                 {meta.currentRound}/{meta.totalRounds}
               </span>
             ) : null}
@@ -103,8 +126,8 @@ export function GameExperienceHeader({
                 aria-label="إدارة الغرفة"
               >
                 <span className="hidden sm:inline">إدارة الغرفة</span>
-                <span className="sm:hidden" aria-hidden>
-                  ⚙
+                <span className="sm:hidden">
+                  <GearIcon />
                 </span>
               </Button>
             ) : null}

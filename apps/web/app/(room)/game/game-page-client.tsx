@@ -6,11 +6,12 @@ import { useRoom } from '@/contexts/room-context';
 import { GameShellProvider } from '@/contexts/game-shell-context';
 import { GameShellScreen } from '@/components/game-shell/game-shell-screen';
 import { GamePluginLayer } from '@/components/game-plugins/game-plugin-layer';
+import { SystemStatus } from '@/components/ui/system-status';
 
 function GameShellFallback() {
   return (
     <div className="flex min-h-dvh flex-1 items-center justify-center p-6">
-      <p className="text-sm text-muted-foreground">جاري تحميل shell اللعبة...</p>
+      <SystemStatus tone="loading" title="جاري تجهيز اللعبة..." className="w-full max-w-md" />
     </div>
   );
 }
@@ -35,7 +36,7 @@ function GameShellConnectedScreen() {
   if (status === 'connecting' || status === 'idle') {
     return (
       <div className="flex min-h-dvh flex-1 items-center justify-center p-6">
-        <p className="text-sm text-muted-foreground">جاري الاتصال بالغرفة...</p>
+        <SystemStatus tone="connecting" title="جاري الاتصال بالغرفة..." className="w-full max-w-md" />
       </div>
     );
   }
@@ -43,9 +44,11 @@ function GameShellConnectedScreen() {
   if (status === 'error' || !room || !player) {
     return (
       <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-1 flex-col justify-center gap-4 p-6">
-        <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {errorMessage ?? 'تعذر الاتصال بالغرفة. انضم إلى غرفة أولاً.'}
-        </div>
+        <SystemStatus
+          tone="error"
+          title="تعذر الاتصال بالغرفة"
+          description={errorMessage ?? 'انضم إلى غرفة أولاً.'}
+        />
       </div>
     );
   }

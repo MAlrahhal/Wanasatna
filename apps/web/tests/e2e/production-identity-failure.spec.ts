@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { confirmLeaveRoom } from './helpers';
 
 async function createViaHome(page: Page, name: string): Promise<string> {
   await page.goto('/');
@@ -17,13 +18,13 @@ async function joinViaHome(page: Page, code: string, name: string): Promise<void
   const section = page.locator('#start-play');
   await section.locator('#join-name').fill(name);
   await section.locator('#join-code').fill(code);
-  await section.getByRole('button', { name: 'انضم الآن' }).click();
+  await section.getByRole('button', { name: 'دخول الغرفة' }).click();
   await page.waitForURL(new RegExp(`/lobby\\?code=${code}`), { timeout: 30_000 });
   await expect(page.getByText(name).first()).toBeVisible({ timeout: 15_000 });
 }
 
 async function leaveLobby(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'مغادرة الغرفة' }).first().click();
+  await confirmLeaveRoom(page);
   await page.waitForURL((url) => url.pathname === '/' || url.pathname === '', { timeout: 20_000 });
 }
 

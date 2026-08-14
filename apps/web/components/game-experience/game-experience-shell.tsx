@@ -74,7 +74,7 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
   );
 
   return (
-    <div className="flex min-h-0 w-full flex-1 flex-col gap-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:gap-2">
+        <div className="flex min-h-0 w-full flex-1 flex-col gap-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
       <GameExperienceHeader meta={meta} mobilePanelControls={mobileControls} />
 
       <div className="hidden min-h-0 flex-1 gap-2 lg:grid lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)_minmax(220px,260px)]">

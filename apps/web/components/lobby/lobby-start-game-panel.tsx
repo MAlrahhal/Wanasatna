@@ -7,7 +7,8 @@ import { getGameStartPlayerRequirementReason } from '@/lib/game-shell/start-vali
 import { getGameCatalogEntry } from '@/lib/public/game-catalog';
 import { mockLobbyGames } from '@/lib/lobby/mock-games';
 import { LobbyPanel } from './lobby-ui';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { SystemStatus } from '@/components/ui/system-status';
 
 export function LobbyStartGamePanel() {
   const {
@@ -96,14 +97,7 @@ export function LobbyStartGamePanel() {
   if (!isHost) {
     return (
       <LobbyPanel title="بدء اللعبة" bodyClassName="p-4">
-        <div className="flex items-center gap-2.5 rounded-lg border border-wanas-border bg-wanas-surface-soft px-3 py-3">
-          <span className="flex size-9 items-center justify-center rounded-lg bg-wanas-surface text-base" aria-hidden>
-            ⏳
-          </span>
-          <p className="text-xs font-semibold text-wanas-text-secondary sm:text-sm">
-            بانتظار المضيف لبدء اللعبة.
-          </p>
-        </div>
+        <SystemStatus tone="info" title="بانتظار المضيف لبدء اللعبة." />
       </LobbyPanel>
     );
   }
@@ -120,26 +114,16 @@ export function LobbyStartGamePanel() {
           <p className="text-base font-bold text-wanas-text-primary sm:text-lg">{selectedGame.title}</p>
         </div>
       ) : null}
-      <button
+      <Button
         type="button"
+        size="lg"
+        className="w-full"
         disabled={Boolean(disabledReason) || isStarting}
-        aria-busy={isStarting}
+        loading={isStarting}
         onClick={() => void handleStartGame()}
-        className={cn(
-          'inline-flex h-11 min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-wanas-accent text-sm font-bold text-white',
-          'hover:bg-wanas-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/40 focus-visible:ring-offset-2',
-          'disabled:cursor-not-allowed disabled:opacity-60',
-        )}
       >
-        {isStarting ? (
-          <>
-            <span className="size-4 animate-spin rounded-full border-2 border-[color:var(--wanas-background)]/30 border-t-[color:var(--wanas-background)]" />
-            جاري البدء...
-          </>
-        ) : (
-          'بدء اللعبة'
-        )}
-      </button>
+        {isStarting ? 'جاري البدء…' : 'بدء اللعبة'}
+      </Button>
       {disabledReason ? (
         <p className="text-center text-xs font-medium text-wanas-text-muted">{disabledReason}</p>
       ) : null}

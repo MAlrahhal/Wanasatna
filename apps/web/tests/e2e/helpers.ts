@@ -78,9 +78,14 @@ export async function enterLobbyJoin(page: Page, roomCode: string, playerName: s
   const section = page.locator('#start-play');
   await section.locator('#join-name').fill(playerName);
   await section.locator('#join-code').fill(roomCode);
-  await section.getByRole('button', { name: 'انضم الآن' }).click();
+  await section.getByRole('button', { name: 'دخول الغرفة' }).click();
   await page.waitForURL(new RegExp(`/lobby\\?code=${roomCode}$`), { timeout: 30_000 });
   await expect(page.getByText(playerName).first()).toBeVisible({ timeout: 30_000 });
+}
+
+export async function confirmLeaveRoom(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'مغادرة الغرفة' }).first().click();
+  await page.getByRole('dialog').getByRole('button', { name: 'مغادرة الغرفة' }).click();
 }
 
 export async function waitForRoster(page: Page, names: string[]): Promise<void> {

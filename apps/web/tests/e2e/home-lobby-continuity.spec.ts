@@ -3,7 +3,7 @@
  * Proves soft navigation (same runtimeId) vs hard refresh (new runtimeId).
  */
 import { test, expect, type Page } from '@playwright/test';
-import { enterLobbyCreate, enterLobbyJoin, waitForRoster } from './helpers';
+import { confirmLeaveRoom, enterLobbyCreate, enterLobbyJoin, waitForRoster } from './helpers';
 
 type ContinuityProbe = {
   runtimeId: string | null;
@@ -44,7 +44,7 @@ async function resetReconnectCount(page: Page): Promise<void> {
 }
 
 async function leaveLobby(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'مغادرة الغرفة' }).first().click();
+  await confirmLeaveRoom(page);
   await page.waitForURL((url) => url.pathname === '/' || url.pathname === '', { timeout: 20_000 });
 }
 
@@ -154,7 +154,7 @@ test.describe('Home→Lobby continuity', () => {
       const section = guest.locator('#start-play');
       await section.locator('#join-name').fill(`ضيف${i}`);
       await section.locator('#join-code').fill(code);
-      await section.getByRole('button', { name: 'انضم الآن' }).click();
+      await section.getByRole('button', { name: 'دخول الغرفة' }).click();
       await guest.waitForURL(new RegExp(`/lobby\\?code=${code}$`), { timeout: 30_000 });
       await guest.waitForTimeout(1500);
       expect(guest.url()).toMatch(new RegExp(`/lobby\\?code=${code}$`));
@@ -205,7 +205,7 @@ test.describe('Home→Lobby continuity', () => {
     const section = b.locator('#start-play');
     await section.locator('#join-name').fill('عبدالله');
     await section.locator('#join-code').fill(roomB);
-    await section.getByRole('button', { name: 'انضم الآن' }).click();
+    await section.getByRole('button', { name: 'دخول الغرفة' }).click();
     await b.waitForURL(new RegExp(`/lobby\\?code=${roomB}$`), { timeout: 30_000 });
     await b.waitForTimeout(1500);
     expect(b.url()).toMatch(new RegExp(`/lobby\\?code=${roomB}$`));

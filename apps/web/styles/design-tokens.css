@@ -55,13 +55,13 @@
   --wanas-premium-surface: #1a1a35;
   --wanas-premium-border: #d4a017;
 
-  /* Semantic — success */
-  --wanas-success: #00d4ff;
-  --wanas-success-dark: #00ffea;
-  --wanas-success-text: #00d4ff;
-  --wanas-success-surface: #1a1a35;
-  --wanas-success-border: #2a4080;
-  --wanas-success-border-light: #3d5599;
+  /* Semantic — success (green, distinct from cyan accent) */
+  --wanas-success: #34d399;
+  --wanas-success-dark: #6ee7b7;
+  --wanas-success-text: #6ee7b7;
+  --wanas-success-surface: #13261f;
+  --wanas-success-border: #34d399;
+  --wanas-success-border-light: #6ee7b7;
 
   /* Semantic — warning */
   --wanas-warning: #f97316;

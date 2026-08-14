@@ -19,7 +19,7 @@
   --wanas-game-accent-hover: #00ffea;
   --wanas-game-accent-soft: #22224a;
   --wanas-game-secondary: #2a4080;
-  --wanas-game-success: #00d4ff;
+  --wanas-game-success: #34d399;
   --wanas-game-warning: #f97316;
   --wanas-game-danger: #ef4444;
   --wanas-game-text-primary: #f5f7ff;
@@ -129,7 +129,7 @@
 .wanas-game-panel {
   min-width: 0;
   border: 1px solid var(--wanas-game-panel-border);
-  border-radius: 0.875rem;
+  border-radius: var(--wanas-radius-panel);
   background-color: var(--wanas-game-panel-bg);
   box-shadow: 0 1px 0 rgb(255 255 255 / 0.04);
 }

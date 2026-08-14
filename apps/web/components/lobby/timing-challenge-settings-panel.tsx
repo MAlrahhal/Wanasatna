@@ -42,7 +42,7 @@ export function TimingChallengeSettingsPanel({
               disabled={!isHost}
               onClick={() => update({ mode: mode.id })}
               className={cn(
-                'rounded-xl border px-3 py-3 text-start transition-colors',
+                'min-h-11 rounded-xl border px-3 py-3 text-start transition-colors',
                 selected
                   ? 'border-wanas-accent bg-wanas-accent/10'
                   : 'border-wanas-border bg-wanas-surface-soft',
@@ -90,7 +90,7 @@ export function TimingChallengeSettingsPanel({
       </div>
 
       {settings.minSeconds >= settings.maxSeconds ? (
-        <p className="text-xs font-medium text-destructive">
+        <p className="text-xs font-medium text-wanas-error">
           الحد الأدنى يجب أن يكون أقل من الحد الأقصى.
         </p>
       ) : null}

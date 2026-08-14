@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import {
   compareByRoundPointsThenName,
   compareByScoreThenName,
+  competitionDisplayRanks,
   isArabicScriptName,
 } from '../lib/game/leaderboard-sort';
 
@@ -121,6 +122,15 @@ test('script detection: Arabic vs Latin names', () => {
   assert.equal(isArabicScriptName('محمد'), true);
   assert.equal(isArabicScriptName('Sara'), false);
   assert.equal(isArabicScriptName('Ali'), false);
+});
+
+test('competition ranks: hide when all scores equal', () => {
+  assert.deepEqual(competitionDisplayRanks([0, 0, 0]), [null, null, null]);
+});
+
+test('competition ranks: ties share rank without fake index order', () => {
+  assert.deepEqual(competitionDisplayRanks([100, 100, 50]), [1, 1, 3]);
+  assert.deepEqual(competitionDisplayRanks([200, 100, 100]), [1, 2, 2]);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

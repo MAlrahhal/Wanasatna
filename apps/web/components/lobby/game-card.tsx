@@ -36,22 +36,19 @@ export function GameCard({
   const isLobbyCard = !showcase;
 
   const cardClassName = cn(
-    'group relative flex h-full flex-col rounded-xl border bg-wanas-surface-soft p-3 text-center transition-colors duration-200',
-    isLobbyCard && !isDisabled && 'hover:border-wanas-accent/35 hover:bg-wanas-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/30',
-    isLobbyCard && isDisabled && 'cursor-not-allowed opacity-70',
+    'group relative flex h-full min-h-[168px] flex-col rounded-xl border p-3 text-center transition-colors duration-200',
+    selected ? 'border-wanas-accent bg-wanas-accent/10' : 'bg-wanas-surface-soft',
+    isLobbyCard && !isDisabled && !selected && 'hover:border-wanas-accent/35 hover:bg-wanas-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/30',
+    isLobbyCard && isDisabled && 'cursor-default',
     isShowcaseCard && !isComingSoon && ['cursor-default hover:-translate-y-1 hover:shadow-lg', hoverBorderClassName],
     isShowcaseCard && isComingSoon && 'cursor-default opacity-75',
-    selected
-      ? 'border-wanas-accent ring-1 ring-wanas-accent/25'
-      : isLobbyCard
-        ? 'border-wanas-border'
-        : 'border-wanas-border-muted',
+    !selected && (isLobbyCard ? 'border-wanas-border' : 'border-wanas-border-muted'),
   );
 
   const cardContent = (
     <>
       {selected ? (
-        <span className="absolute start-2 top-2 inline-flex items-center gap-1 rounded-full bg-wanas-accent px-2 py-0.5 text-[9px] font-bold text-white">
+        <span className="absolute start-2 top-2 inline-flex items-center rounded-full border border-wanas-accent bg-wanas-accent px-2 py-0.5 text-[11px] font-bold text-white">
           ✓ مختارة
         </span>
       ) : null}
@@ -64,25 +61,25 @@ export function GameCard({
 
       <div
         className={cn(
-          'mx-auto mb-2 flex size-10 items-center justify-center rounded-full text-lg leading-none transition-colors',
+          'mx-auto mb-2 flex size-12 items-center justify-center rounded-full text-2xl leading-none',
           iconClassName,
-          !isDisabled && 'group-hover:text-wanas-accent',
         )}
         style={
           iconBg && iconText
             ? { backgroundColor: iconBg, color: iconText }
             : undefined
         }
+        aria-hidden
       >
         {game.emoji}
       </div>
 
-      <h3 className="text-xs font-bold text-wanas-text-primary sm:text-sm">{game.title}</h3>
-      <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-wanas-text-muted">
+      <h3 className="min-h-10 text-sm font-bold leading-5 text-wanas-text-primary">{game.title}</h3>
+      <p className="mt-1 line-clamp-2 min-h-8 flex-1 text-xs leading-4 text-wanas-text-muted">
         {game.description}
       </p>
       {playerRange ? (
-        <p className="mt-2 text-[10px] font-medium text-wanas-text-subtle">{playerRange}</p>
+        <p className="mt-2 text-[11px] font-medium text-wanas-text-subtle">{playerRange}</p>
       ) : null}
     </>
   );
@@ -91,8 +88,21 @@ export function GameCard({
     return <article className={cardClassName}>{cardContent}</article>;
   }
 
+  if (isDisabled) {
+    return (
+      <div className={cardClassName} aria-disabled="true">
+        {cardContent}
+      </div>
+    );
+  }
+
   return (
-    <button type="button" disabled={isDisabled} onClick={() => onSelect(game.id)} className={cardClassName}>
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={() => onSelect(game.id)}
+      className={cardClassName}
+    >
       {cardContent}
     </button>
   );

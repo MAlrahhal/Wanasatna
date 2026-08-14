@@ -64,15 +64,15 @@ export function MobileNavigation({
               <button
                 type="button"
                 onClick={onCreateRoomOnHome}
-                className="inline-flex h-11 items-center justify-center rounded-2xl bg-wanas-accent text-sm font-semibold text-white hover:bg-wanas-accent-hover"
+                className="inline-flex h-11 items-center justify-center rounded-[var(--wanas-radius-control)] border border-white/25 bg-transparent text-sm font-semibold text-white hover:bg-white/10"
               >
-                إنشاء غرفة
+                ابدأ اللعب
               </button>
             ) : (
               <GuardedPublicLink
                 href={getHomeRoomActionsHref()}
                 onNavigate={onClose}
-                className="inline-flex h-11 items-center justify-center rounded-2xl bg-wanas-accent text-sm font-semibold text-white hover:bg-wanas-accent-hover"
+                className="inline-flex h-11 items-center justify-center rounded-[var(--wanas-radius-control)] border border-white/25 bg-transparent text-sm font-semibold text-white hover:bg-white/10"
               >
                 إنشاء غرفة
               </GuardedPublicLink>

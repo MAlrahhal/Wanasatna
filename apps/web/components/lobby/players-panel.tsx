@@ -1,5 +1,9 @@
+'use client';
+
+import { useRef, useState } from 'react';
 import { MAX_ROOM_PLAYERS } from '@wanasatna/shared';
 import type { LobbyPlayer } from '@/lib/lobby/types';
+import { UiDialog } from '@/components/ui/dialog';
 import { getPlayerAvatarColors, getPlayerAvatarEmoji, LobbyPanel } from './lobby-ui';
 import { PlayerCard } from './player-card';
 
@@ -21,22 +25,34 @@ export function PlayersPanel({
   hasActiveMatch = false,
 }: PlayersPanelProps) {
   const participantSet = new Set(activeMatchParticipantIds ?? []);
+  const [kickTarget, setKickTarget] = useState<LobbyPlayer | null>(null);
+  const kickingRef = useRef(false);
+
+  function handleConfirmKick() {
+    if (!kickTarget || kickingRef.current) {
+      return;
+    }
+    kickingRef.current = true;
+    onKickPlayer?.(kickTarget.id);
+    kickingRef.current = false;
+    setKickTarget(null);
+  }
 
   return (
     <LobbyPanel
       title="اللاعبون"
       description={`${players.length} / ${MAX_ROOM_PLAYERS}`}
-      className="h-fit"
+      className="h-fit xl:max-h-[calc(100vh-220px)]"
       bodyClassName="gap-2 p-3 sm:p-4"
     >
-      <div className="flex flex-col gap-2">
+      <div className="flex max-h-[min(70vh,560px)] flex-col gap-2 overflow-y-auto">
         {players.map((player) => (
           <PlayerCard
             key={player.id}
             player={player}
             isCurrentPlayer={player.id === currentPlayerId}
             canKick={isHost}
-            onKick={onKickPlayer}
+            onKick={() => setKickTarget(player)}
             avatarColors={getPlayerAvatarColors(player.id)}
             avatarEmoji={getPlayerAvatarEmoji(player.id)}
             isWaitingForNextMatch={
@@ -46,15 +62,24 @@ export function PlayersPanel({
         ))}
       </div>
 
-      <button
-        type="button"
-        disabled
-        aria-disabled="true"
-        className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-wanas-border bg-wanas-surface-soft text-xs font-semibold text-wanas-text-muted disabled:cursor-not-allowed"
-      >
-        <span aria-hidden>＋</span>
-        دعوة أصدقاء
-      </button>
+      <p className="mt-1 text-center text-[11px] leading-5 text-wanas-text-muted">
+        دعوة الأصدقاء غير متاحة حالياً.
+      </p>
+
+      <UiDialog
+        open={Boolean(kickTarget)}
+        title="طرد اللاعب؟"
+        description={`هل أنت متأكد أنك تريد طرد ${kickTarget?.name ?? ''} من الغرفة؟`}
+        variant="warning"
+        confirmLabel="طرد"
+        cancelLabel="إلغاء"
+        onClose={() => {
+          if (!kickingRef.current) {
+            setKickTarget(null);
+          }
+        }}
+        onConfirm={handleConfirmKick}
+      />
     </LobbyPanel>
   );
 }

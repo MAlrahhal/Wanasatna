@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import { Field } from '@/components/ui/field';
 
 type HomeFieldProps = {
   id: string;
@@ -29,37 +29,20 @@ export function HomeField({
   inputClassName,
 }: HomeFieldProps) {
   return (
-    <label htmlFor={id} className={cn('block space-y-2', className)}>
-      <span className="text-sm font-medium text-[#0F172A]">{label}</span>
-      <div className="relative">
-        <span
-          aria-hidden
-          className={cn(
-            'pointer-events-none absolute start-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]',
-            hasError && 'text-[#EF4444]',
-          )}
-        >
-          {icon}
-        </span>
-        <input
-          id={id}
-          type="text"
-          inputMode={inputMode}
-          value={value}
-          disabled={disabled}
-          onChange={(event) => onChange(event.target.value)}
-          placeholder={placeholder}
-          aria-invalid={hasError}
-          className={cn(
-            'h-12 w-full rounded-xl border bg-[#F8FAFC] pe-4 ps-11 text-sm text-[#0F172A] outline-none transition-all duration-200 placeholder:text-[#94A3B8] disabled:cursor-not-allowed disabled:opacity-60',
-            hasError
-              ? 'border-[#FCA5A5] bg-[#FEF2F2] focus:border-[#EF4444] focus:ring-2 focus:ring-[#EF4444]/20'
-              : 'border-[#E2E8F0] hover:border-[#CBD5E1] focus:border-[#3B82F6] focus:bg-white focus:ring-2 focus:ring-[#3B82F6]/20',
-            inputClassName,
-          )}
-        />
-      </div>
-    </label>
+    <Field
+      id={id}
+      label={label}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      icon={icon}
+      disabled={disabled}
+      error={hasError ? 'تحقق من هذا الحقل.' : undefined}
+      inputMode={inputMode}
+      dir={inputMode === 'numeric' ? 'ltr' : 'rtl'}
+      className={className}
+      inputClassName={inputClassName}
+    />
   );
 }
 

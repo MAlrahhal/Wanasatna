@@ -39,17 +39,20 @@ export function GameTimerChip({
       )}
       aria-label={`الوقت المتبقي ${label}`}
     >
-      <span
-        className={cn(
-          'text-xs font-medium',
-          isLowTime ? 'text-wanas-warning-dark' : 'text-wanas-text-muted',
-        )}
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden
+        className={cn(isLowTime ? 'text-wanas-warning-dark' : 'text-wanas-text-muted')}
       >
-        ⏱
-      </span>
+        <circle cx="12" cy="13" r="8" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M12 9v4l2.5 1.5M9 4h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
       <span
         className={cn(
-          'font-mono text-sm font-semibold tabular-nums',
+          'font-mono text-sm font-semibold tabular-nums leading-5',
           isLowTime ? 'text-wanas-warning-dark' : 'text-wanas-text-primary',
         )}
       >

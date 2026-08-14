@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 export type GameLeaderboardEntry = {
   playerId: string;
   name: string;
-  rank: number;
+  rank?: number;
   score: number;
   isCurrentPlayer: boolean;
   scoreDelta?: number;

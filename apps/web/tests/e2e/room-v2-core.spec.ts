@@ -3,10 +3,10 @@
  * Create/Join must use real Home UI (never action=create URL commands).
  */
 import { test, expect, type Page } from '@playwright/test';
-import { enterLobbyCreate, enterLobbyJoin, waitForRoster } from './helpers';
+import { confirmLeaveRoom, enterLobbyCreate, enterLobbyJoin, waitForRoster } from './helpers';
 
 async function leaveLobby(page: Page): Promise<void> {
-  await page.getByRole('button', { name: 'مغادرة الغرفة' }).first().click();
+  await confirmLeaveRoom(page);
   await page.waitForURL((url) => url.pathname === '/' || url.pathname === '', { timeout: 20_000 });
 }
 

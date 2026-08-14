@@ -14,6 +14,7 @@ type UiDialogProps = {
   description: string;
   variant?: DialogVariant;
   confirmLabel?: string;
+  cancelLabel?: string;
   onClose: () => void;
   onConfirm?: () => void;
 };
@@ -24,7 +25,7 @@ const variantStyles: Record<
 > = {
   confirmation: {
     iconBg: 'bg-wanas-primary-surface',
-    iconColor: 'text-wanas-primary-dark',
+    iconColor: 'text-wanas-accent',
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
         <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
@@ -64,7 +65,7 @@ const variantStyles: Record<
   },
   loading: {
     iconBg: 'bg-wanas-panel-soft',
-    iconColor: 'text-wanas-primary-dark',
+    iconColor: 'text-wanas-accent',
     icon: <Spinner size="md" />,
   },
 };
@@ -75,17 +76,20 @@ export function UiDialog({
   description,
   variant = 'confirmation',
   confirmLabel = 'حسناً',
+  cancelLabel = 'إلغاء',
   onClose,
   onConfirm,
 }: UiDialogProps) {
   const titleId = useId();
   const descriptionId = useId();
-  const closeRef = useRef<HTMLButtonElement>(null);
+  const confirmRef = useRef<HTMLButtonElement>(null);
   const styles = variantStyles[variant];
+  const confirmVariant =
+    variant === 'error' || variant === 'warning' ? 'destructive' : variant === 'success' ? 'success' : 'primary';
 
   useEffect(() => {
     if (!open) return;
-    closeRef.current?.focus();
+    confirmRef.current?.focus();
     const onKey = (event: KeyboardEvent) => event.key === 'Escape' && onClose();
     document.addEventListener('keydown', onKey);
     const previousOverflow = document.body.style.overflow;
@@ -106,12 +110,13 @@ export function UiDialog({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
-        className="relative w-full max-w-md rounded-[20px] border border-wanas-border bg-wanas-surface p-6 shadow-lg"
+        dir="rtl"
+        className="relative w-full max-w-md rounded-[var(--wanas-radius-panel)] border border-wanas-border bg-wanas-surface p-6 shadow-[var(--wanas-shadow-panel)]"
       >
         <div className={cn('mb-4 flex size-12 items-center justify-center rounded-2xl', styles.iconBg, styles.iconColor)}>
           {styles.icon}
         </div>
-        <h2 id={titleId} className="text-xl font-bold text-wanas-text-primary">
+        <h2 id={titleId} className="text-xl font-bold leading-7 text-wanas-text-primary">
           {title}
         </h2>
         <p id={descriptionId} className="mt-2 text-sm leading-7 text-wanas-text-secondary">
@@ -121,31 +126,22 @@ export function UiDialog({
           <p className="mt-6 text-center text-sm text-wanas-text-muted">جاري التحميل…</p>
         ) : (
           <div className="mt-6 flex gap-3">
-            {variant === 'confirmation' ? (
+            {variant === 'confirmation' || variant === 'warning' ? (
               <Button variant="outline" className="flex-1" onClick={onClose}>
-                إلغاء
+                {cancelLabel}
               </Button>
             ) : null}
-            <button
-              ref={closeRef}
-              type="button"
+            <Button
+              ref={confirmRef}
+              variant={confirmVariant}
+              className="flex-1"
               onClick={() => {
                 onConfirm?.();
                 onClose();
               }}
-              className={cn(
-                'inline-flex h-11 flex-1 items-center justify-center rounded-2xl px-4 text-sm font-semibold transition-colors',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-                variant === 'error' && 'border border-wanas-error-border bg-wanas-error-surface text-wanas-error',
-                variant === 'success' &&
-                  'border border-wanas-success-border bg-wanas-success-surface text-wanas-success-dark',
-                variant !== 'error' &&
-                  variant !== 'success' &&
-                  'bg-wanas-accent text-white hover:bg-wanas-accent-hover focus-visible:ring-wanas-accent/40',
-              )}
             >
               {confirmLabel}
-            </button>
+            </Button>
           </div>
         )}
       </div>

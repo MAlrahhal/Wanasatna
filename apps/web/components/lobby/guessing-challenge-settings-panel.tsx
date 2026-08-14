@@ -38,7 +38,7 @@ export function GuessingChallengeSettingsPanel({
                 onChange(entry.id);
               }}
               className={cn(
-                'rounded-xl border px-3 py-3 text-start transition-colors',
+                'min-h-11 rounded-xl border px-3 py-3 text-start transition-colors',
                 selected
                   ? 'border-wanas-accent bg-wanas-accent/10'
                   : 'border-wanas-border bg-wanas-surface-soft',

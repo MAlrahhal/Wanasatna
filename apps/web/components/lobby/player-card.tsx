@@ -1,5 +1,6 @@
 import type { LobbyPlayer } from '@/lib/lobby/types';
 import { getPlayerAvatarEmoji } from '@/components/lobby/lobby-ui';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 type PlayerCardProps = {
@@ -27,10 +28,10 @@ export function PlayerCard({
   return (
     <div
       className={cn(
-        'flex items-center gap-2.5 rounded-lg border px-2.5 py-2 transition-colors',
+        'flex items-center gap-2.5 rounded-lg border px-2.5 py-2',
         isCurrentPlayer
           ? 'border-wanas-accent/35 bg-wanas-accent/8'
-          : 'border-wanas-border bg-wanas-surface-soft hover:border-wanas-border-strong',
+          : 'border-wanas-border bg-wanas-surface-soft',
       )}
     >
       <div className="relative shrink-0">
@@ -53,31 +54,31 @@ export function PlayerCard({
         <div className="flex items-center gap-1.5">
           <p className="truncate text-xs font-semibold text-wanas-text-primary sm:text-sm">{player.name}</p>
           {isCurrentPlayer ? (
-            <span className="rounded-full bg-wanas-accent/15 px-1.5 py-0.5 text-[9px] font-semibold text-wanas-accent">
+            <span className="shrink-0 rounded-full bg-wanas-accent/15 px-1.5 py-0.5 text-[10px] font-semibold text-wanas-accent">
               أنت
             </span>
           ) : null}
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-1.5">
           {player.isHost ? (
-            <span className="inline-flex items-center gap-0.5 rounded-full bg-wanas-warning-surface px-2 py-0.5 text-[9px] font-semibold text-wanas-warning-dark">
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-wanas-warning-surface px-2 py-0.5 text-[10px] font-semibold text-wanas-warning-dark">
               <span aria-hidden>★</span>
               المضيف
             </span>
           ) : null}
           {player.isSpectator ? (
-            <span className="rounded-full bg-wanas-surface-muted px-2 py-0.5 text-[9px] font-medium text-wanas-text-muted">
+            <span className="rounded-full bg-wanas-surface-muted px-2 py-0.5 text-[10px] font-medium text-wanas-text-muted">
               متفرّج
             </span>
           ) : null}
           {isWaitingForNextMatch ? (
-            <span className="rounded-full bg-wanas-surface-muted px-2 py-0.5 text-[9px] font-medium text-wanas-text-muted">
+            <span className="rounded-full bg-wanas-surface-muted px-2 py-0.5 text-[10px] font-medium text-wanas-text-muted">
               بانتظار الجولة القادمة
             </span>
           ) : null}
           <span
             className={cn(
-              'inline-flex items-center gap-1 text-[10px] font-medium',
+              'inline-flex items-center gap-1 text-[11px] font-medium',
               player.isConnected ? 'text-wanas-success-dark' : 'text-wanas-text-muted',
             )}
           >
@@ -94,14 +95,15 @@ export function PlayerCard({
       </div>
 
       {canKick && !player.isHost ? (
-        <button
+        <Button
           type="button"
+          variant="destructive"
+          size="sm"
           aria-label={`طرد ${player.name}`}
           onClick={() => onKick?.(player.id)}
-          className="min-h-9 rounded-lg border border-wanas-error-border px-2 py-1 text-[10px] font-semibold text-wanas-error transition-colors hover:bg-wanas-error-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-error/35"
         >
           طرد
-        </button>
+        </Button>
       ) : null}
     </div>
   );

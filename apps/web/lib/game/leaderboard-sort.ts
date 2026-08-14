@@ -66,3 +66,28 @@ export function compareByRoundPointsThenName(
 
   return 0;
 }
+
+/**
+ * Competition ranks from already-sorted scores (ties share a rank).
+ * Returns null for every row when all scores are equal — no fake ordering.
+ */
+export function competitionDisplayRanks(scores: readonly number[]): Array<number | null> {
+  if (scores.length === 0) {
+    return [];
+  }
+
+  const allEqual = scores.every((score) => score === scores[0]);
+  if (allEqual) {
+    return scores.map(() => null);
+  }
+
+  let lastScore: number | undefined;
+  let lastRank = 0;
+  return scores.map((score, index) => {
+    if (score !== lastScore) {
+      lastRank = index + 1;
+      lastScore = score;
+    }
+    return lastRank;
+  });
+}

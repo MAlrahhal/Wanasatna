@@ -10,10 +10,10 @@ import { PUBLIC_NAV_LINKS, PUBLIC_ROUTES } from '@/lib/public/routes';
 import { shouldHideCreateRoomAction } from '@/lib/room/navigation-guard';
 import { cn } from '@/lib/utils';
 
-const createRoomButtonClassName = cn(
-  'inline-flex h-10 items-center justify-center rounded-2xl bg-wanas-accent px-4 text-sm font-semibold text-white shadow-sm',
-  'hover:bg-wanas-accent-hover',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-wanas-navbar',
+const navPlayClassName = cn(
+  'inline-flex h-10 items-center justify-center rounded-[var(--wanas-radius-control)] border border-white/25 bg-transparent px-4 text-sm font-semibold text-white/90',
+  'hover:border-white/50 hover:bg-white/10 hover:text-white',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-wanas-navbar',
 );
 
 export function PublicNavbar() {
@@ -99,11 +99,11 @@ export function PublicNavbar() {
           </GuardedPublicLink>
           {!hideCreateRoom ? (
             isHome ? (
-              <button type="button" onClick={handleCreateRoomOnHome} className={createRoomButtonClassName}>
-                إنشاء غرفة
+              <button type="button" onClick={handleCreateRoomOnHome} className={navPlayClassName}>
+                ابدأ اللعب
               </button>
             ) : (
-              <GuardedPublicLink href={getHomeRoomActionsHref()} className={createRoomButtonClassName}>
+              <GuardedPublicLink href={getHomeRoomActionsHref()} className={navPlayClassName}>
                 إنشاء غرفة
               </GuardedPublicLink>
             )

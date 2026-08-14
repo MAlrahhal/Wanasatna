@@ -139,7 +139,7 @@ export function LobbyScreen() {
         ))}
       </div>
 
-      <div className="grid flex-1 grid-cols-1 gap-3 lg:gap-4 xl:grid-cols-[280px_minmax(0,1fr)_260px]">
+      <div className="grid flex-1 grid-cols-1 gap-3 lg:gap-4 xl:grid-cols-[minmax(220px,260px)_minmax(0,1fr)_minmax(168px,200px)]">
         <div className={cn('xl:order-3', mobileSection !== 'chat' && 'hidden xl:block')}>
           <LobbyChat />
         </div>
