@@ -6,7 +6,6 @@ import { useRoom } from '@/contexts/room-context';
 import { getGameStartPlayerRequirementReason } from '@/lib/game-shell/start-validation';
 import { getGameCatalogEntry } from '@/lib/public/game-catalog';
 import { mockLobbyGames } from '@/lib/lobby/mock-games';
-import { LobbyPanel } from './lobby-ui';
 import { Button } from '@/components/ui/button';
 import { SystemStatus } from '@/components/ui/system-status';
 
@@ -96,21 +95,22 @@ export function LobbyStartGamePanel() {
 
   if (!isHost) {
     return (
-      <LobbyPanel title="بدء اللعبة" bodyClassName="p-3">
+      <section className="rounded-xl border border-wanas-border bg-wanas-surface px-3 py-2.5">
         <SystemStatus tone="info" title="بانتظار المضيف لبدء اللعبة." />
-      </LobbyPanel>
+      </section>
     );
   }
 
   return (
-    <LobbyPanel
-      title="بدء اللعبة"
-      description={selectedGame ? undefined : 'اختر لعبة من القائمة ثم ابدأ.'}
-      bodyClassName="gap-2 p-3"
-    >
-      {selectedGame ? (
-        <p className="text-sm font-bold text-wanas-text-primary">{selectedGame.title}</p>
-      ) : null}
+    <section className="rounded-xl border border-wanas-border bg-wanas-surface px-3 py-2.5">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <p className="text-sm font-bold text-wanas-text-primary">بدء اللعبة</p>
+        {selectedGame ? (
+          <p className="truncate text-[11px] text-wanas-text-muted">{selectedGame.title}</p>
+        ) : (
+          <p className="text-[11px] text-wanas-text-muted">اختر لعبة من القائمة ثم ابدأ.</p>
+        )}
+      </div>
       <Button
         type="button"
         size="lg"
@@ -122,8 +122,8 @@ export function LobbyStartGamePanel() {
         {isStarting ? 'جاري البدء…' : 'بدء اللعبة'}
       </Button>
       {disabledReason ? (
-        <p className="text-center text-xs font-medium text-wanas-text-muted">{disabledReason}</p>
+        <p className="mt-1.5 text-center text-xs font-medium text-wanas-text-muted">{disabledReason}</p>
       ) : null}
-    </LobbyPanel>
+    </section>
   );
 }

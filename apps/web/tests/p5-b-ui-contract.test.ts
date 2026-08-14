@@ -38,8 +38,8 @@ test('home create/join uses shared Field and Button', () => {
   assert.match(cards, /id="join-code"/);
   assert.match(cards, /دخول الغرفة/);
   assert.match(cards, /إنشاء غرفة/);
-  assert.match(cards, /inviteFromLink/);
-  assert.match(cards, /اكتب اسمك للدخول/);
+  assert.match(cards, /placeholder="اكتب اسمك"/);
+  assert.doesNotMatch(cards, /inviteFromLink/);
   assert.doesNotMatch(cards, /PublicField/);
   assert.doesNotMatch(cards, lightIsland);
   assert.match(home, /<Button/);

@@ -31,9 +31,9 @@ export function DrawGuessSettingsPanel({
   onFixedPlayerChange,
 }: DrawGuessSettingsPanelProps) {
   return (
-    <div className="space-y-3">
-      <p className="text-xs font-semibold text-wanas-text-secondary">اختيار الرسام</p>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+    <div className="space-y-2">
+      <p className="text-[11px] font-semibold text-wanas-text-secondary">اختيار الرسام</p>
+      <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
         {MODES.map((entry) => {
           const selected = drawerMode === entry.id;
           return (
@@ -52,7 +52,7 @@ export function DrawGuessSettingsPanel({
                 }
               }}
               className={cn(
-                'min-h-11 rounded-xl border px-3 py-3 text-start transition-colors',
+                'min-h-10 rounded-lg border px-3 py-2 text-start transition-colors',
                 selected
                   ? 'border-wanas-accent bg-wanas-accent/10'
                   : 'border-wanas-border bg-wanas-surface-soft',
@@ -60,7 +60,7 @@ export function DrawGuessSettingsPanel({
               )}
             >
               <p className="text-sm font-bold text-wanas-text-primary">{entry.label}</p>
-              <p className="mt-1 text-[11px] text-wanas-text-muted">{entry.hint}</p>
+              <p className="text-[11px] text-wanas-text-muted">{entry.hint}</p>
             </button>
           );
         })}

@@ -31,8 +31,8 @@ export function TimingChallengeSettingsPanel({
   };
 
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+    <div className="space-y-1.5">
+      <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 xl:grid-cols-4">
         {MODES.map((mode) => {
           const selected = settings.mode === mode.id;
           return (
@@ -42,7 +42,7 @@ export function TimingChallengeSettingsPanel({
               disabled={!isHost}
               onClick={() => update({ mode: mode.id })}
               className={cn(
-                'min-h-11 rounded-xl border px-3 py-3 text-start transition-colors',
+                'min-h-10 rounded-lg border px-3 py-2 text-start transition-colors',
                 selected
                   ? 'border-wanas-accent bg-wanas-accent/10'
                   : 'border-wanas-border bg-wanas-surface-soft',
@@ -50,7 +50,7 @@ export function TimingChallengeSettingsPanel({
               )}
             >
               <p className="text-sm font-bold text-wanas-text-primary">{mode.label}</p>
-              <p className="mt-1 text-[11px] text-wanas-text-muted">{mode.hint}</p>
+              <p className="text-[11px] text-wanas-text-muted">{mode.hint}</p>
             </button>
           );
         })}

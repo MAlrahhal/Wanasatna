@@ -36,7 +36,7 @@ export function useRoomActions() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [playerName, setPlayerName] = useState('');
-  const [joinCode, setJoinCode] = useState('');
+  const [joinCode, setJoinCode] = useState(() => readInviteCode(searchParams));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [isCreating, setIsCreating] = useState(false);

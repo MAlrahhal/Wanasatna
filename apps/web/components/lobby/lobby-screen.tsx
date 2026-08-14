@@ -12,6 +12,7 @@ import { LobbyErrorBanner } from './lobby-error-banner';
 import { LobbyHeader } from './lobby-header';
 import { LobbyMarathonBanner } from './lobby-marathon-banner';
 import { LobbyStartGamePanel } from './lobby-start-game-panel';
+import { RoundCategoryPanel } from './round-category-panel';
 import { PlayersPanel } from './players-panel';
 import { LobbyStateCard } from './lobby-ui';
 import { cn } from '@/lib/utils';
@@ -154,15 +155,19 @@ export function LobbyScreen() {
           <GameGrid
             games={mockLobbyGames}
             selectedGameId={selectedGameId}
-            selectedRoundCategoryId={selectedRoundCategoryId}
             canSelect={isHost}
-            isActiveMatch={activeMatchParticipantIds !== null}
             onSelectGame={selectGame}
-            onSelectRoundCategory={selectRoundCategory}
+          />
+          <LobbyMarathonBanner />
+          <RoundCategoryPanel
+            gameId={selectedGameId}
+            selectedCategoryId={selectedRoundCategoryId}
+            isHost={isHost}
+            isActiveMatch={activeMatchParticipantIds !== null}
+            onSelectCategory={selectRoundCategory}
           />
           <GameSettingsPanel selectedGame={selectedGame} settings={selectedGameSettings} isHost={isHost} />
           <LobbyStartGamePanel />
-          <LobbyMarathonBanner />
         </div>
 
         <div className={cn('xl:order-1', mobileSection !== 'players' && 'hidden xl:block')}>

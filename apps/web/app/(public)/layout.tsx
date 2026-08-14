@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import { PublicLayoutClient } from '@/components/public/public-layout-client';
 import { BRAND_NAME_AR } from '@/lib/public/brand';
 
@@ -12,5 +12,9 @@ export const metadata: Metadata = {
 };
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
-  return <PublicLayoutClient>{children}</PublicLayoutClient>;
+  return (
+    <Suspense>
+      <PublicLayoutClient>{children}</PublicLayoutClient>
+    </Suspense>
+  );
 }

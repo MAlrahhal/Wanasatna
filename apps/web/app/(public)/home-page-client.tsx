@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { HomeActiveRoomResume } from '@/components/public/active-room-banner';
 import { FeatureCard } from '@/components/public/feature-card';
 import { GamePreviewCard } from '@/components/public/game-cards';
+import { InviteJoinCard } from '@/components/public/invite-join-card';
 import { RoomActionCards } from '@/components/public/room-action-cards';
 import { SectionHeader } from '@/components/public/section-header';
 import { Button } from '@/components/ui/button';
@@ -47,11 +48,19 @@ export function HomePageClient() {
     return () => window.removeEventListener('hashchange', scrollToRoomActionsIfHash);
   }, []);
 
-  useEffect(() => {
-    if (room.inviteFromLink) {
-      scrollToHomeRoomActions();
-    }
-  }, [room.inviteFromLink]);
+  if (room.inviteFromLink) {
+    return (
+      <InviteJoinCard
+        playerName={room.playerName}
+        joinCode={room.joinCode}
+        onPlayerNameChange={room.handlePlayerNameChange}
+        onJoinRoom={room.handleJoinRoom}
+        isJoining={room.isJoining}
+        playerNameError={playerNameError}
+        actionError={!hasFieldError ? (room.errorMessage ?? undefined) : undefined}
+      />
+    );
+  }
 
   return (
     <main className="overflow-x-hidden">
@@ -104,7 +113,6 @@ export function HomePageClient() {
           onJoinRoom={room.handleJoinRoom}
           isCreating={room.isCreating}
           isJoining={room.isJoining}
-          inviteFromLink={room.inviteFromLink}
           playerNameError={playerNameError}
           joinCodeError={joinCodeError}
         />

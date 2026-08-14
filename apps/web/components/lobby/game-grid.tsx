@@ -1,28 +1,16 @@
 import type { LobbyGame } from '@/lib/lobby/types';
 import { getGameCatalogEntry } from '@/lib/public/game-catalog';
 import { GameCard } from './game-card';
-import { RoundCategoryPanel } from './round-category-panel';
 import { LobbyPanel } from './lobby-ui';
 
 type GameGridProps = {
   games: LobbyGame[];
   selectedGameId: string | null;
-  selectedRoundCategoryId: string | null;
   canSelect: boolean;
-  isActiveMatch: boolean;
   onSelectGame: (gameId: string) => void;
-  onSelectRoundCategory: (categoryId: string) => void;
 };
 
-export function GameGrid({
-  games,
-  selectedGameId,
-  selectedRoundCategoryId,
-  canSelect,
-  isActiveMatch,
-  onSelectGame,
-  onSelectRoundCategory,
-}: GameGridProps) {
+export function GameGrid({ games, selectedGameId, canSelect, onSelectGame }: GameGridProps) {
   const gridGames = games.filter((game) => game.id !== 'marathon');
 
   return (
@@ -54,14 +42,6 @@ export function GameGrid({
           );
         })}
       </div>
-
-      <RoundCategoryPanel
-        gameId={selectedGameId}
-        selectedCategoryId={selectedRoundCategoryId}
-        isHost={canSelect}
-        isActiveMatch={isActiveMatch}
-        onSelectCategory={onSelectRoundCategory}
-      />
     </LobbyPanel>
   );
 }

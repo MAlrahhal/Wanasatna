@@ -34,8 +34,7 @@ function CategoryChip({
       aria-pressed={selected}
       onClick={onSelect}
       className={cn(
-        'inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors sm:h-10 sm:px-3.5 sm:text-sm',
-        'border',
+        'inline-flex h-8 w-full items-center justify-center gap-1 rounded-lg border px-2 text-[11px] font-semibold transition-colors sm:h-9 sm:text-xs',
         selected
           ? 'border-wanas-accent bg-wanas-accent text-white'
           : 'border-wanas-border-strong bg-wanas-surface text-wanas-text-primary',
@@ -100,11 +99,11 @@ export function RoundCategoryPanel({
   return (
     <section
       aria-label="فئة الجولة"
-      className="rounded-lg border border-wanas-border bg-wanas-surface-soft p-2.5 sm:p-3"
+      className="rounded-xl border border-wanas-border bg-wanas-surface px-3 py-2.5"
     >
       <div className="flex items-start gap-2">
         <span
-          className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-wanas-border bg-wanas-surface text-base"
+          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-wanas-primary-surface text-sm"
           aria-hidden
         >
           🎲
@@ -113,11 +112,11 @@ export function RoundCategoryPanel({
           <h3 className="text-sm font-bold text-wanas-text-primary">
             {lockForMatch ? 'فئة المباراة' : 'فئة الجولة التالية'}
           </h3>
-          <p className="mt-0.5 text-[11px] leading-4 text-wanas-text-muted">{subtitle}</p>
+          <p className="text-[11px] leading-4 text-wanas-text-muted">{subtitle}</p>
         </div>
       </div>
 
-      <div className="mt-2 flex flex-wrap gap-1.5">
+      <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-5">
         {config.categories.map((category) => (
           <CategoryChip
             key={category.id}

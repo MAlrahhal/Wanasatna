@@ -91,7 +91,7 @@ test.describe('Leave fresh-entry reset', () => {
     await ctxB.close();
   });
 
-  test('Create while /?code=OLD discards invite and opens NEW lobby', async ({ browser }) => {
+  test('Invite /?code= is join-only; Create from clean Home opens NEW lobby', async ({ browser }) => {
     test.setTimeout(180_000);
     const ctx = await browser.newContext({ locale: 'ar-SA' });
     const page = await ctx.newPage();
@@ -99,15 +99,12 @@ test.describe('Leave fresh-entry reset', () => {
     await page.goto('/?code=721153');
     await page.waitForSelector('#start-play');
     await expect(page.locator('#join-code')).toHaveValue('721153');
+    await expect(page.locator('#join-code')).toHaveAttribute('readonly', '');
+    await expect(page.locator('#create-name')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'إنشاء غرفة' })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'دخول الغرفة' })).toBeVisible();
 
-    const section = page.locator('#start-play');
-    await section.locator('#create-name').fill('مضيف');
-    await section.getByRole('button', { name: 'إنشاء غرفة' }).click();
-    await page.waitForURL(/\/lobby\?code=\d+/, { timeout: 30_000 });
-    await page.waitForTimeout(1500);
-
-    const code = new URL(page.url()).searchParams.get('code')!;
-    expect(code).toMatch(/^\d{6}$/);
+    const code = await enterLobbyCreate(page, 'مضيف');
     expect(code).not.toBe('721153');
     expect(page.url()).not.toContain('721153');
     await expect(page.getByText('مضيف').first()).toBeVisible({ timeout: 20_000 });
@@ -127,6 +124,10 @@ test.describe('Leave fresh-entry reset', () => {
     await guest.goto(`/?code=${code}`);
     await guest.waitForSelector('#start-play');
     await expect(guest.locator('#join-code')).toHaveValue(code);
+    await expect(guest.locator('#join-code')).toHaveAttribute('readonly', '');
+    await expect(guest.locator('#create-name')).toHaveCount(0);
+    await expect(guest.getByRole('button', { name: 'إنشاء غرفة' })).toHaveCount(0);
+    await expect(guest.getByText('ألعاب مميزة')).toHaveCount(0);
 
     const section = guest.locator('#start-play');
     await section.locator('#join-name').fill('ضيف');

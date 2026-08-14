@@ -14,6 +14,7 @@ export type FieldProps = {
   inputMode?: InputHTMLAttributes<HTMLInputElement>['inputMode'];
   type?: 'text' | 'email' | 'password';
   dir?: 'rtl' | 'ltr';
+  readOnly?: boolean;
   className?: string;
   inputClassName?: string;
 };
@@ -32,6 +33,7 @@ export function Field({
   inputMode = 'text',
   type = 'text',
   dir = 'rtl',
+  readOnly = false,
   className,
   inputClassName,
 }: FieldProps) {
@@ -58,6 +60,7 @@ export function Field({
           inputMode={inputMode}
           value={value}
           disabled={disabled}
+          readOnly={readOnly}
           dir={dir}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
@@ -71,6 +74,7 @@ export function Field({
               ? 'border-wanas-error-border bg-wanas-error-surface focus:border-wanas-error focus:ring-2 focus:ring-wanas-error/25'
               : 'border-wanas-border hover:border-wanas-accent/40 focus:border-wanas-accent focus:bg-wanas-surface focus:ring-2 focus:ring-wanas-accent/25',
             'disabled:cursor-not-allowed disabled:opacity-50',
+            readOnly && 'cursor-default hover:border-wanas-border focus:border-wanas-border focus:ring-0',
             inputClassName,
           )}
         />
