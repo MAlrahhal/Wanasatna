@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { UiDialog } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { canViewRoomInvitationDetails } from '@/lib/room/navigation-guard';
+import { buildRoomInviteUrl } from '@/lib/room/session';
 
 type LobbyHeaderProps = {
   roomCode: string;
@@ -51,24 +52,13 @@ export function LobbyHeader({
     }
   }
 
-  async function handleShareRoom() {
-    const shareUrl = window.location.href;
-    const shareData = {
-      title: 'Wanasatna',
-      text: `انضم إلى غرفتي! الرمز: ${roomCode}`,
-      url: shareUrl,
-    };
-
+  async function handleCopyRoomLink() {
+    const inviteUrl = buildRoomInviteUrl(roomCode);
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-        return;
-      }
-
-      await navigator.clipboard.writeText(shareUrl);
-      setShareMessage('تم نسخ رابط الغرفة');
+      await navigator.clipboard.writeText(inviteUrl);
+      setShareMessage('تم نسخ الرابط');
     } catch {
-      setShareMessage(null);
+      setShareMessage('تعذر نسخ الرابط. انسخه يدوياً من هنا: ' + inviteUrl);
     }
   }
 
@@ -167,8 +157,8 @@ export function LobbyHeader({
           <Button type="button" variant="outline" size="sm" onClick={() => void handleCopyCode()} aria-live="polite">
             {copied ? 'تم النسخ' : 'نسخ الرمز'}
           </Button>
-          <Button type="button" variant="outline" size="sm" onClick={() => void handleShareRoom()}>
-            مشاركة الغرفة
+          <Button type="button" variant="outline" size="sm" onClick={() => void handleCopyRoomLink()}>
+            {shareMessage === 'تم نسخ الرابط' ? 'تم نسخ الرابط' : 'مشاركة الغرفة'}
           </Button>
           {isLocked ? (
             <Button type="button" variant="outline" size="sm" onClick={onUnlockRoom}>

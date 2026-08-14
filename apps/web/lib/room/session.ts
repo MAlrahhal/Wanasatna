@@ -119,6 +119,18 @@ export function buildLobbyUrl(roomCode: string): string {
   return `/lobby?code=${encodeURIComponent(roomCode)}`;
 }
 
+/** Home invite path — prefills join code; no room session required. */
+export function buildRoomInvitePath(roomCode: string): string {
+  return `/?code=${encodeURIComponent(roomCode)}`;
+}
+
+/** Absolute joinable invite URL for clipboard sharing. */
+export function buildRoomInviteUrl(roomCode: string, origin?: string): string {
+  const path = buildRoomInvitePath(roomCode);
+  const resolvedOrigin = origin ?? (typeof window !== 'undefined' ? window.location.origin : '');
+  return resolvedOrigin ? `${resolvedOrigin}${path}` : path;
+}
+
 export function lobbyUrlNeedsNormalization(
   params: Pick<URLSearchParams, 'get' | 'has'>,
   roomCode: string,

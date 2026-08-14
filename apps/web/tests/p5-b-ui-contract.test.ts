@@ -38,11 +38,16 @@ test('home create/join uses shared Field and Button', () => {
   assert.match(cards, /id="join-code"/);
   assert.match(cards, /دخول الغرفة/);
   assert.match(cards, /إنشاء غرفة/);
-  assert.match(cards, /dir="ltr"/);
+  assert.match(cards, /inviteFromLink/);
+  assert.match(cards, /اكتب اسمك للدخول/);
   assert.doesNotMatch(cards, /PublicField/);
   assert.doesNotMatch(cards, lightIsland);
   assert.match(home, /<Button/);
   assert.match(home, /ابدأ اللعب/);
+  assert.match(home, /variant="primary"/);
+  assert.doesNotMatch(home, /benefitChips/);
+  assert.doesNotMatch(home, /حتى 8 لاعب/);
+  assert.doesNotMatch(home, /عربي بالكامل/);
   assert.doesNotMatch(home, /انضم الآن/);
 });
 
@@ -99,6 +104,9 @@ test('lobby leave uses shared dialog and consistent wording', () => {
   assert.match(header, /الغرفة مقفلة/);
   assert.match(header, /الغرفة مفتوحة/);
   assert.match(header, /variant="destructive"/);
+  assert.match(header, /buildRoomInviteUrl/);
+  assert.match(header, /تم نسخ الرابط/);
+  assert.doesNotMatch(header, /navigator\.share/);
 });
 
 test('selected game and host/non-host catalog states are explicit', () => {

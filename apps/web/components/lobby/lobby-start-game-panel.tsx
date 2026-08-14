@@ -96,7 +96,7 @@ export function LobbyStartGamePanel() {
 
   if (!isHost) {
     return (
-      <LobbyPanel title="بدء اللعبة" bodyClassName="p-4">
+      <LobbyPanel title="بدء اللعبة" bodyClassName="p-3">
         <SystemStatus tone="info" title="بانتظار المضيف لبدء اللعبة." />
       </LobbyPanel>
     );
@@ -106,13 +106,10 @@ export function LobbyStartGamePanel() {
     <LobbyPanel
       title="بدء اللعبة"
       description={selectedGame ? undefined : 'اختر لعبة من القائمة ثم ابدأ.'}
-      bodyClassName="gap-3 p-4"
+      bodyClassName="gap-2 p-3"
     >
       {selectedGame ? (
-        <div className="flex flex-col gap-0.5">
-          <p className="text-xs font-medium text-wanas-text-muted">اللعبة المختارة</p>
-          <p className="text-base font-bold text-wanas-text-primary sm:text-lg">{selectedGame.title}</p>
-        </div>
+        <p className="text-sm font-bold text-wanas-text-primary">{selectedGame.title}</p>
       ) : null}
       <Button
         type="button"

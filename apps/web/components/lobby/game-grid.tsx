@@ -1,7 +1,6 @@
 import type { LobbyGame } from '@/lib/lobby/types';
 import { getGameCatalogEntry } from '@/lib/public/game-catalog';
 import { GameCard } from './game-card';
-import { LobbyMarathonBanner } from './lobby-marathon-banner';
 import { RoundCategoryPanel } from './round-category-panel';
 import { LobbyPanel } from './lobby-ui';
 
@@ -34,7 +33,7 @@ export function GameGrid({
           ? 'اختر لعبة لعرض إعداداتها وبدء الوناسة.'
           : 'اختيار اللعبة متاح للمضيف فقط. بانتظار المضيف.'
       }
-      bodyClassName="gap-4 p-4"
+      bodyClassName="gap-3 p-3"
     >
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
         {gridGames.map((game) => {
@@ -63,8 +62,6 @@ export function GameGrid({
         isActiveMatch={isActiveMatch}
         onSelectCategory={onSelectRoundCategory}
       />
-
-      <LobbyMarathonBanner />
     </LobbyPanel>
   );
 }

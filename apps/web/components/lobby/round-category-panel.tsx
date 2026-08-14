@@ -100,11 +100,11 @@ export function RoundCategoryPanel({
   return (
     <section
       aria-label="فئة الجولة"
-      className="rounded-xl border border-wanas-border bg-wanas-surface-soft p-3 sm:p-4"
+      className="rounded-lg border border-wanas-border bg-wanas-surface-soft p-2.5 sm:p-3"
     >
-      <div className="flex items-start gap-2.5">
+      <div className="flex items-start gap-2">
         <span
-          className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-wanas-border bg-wanas-surface text-xl"
+          className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-wanas-border bg-wanas-surface text-base"
           aria-hidden
         >
           🎲
@@ -113,11 +113,11 @@ export function RoundCategoryPanel({
           <h3 className="text-sm font-bold text-wanas-text-primary">
             {lockForMatch ? 'فئة المباراة' : 'فئة الجولة التالية'}
           </h3>
-          <p className="mt-0.5 text-xs leading-5 text-wanas-text-muted">{subtitle}</p>
+          <p className="mt-0.5 text-[11px] leading-4 text-wanas-text-muted">{subtitle}</p>
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-2 flex flex-wrap gap-1.5">
         {config.categories.map((category) => (
           <CategoryChip
             key={category.id}
@@ -129,9 +129,7 @@ export function RoundCategoryPanel({
         ))}
       </div>
 
-      <p className="mt-3 text-center text-[11px] leading-5 text-wanas-text-muted sm:text-xs">
-        {footer}
-      </p>
+      <p className="mt-2 text-[11px] leading-4 text-wanas-text-muted">{footer}</p>
     </section>
   );
 }

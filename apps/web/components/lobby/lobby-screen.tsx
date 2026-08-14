@@ -10,6 +10,7 @@ import { ActiveMatchWaitingPanel } from './active-match-waiting-panel';
 import { LobbyChat } from './lobby-chat';
 import { LobbyErrorBanner } from './lobby-error-banner';
 import { LobbyHeader } from './lobby-header';
+import { LobbyMarathonBanner } from './lobby-marathon-banner';
 import { LobbyStartGamePanel } from './lobby-start-game-panel';
 import { PlayersPanel } from './players-panel';
 import { LobbyStateCard } from './lobby-ui';
@@ -146,7 +147,7 @@ export function LobbyScreen() {
 
         <div
           className={cn(
-            'flex flex-col gap-3 xl:order-2 lg:gap-4',
+            'flex flex-col gap-2 xl:order-2 lg:gap-2',
             mobileSection !== 'games' && 'hidden xl:flex',
           )}
         >
@@ -161,6 +162,7 @@ export function LobbyScreen() {
           />
           <GameSettingsPanel selectedGame={selectedGame} settings={selectedGameSettings} isHost={isHost} />
           <LobbyStartGamePanel />
+          <LobbyMarathonBanner />
         </div>
 
         <div className={cn('xl:order-1', mobileSection !== 'players' && 'hidden xl:block')}>

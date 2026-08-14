@@ -5,6 +5,8 @@
 import assert from 'node:assert/strict';
 import {
   buildLobbyUrl,
+  buildRoomInvitePath,
+  buildRoomInviteUrl,
   lobbyUrlNeedsNormalization,
   resolveRoomEntryIntent,
   writeRoomSession,
@@ -153,6 +155,8 @@ test('URL normalization strips name and action after success', () => {
   assert.equal(lobbyUrlNeedsNormalization(params({ code: '318429' }), '318429'), false);
   assert.equal(lobbyUrlNeedsNormalization(params({ code: '111111' }), '318429'), true);
   assert.equal(buildLobbyUrl('318429'), '/lobby?code=318429');
+  assert.equal(buildRoomInvitePath('318429'), '/?code=318429');
+  assert.equal(buildRoomInviteUrl('318429', 'https://wanasatna.com'), 'https://wanasatna.com/?code=318429');
 });
 
 test('sticky create URL with active matching session reconnects (create intent consumed)', () => {

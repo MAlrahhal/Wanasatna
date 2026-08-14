@@ -14,8 +14,13 @@ import { getFeaturedGames } from '@/lib/public/game-catalog';
 import { HOME_ROOM_ACTIONS_ID, PUBLIC_ROUTES } from '@/lib/public/routes';
 import { scrollToHomeRoomActions } from '@/lib/public/scroll-to-room-actions';
 import { useRoomActions } from '@/lib/public/use-room-actions';
+import { cn } from '@/lib/utils';
 
-const benefitChips = ['بدون تسجيل', 'حتى 8 لاعب', 'عربي بالكامل'] as const;
+const primaryCtaClassName = cn(
+  'inline-flex h-12 min-h-12 items-center justify-center rounded-[var(--wanas-radius-control)] border border-wanas-accent bg-wanas-accent px-6 text-sm font-semibold text-white',
+  'shadow-[0_4px_0_var(--wanas-brand-navy)] hover:-translate-y-0.5 hover:border-wanas-accent-hover hover:bg-wanas-accent-hover hover:shadow-[0_5px_0_var(--wanas-brand-navy)]',
+  'active:translate-y-1 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/45 focus-visible:ring-offset-2',
+);
 
 const steps = [
   { n: '1', title: 'أنشئ غرفة', desc: 'اختر اسمك وابدأ غرفة جديدة.' },
@@ -42,6 +47,12 @@ export function HomePageClient() {
     return () => window.removeEventListener('hashchange', scrollToRoomActionsIfHash);
   }, []);
 
+  useEffect(() => {
+    if (room.inviteFromLink) {
+      scrollToHomeRoomActions();
+    }
+  }, [room.inviteFromLink]);
+
   return (
     <main className="overflow-x-hidden">
       <section className="relative overflow-hidden border-b border-wanas-border">
@@ -53,16 +64,6 @@ export function HomePageClient() {
         </div>
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:py-16">
           <div className="relative max-w-3xl">
-            <ul className="mb-5 flex flex-wrap gap-2">
-              {benefitChips.map((chip) => (
-                <li
-                  key={chip}
-                  className="rounded-full border border-wanas-border bg-wanas-surface px-3.5 py-1.5 text-xs font-bold text-wanas-text-primary shadow-sm"
-                >
-                  {chip}
-                </li>
-              ))}
-            </ul>
             <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-wanas-text-primary sm:text-5xl lg:text-[3.25rem]">
               مكان واحد تلعب فيه مع أصحابك
             </h1>
@@ -72,17 +73,14 @@ export function HomePageClient() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button
                 type="button"
-                variant="secondary"
+                variant="primary"
                 size="lg"
                 onClick={scrollToHomeRoomActions}
                 disabled={room.isCreating || room.isJoining}
               >
                 ابدأ اللعب
               </Button>
-              <Link
-                href={PUBLIC_ROUTES.games}
-                className="inline-flex h-12 min-h-12 items-center justify-center rounded-[var(--wanas-radius-control)] border border-wanas-border bg-transparent px-6 text-sm font-semibold text-wanas-text-primary hover:border-wanas-accent hover:bg-wanas-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/30 focus-visible:ring-offset-2"
-              >
+              <Link href={PUBLIC_ROUTES.games} className={primaryCtaClassName}>
                 استعراض الألعاب
               </Link>
             </div>
@@ -106,6 +104,7 @@ export function HomePageClient() {
           onJoinRoom={room.handleJoinRoom}
           isCreating={room.isCreating}
           isJoining={room.isJoining}
+          inviteFromLink={room.inviteFromLink}
           playerNameError={playerNameError}
           joinCodeError={joinCodeError}
         />

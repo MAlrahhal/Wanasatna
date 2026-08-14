@@ -50,7 +50,7 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
             : 'عرض فقط — التعديل متاح للمضيف.'
           : undefined
       }
-      bodyClassName="gap-3 p-4"
+      bodyClassName="gap-2 p-3"
     >
       {!selectedGame ? (
         <EmptyState
@@ -59,23 +59,18 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
           description="اختر لعبة من القائمة لعرض إعداداتها."
         />
       ) : (
-        <div className="space-y-3">
-          <div className="rounded-lg border border-wanas-border bg-wanas-surface-soft p-3">
-            <div className="flex items-center gap-2.5">
-              <div
-                className="flex size-9 items-center justify-center rounded-full text-xs font-bold"
-                style={{
-                  backgroundColor: catalogEntry?.iconBg,
-                  color: catalogEntry?.iconText,
-                }}
-              >
-                {selectedGame.iconLabel}
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-wanas-text-primary">{selectedGame.title}</p>
-                <p className="mt-0.5 text-[11px] text-wanas-text-muted">{catalogEntry?.playerRange}</p>
-              </div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <div
+              className="flex size-7 items-center justify-center rounded-full text-[10px] font-bold"
+              style={{
+                backgroundColor: catalogEntry?.iconBg,
+                color: catalogEntry?.iconText,
+              }}
+            >
+              {selectedGame.iconLabel}
             </div>
+            <p className="min-w-0 truncate text-sm font-bold text-wanas-text-primary">{selectedGame.title}</p>
           </div>
 
           {isTimingChallenge ? (

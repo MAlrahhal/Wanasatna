@@ -274,9 +274,12 @@ export function useRoomActions() {
     [fieldErrors.joinCode],
   );
 
+  const urlInviteCode = readInviteCode(searchParams);
+
   return {
     playerName,
     joinCode,
+    inviteFromLink: urlInviteCode !== '' && joinCode === urlInviteCode,
     errorMessage,
     fieldErrors,
     isCreating,
