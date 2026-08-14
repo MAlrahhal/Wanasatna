@@ -33,6 +33,7 @@ export function GameHeader({
   trailing,
   className,
 }: GameHeaderProps) {
+  // No-op under the live Experience Shell. Still rendered by /dev previews.
   const shellActive = useGameExperienceShellActive();
   const [copied, setCopied] = useState(false);
 

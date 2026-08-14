@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { SystemStatus } from '@/components/ui/system-status';
 import { HOME_ROOM_ACTIONS_ID } from '@/lib/public/routes';
+import { presentRoomActionError } from '@/lib/ui/system-copy';
 
 function LinkIcon() {
   return (
@@ -56,9 +57,9 @@ export function InviteJoinCard({
   return (
     <main className="flex min-h-[calc(100vh-7.5rem)] items-center justify-center px-4 py-10">
       <section id={HOME_ROOM_ACTIONS_ID} className="w-full max-w-md">
-        {actionError ? (
+        {actionError && !isJoining ? (
           <div className="mb-4">
-            <SystemStatus tone="error" title="تعذر إكمال العملية" description={actionError} />
+            <SystemStatus tone="error" {...presentRoomActionError(actionError)} />
           </div>
         ) : null}
         <article className="wanas-panel border border-wanas-accent p-6 sm:p-8 shadow-[0_0_0_1px_rgba(0,210,255,0.25)]">

@@ -1,21 +1,22 @@
 import type { RoomErrorCode } from '@wanasatna/shared';
+import { SYSTEM_COPY, toSafeUserErrorMessage } from '@/lib/ui/system-copy';
 
 const ERROR_MESSAGES: Record<RoomErrorCode, string> = {
   VALIDATION_ERROR: 'يرجى التحقق من البيانات المدخلة.',
-  ROOM_NOT_FOUND: 'الغرفة غير موجودة.',
-  ROOM_CLOSED: 'هذه الغرفة مغلقة.',
-  ROOM_LOCKED: 'الغرفة مقفلة ولا يمكن الانضمام إليها.',
-  ROOM_FULL: 'الغرفة ممتلئة.',
+  ROOM_NOT_FOUND: SYSTEM_COPY.roomMissing,
+  ROOM_CLOSED: SYSTEM_COPY.roomClosed,
+  ROOM_LOCKED: SYSTEM_COPY.roomLocked,
+  ROOM_FULL: SYSTEM_COPY.roomFull,
   PLAYER_ALREADY_EXISTS: 'اسم اللاعب مستخدم بالفعل في هذه الغرفة.',
   PLAYER_NOT_FOUND: 'تعذر العثور على اللاعب.',
   NOT_HOST: 'هذا الإجراء متاح للمضيف فقط.',
   CANNOT_KICK_SELF: 'لا يمكن للمضيف طرد نفسه.',
-  RECONNECT_EXPIRED: 'انتهت مهلة إعادة الاتصال. يرجى الانضمام من جديد.',
-  RECONNECT_INVALID_TOKEN: 'انتهت صلاحية بيانات إعادة الاتصال. يمكنك الانضمام من جديد.',
+  RECONNECT_EXPIRED: SYSTEM_COPY.reconnectExpired,
+  RECONNECT_INVALID_TOKEN: SYSTEM_COPY.reconnectExpired,
   MATCH_IN_PROGRESS: 'هناك مباراة جارية حاليًا. يمكنك الانضمام عند انتهاء المباراة.',
   ROOM_CODE_GENERATION_FAILED: 'تعذر إنشاء رمز الغرفة. حاول مرة أخرى.',
-  CONNECTION_FAILED: 'تعذر الاتصال بالخادم. تأكد أن الخادم يعمل ثم حاول مرة أخرى.',
-  INTERNAL_ERROR: 'حدث خطأ غير متوقع. حاول مرة أخرى.',
+  CONNECTION_FAILED: 'تعذر الاتصال. حاول مرة أخرى.',
+  INTERNAL_ERROR: SYSTEM_COPY.unexpectedError,
 };
 
 export function getRoomErrorMessage(code: RoomErrorCode, fallback?: string): string {
@@ -28,7 +29,7 @@ export function getRoomErrorMessage(code: RoomErrorCode, fallback?: string): str
     return mapped;
   }
 
-  return fallback ?? ERROR_MESSAGES.INTERNAL_ERROR;
+  return toSafeUserErrorMessage(fallback, ERROR_MESSAGES.INTERNAL_ERROR);
 }
 
 function mapRoomValidationMessage(message?: string): string | null {

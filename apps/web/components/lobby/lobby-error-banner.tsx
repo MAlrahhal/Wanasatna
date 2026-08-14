@@ -1,25 +1,26 @@
-import Link from 'next/link';
 import { SystemStatus } from '@/components/ui/system-status';
+import { Button } from '@/components/ui/button';
+import { SYSTEM_COPY, presentRoomActionError } from '@/lib/ui/system-copy';
 
 type LobbyErrorBannerProps = {
   message: string;
   showHomeAction?: boolean;
+  onHome?: () => void;
 };
 
-export function LobbyErrorBanner({ message, showHomeAction = false }: LobbyErrorBannerProps) {
+export function LobbyErrorBanner({ message, showHomeAction = false, onHome }: LobbyErrorBannerProps) {
+  const presented = presentRoomActionError(message);
+
   return (
     <SystemStatus
       tone="error"
-      title="تعذر إكمال العملية"
-      description={message}
+      title={presented.title}
+      description={presented.description}
       action={
         showHomeAction ? (
-          <Link
-            href="/"
-            className="inline-flex h-9 items-center justify-center rounded-[var(--wanas-radius-control)] border border-wanas-border px-3 text-xs font-semibold text-wanas-text-primary hover:border-wanas-accent hover:bg-wanas-surface-soft"
-          >
-            العودة للرئيسية
-          </Link>
+          <Button type="button" variant="secondary" size="sm" onClick={onHome}>
+            {SYSTEM_COPY.backHome}
+          </Button>
         ) : undefined
       }
     />

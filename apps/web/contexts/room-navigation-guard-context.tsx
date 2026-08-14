@@ -29,8 +29,10 @@ export function RoomNavigationGuardProvider({ children }: { children: ReactNode 
     syncStoredSession();
   }, [optionalRoom?.status, optionalRoom?.room?.id, syncStoredSession]);
 
-  const hasActiveRoomSession =
-    (optionalRoom?.status === 'connected' && optionalRoom.room !== null) || storedSessionActive;
+  const liveRoomActive =
+    optionalRoom?.room != null &&
+    (optionalRoom.status === 'connected' || optionalRoom.status === 'reconnecting');
+  const hasActiveRoomSession = liveRoomActive || storedSessionActive;
 
   const requestNavigation = useCallback(
     (href: string) => {

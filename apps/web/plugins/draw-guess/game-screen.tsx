@@ -10,8 +10,10 @@ import {
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
+import { GameSystemError, GameSystemLoading } from '@/components/room/room-system-state';
 import { DRAW_GUESS_GAME_ICON, DRAW_GUESS_GAME_NAME } from '@/lib/game/draw-guess-brand';
 import { mapDrawGuessLeaderboard } from '@/lib/game/map-draw-guess-leaderboard';
+import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-screen';
 import { DrawingScreen } from './drawing-screen';
 import { DrawGuessRoundResultsScreen } from './round-results-screen';
@@ -72,7 +74,7 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
       setExperienceMeta({
         gameName: DRAW_GUESS_GAME_NAME,
         gameIcon: DRAW_GUESS_GAME_ICON,
-        phaseLabel: 'جاري التحميل...',
+        phaseLabel: SYSTEM_COPY.loading,
         leaderboardEntries: mapDrawGuessLeaderboard(null, player.id, players),
       });
       return;
@@ -139,7 +141,7 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
     const autoReturnMessage = isMatchCompletedPhase
       ? `العودة إلى اللوبي تلقائياً خلال ${Math.max(0, remainingSeconds)} ثانية`
       : !shellFinished
-        ? 'جاري إنهاء المباراة...'
+        ? SYSTEM_COPY.returningToLobby
         : !isHost
           ? 'بانتظار المضيف للعودة إلى اللوبي.'
           : null;
@@ -177,19 +179,11 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
   }
 
   if (isLoading) {
-    return (
-      <section className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-        <p className="text-sm text-muted-foreground">جاري تحميل اللعبة...</p>
-      </section>
-    );
+    return <GameSystemLoading />;
   }
 
   if (errorMessage) {
-    return (
-      <section className="rounded-2xl border border-destructive/30 bg-destructive/10 p-8 text-center">
-        <p className="text-sm text-destructive">{errorMessage}</p>
-      </section>
-    );
+    return <GameSystemError message={errorMessage} />;
   }
 
   if (!view || !room || !player) {
@@ -212,9 +206,7 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
   if (view.gamePhase === 'round-results') {
     if (!view.revealedWord) {
       return (
-        <section className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-          <p className="text-sm text-muted-foreground">جاري تحميل نتائج الجولة...</p>
-        </section>
+        <GameSystemLoading />
       );
     }
 

@@ -4,11 +4,13 @@ import { useCallback, useEffect, useState } from 'react';
 import type { BaraAlSalafaPlayerView, GamePluginScreenProps } from '@wanasatna/shared';
 import { BARA_AL_SALAFA_MATCH_RESULTS_DURATION_SECONDS } from '@wanasatna/shared';
 import { GameScreen } from '@/components/game/game-card';
+import { GameSystemError, GameSystemLoading } from '@/components/room/room-system-state';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
 import { BARA_AL_SALAFA_GAME_ICON } from '@/lib/game/bara-al-salafa-brand';
 import { mapBaraAlSalafaLeaderboard } from '@/lib/game/map-bara-leaderboard';
+import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import { DirectedQuestionsScreen } from './directed-questions-screen';
 import { FreeQuestionsScreen } from './free-questions-screen';
 import { ImpostorGuessScreen } from './impostor-guess-screen';
@@ -140,7 +142,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
       setExperienceMeta({
         gameName: 'برا السالفة',
         gameIcon: BARA_AL_SALAFA_GAME_ICON,
-        phaseLabel: treatAsSpectator ? 'الجولة جارية' : 'جاري التحميل...',
+        phaseLabel: treatAsSpectator ? SYSTEM_COPY.spectatorTitle : SYSTEM_COPY.loading,
         leaderboardEntries: mapBaraAlSalafaLeaderboard(null, player.id, players),
       });
       return;
@@ -244,7 +246,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     const autoReturnMessage = isMatchCompletedPhase
       ? `العودة إلى اللوبي تلقائياً خلال ${Math.max(0, remainingSeconds)} ثانية`
       : !shellFinished
-        ? 'جاري إنهاء المباراة...'
+        ? SYSTEM_COPY.returningToLobby
         : !isHost
           ? 'بانتظار المضيف للعودة إلى اللوبي.'
           : null;
@@ -274,19 +276,11 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
   }
 
   if (isLoading) {
-    return (
-      <section className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-        <p className="text-sm text-muted-foreground">جاري تحميل دورك...</p>
-      </section>
-    );
+    return <GameSystemLoading />;
   }
 
   if (errorMessage) {
-    return (
-      <section className="rounded-2xl border border-destructive/30 bg-destructive/10 p-8 text-center">
-        <p className="text-sm text-destructive">{errorMessage}</p>
-      </section>
-    );
+    return <GameSystemError message={errorMessage} />;
   }
 
   if (!view) {
@@ -316,9 +310,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
 
     if (!roundResultsProps) {
       return (
-        <section className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-          <p className="text-sm text-muted-foreground">جاري تحميل نتائج الجولة...</p>
-        </section>
+        <GameSystemLoading />
       );
     }
 
@@ -349,9 +341,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
 
     if (!revealImpostorProps) {
       return (
-        <section className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-          <p className="text-sm text-muted-foreground">جاري تحميل كشف برا السالفة...</p>
-        </section>
+        <GameSystemLoading />
       );
     }
 
@@ -467,9 +457,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
 
     if (!directedQuestionsProps) {
       return (
-        <section className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-          <p className="text-sm text-muted-foreground">جاري تحميل مرحلة الأسئلة الموجّهة...</p>
-        </section>
+        <GameSystemLoading />
       );
     }
 
@@ -500,9 +488,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
 
     if (!activePlayerId) {
       return (
-        <section className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-          <p className="text-sm text-muted-foreground">جاري تحميل مرحلة الأسئلة الحرة...</p>
-        </section>
+        <GameSystemLoading />
       );
     }
 

@@ -1,0 +1,68 @@
+[
+  {
+    "name": "home-1366",
+    "overflowX": false,
+    "ctaY": 16,
+    "viewport": "1366x768"
+  },
+  {
+    "name": "ui-game-1366",
+    "overflowX": false,
+    "ctaY": -5431,
+    "viewport": "1366x768"
+  },
+  {
+    "name": "ui-buttons-1536",
+    "overflowX": false,
+    "ctaY": -5,
+    "viewport": "1536x864"
+  },
+  {
+    "name": "bara-role-1366",
+    "overflowX": false,
+    "ctaY": 199,
+    "viewport": "1366x768"
+  },
+  {
+    "name": "bara-round-1536",
+    "overflowX": false,
+    "ctaY": 199,
+    "viewport": "1536x864"
+  },
+  {
+    "name": "bara-final-1366",
+    "overflowX": false,
+    "ctaY": 199,
+    "viewport": "1366x768"
+  },
+  {
+    "name": "bara-countdown-1366",
+    "overflowX": false,
+    "ctaY": 199,
+    "viewport": "1366x768"
+  },
+  {
+    "name": "guessing-scene-1366",
+    "overflowX": false,
+    "ctaY": 60,
+    "viewport": "1366x768"
+  },
+  {
+    "name": "bara-mobile-390",
+    "overflowX": false,
+    "ctaY": 199,
+    "viewport": "390x844"
+  },
+  {
+    "name": "home-mobile-390",
+    "overflowX": false,
+    "ctaY": 16,
+    "viewport": "390x844"
+  },
+  {
+    "name": "ui-buttons-390",
+    "overflowX": false,
+    "ctaY": -57,
+    "viewport": "390x844"
+  }
+]

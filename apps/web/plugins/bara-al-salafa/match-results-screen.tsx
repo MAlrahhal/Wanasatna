@@ -5,6 +5,7 @@ import { GameHeader } from '@/components/game/game-header';
 import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
 import { Button } from '@/components/ui/button';
 import { BARA_AL_SALAFA_GAME_ICON } from '@/lib/game/bara-al-salafa-brand';
+import { presentSystemCopy } from '@/lib/ui/system-copy';
 import { cn } from '@/lib/utils';
 
 export type MatchLeaderboardEntry = {
@@ -72,7 +73,7 @@ function WinnerHero({ winners }: { winners: MatchLeaderboardEntry[] }) {
   const isTie = winners.length > 1;
 
   return (
-    <div className="wanas-game-card rounded-[2rem] border-wanas-warning-border/70 bg-wanas-warning-surface px-6 py-10 text-center sm:px-10 sm:py-12">
+    <div className="wanas-game-card rounded-[2rem] border-wanas-warning-border/70 bg-wanas-warning-surface px-5 py-6 text-center sm:px-8 sm:py-8">
       <div className="flex flex-col items-center gap-5">
         <span className="text-5xl sm:text-6xl" aria-hidden>
           👑
@@ -177,7 +178,7 @@ function FinalLeaderboard({
                 <div className="flex flex-wrap items-center gap-1.5">
                   <p className="truncate text-sm font-semibold text-wanas-text-primary">{entry.name}</p>
                   {isCurrentPlayer ? (
-                    <span className="rounded-full border border-wanas-accent/30 bg-wanas-accent px-2 py-0.5 text-[10px] font-semibold text-white">
+                    <span className="rounded-full border border-wanas-accent/30 bg-wanas-accent px-2 py-0.5 text-xs font-semibold text-white">
                       أنت
                     </span>
                   ) : null}
@@ -304,7 +305,7 @@ function MatchActionsFooter({
       className="mx-auto w-full max-w-md space-y-3 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-5 text-center shadow-sm"
     >
       <p className="wanas-game-helper font-medium text-wanas-text-secondary">
-        {autoMessage ?? returnStatusMessage ?? 'بانتظار المضيف...'}
+        {presentSystemCopy(autoMessage ?? returnStatusMessage, 'بانتظار المضيف…')}
       </p>
       {progressBar}
     </div>

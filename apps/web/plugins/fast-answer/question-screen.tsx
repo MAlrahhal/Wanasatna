@@ -44,8 +44,8 @@ export function FastAnswerQuestionScreen({
 
   return (
     <GameScreen ariaLabel="سؤال أسرع إجابة" maxWidth="3xl">
-      <div className="flex flex-col gap-6 sm:gap-8">
-        <div className="wanas-game-card rounded-[2rem] px-5 py-10 text-center sm:px-10 sm:py-14">
+      <div className="flex flex-col gap-5 sm:gap-6">
+        <div className="wanas-game-card rounded-[2rem] px-5 py-8 text-center sm:px-8 sm:py-10">
           <p className="break-words text-2xl font-bold leading-snug tracking-tight text-wanas-text-primary min-[360px]:text-3xl sm:text-4xl">
             {question}
           </p>

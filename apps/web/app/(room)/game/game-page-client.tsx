@@ -6,20 +6,20 @@ import { useRoom } from '@/contexts/room-context';
 import { GameShellProvider } from '@/contexts/game-shell-context';
 import { GameShellScreen } from '@/components/game-shell/game-shell-screen';
 import { GamePluginLayer } from '@/components/game-plugins/game-plugin-layer';
+import { RoomSystemState } from '@/components/room/room-system-state';
 import { SystemStatus } from '@/components/ui/system-status';
+import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 
 function GameShellFallback() {
   return (
     <div className="flex min-h-dvh flex-1 items-center justify-center p-6">
-      <SystemStatus tone="loading" title="جاري تجهيز اللعبة..." className="w-full max-w-md" />
+      <SystemStatus tone="loading" title={SYSTEM_COPY.loading} className="w-full max-w-md" />
     </div>
   );
 }
 
 function GameContent() {
   const { state } = useGameShell();
-  // Integrated lobby→game flow sets gameId immediately in WAITING.
-  // The legacy debug GameShellScreen must not own that surface — GamePluginLayer does.
   const hideLegacyShell = Boolean(state?.gameId);
 
   return (
@@ -31,25 +31,38 @@ function GameContent() {
 }
 
 function GameShellConnectedScreen() {
-  const { room, player, status, errorMessage } = useRoom();
+  const { room, player, status, sessionEndReason, errorMessage } = useRoom();
+
+  if (sessionEndReason === 'kick') {
+    return <RoomSystemState kind="kicked" />;
+  }
+
+  if (status === 'reconnecting' && room && player) {
+    return (
+      <GameShellProvider hostPlayerId={room.hostPlayerId} currentPlayerId={player.id}>
+        <div className="px-4 pt-4 sm:px-6">
+          <SystemStatus tone="reconnecting" title={SYSTEM_COPY.reconnecting} className="mx-auto max-w-md" />
+        </div>
+        <GameContent />
+      </GameShellProvider>
+    );
+  }
+
+  if (status === 'reconnecting') {
+    return <RoomSystemState kind="reconnecting" />;
+  }
 
   if (status === 'connecting' || status === 'idle') {
-    return (
-      <div className="flex min-h-dvh flex-1 items-center justify-center p-6">
-        <SystemStatus tone="connecting" title="جاري الاتصال بالغرفة..." className="w-full max-w-md" />
-      </div>
-    );
+    return <RoomSystemState kind="connecting" />;
   }
 
   if (status === 'error' || !room || !player) {
     return (
-      <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-1 flex-col justify-center gap-4 p-6">
-        <SystemStatus
-          tone="error"
-          title="تعذر الاتصال بالغرفة"
-          description={errorMessage ?? 'انضم إلى غرفة أولاً.'}
-        />
-      </div>
+      <RoomSystemState
+        kind="error"
+        message={errorMessage}
+        onRetry={() => window.location.reload()}
+      />
     );
   }
 

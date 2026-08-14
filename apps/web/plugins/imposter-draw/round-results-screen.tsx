@@ -8,6 +8,7 @@ import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
 import { Button } from '@/components/ui/button';
 import { IMPOSTER_DRAW_GAME_ICON, IMPOSTER_DRAW_GAME_NAME } from '@/lib/game/imposter-draw-brand';
 import { compareByRoundPointsThenName } from '@/lib/game/leaderboard-sort';
+import { SYSTEM_COPY, presentSystemCopy } from '@/lib/ui/system-copy';
 import { cn } from '@/lib/utils';
 
 export type ImposterDrawRoundResultsScreenProps = {
@@ -104,10 +105,10 @@ export function ImposterDrawRoundResultsScreen({
         phaseLabel="نتائج الجولة"
       />
 
-      <div className="flex flex-col gap-6 sm:gap-7">
+      <div className="flex flex-col gap-4 sm:gap-5">
         <div
           className={cn(
-            'wanas-game-card rounded-[2rem] px-6 py-10 text-center sm:px-10 sm:py-12',
+            'wanas-game-card rounded-[1.5rem] px-5 py-5 text-center sm:px-8 sm:py-6',
             playersWon && 'border-wanas-success-border/80 bg-wanas-success-surface',
           )}
         >
@@ -167,7 +168,7 @@ export function ImposterDrawRoundResultsScreen({
         {continueLabel && onContinue ? (
           <div className="mx-auto w-full max-w-md space-y-3">
             <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
-              {waitingMessage ?? 'الجولة التالية تبدأ تلقائياً...'}
+              {presentSystemCopy(waitingMessage, SYSTEM_COPY.nextRoundAuto)}
             </p>
             {progressBar}
             <Button
@@ -186,7 +187,7 @@ export function ImposterDrawRoundResultsScreen({
             className="mx-auto w-full max-w-md space-y-3 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-6 text-center shadow-sm"
           >
             <p className="wanas-game-helper font-medium text-wanas-text-secondary">
-              {waitingMessage}
+              {presentSystemCopy(waitingMessage)}
             </p>
             {progressBar}
           </div>

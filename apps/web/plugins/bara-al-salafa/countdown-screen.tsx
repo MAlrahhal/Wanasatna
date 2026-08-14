@@ -91,10 +91,6 @@ export function CountdownScreen({
           <p className="mt-8 text-base font-medium text-wanas-text-secondary sm:mt-10 sm:text-lg">
             بتبدأ الجولة الآن
           </p>
-
-          <p className="mt-4 text-xs font-medium text-wanas-text-muted">
-            الجولة {roundNumber} من {totalRounds}
-          </p>
         </GameCard>
       </div>
 

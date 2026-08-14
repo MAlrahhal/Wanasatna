@@ -7,6 +7,7 @@ import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
 import { Button } from '@/components/ui/button';
 import { BARA_AL_SALAFA_GAME_ICON } from '@/lib/game/bara-al-salafa-brand';
 import { compareByRoundPointsThenName } from '@/lib/game/leaderboard-sort';
+import { SYSTEM_COPY, presentSystemCopy } from '@/lib/ui/system-copy';
 import { cn } from '@/lib/utils';
 
 export type RoundResultPlayer = {
@@ -145,7 +146,7 @@ function RoundPointsList({
                 <div className="flex flex-wrap items-center gap-1.5">
                   <p className="truncate text-sm font-semibold text-wanas-text-primary">{player.name}</p>
                   {isCurrentPlayer ? (
-                    <span className="rounded-full bg-wanas-accent px-2 py-0.5 text-[10px] font-semibold text-white">
+                    <span className="rounded-full bg-wanas-accent px-2 py-0.5 text-xs font-semibold text-white">
                       أنت
                     </span>
                   ) : null}
@@ -209,7 +210,7 @@ function RoundTransitionFooter({
     return (
       <div className="mx-auto w-full max-w-md space-y-3">
         <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
-          {waitingMessage ?? 'الجولة التالية تبدأ تلقائياً...'}
+          {presentSystemCopy(waitingMessage, SYSTEM_COPY.nextRoundAuto)}
         </p>
         {progress}
         <Button
@@ -231,7 +232,7 @@ function RoundTransitionFooter({
       className="mx-auto w-full max-w-md space-y-3 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-5 text-center shadow-sm"
     >
       <p className="wanas-game-helper font-medium text-wanas-text-secondary">
-        {waitingMessage ?? 'الجولة التالية تبدأ تلقائياً...'}
+        {presentSystemCopy(waitingMessage, SYSTEM_COPY.nextRoundAuto)}
       </p>
       {progress}
     </div>

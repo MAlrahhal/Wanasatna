@@ -5,6 +5,7 @@ import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
 import { Button } from '@/components/ui/button';
 import { TIMING_CHALLENGE_GAME_ICON, TIMING_CHALLENGE_GAME_NAME } from '@/lib/game/timing-challenge-brand';
+import { SYSTEM_COPY, presentSystemCopy } from '@/lib/ui/system-copy';
 import { cn } from '@/lib/utils';
 import { DigitalTimerDisplay, ElectronicPanel } from './electronic-panel';
 import { formatDigitalTimer, formatSecondsFromMs } from './format';
@@ -124,7 +125,7 @@ export function TimingChallengeRoundResultsScreen({
         {continueLabel && onContinue ? (
           <div className="mx-auto w-full max-w-md space-y-3">
             <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
-              {waitingMessage ?? 'الجولة التالية تبدأ تلقائياً...'}
+              {presentSystemCopy(waitingMessage, SYSTEM_COPY.nextRoundAuto)}
             </p>
             {progressBar}
             <Button
@@ -143,7 +144,7 @@ export function TimingChallengeRoundResultsScreen({
             className="mx-auto w-full max-w-md space-y-3 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-6 text-center shadow-sm"
           >
             <p className="wanas-game-helper font-medium text-wanas-text-secondary">
-              {waitingMessage}
+              {presentSystemCopy(waitingMessage)}
             </p>
             {progressBar}
           </div>

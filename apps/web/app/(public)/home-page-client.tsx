@@ -15,6 +15,7 @@ import { getFeaturedGames } from '@/lib/public/game-catalog';
 import { HOME_ROOM_ACTIONS_ID, PUBLIC_ROUTES } from '@/lib/public/routes';
 import { scrollToHomeRoomActions } from '@/lib/public/scroll-to-room-actions';
 import { useRoomActions } from '@/lib/public/use-room-actions';
+import { presentRoomActionError } from '@/lib/ui/system-copy';
 import { cn } from '@/lib/utils';
 
 const primaryCtaClassName = cn(
@@ -100,8 +101,8 @@ export function HomePageClient() {
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 sm:py-12 lg:gap-12">
         <HomeActiveRoomResume />
 
-        {room.errorMessage && !hasFieldError ? (
-          <SystemStatus tone="error" title="تعذر إكمال العملية" description={room.errorMessage} />
+        {room.errorMessage && !hasFieldError && !room.isCreating && !room.isJoining ? (
+          <SystemStatus tone="error" {...presentRoomActionError(room.errorMessage)} />
         ) : null}
 
         <RoomActionCards

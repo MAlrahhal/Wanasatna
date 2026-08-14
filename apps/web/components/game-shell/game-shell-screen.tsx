@@ -4,6 +4,7 @@ import { BARA_AL_SALAFA_GAME_ID } from '@wanasatna/shared';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { Button } from '@/components/ui/button';
 import { SystemStatus } from '@/components/ui/system-status';
+import { SYSTEM_COPY, presentRoomActionError } from '@/lib/ui/system-copy';
 import { GameShellHostControls } from './game-shell-host-controls';
 import { GameShellPhaseBadge } from './game-shell-phase-badge';
 import { GameShellPhaseMessage } from './game-shell-phase-message';
@@ -17,9 +18,9 @@ export function GameShellScreen() {
     return (
       <div className="mx-auto flex min-h-[60vh] w-full max-w-4xl flex-col justify-center gap-4 p-6">
         {errorMessage ? (
-          <SystemStatus tone="error" title="تعذر تحميل اللعبة" description={errorMessage} />
+          <SystemStatus tone="error" {...presentRoomActionError(errorMessage)} />
         ) : (
-          <SystemStatus tone="loading" title="جاري تجهيز اللعبة..." />
+          <SystemStatus tone="loading" title={SYSTEM_COPY.loading} />
         )}
       </div>
     );

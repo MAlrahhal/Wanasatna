@@ -75,10 +75,12 @@ const DEFAULT_TIMING_CHALLENGE_SETTINGS: TimingChallengeSettings = {
   maxSeconds: TIMING_CHALLENGE_DEFAULT_MAX_SECONDS,
 };
 
-type ConnectionStatus = 'idle' | 'connecting' | 'connected' | 'error';
+type ConnectionStatus = 'idle' | 'connecting' | 'reconnecting' | 'connected' | 'error';
+type SessionEndReason = 'kick' | null;
 
 type RoomContextValue = {
   status: ConnectionStatus;
+  sessionEndReason: SessionEndReason;
   errorMessage: string | null;
   room: RoomData | null;
   player: RoomPlayerData | null;
@@ -113,8 +115,9 @@ const RoomContext = createContext<RoomContextValue | null>(null);
 
 function mapManagerStatus(status: RoomLifecycleStatus): ConnectionStatus {
   switch (status) {
-    case 'entering':
     case 'recovering':
+      return 'reconnecting';
+    case 'entering':
       return 'connecting';
     case 'active':
       return 'connected';
@@ -172,6 +175,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   const pathnameRef = useRef(pathname);
 
   const [status, setStatus] = useState<ConnectionStatus>('idle');
+  const [sessionEndReason, setSessionEndReason] = useState<SessionEndReason>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [room, setRoom] = useState<RoomData | null>(null);
   const [player, setPlayer] = useState<RoomPlayerData | null>(null);
@@ -302,6 +306,9 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         setPlayer,
         setPlayers,
       });
+      if (state.status === 'active') {
+        setSessionEndReason(null);
+      }
     });
   }, []);
 
@@ -314,15 +321,14 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       }
 
       clearLocalGameUi();
-      setErrorMessage('تم طردك من الغرفة.');
+      setSessionEndReason('kick');
       getRoomSessionManager().markExplicitLeaveHome();
-      replaceHomeClean(router);
     });
 
     return () => {
       manager.setTerminalHandler(null);
     };
-  }, [clearLocalGameUi, router]);
+  }, [clearLocalGameUi]);
 
   const registerSocketListeners = useCallback(() => {
     const socket = getRoomSocket();
@@ -928,6 +934,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   const value = useMemo<RoomContextValue>(
     () => ({
       status,
+      sessionEndReason,
       errorMessage,
       room,
       player,
@@ -975,6 +982,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       selectRoundCategory,
       selectedGameId,
       selectedRoundCategoryId,
+      sessionEndReason,
       setGuessingChallengeModeAndTeams,
       setTimingChallengeSettings,
       drawGuessDrawerMode,

@@ -7,6 +7,7 @@ import { GameHeader } from '@/components/game/game-header';
 import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
 import { Button } from '@/components/ui/button';
 import { JUDGE_GAME_ICON, JUDGE_GAME_NAME } from '@/lib/game/judge-brand';
+import { SYSTEM_COPY, presentSystemCopy } from '@/lib/ui/system-copy';
 import { cn } from '@/lib/utils';
 
 export type JudgeRoundResultsScreenProps = {
@@ -177,7 +178,7 @@ export function JudgeRoundResultsScreen({
         {continueLabel && onContinue ? (
           <div className="mx-auto w-full max-w-md space-y-2.5">
             <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
-              {waitingMessage ?? 'الجولة التالية تبدأ تلقائياً...'}
+              {presentSystemCopy(waitingMessage, SYSTEM_COPY.nextRoundAuto)}
             </p>
             {progressBar}
             <Button
@@ -195,7 +196,9 @@ export function JudgeRoundResultsScreen({
             aria-live="polite"
             className="mx-auto w-full max-w-md space-y-2.5 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-4 py-4 text-center shadow-sm"
           >
-            <p className="text-sm font-medium text-wanas-text-secondary">{waitingMessage}</p>
+            <p className="text-sm font-medium text-wanas-text-secondary">
+              {presentSystemCopy(waitingMessage)}
+            </p>
             {progressBar}
           </div>
         ) : null}

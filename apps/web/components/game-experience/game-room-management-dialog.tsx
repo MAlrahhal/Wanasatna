@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { UiDialog } from '@/components/ui/dialog';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
-import { buildLobbyUrl } from '@/lib/room/session';
+import { buildRoomInviteUrl } from '@/lib/room/session';
+import { SYSTEM_COPY, copyLinkFailedMessage } from '@/lib/ui/system-copy';
 import { cn } from '@/lib/utils';
 
 type GameRoomManagementDialogProps = {
@@ -26,7 +27,6 @@ export function GameRoomManagementDialog({
   const { endGame } = useGameShell();
   const { leaveRoom } = useRoom();
   const [copiedCode, setCopiedCode] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,12 +51,6 @@ export function GameRoomManagementDialog({
   }, [copiedCode]);
 
   useEffect(() => {
-    if (!copiedLink) return;
-    const id = window.setTimeout(() => setCopiedLink(false), 2000);
-    return () => window.clearTimeout(id);
-  }, [copiedLink]);
-
-  useEffect(() => {
     if (!shareMessage) return;
     const id = window.setTimeout(() => setShareMessage(null), 2500);
     return () => window.clearTimeout(id);
@@ -66,36 +60,20 @@ export function GameRoomManagementDialog({
     return null;
   }
 
-  const invitePath = buildLobbyUrl(roomCode);
-  const inviteUrl =
-    typeof window !== 'undefined' ? `${window.location.origin}${invitePath}` : invitePath;
+  const inviteUrl = buildRoomInviteUrl(roomCode);
 
-  async function copyText(text: string, which: 'code' | 'link') {
+  async function copyText(text: string): Promise<boolean> {
     try {
       await navigator.clipboard.writeText(text);
-      if (which === 'code') setCopiedCode(true);
-      else setCopiedLink(true);
+      return true;
     } catch {
-      /* clipboard unavailable */
+      return false;
     }
   }
 
-  async function handleShare() {
-    const shareData = {
-      title: 'وناستنا',
-      text: `انضم إلى غرفتي! الرمز: ${roomCode}`,
-      url: inviteUrl,
-    };
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-        return;
-      }
-      await copyText(inviteUrl, 'link');
-      setShareMessage('تم نسخ رابط الدعوة');
-    } catch {
-      /* user cancelled share */
-    }
+  async function handleCopyRoomLink() {
+    const copied = await copyText(inviteUrl);
+    setShareMessage(copied ? SYSTEM_COPY.copiedLink : copyLinkFailedMessage(inviteUrl));
   }
 
   async function handleConfirm() {
@@ -126,14 +104,14 @@ export function GameRoomManagementDialog({
         role="presentation"
         onClick={onClose}
       >
-        <div className="absolute inset-0 bg-black/50" aria-hidden />
+        <div className="absolute inset-0 bg-wanas-text-primary/50" aria-hidden />
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="game-room-management-title"
+          dir="rtl"
           className={cn(
-            'relative z-10 w-full max-w-md rounded-2xl border p-5 shadow-xl',
-            'border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-panel-bg)]',
+            'relative z-10 w-full max-w-md rounded-[var(--wanas-radius-panel)] border border-wanas-border bg-wanas-surface p-5 shadow-[var(--wanas-shadow-panel)] sm:p-6',
             'pb-[max(1.25rem,env(safe-area-inset-bottom))]',
           )}
           onClick={(event) => event.stopPropagation()}
@@ -142,16 +120,16 @@ export function GameRoomManagementDialog({
             <div>
               <h2
                 id="game-room-management-title"
-                className="text-base font-semibold text-[color:var(--wanas-game-text-primary)]"
+                className="text-xl font-bold leading-7 text-wanas-text-primary"
               >
                 إدارة الغرفة
               </h2>
-              <p className="mt-1 text-sm text-[color:var(--wanas-game-text-secondary)]">{gameName}</p>
+              <p className="mt-1 text-sm leading-7 text-wanas-text-secondary">{gameName}</p>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex size-9 min-h-9 min-w-9 items-center justify-center rounded-lg text-[color:var(--wanas-game-text-secondary)] hover:bg-[color:var(--wanas-game-structural-bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--wanas-game-accent)]"
+              className="inline-flex size-9 min-h-9 min-w-9 items-center justify-center rounded-lg text-wanas-text-muted hover:bg-wanas-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/45"
               aria-label="إغلاق"
             >
               ✕
@@ -160,9 +138,9 @@ export function GameRoomManagementDialog({
 
           <dl className="space-y-4">
             <div>
-              <dt className="text-xs font-medium text-[color:var(--wanas-game-text-secondary)]">رمز الغرفة</dt>
+              <dt className="text-xs font-medium text-wanas-text-muted">رمز الغرفة</dt>
               <dd className="mt-1 flex items-center gap-2">
-                <span className="font-mono text-lg font-bold tracking-widest text-[color:var(--wanas-game-text-primary)]">
+                <span dir="ltr" className="font-mono text-lg font-bold tracking-widest text-wanas-text-primary">
                   {roomCode}
                 </span>
                 <Button
@@ -170,7 +148,11 @@ export function GameRoomManagementDialog({
                   size="sm"
                   variant="secondary"
                   className="min-h-9"
-                  onClick={() => void copyText(roomCode, 'code')}
+                  onClick={() => {
+                    void copyText(roomCode).then((copied) => {
+                      if (copied) setCopiedCode(true);
+                    });
+                  }}
                 >
                   {copiedCode ? 'تم النسخ' : 'نسخ الرمز'}
                 </Button>
@@ -178,51 +160,40 @@ export function GameRoomManagementDialog({
             </div>
 
             <div>
-              <dt className="text-xs font-medium text-[color:var(--wanas-game-text-secondary)]">رابط الدعوة</dt>
-              <dd className="mt-1 flex flex-col gap-2 sm:flex-row">
-                <span className="min-w-0 flex-1 truncate rounded-lg border border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] px-3 py-2 text-xs text-[color:var(--wanas-game-text-secondary)]">
-                  {inviteUrl}
-                </span>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  className="min-h-9 shrink-0"
-                  onClick={() => void copyText(inviteUrl, 'link')}
-                >
-                  {copiedLink ? 'تم النسخ' : 'نسخ الرابط'}
-                </Button>
+              <dt className="text-xs font-medium text-wanas-text-muted">رابط الدعوة</dt>
+              <dd className="mt-1 min-w-0 truncate rounded-lg border border-wanas-border bg-wanas-surface-soft px-3 py-2 text-xs text-wanas-text-muted" dir="ltr">
+                {inviteUrl}
               </dd>
             </div>
           </dl>
 
           <div className="mt-5 flex flex-col gap-2">
-            <Button type="button" className="min-h-11 w-full" onClick={() => void handleShare()}>
-              مشاركة الدعوة
+            <Button type="button" className="min-h-11 w-full" onClick={() => void handleCopyRoomLink()}>
+              {shareMessage === SYSTEM_COPY.copiedLink ? 'تم نسخ الرابط' : 'مشاركة الغرفة'}
             </Button>
             <Button
               type="button"
               variant="secondary"
-              className="min-h-11 w-full border-[color:var(--wanas-error-border)] text-[color:var(--wanas-error)]"
+              className="min-h-11 w-full"
               onClick={() => setConfirmAction('end-game')}
             >
               إنهاء اللعبة
             </Button>
             <Button
               type="button"
-              variant="secondary"
+              variant="destructive"
               className="min-h-11 w-full"
               onClick={() => setConfirmAction('leave-room')}
             >
-              مغادرة الغرفة
+              {SYSTEM_COPY.leave}
             </Button>
-            <Button type="button" variant="secondary" className="min-h-11 w-full" onClick={onClose}>
+            <Button type="button" variant="outline" className="min-h-11 w-full" onClick={onClose}>
               إغلاق
             </Button>
           </div>
 
           {shareMessage ? (
-            <p className="mt-3 text-center text-xs text-[color:var(--wanas-game-text-secondary)]" role="status">
+            <p className="mt-3 text-center text-xs text-wanas-text-muted" role="status">
               {shareMessage}
             </p>
           ) : null}
@@ -234,6 +205,7 @@ export function GameRoomManagementDialog({
         title="إنهاء اللعبة؟"
         description="سيتم إنهاء المباراة الحالية والعودة إلى اختيار الألعاب لجميع اللاعبين."
         variant="warning"
+        cancelLabel={SYSTEM_COPY.cancel}
         confirmLabel={isSubmitting ? 'جاري الإنهاء…' : 'إنهاء اللعبة'}
         onClose={() => setConfirmAction(null)}
         onConfirm={() => void handleConfirm()}
@@ -241,10 +213,11 @@ export function GameRoomManagementDialog({
 
       <UiDialog
         open={confirmAction === 'leave-room'}
-        title="مغادرة الغرفة؟"
-        description="ستخرج من المباراة والغرفة الحالية."
+        title={SYSTEM_COPY.leaveConfirmTitle}
+        description={SYSTEM_COPY.leaveConfirmBody}
         variant="warning"
-        confirmLabel={isSubmitting ? 'جاري المغادرة…' : 'مغادرة الغرفة'}
+        cancelLabel={SYSTEM_COPY.cancel}
+        confirmLabel={isSubmitting ? SYSTEM_COPY.leaving : SYSTEM_COPY.leave}
         onClose={() => setConfirmAction(null)}
         onConfirm={() => void handleConfirm()}
       />

@@ -9,11 +9,13 @@ import {
 } from '@wanasatna/shared';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
+import { GameSystemError, GameSystemLoading, SpectatorNotice } from '@/components/room/room-system-state';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
 import { IMPOSTER_DRAW_GAME_ICON, IMPOSTER_DRAW_GAME_NAME } from '@/lib/game/imposter-draw-brand';
 import { mapImposterDrawLeaderboard } from '@/lib/game/map-imposter-draw-leaderboard';
+import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import type { LobbyPlayer } from '@/lib/lobby/types';
 import { ImpostorGuessScreen } from '@/plugins/bara-al-salafa/impostor-guess-screen';
 import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-screen';
@@ -123,7 +125,7 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
       setExperienceMeta({
         gameName: IMPOSTER_DRAW_GAME_NAME,
         gameIcon: IMPOSTER_DRAW_GAME_ICON,
-        phaseLabel: 'جاري التحميل...',
+        phaseLabel: SYSTEM_COPY.loading,
         leaderboardEntries: mapImposterDrawLeaderboard(null, player.id, players),
       });
       return;
@@ -202,7 +204,7 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
     const autoReturnMessage = isMatchCompletedPhase
       ? `العودة إلى اللوبي تلقائياً خلال ${Math.max(0, remainingSeconds)} ثانية`
       : !shellFinished
-        ? 'جاري إنهاء المباراة...'
+        ? SYSTEM_COPY.returningToLobby
         : !isHost
           ? 'بانتظار المضيف للعودة إلى اللوبي.'
           : null;
@@ -242,19 +244,11 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
   }
 
   if (isLoading) {
-    return (
-      <section className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-        <p className="text-sm text-muted-foreground">جاري تحميل اللعبة...</p>
-      </section>
-    );
+    return <GameSystemLoading />;
   }
 
   if (errorMessage) {
-    return (
-      <section className="rounded-2xl border border-destructive/30 bg-destructive/10 p-8 text-center">
-        <p className="text-sm text-destructive">{errorMessage}</p>
-      </section>
-    );
+    return <GameSystemError message={errorMessage} />;
   }
 
   if (!view || !room || !player) {
@@ -288,10 +282,7 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
           phaseLabel="مشاهدة"
           timer={{ remainingSeconds, format: 'seconds', lowTimeThreshold: 5 }}
         />
-        <GameCard className="px-5 py-10 text-center">
-          <p className="text-lg font-semibold text-wanas-text-primary">أنت مشاهد</p>
-          <p className="mt-2 text-sm text-wanas-text-secondary">{view.phaseLabel}</p>
-        </GameCard>
+        <SpectatorNotice />
       </GameScreen>
     );
   }

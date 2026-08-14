@@ -9,6 +9,7 @@ import {
   GUESSING_CHALLENGE_GAME_ICON,
   GUESSING_CHALLENGE_GAME_NAME,
 } from '@/lib/game/guessing-challenge-brand';
+import { SYSTEM_COPY, presentSystemCopy } from '@/lib/ui/system-copy';
 import { GameplayScene } from './gameplay-scene';
 
 export type GuessingChallengeRoundResultsScreenProps = {
@@ -167,7 +168,7 @@ export function GuessingChallengeRoundResultsScreen({
         {view.canContinueFromRoundResults && onContinue ? (
           <div className="space-y-2.5">
             <p className="text-center text-sm text-wanas-text-muted">
-              {view.roundResultsWaitingMessage}
+              {presentSystemCopy(view.roundResultsWaitingMessage, SYSTEM_COPY.nextRoundAuto)}
             </p>
             <div className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted">
               <div
@@ -188,7 +189,7 @@ export function GuessingChallengeRoundResultsScreen({
         ) : (
           <div className="space-y-2.5">
             <p className="text-center text-sm text-wanas-text-muted">
-              {view.roundResultsWaitingMessage}
+              {presentSystemCopy(view.roundResultsWaitingMessage, SYSTEM_COPY.nextRoundAuto)}
             </p>
             <div className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted">
               <div

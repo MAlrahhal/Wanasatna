@@ -1,11 +1,12 @@
 import type { GameErrorCode } from '@wanasatna/shared';
+import { toSafeUserErrorMessage } from '@/lib/ui/system-copy';
 
 const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   VALIDATION_ERROR: 'يرجى التحقق من البيانات المدخلة.',
   NOT_HOST: 'هذا الإجراء متاح للمضيف فقط.',
-  NOT_IN_ROOM: 'يجب أن تكون داخل غرفة لاستخدام shell اللعبة.',
-  SHELL_NOT_FOUND: 'لم يتم تهيئة shell اللعبة بعد.',
-  SHELL_ALREADY_EXISTS: 'shell اللعبة موجود بالفعل في هذه الغرفة.',
+  NOT_IN_ROOM: 'يجب أن تكون داخل غرفة.',
+  SHELL_NOT_FOUND: 'لم يتم تهيئة اللعبة بعد.',
+  SHELL_ALREADY_EXISTS: 'اللعبة جاهزة بالفعل في هذه الغرفة.',
   INVALID_PHASE: 'لا يمكن تنفيذ هذا الإجراء في المرحلة الحالية.',
   PLAYER_NOT_FOUND: 'تعذر العثور على اللاعب.',
   GAME_NOT_SELECTED: 'يرجى اختيار لعبة قبل البدء.',
@@ -28,9 +29,10 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
 };
 
 export function getGameShellErrorMessage(code: GameErrorCode, fallback?: string): string {
-  if (fallback) {
-    return fallback;
+  const mapped = ERROR_MESSAGES[code] ?? ERROR_MESSAGES.INTERNAL_ERROR;
+  if (code === 'VALIDATION_ERROR' && fallback) {
+    return toSafeUserErrorMessage(fallback, mapped);
   }
 
-  return ERROR_MESSAGES[code] ?? ERROR_MESSAGES.INTERNAL_ERROR;
+  return mapped;
 }

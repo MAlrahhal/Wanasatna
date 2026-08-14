@@ -8,6 +8,7 @@ import {
   MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS,
 } from '@wanasatna/shared';
 import { GameScreen } from '@/components/game/game-card';
+import { GameSystemError, GameSystemLoading, SpectatorNotice } from '@/components/room/room-system-state';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
@@ -16,6 +17,7 @@ import {
   GUESSING_CHALLENGE_GAME_NAME,
 } from '@/lib/game/guessing-challenge-brand';
 import { mapGuessingChallengeLeaderboard } from '@/lib/game/map-guessing-challenge-leaderboard';
+import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-screen';
 import { GameplayScene } from './gameplay-scene';
 import { GuessingChallengePlayingScreen } from './playing-screen';
@@ -24,7 +26,7 @@ import { useGuessingChallengePlayerView } from './use-player-view';
 
 function conciseGuessingChallengePhaseLabel(view: GuessingChallengePlayerView): string {
   if (view.isMatchSpectator) {
-    return 'مشاهدة';
+    return SYSTEM_COPY.spectatorTitle;
   }
   if (view.gamePhase === 'round-results') {
     return 'نتائج الجولة';
@@ -97,7 +99,7 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
       setExperienceMeta({
         gameName: GUESSING_CHALLENGE_GAME_NAME,
         gameIcon: GUESSING_CHALLENGE_GAME_ICON,
-        phaseLabel: 'جاري التحميل...',
+        phaseLabel: SYSTEM_COPY.loading,
         leaderboardEntries: mapGuessingChallengeLeaderboard(null, player.id, players),
       });
       return;
@@ -130,6 +132,8 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
     showFinalMatchResults,
     view,
   ]);
+
+  useEffect(() => () => setExperienceMeta(null), [setExperienceMeta]);
 
   const handleReturnToLobby = useCallback(async () => {
     if (isReturningToLobby) {
@@ -191,26 +195,18 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
         returnStatusMessage={
           activeFinalResultsView.isHost
             ? null
-            : 'العودة إلى اللوبي تلقائياً خلال ثوانٍ...'
+            : 'العودة إلى اللوبي تلقائياً خلال ثوانٍ…'
         }
       />
     );
   }
 
   if (isLoading && !view) {
-    return (
-      <section className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-        <p className="text-sm text-muted-foreground">جاري تحميل اللعبة...</p>
-      </section>
-    );
+    return <GameSystemLoading />;
   }
 
   if (errorMessage && !view) {
-    return (
-      <section className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-        <p className="text-sm text-rose-300">{errorMessage}</p>
-      </section>
-    );
+    return <GameSystemError message={errorMessage} />;
   }
 
   if (!view) {
@@ -220,9 +216,7 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
   if (view.isMatchSpectator && view.gamePhase === 'playing') {
     return (
       <GameScreen ariaLabel="مشاهدة تحدي التخمين" maxWidth="4xl" className="min-w-0 gap-3 sm:gap-4">
-        <p className="text-center text-sm font-semibold text-wanas-text-muted">
-          أنت مشاهد حالياً
-        </p>
+        <SpectatorNotice />
         <GameplayScene
           mode="playing"
           matchMode={view.mode}

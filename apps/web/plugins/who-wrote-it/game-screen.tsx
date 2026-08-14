@@ -7,13 +7,15 @@ import {
   WHO_WROTE_IT_GAME_ID,
   WHO_WROTE_IT_ROUND_RESULTS_SECONDS,
 } from '@wanasatna/shared';
-import { GameCard, GameScreen } from '@/components/game/game-card';
+import { GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
+import { GameSystemError, GameSystemLoading, SpectatorNotice } from '@/components/room/room-system-state';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
 import { mapWhoWroteItLeaderboard } from '@/lib/game/map-who-wrote-it-leaderboard';
 import { WHO_WROTE_IT_GAME_ICON, WHO_WROTE_IT_GAME_NAME } from '@/lib/game/who-wrote-it-brand';
+import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-screen';
 import { WhoWroteItAnsweringScreen } from './answering-screen';
 import { WhoWroteItGuessingScreen } from './guessing-screen';
@@ -28,14 +30,7 @@ const VISIBLE_TIMER_PHASES = new Set([
 ]);
 
 function SpectatorBanner() {
-  return (
-    <GameCard className="px-5 py-5 text-center">
-      <p className="text-lg font-semibold text-wanas-text-primary">الجولة جارية 👀</p>
-      <p className="mt-2 text-sm text-wanas-text-secondary">
-        أنت حالياً مشاهد، وبتشارك في المباراة القادمة.
-      </p>
-    </GameCard>
-  );
+  return <SpectatorNotice />;
 }
 
 export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
@@ -87,7 +82,7 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
       setExperienceMeta({
         gameName: WHO_WROTE_IT_GAME_NAME,
         gameIcon: WHO_WROTE_IT_GAME_ICON,
-        phaseLabel: 'جاري التحميل...',
+        phaseLabel: SYSTEM_COPY.loading,
         leaderboardEntries: mapWhoWroteItLeaderboard(null, player.id, players),
       });
       return;
@@ -96,7 +91,7 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
     setExperienceMeta({
       gameName: WHO_WROTE_IT_GAME_NAME,
       gameIcon: WHO_WROTE_IT_GAME_ICON,
-      phaseLabel: activeView.isMatchSpectator ? 'الجولة جارية' : activeView.phaseLabel,
+      phaseLabel: activeView.isMatchSpectator ? SYSTEM_COPY.spectatorTitle : activeView.phaseLabel,
       categoryLabel: activeView.categoryLabel
         ? `الفئة: ${activeView.categoryLabel}`
         : undefined,
@@ -159,7 +154,7 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
     const autoReturnMessage = isMatchCompletedPhase
       ? `العودة إلى اللوبي تلقائياً خلال ${Math.max(0, remainingSeconds)} ثانية`
       : !shellFinished
-        ? 'جاري إنهاء المباراة...'
+        ? SYSTEM_COPY.returningToLobby
         : !isHost
           ? 'بانتظار المضيف للعودة إلى اللوبي.'
           : null;
@@ -199,19 +194,11 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
   }
 
   if (isLoading && !view) {
-    return (
-      <section className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-        <p className="text-sm text-muted-foreground">جاري تحميل اللعبة...</p>
-      </section>
-    );
+    return <GameSystemLoading />;
   }
 
   if (errorMessage && !view) {
-    return (
-      <section className="rounded-2xl border border-destructive/40 bg-card p-8 text-center shadow-sm">
-        <p className="text-sm text-destructive">{errorMessage}</p>
-      </section>
-    );
+    return <GameSystemError message={errorMessage} />;
   }
 
   if (!view || !room || !player) {
@@ -282,7 +269,7 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
           roomCode={room.code}
           currentRound={view.currentRound}
           totalRounds={view.totalRounds}
-          phaseLabel="الجولة جارية"
+          phaseLabel={SYSTEM_COPY.spectatorTitle}
         />
         <SpectatorBanner />
       </GameScreen>

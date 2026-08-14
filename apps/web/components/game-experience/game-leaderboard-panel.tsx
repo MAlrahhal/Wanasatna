@@ -51,7 +51,7 @@ export function GameLeaderboardPanel({ entries, className }: GameLeaderboardPane
                     {entry.name}
                   </span>
                   {entry.isCurrentPlayer ? (
-                    <span className="shrink-0 rounded-full bg-wanas-accent/20 px-1.5 py-0.5 text-[10px] font-semibold leading-4 text-wanas-accent">
+                    <span className="shrink-0 rounded-full bg-wanas-accent/20 px-1.5 py-0.5 text-xs font-semibold leading-4 text-wanas-accent">
                       أنت
                     </span>
                   ) : null}

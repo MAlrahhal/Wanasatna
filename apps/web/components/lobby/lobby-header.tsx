@@ -6,6 +6,7 @@ import { UiDialog } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { canViewRoomInvitationDetails } from '@/lib/room/navigation-guard';
 import { buildRoomInviteUrl } from '@/lib/room/session';
+import { SYSTEM_COPY, copyLinkFailedMessage } from '@/lib/ui/system-copy';
 
 type LobbyHeaderProps = {
   roomCode: string;
@@ -56,9 +57,9 @@ export function LobbyHeader({
     const inviteUrl = buildRoomInviteUrl(roomCode);
     try {
       await navigator.clipboard.writeText(inviteUrl);
-      setShareMessage('تم نسخ الرابط');
+      setShareMessage(SYSTEM_COPY.copiedLink);
     } catch {
-      setShareMessage('تعذر نسخ الرابط. انسخه يدوياً من هنا: ' + inviteUrl);
+      setShareMessage(copyLinkFailedMessage(inviteUrl));
     }
   }
 
@@ -82,11 +83,11 @@ export function LobbyHeader({
   const leaveDialog = (
     <UiDialog
       open={leaveOpen}
-      title="مغادرة الغرفة؟"
-      description="هل أنت متأكد أنك تريد مغادرة الغرفة؟"
+      title={SYSTEM_COPY.leaveConfirmTitle}
+      description={SYSTEM_COPY.leaveConfirmBody}
       variant="warning"
-      confirmLabel="مغادرة الغرفة"
-      cancelLabel="إلغاء"
+      confirmLabel={SYSTEM_COPY.leave}
+      cancelLabel={SYSTEM_COPY.cancel}
       onClose={() => {
         if (!leavingRef.current) {
           setLeaveOpen(false);
@@ -158,7 +159,7 @@ export function LobbyHeader({
             {copied ? 'تم النسخ' : 'نسخ الرمز'}
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => void handleCopyRoomLink()}>
-            {shareMessage === 'تم نسخ الرابط' ? 'تم نسخ الرابط' : 'مشاركة الغرفة'}
+            {shareMessage === SYSTEM_COPY.copiedLink ? 'تم نسخ الرابط' : 'مشاركة الغرفة'}
           </Button>
           {isLocked ? (
             <Button type="button" variant="outline" size="sm" onClick={onUnlockRoom}>

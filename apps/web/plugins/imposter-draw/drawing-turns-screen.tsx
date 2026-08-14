@@ -9,6 +9,7 @@ import type {
 } from '@wanasatna/shared';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
+import { SpectatorNotice } from '@/components/room/room-system-state';
 import { IMPOSTER_DRAW_GAME_ICON, IMPOSTER_DRAW_GAME_NAME } from '@/lib/game/imposter-draw-brand';
 import { DrawingCanvas } from '@/plugins/draw-guess/drawing-canvas';
 import { DrawingToolbar } from '@/plugins/draw-guess/drawing-toolbar';
@@ -61,10 +62,9 @@ export function DrawingTurnsScreen({
       />
 
       <div className="flex flex-col gap-4 sm:gap-5">
+        {isSpectator ? <SpectatorNotice /> : null}
         <GameCard className="px-5 py-4 text-center sm:px-8">
-          <p className="text-xs font-medium text-wanas-text-muted">
-            {isSpectator ? 'أنت مشاهد' : 'دور'}
-          </p>
+          <p className="text-xs font-medium text-wanas-text-muted">دور</p>
           <p className="mt-1 text-2xl font-bold text-wanas-text-primary sm:text-3xl">
             {currentDrawerName ?? 'لاعب'}
           </p>

@@ -8,6 +8,7 @@ import { UiDialog } from '@/components/ui/dialog';
 import { useRoom } from '@/contexts/room-context';
 import { normalizeExperiencePhaseLabel } from '@/lib/game/experience-meta';
 import type { GameExperienceMeta } from '@/lib/game/shell-types';
+import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import { cn } from '@/lib/utils';
 import { GameRoomManagementDialog } from './game-room-management-dialog';
 
@@ -158,10 +159,11 @@ export function GameExperienceHeader({
 
       <UiDialog
         open={leaveDialogOpen}
-        title="مغادرة الغرفة؟"
-        description="ستخرج من المباراة والغرفة الحالية."
+        title={SYSTEM_COPY.leaveConfirmTitle}
+        description={SYSTEM_COPY.leaveConfirmBody}
         variant="warning"
-        confirmLabel={isLeaving ? 'جاري المغادرة…' : 'مغادرة الغرفة'}
+        cancelLabel={SYSTEM_COPY.cancel}
+        confirmLabel={isLeaving ? SYSTEM_COPY.leaving : SYSTEM_COPY.leave}
         onClose={() => setLeaveDialogOpen(false)}
         onConfirm={() => {
           setIsLeaving(true);

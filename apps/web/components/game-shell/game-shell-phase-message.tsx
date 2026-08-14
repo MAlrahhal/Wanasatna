@@ -3,8 +3,8 @@
 import type { GamePhase } from '@wanasatna/shared';
 
 const PHASE_MESSAGES: Partial<Record<GamePhase, string>> = {
-  PLAYING: 'Game Running',
-  FINISHED: 'Game Finished',
+  PLAYING: 'اللعبة جارية',
+  FINISHED: 'انتهت اللعبة',
 };
 
 type GameShellPhaseMessageProps = {

@@ -21,6 +21,17 @@ export function emitPluginWithAck<T>(
         return;
       }
 
+      if (!response.success) {
+        resolve({
+          success: false,
+          error: {
+            code: response.error.code,
+            message: getGameShellErrorMessage(response.error.code, response.error.message),
+          },
+        });
+        return;
+      }
+
       resolve(response);
     });
   });

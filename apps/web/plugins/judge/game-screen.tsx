@@ -7,13 +7,15 @@ import {
   JUDGE_ROUND_RESULTS_SECONDS,
   MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS,
 } from '@wanasatna/shared';
-import { GameCard, GameScreen } from '@/components/game/game-card';
+import { GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
+import { GameSystemError, GameSystemLoading, SpectatorNotice } from '@/components/room/room-system-state';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
 import { JUDGE_GAME_ICON, JUDGE_GAME_NAME } from '@/lib/game/judge-brand';
 import { mapJudgeLeaderboard } from '@/lib/game/map-judge-leaderboard';
+import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-screen';
 import { JudgeAnsweringScreen } from './answering-screen';
 import { JudgeJudgingScreen } from './judging-screen';
@@ -28,14 +30,7 @@ const VISIBLE_TIMER_PHASES = new Set([
 ]);
 
 function SpectatorBanner() {
-  return (
-    <GameCard className="px-5 py-5 text-center">
-      <p className="text-lg font-semibold text-wanas-text-primary">الجولة جارية 👀</p>
-      <p className="mt-2 text-sm text-wanas-text-secondary">
-        أنت حالياً مشاهد، وبتشارك في المباراة القادمة.
-      </p>
-    </GameCard>
-  );
+  return <SpectatorNotice />;
 }
 
 export function JudgeGameScreen(_props: GamePluginScreenProps) {
@@ -87,7 +82,7 @@ export function JudgeGameScreen(_props: GamePluginScreenProps) {
       setExperienceMeta({
         gameName: JUDGE_GAME_NAME,
         gameIcon: JUDGE_GAME_ICON,
-        phaseLabel: 'جاري التحميل...',
+        phaseLabel: SYSTEM_COPY.loading,
         leaderboardEntries: mapJudgeLeaderboard(null, player.id, players),
       });
       return;
@@ -96,7 +91,7 @@ export function JudgeGameScreen(_props: GamePluginScreenProps) {
     setExperienceMeta({
       gameName: JUDGE_GAME_NAME,
       gameIcon: JUDGE_GAME_ICON,
-      phaseLabel: activeView.isMatchSpectator ? 'الجولة جارية' : activeView.phaseLabel,
+      phaseLabel: activeView.isMatchSpectator ? SYSTEM_COPY.spectatorTitle : activeView.phaseLabel,
       centerLabel: activeView.judgeName ? `القاضي: ${activeView.judgeName}` : undefined,
       categoryLabel: activeView.categoryLabel
         ? `الفئة: ${activeView.categoryLabel}`
@@ -198,19 +193,11 @@ export function JudgeGameScreen(_props: GamePluginScreenProps) {
   }
 
   if (isLoading && !view) {
-    return (
-      <section className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-        <p className="text-sm text-muted-foreground">جاري تحميل اللعبة...</p>
-      </section>
-    );
+    return <GameSystemLoading />;
   }
 
   if (errorMessage && !view) {
-    return (
-      <section className="rounded-2xl border border-destructive/40 bg-card p-8 text-center shadow-sm">
-        <p className="text-sm text-destructive">{errorMessage}</p>
-      </section>
-    );
+    return <GameSystemError message={errorMessage} />;
   }
 
   if (!view || !room || !player) {
@@ -279,7 +266,7 @@ export function JudgeGameScreen(_props: GamePluginScreenProps) {
           roomCode={room.code}
           currentRound={view.currentRound}
           totalRounds={view.totalRounds}
-          phaseLabel="الجولة جارية"
+          phaseLabel={SYSTEM_COPY.spectatorTitle}
         />
         <SpectatorBanner />
       </GameScreen>

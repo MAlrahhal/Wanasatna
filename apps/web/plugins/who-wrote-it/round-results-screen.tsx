@@ -10,6 +10,7 @@ import { GameHeader } from '@/components/game/game-header';
 import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
 import { Button } from '@/components/ui/button';
 import { WHO_WROTE_IT_GAME_ICON, WHO_WROTE_IT_GAME_NAME } from '@/lib/game/who-wrote-it-brand';
+import { SYSTEM_COPY, presentSystemCopy } from '@/lib/ui/system-copy';
 import { cn } from '@/lib/utils';
 
 export type WhoWroteItRoundResultsScreenProps = {
@@ -176,7 +177,7 @@ export function WhoWroteItRoundResultsScreen({
         {continueLabel && onContinue ? (
           <div className="mx-auto w-full max-w-md space-y-2.5">
             <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
-              {waitingMessage ?? 'الجولة التالية تبدأ تلقائياً...'}
+              {presentSystemCopy(waitingMessage, SYSTEM_COPY.nextRoundAuto)}
             </p>
             {progressBar}
             <Button
@@ -194,7 +195,9 @@ export function WhoWroteItRoundResultsScreen({
             aria-live="polite"
             className="mx-auto w-full max-w-md space-y-2.5 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-4 py-4 text-center shadow-sm"
           >
-            <p className="text-sm font-medium text-wanas-text-secondary">{waitingMessage}</p>
+            <p className="text-sm font-medium text-wanas-text-secondary">
+              {presentSystemCopy(waitingMessage)}
+            </p>
             {progressBar}
           </div>
         ) : null}

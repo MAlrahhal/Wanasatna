@@ -366,7 +366,7 @@ test('authoritative generations are sent with every gameplay mutation', () => {
 test('minimal spectator screen replaces participant controls', () => {
   const game = readPlugin('game-screen.tsx');
   assert.match(game, /view\.isMatchSpectator && view\.gamePhase === 'playing'/);
-  assert.match(game, /أنت مشاهد حالياً/);
+  assert.match(game, /SpectatorNotice/);
   assert.match(game, /GameplayScene/);
   assert.match(game, /showSpecialCards=\{false\}/);
   assert.match(game, /opponentIdentity=\{null\}/);

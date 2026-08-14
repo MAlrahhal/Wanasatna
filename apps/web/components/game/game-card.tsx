@@ -40,7 +40,7 @@ export function GameScreen({
     <section
       aria-label={ariaLabel}
       className={cn(
-        'wanas-game-screen mx-auto flex w-full flex-col gap-6 sm:gap-7 lg:gap-8',
+        'wanas-game-screen mx-auto flex w-full flex-col gap-4 sm:gap-5',
         maxWidthClasses[maxWidth],
         className,
       )}

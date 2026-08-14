@@ -1,9 +1,11 @@
 'use client';
 
-import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRoom } from '@/contexts/room-context';
 import { mockGameSettingsByGameId, mockLobbyGames } from '@/lib/lobby/mock-games';
+import { SYSTEM_COPY } from '@/lib/ui/system-copy';
+import { RoomSystemState } from '@/components/room/room-system-state';
+import { SystemStatus } from '@/components/ui/system-status';
 import { GameGrid } from './game-grid';
 import { GameSettingsPanel } from './game-settings-panel';
 import { ActiveMatchWaitingPanel } from './active-match-waiting-panel';
@@ -14,18 +16,12 @@ import { LobbyMarathonBanner } from './lobby-marathon-banner';
 import { LobbyStartGamePanel } from './lobby-start-game-panel';
 import { RoundCategoryPanel } from './round-category-panel';
 import { PlayersPanel } from './players-panel';
-import { LobbyStateCard } from './lobby-ui';
 import { cn } from '@/lib/utils';
-
-function LoadingSpinner() {
-  return (
-    <span className="size-8 animate-spin rounded-full border-[3px] border-wanas-primary-muted border-t-wanas-primary" />
-  );
-}
 
 export function LobbyScreen() {
   const {
     status,
+    sessionEndReason,
     errorMessage,
     room,
     player,
@@ -45,6 +41,8 @@ export function LobbyScreen() {
 
   const [mobileSection, setMobileSection] = useState<'games' | 'players' | 'chat'>('games');
   const [lobbyNotice, setLobbyNotice] = useState<string | null>(null);
+  const [recovered, setRecovered] = useState(false);
+  const wasReconnecting = useRef(false);
 
   useEffect(() => {
     try {
@@ -58,6 +56,20 @@ export function LobbyScreen() {
     }
   }, []);
 
+  useEffect(() => {
+    if (status === 'reconnecting') {
+      wasReconnecting.current = true;
+      return;
+    }
+    if (status === 'connected' && wasReconnecting.current) {
+      wasReconnecting.current = false;
+      setRecovered(true);
+      const timer = window.setTimeout(() => setRecovered(false), 2500);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+  }, [status]);
+
   const selectedGame = useMemo(
     () => mockLobbyGames.find((game) => game.id === selectedGameId) ?? null,
     [selectedGameId],
@@ -67,43 +79,35 @@ export function LobbyScreen() {
     ? (mockGameSettingsByGameId[selectedGameId] ?? [])
     : [];
 
+  if (sessionEndReason === 'kick') {
+    return <RoomSystemState kind="kicked" />;
+  }
+
+  if (status === 'reconnecting' && !room) {
+    return <RoomSystemState kind="reconnecting" />;
+  }
+
   if (status === 'connecting' || status === 'idle') {
-    return (
-      <LobbyStateCard
-        title="جاري تجهيز الغرفة..."
-        description="جاري إعادة الاتصال بالغرفة..."
-        icon={<LoadingSpinner />}
-      />
-    );
+    return <RoomSystemState kind="connecting" />;
   }
 
   if (status === 'error' || !room) {
     return (
-      <div className="mx-auto flex min-h-[60vh] w-full max-w-3xl flex-col justify-center gap-4 p-4 sm:p-6">
-        <LobbyStateCard
-          title="تعذر الدخول إلى الغرفة"
-          description={errorMessage ?? 'حدث خطأ أثناء الاتصال بالغرفة.'}
-          icon={
-            <span className="text-2xl font-bold" aria-hidden>
-              !
-            </span>
-          }
-          action={
-            <Link
-              href="/"
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-wanas-accent px-5 text-sm font-bold text-white hover:bg-wanas-accent-hover"
-            >
-              العودة للرئيسية
-            </Link>
-          }
-        />
-      </div>
+      <RoomSystemState
+        kind="error"
+        message={errorMessage}
+        onRetry={() => window.location.reload()}
+      />
     );
   }
 
   return (
     <div className="relative mx-auto flex w-full max-w-[1440px] flex-col gap-3 px-3 py-4 sm:px-5 sm:py-5 lg:gap-4">
-      {errorMessage ? <LobbyErrorBanner message={errorMessage} /> : null}
+      {status === 'reconnecting' ? (
+        <SystemStatus tone="reconnecting" title={SYSTEM_COPY.reconnecting} />
+      ) : null}
+      {recovered ? <SystemStatus tone="success" title={SYSTEM_COPY.recovered} /> : null}
+      {errorMessage && status !== 'reconnecting' ? <LobbyErrorBanner message={errorMessage} /> : null}
       {lobbyNotice ? <LobbyErrorBanner message={lobbyNotice} /> : null}
       {isWaitingForNextMatch ? <ActiveMatchWaitingPanel /> : null}
 

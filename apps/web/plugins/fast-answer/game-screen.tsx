@@ -7,13 +7,15 @@ import {
   FAST_ANSWER_ROUND_RESULTS_SECONDS,
   MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS,
 } from '@wanasatna/shared';
-import { GameCard, GameScreen } from '@/components/game/game-card';
+import { GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
+import { GameSystemError, GameSystemLoading, SpectatorNotice } from '@/components/room/room-system-state';
 import { FAST_ANSWER_GAME_ICON, FAST_ANSWER_GAME_NAME } from '@/lib/game/fast-answer-brand';
 import { mapFastAnswerLeaderboard } from '@/lib/game/map-fast-answer-leaderboard';
+import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-screen';
 import { FastAnswerQuestionScreen } from './question-screen';
 import { FastAnswerRoundResultsScreen } from './round-results-screen';
@@ -70,7 +72,7 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
       setExperienceMeta({
         gameName: FAST_ANSWER_GAME_NAME,
         gameIcon: FAST_ANSWER_GAME_ICON,
-        phaseLabel: 'جاري التحميل...',
+        phaseLabel: SYSTEM_COPY.loading,
         leaderboardEntries: mapFastAnswerLeaderboard(null, player.id, players),
       });
       return;
@@ -79,7 +81,7 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
     setExperienceMeta({
       gameName: FAST_ANSWER_GAME_NAME,
       gameIcon: FAST_ANSWER_GAME_ICON,
-      phaseLabel: activeView.isMatchSpectator ? 'الجولة جارية' : activeView.phaseLabel,
+      phaseLabel: activeView.isMatchSpectator ? SYSTEM_COPY.spectatorTitle : activeView.phaseLabel,
       categoryLabel: activeView.categoryLabel
         ? `الفئة: ${activeView.categoryLabel}`
         : undefined,
@@ -142,7 +144,7 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
     const autoReturnMessage = isMatchCompletedPhase
       ? `العودة إلى اللوبي تلقائياً خلال ${Math.max(0, remainingSeconds)} ثانية`
       : !shellFinished
-        ? 'جاري إنهاء المباراة...'
+        ? SYSTEM_COPY.returningToLobby
         : !isHost
           ? 'بانتظار المضيف للعودة إلى اللوبي.'
           : null;
@@ -182,19 +184,11 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
   }
 
   if (isLoading) {
-    return (
-      <section className="rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-        <p className="text-sm text-muted-foreground">جاري تحميل اللعبة...</p>
-      </section>
-    );
+    return <GameSystemLoading />;
   }
 
   if (errorMessage) {
-    return (
-      <section className="rounded-2xl border border-destructive/30 bg-destructive/10 p-8 text-center">
-        <p className="text-sm text-destructive">{errorMessage}</p>
-      </section>
-    );
+    return <GameSystemError message={errorMessage} />;
   }
 
   if (!view || !room || !player) {
@@ -210,12 +204,7 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
             canSubmit={false}
             isSubmitting={false}
           />
-          <GameCard className="px-5 py-6 text-center">
-            <p className="text-lg font-semibold text-wanas-text-primary">الجولة جارية 👀</p>
-            <p className="mt-2 text-sm text-wanas-text-secondary">
-              أنت حالياً مشاهد، وبتشارك في المباراة القادمة.
-            </p>
-          </GameCard>
+          <SpectatorNotice />
         </div>
       );
     }
@@ -246,14 +235,9 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
           roomCode={room.code}
           currentRound={view.currentRound}
           totalRounds={view.totalRounds}
-          phaseLabel="الجولة جارية"
+          phaseLabel={SYSTEM_COPY.spectatorTitle}
         />
-        <GameCard className="px-5 py-10 text-center">
-          <p className="text-lg font-semibold text-wanas-text-primary">الجولة جارية 👀</p>
-          <p className="mt-2 text-sm text-wanas-text-secondary">
-            أنت حالياً مشاهد، وبتشارك في المباراة القادمة.
-          </p>
-        </GameCard>
+        <SpectatorNotice />
       </GameScreen>
     );
   }
