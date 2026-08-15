@@ -1,12 +1,20 @@
 /**
- * Shared SFX engine. Temporary cue: /public/sounds/timer-start.wav (unlicensed; P7-D replaces).
+ * Shared SFX engine. Original cues live in /public/audio/sfx/.
  */
 
-export type GameSoundId = 'timer-start' | 'card-request';
+export type GameSoundId =
+  | 'countdown-tick'
+  | 'go'
+  | 'your-turn'
+  | 'correct'
+  | 'wrong'
+  | 'time-up'
+  | 'round-result'
+  | 'match-win'
+  | 'notify';
 
 export type GameAudioPreferences = {
   muted: boolean;
-  volume: number;
 };
 
 export type PlayGameSoundOptions = {
@@ -14,27 +22,55 @@ export type PlayGameSoundOptions = {
 };
 
 const PREFS_KEY = 'wanasatna:audio-prefs';
-const DEFAULT_PREFS: GameAudioPreferences = { muted: false, volume: 0.6 };
+const DEFAULT_PREFS: GameAudioPreferences = { muted: false };
+const MASTER_VOLUME = 1;
 const POOL_SIZE = 3;
 const MAX_CONCURRENT = 2;
 const SAME_SOUND_THROTTLE_MS = 120;
 const EVENT_KEY_LIMIT = 256;
+const CORRECT_ROUND_RESULT_GAP_MS = 450;
 
-// Map only files that exist. P7-C can add: countdown-tick, go, your-turn, correct, wrong, time-up, round-result, match-win, notify.
-const SOUND_SRC: Partial<Record<GameSoundId, string>> = {
-  'timer-start': '/sounds/timer-start.wav',
-  'card-request': '/sounds/timer-start.wav',
+const SOUND_SRC: Record<GameSoundId, string> = {
+  'countdown-tick': '/audio/sfx/countdown-tick.wav',
+  go: '/audio/sfx/go.wav',
+  'your-turn': '/audio/sfx/your-turn.wav',
+  correct: '/audio/sfx/correct.wav',
+  wrong: '/audio/sfx/wrong.wav',
+  'time-up': '/audio/sfx/time-up.wav',
+  'round-result': '/audio/sfx/round-result.wav',
+  'match-win': '/audio/sfx/match-win.wav',
+  notify: '/audio/sfx/notify.wav',
 };
 
+const SOUND_GAIN: Record<GameSoundId, number> = {
+  'countdown-tick': 0.52,
+  notify: 0.48,
+  wrong: 0.62,
+  'your-turn': 0.72,
+  correct: 0.78,
+  'time-up': 0.78,
+  'round-result': 0.72,
+  go: 0.78,
+  'match-win': 0.92,
+};
 
-const SOUND_GAIN: Partial<Record<GameSoundId, number>> = {
-  'card-request': 0.35,
+const SOUND_PRIORITY: Record<GameSoundId, number> = {
+  'match-win': 90,
+  'time-up': 80,
+  go: 70,
+  'your-turn': 60,
+  correct: 50,
+  wrong: 40,
+  'round-result': 30,
+  'countdown-tick': 20,
+  notify: 10,
 };
 
 type PoolNode = {
   el: HTMLAudioElement;
   busy: boolean;
   gain: number;
+  priority: number;
 };
 
 let unlocked = false;
@@ -48,9 +84,9 @@ const eventKeys = new Set<string>();
 const lastPlayedAt = new Map<string, number>();
 const listeners = new Set<(prefs: GameAudioPreferences) => void>();
 
-function clampVolume(value: number): number {
+function clampGain(value: number): number {
   if (!Number.isFinite(value)) {
-    return DEFAULT_PREFS.volume;
+    return 1;
   }
   return Math.min(1, Math.max(0, value));
 }
@@ -72,10 +108,9 @@ function readStoredPrefs(): GameAudioPreferences {
     if (!parsed || typeof parsed !== 'object') {
       return { ...DEFAULT_PREFS };
     }
-    const record = parsed as { muted?: unknown; volume?: unknown };
+    const record = parsed as { muted?: unknown };
     return {
       muted: typeof record.muted === 'boolean' ? record.muted : DEFAULT_PREFS.muted,
-      volume: typeof record.volume === 'number' ? clampVolume(record.volume) : DEFAULT_PREFS.volume,
     };
   } catch {
     return { ...DEFAULT_PREFS };
@@ -87,10 +122,7 @@ function persistPrefs(): void {
     return;
   }
   try {
-    window.localStorage.setItem(
-      PREFS_KEY,
-      JSON.stringify({ muted: prefs.muted, volume: prefs.volume }),
-    );
+    window.localStorage.setItem(PREFS_KEY, JSON.stringify({ muted: prefs.muted }));
   } catch {
     // Persistence is best-effort.
   }
@@ -105,8 +137,8 @@ function ensurePrefs(): GameAudioPreferences {
 }
 
 function snapshotPrefs(): GameAudioPreferences {
-  if (prefsSnapshot.muted !== prefs.muted || prefsSnapshot.volume !== prefs.volume) {
-    prefsSnapshot = { muted: prefs.muted, volume: prefs.volume };
+  if (prefsSnapshot.muted !== prefs.muted) {
+    prefsSnapshot = { muted: prefs.muted };
   }
   return prefsSnapshot;
 }
@@ -117,7 +149,7 @@ function emitPrefs(): void {
 }
 
 function applyNodeVolume(node: PoolNode): void {
-  node.el.volume = clampVolume(prefs.volume * node.gain);
+  node.el.volume = clampGain(MASTER_VOLUME * node.gain);
 }
 
 function ensureEngine(): PoolNode[] | null {
@@ -129,7 +161,7 @@ function ensureEngine(): PoolNode[] | null {
     pool = Array.from({ length: POOL_SIZE }, () => {
       const el = new Audio();
       el.preload = 'auto';
-      return { el, busy: false, gain: 1 };
+      return { el, busy: false, gain: 1, priority: 0 };
     });
   }
   return pool;
@@ -140,15 +172,35 @@ function releaseNode(node: PoolNode): void {
     return;
   }
   node.busy = false;
+  node.priority = 0;
   activeCount = Math.max(0, activeCount - 1);
 }
 
-function pickNode(): PoolNode | null {
+function stopNode(node: PoolNode): void {
+  try {
+    node.el.pause();
+    node.el.currentTime = 0;
+  } catch {
+    // ignore
+  }
+  releaseNode(node);
+}
+
+function pickNode(priority: number): PoolNode | null {
   const nodes = ensureEngine();
   if (!nodes) {
     return null;
   }
-  return nodes.find((node) => !node.busy) ?? null;
+  if (activeCount < MAX_CONCURRENT) {
+    return nodes.find((node) => !node.busy) ?? null;
+  }
+  const busy = nodes.filter((node) => node.busy).sort((a, b) => a.priority - b.priority);
+  const victim = busy[0];
+  if (!victim || victim.priority >= priority) {
+    return null;
+  }
+  stopNode(victim);
+  return victim;
 }
 
 function documentIsHidden(): boolean {
@@ -175,19 +227,11 @@ export function subscribeGameAudioPreferences(
 
 export function setGameAudioMuted(muted: boolean): void {
   ensurePrefs();
-  prefs = { ...prefs, muted: Boolean(muted) };
+  prefs = { muted: Boolean(muted) };
   persistPrefs();
   if (prefs.muted) {
     stopAllGameSounds();
   }
-  emitPrefs();
-}
-
-export function setGameAudioVolume(volume: number): void {
-  ensurePrefs();
-  prefs = { ...prefs, volume: clampVolume(volume) };
-  persistPrefs();
-  pool?.forEach(applyNodeVolume);
   emitPrefs();
 }
 
@@ -206,12 +250,7 @@ export function unlockGameAudio(): void {
   unlocking = true;
 
   try {
-    const src = SOUND_SRC['timer-start'];
-    if (!src) {
-      unlocked = true;
-      unlocking = false;
-      return;
-    }
+    const src = SOUND_SRC.go;
     node.el.muted = true;
     node.el.volume = 0;
     node.el.src = src;
@@ -244,6 +283,16 @@ export function unlockGameAudio(): void {
   }
 }
 
+function rememberEventKey(eventKey: string | undefined): void {
+  if (!eventKey) {
+    return;
+  }
+  if (eventKeys.size >= EVENT_KEY_LIMIT) {
+    eventKeys.clear();
+  }
+  eventKeys.add(eventKey);
+}
+
 export function playGameSound(id: GameSoundId, options?: PlayGameSoundOptions): void {
   if (!isBrowser()) {
     return;
@@ -251,12 +300,7 @@ export function playGameSound(id: GameSoundId, options?: PlayGameSoundOptions): 
 
   ensurePrefs();
 
-  if (!unlocked || prefs.muted || documentIsHidden()) {
-    return;
-  }
-
-  const src = SOUND_SRC[id];
-  if (!src) {
+  if (!unlocked) {
     return;
   }
 
@@ -265,30 +309,41 @@ export function playGameSound(id: GameSoundId, options?: PlayGameSoundOptions): 
     return;
   }
 
+  if (prefs.muted || documentIsHidden()) {
+    rememberEventKey(eventKey);
+    return;
+  }
+
+  const src = SOUND_SRC[id];
+  if (!src) {
+    return;
+  }
+
   const now = Date.now();
+  if (id === 'round-result') {
+    const correctAt = lastPlayedAt.get('correct') ?? 0;
+    if (now - correctAt < CORRECT_ROUND_RESULT_GAP_MS) {
+      rememberEventKey(eventKey);
+      return;
+    }
+  }
+
   const previous = lastPlayedAt.get(id) ?? 0;
   if (now - previous < SAME_SOUND_THROTTLE_MS) {
     return;
   }
 
-  if (activeCount >= MAX_CONCURRENT) {
-    return;
-  }
-
-  const node = pickNode();
+  const priority = SOUND_PRIORITY[id];
+  const node = pickNode(priority);
   if (!node) {
     return;
   }
 
   try {
-    if (eventKey) {
-      if (eventKeys.size >= EVENT_KEY_LIMIT) {
-        eventKeys.clear();
-      }
-      eventKeys.add(eventKey);
-    }
+    rememberEventKey(eventKey);
     lastPlayedAt.set(id, now);
-    node.gain = SOUND_GAIN[id] ?? 1;
+    node.gain = SOUND_GAIN[id];
+    node.priority = priority;
     node.el.src = src;
     applyNodeVolume(node);
     node.el.currentTime = 0;
@@ -322,6 +377,7 @@ export function stopAllGameSounds(): void {
       // ignore
     }
     node.busy = false;
+    node.priority = 0;
   }
   activeCount = 0;
 }
@@ -331,8 +387,8 @@ export function clearGameAudioEventKeys(): void {
   lastPlayedAt.clear();
 }
 
-export function playSoftCardRequestPing(): void {
-  playGameSound('card-request');
+export function playSoftCardRequestPing(options?: PlayGameSoundOptions): void {
+  playGameSound('notify', options);
 }
 
 export function resetGameAudioForTests(): void {

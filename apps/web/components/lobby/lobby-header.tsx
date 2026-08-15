@@ -199,7 +199,7 @@ export function LobbyHeader({
             </Button>
           )}
           {leaveControl}
-          <GameAudioControl className="hidden xl:block" />
+          <GameAudioControl className="hidden xl:inline-flex" />
           {shareMessage ? (
             <span className="text-xs font-medium text-wanas-text-muted" aria-live="polite">
               {shareMessage}

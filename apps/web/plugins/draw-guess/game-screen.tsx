@@ -19,6 +19,7 @@ import { DrawingScreen } from './drawing-screen';
 import { DrawGuessRoundResultsScreen } from './round-results-screen';
 import { WaitingSpectatorScreen } from './waiting-spectator-screen';
 import { useDrawGuessPlayerView } from './use-player-view';
+import { useDrawGuessSfx } from './use-sfx';
 
 const TIMED_DRAW_GUESS_PHASES = new Set(['drawing', 'round-results', 'match-completed']);
 
@@ -46,6 +47,8 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
     emitStroke,
     emitStrokePoints,
   } = useDrawGuessPlayerView(pluginEnabled);
+
+  useDrawGuessSfx(view, player?.id, remainingSeconds);
 
   const activeFinalResultsView =
     finalResultsView ?? (view?.gamePhase === 'match-completed' ? view : null);

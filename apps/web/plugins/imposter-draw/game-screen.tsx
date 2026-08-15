@@ -25,6 +25,7 @@ import { DrawingTurnsScreen } from './drawing-turns-screen';
 import { ImposterDrawRevealScreen } from './reveal-screen';
 import { ImposterDrawRoundResultsScreen } from './round-results-screen';
 import { useImposterDrawPlayerView } from './use-player-view';
+import { useImposterDrawSfx } from './use-sfx';
 
 const TIMED_PHASES = new Set([
   'briefing',
@@ -87,6 +88,8 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
     emitStroke,
     emitStrokePoints,
   } = useImposterDrawPlayerView(pluginEnabled);
+
+  useImposterDrawSfx(view, player?.id, remainingSeconds);
 
   const activeFinalResultsView =
     finalResultsView ?? (view?.gamePhase === 'match-completed' ? view : null);

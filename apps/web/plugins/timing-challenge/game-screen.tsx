@@ -26,6 +26,7 @@ import { ReadyScreen } from './ready-screen';
 import { TimingChallengeRoundResultsScreen } from './round-results-screen';
 import { StopTimerScreen } from './stop-timer-screen';
 import { useTimingChallengePlayerView } from './use-player-view';
+import { useTimingChallengeSfx } from './use-sfx';
 import { useTimingStartSound } from './use-timing-start-sound';
 
 /** Visible chrome timers only — never during active timing gameplay. */
@@ -56,6 +57,7 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
   } = useTimingChallengePlayerView(pluginEnabled);
 
   useTimingStartSound(view);
+  useTimingChallengeSfx(view, player?.id);
 
   const activeFinalResultsView =
     finalResultsView ?? (view?.gamePhase === 'match-completed' ? view : null);

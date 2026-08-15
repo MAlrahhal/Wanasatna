@@ -20,6 +20,7 @@ import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-scree
 import { FastAnswerQuestionScreen } from './question-screen';
 import { FastAnswerRoundResultsScreen } from './round-results-screen';
 import { useFastAnswerPlayerView } from './use-player-view';
+import { useFastAnswerSfx } from './use-sfx';
 
 const VISIBLE_TIMER_PHASES = new Set(['question', 'round-results', 'match-completed']);
 
@@ -44,6 +45,8 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
     submitAnswer,
     continueFromRoundResults,
   } = useFastAnswerPlayerView(pluginEnabled);
+
+  useFastAnswerSfx(view, player?.id, remainingSeconds);
 
   const activeFinalResultsView =
     finalResultsView ?? (view?.gamePhase === 'match-completed' ? view : null);

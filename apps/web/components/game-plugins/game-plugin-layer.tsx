@@ -14,6 +14,7 @@ import { GameExperienceShell } from '@/components/game-experience/game-experienc
 import { GameExperienceProvider } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
+import { useSharedCountdownSfx } from '@/lib/game/use-shared-countdown-sfx';
 import { SystemStatus } from '@/components/ui/system-status';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import { BaraAlSalafaCountdownLive } from '@/plugins/bara-al-salafa/bara-al-salafa-countdown-live';
@@ -81,6 +82,7 @@ function PluginMatchStarting() {
 export function GamePluginLayer() {
   const { state } = useGameShell();
   const { player, isHost } = useRoom();
+  useSharedCountdownSfx();
 
   if (!state?.gameId || !player) {
     return null;

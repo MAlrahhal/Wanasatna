@@ -114,34 +114,34 @@ void (async () => {
     }
   }
 
-  await test('defaults are unmuted at 0.6', () => {
+  await test('defaults are unmuted', () => {
     setup();
-    assert.deepEqual(audio.getGameAudioPreferences(), { muted: false, volume: 0.6 });
+    assert.deepEqual(audio.getGameAudioPreferences(), { muted: false });
   });
 
-  await test('save/load preferences and clamp volume', () => {
+  await test('save/load mute preference and ignore leftover volume', () => {
     setup();
     audio.setGameAudioMuted(true);
-    audio.setGameAudioVolume(0.25);
-    assert.equal(localStorage.getItem('wanasatna:audio-prefs'), '{"muted":true,"volume":0.25}');
+    assert.equal(localStorage.getItem('wanasatna:audio-prefs'), '{"muted":true}');
     audio.resetGameAudioForTests();
-    assert.deepEqual(audio.getGameAudioPreferences(), { muted: true, volume: 0.25 });
-    audio.setGameAudioVolume(4);
-    assert.equal(audio.getGameAudioPreferences().volume, 1);
-    audio.setGameAudioVolume(-2);
-    assert.equal(audio.getGameAudioPreferences().volume, 0);
+    assert.deepEqual(audio.getGameAudioPreferences(), { muted: true });
+    localStorage.setItem('wanasatna:audio-prefs', '{"muted":false,"volume":0.25}');
+    audio.resetGameAudioForTests();
+    assert.deepEqual(audio.getGameAudioPreferences(), { muted: false });
+    audio.setGameAudioMuted(false);
+    assert.equal(localStorage.getItem('wanasatna:audio-prefs'), '{"muted":false}');
   });
 
   await test('malformed JSON falls back to defaults', () => {
     setup();
     localStorage.setItem('wanasatna:audio-prefs', '{not-json');
     audio.resetGameAudioForTests();
-    assert.deepEqual(audio.getGameAudioPreferences(), { muted: false, volume: 0.6 });
+    assert.deepEqual(audio.getGameAudioPreferences(), { muted: false });
   });
 
   await test('locked until unlock; unlock is idempotent and silent', async () => {
     setup();
-    audio.playGameSound('timer-start');
+    audio.playGameSound('go');
     assert.equal(FakeAudio.instances.length, 0);
     audio.unlockGameAudio();
     audio.unlockGameAudio();
@@ -157,7 +157,7 @@ void (async () => {
     await flush();
     audio.setGameAudioMuted(true);
     const before = playCount();
-    audio.playGameSound('timer-start');
+    audio.playGameSound('go');
     assert.equal(playCount(), before);
     audio.stopAllGameSounds();
     assert.ok(FakeAudio.instances.every((node) => node.paused));
@@ -165,15 +165,14 @@ void (async () => {
     assert.equal(localStorage.getItem('wanasatna:audio-prefs')?.includes('"muted":true'), true);
   });
 
-  await test('volume is applied to playback nodes', async () => {
+  await test('unmuted master volume is 1.0; per-sound gain still applies', async () => {
     setup();
-    audio.setGameAudioVolume(0.5);
     audio.unlockGameAudio();
     await flush();
-    audio.playGameSound('timer-start');
-    const node = FakeAudio.instances.find((item) => !item.paused) ?? FakeAudio.instances.at(-1);
-    assert.ok(node);
-    assert.equal(node.volume, 0.5);
+    audio.playGameSound('go');
+    const startNode = FakeAudio.instances.find((item) => !item.paused) ?? FakeAudio.instances.at(-1);
+    assert.ok(startNode);
+    assert.equal(startNode.volume, 0.78);
   });
 
   await test('same eventKey plays once; different eventKey allowed after throttle', async () => {
@@ -181,11 +180,11 @@ void (async () => {
     audio.unlockGameAudio();
     await flush();
     const before = playCount();
-    audio.playGameSound('timer-start', { eventKey: 'turn:1' });
-    audio.playGameSound('timer-start', { eventKey: 'turn:1' });
+    audio.playGameSound('go', { eventKey: 'turn:1' });
+    audio.playGameSound('go', { eventKey: 'turn:1' });
     await delay(130);
-    audio.playGameSound('timer-start', { eventKey: 'turn:1' });
-    audio.playGameSound('timer-start', { eventKey: 'turn:2' });
+    audio.playGameSound('go', { eventKey: 'turn:1' });
+    audio.playGameSound('go', { eventKey: 'turn:2' });
     assert.equal(playCount() - before, 2);
   });
 
@@ -194,8 +193,8 @@ void (async () => {
     audio.unlockGameAudio();
     await flush();
     const before = playCount();
-    audio.playGameSound('timer-start');
-    audio.playGameSound('timer-start');
+    audio.playGameSound('go');
+    audio.playGameSound('go');
     assert.equal(playCount() - before, 1);
   });
 
@@ -205,7 +204,7 @@ void (async () => {
     await flush();
     hidden = true;
     const before = playCount();
-    audio.playGameSound('timer-start');
+    audio.playGameSound('go');
     assert.equal(playCount(), before);
   });
 
@@ -216,7 +215,7 @@ void (async () => {
     FakeAudio.instances.forEach((node) => {
       node.rejectPlay = true;
     });
-    assert.doesNotThrow(() => audio.playGameSound('timer-start', { eventKey: 'x' }));
+    assert.doesNotThrow(() => audio.playGameSound('go', { eventKey: 'x' }));
     await flush();
   });
 
@@ -227,7 +226,7 @@ void (async () => {
     const before = playCount();
     audio.playSoftCardRequestPing();
     assert.equal(playCount() - before, 1);
-    const pingNode = FakeAudio.instances.find((node) => node.volume > 0.1 && node.volume < 0.3);
+    const pingNode = FakeAudio.instances.find((node) => Math.abs(node.volume - 0.48) < 0.001);
     assert.ok(pingNode);
   });
 
@@ -235,11 +234,10 @@ void (async () => {
     setup();
     audio.unlockGameAudio();
     await flush();
-    audio.playGameSound('timer-start');
-    audio.playGameSound('card-request');
-    await delay(130);
+    audio.playGameSound('go', { eventKey: 'a' });
+    audio.playGameSound('your-turn', { eventKey: 'b' });
     const before = playCount();
-    audio.playGameSound('timer-start', { eventKey: 'extra' });
+    audio.playGameSound('notify', { eventKey: 'extra' });
     assert.equal(playCount(), before);
   });
 
@@ -248,26 +246,30 @@ void (async () => {
     assert.match(sounds, /POOL_SIZE = 3/);
     assert.match(sounds, /MAX_CONCURRENT = 2/);
     assert.match(sounds, /SAME_SOUND_THROTTLE_MS = 120/);
+    assert.match(sounds, /MASTER_VOLUME = 1/);
     assert.match(sounds, /wanasatna:audio-prefs/);
     assert.doesNotMatch(sounds, /AudioContext/);
     assert.doesNotMatch(sounds, /createOscillator/);
     assert.match(sounds, /eventKey/);
-    assert.match(sounds, /timer-start\.wav/);
+    assert.match(sounds, /\/audio\/sfx\/go\.wav/);
   });
 
   await test('Lobby and Game Experience headers expose compact audio control', () => {
     const lobby = read('components/lobby/lobby-header.tsx');
     const game = read('components/game-experience/game-experience-header.tsx');
     const control = read('components/game/game-audio-control.tsx');
+    const sounds = read('lib/game/sounds.ts');
     const shell = read('components/game-experience/game-experience-shell.tsx');
     const layout = read('app/(room)/layout.tsx');
     assert.match(lobby, /<GameAudioControl/);
     assert.match(game, /<GameAudioControl/);
     assert.match(game, /flex flex-col gap-1\.5 md:hidden/);
-    assert.match(control, /aria-label=\{prefs\.muted \? 'تشغيل الصوت' : 'إعدادات الصوت'\}/);
-    assert.match(control, /aria-label="مستوى الصوت"/);
+    assert.match(control, /aria-label=\{prefs\.muted \? 'الصوت مكتوم' : 'الصوت'\}/);
+    assert.match(control, /aria-pressed=\{prefs\.muted\}/);
     assert.match(control, /size-11 min-h-11 min-w-11/);
-    assert.match(control, /min-w-0 w-full/);
+    assert.match(control, /setGameAudioMuted\(!prefs\.muted\)/);
+    assert.doesNotMatch(control, /game-audio-volume|game-audio-panel|مستوى الصوت|setGameAudioVolume/);
+    assert.doesNotMatch(sounds, /setGameAudioVolume/);
     assert.doesNotMatch(control, /🎵|🔊|🔇/);
     assert.match(shell, /stopAllGameSounds/);
     assert.match(shell, /clearGameAudioEventKeys/);
@@ -279,11 +281,11 @@ void (async () => {
     const ready = read('plugins/timing-challenge/ready-screen.tsx');
     const stop = read('plugins/timing-challenge/stop-timer-screen.tsx');
     const panel = read('plugins/guessing-challenge/special-cards-panel.tsx');
-    assert.match(timing, /playGameSound\('timer-start'\)/);
+    assert.match(timing, /playGameSound\('go'/);
     assert.match(timing, /if \(!prev\)/);
     assert.match(ready, /unlockGameAudio\(\)/);
     assert.match(stop, /unlockGameAudio\(\)/);
-    assert.match(panel, /playSoftCardRequestPing\(\)/);
+    assert.match(panel, /playSoftCardRequestPing\(/);
     assert.match(panel, /lastPingKey/);
     assert.doesNotMatch(timing, /countdown-tick|time-up|your-turn/);
   });

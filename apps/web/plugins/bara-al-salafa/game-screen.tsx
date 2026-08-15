@@ -30,6 +30,7 @@ import { RoundResultsScreen } from './round-results-screen';
 import { VotingScreen } from './voting-screen';
 import { WaitingSpectatorScreen } from './waiting-spectator-screen';
 import { useBaraAlSalafaPlayerView } from './use-player-view';
+import { useBaraAlSalafaSfx } from './use-sfx';
 
 const TIMED_BARA_PHASES = new Set([
   'description',
@@ -97,6 +98,8 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     submitVote,
     submitImpostorGuess,
   } = useBaraAlSalafaPlayerView(pluginEnabled);
+
+  useBaraAlSalafaSfx(view, player?.id, remainingSeconds);
 
   const activeFinalResultsView =
     finalResultsView ?? (view?.gamePhase === 'match-completed' ? view : null);

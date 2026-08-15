@@ -350,7 +350,7 @@ test('card request sound helper exists once-per-request', () => {
   const panel = readPlugin('special-cards-panel.tsx');
   assert.match(sounds, /playSoftCardRequestPing/);
   assert.match(panel, /lastPingKey/);
-  assert.match(panel, /playSoftCardRequestPing\(\)/);
+  assert.match(panel, /playSoftCardRequestPing\(/);
 });
 
 test('authoritative generations are sent with every gameplay mutation', () => {

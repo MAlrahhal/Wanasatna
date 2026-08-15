@@ -23,6 +23,7 @@ import { GameplayScene } from './gameplay-scene';
 import { GuessingChallengePlayingScreen } from './playing-screen';
 import { GuessingChallengeRoundResultsScreen } from './round-results-screen';
 import { useGuessingChallengePlayerView } from './use-player-view';
+import { useGuessingChallengeSfx } from './use-sfx';
 
 function conciseGuessingChallengePhaseLabel(view: GuessingChallengePlayerView): string {
   if (view.isMatchSpectator) {
@@ -71,6 +72,8 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
     continueFromRoundResults,
     emitLook,
   } = useGuessingChallengePlayerView(pluginEnabled);
+
+  useGuessingChallengeSfx(view, player?.id, remainingSeconds, guessFeedback);
 
   const activeFinalResultsView =
     finalResultsView ?? (view?.gamePhase === 'match-completed' ? view : null);

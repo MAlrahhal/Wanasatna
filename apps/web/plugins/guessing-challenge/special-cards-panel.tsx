@@ -95,7 +95,7 @@ export function GuessingChallengeSpecialCardsPanel({
       return;
     }
     lastPingKey.current = key;
-    playSoftCardRequestPing();
+    playSoftCardRequestPing({ eventKey: `notify:${key}` });
   }, [teammateRequest]);
 
   useEffect(() => {

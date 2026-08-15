@@ -21,6 +21,7 @@ import { JudgeAnsweringScreen } from './answering-screen';
 import { JudgeJudgingScreen } from './judging-screen';
 import { JudgeRoundResultsScreen } from './round-results-screen';
 import { useJudgePlayerView } from './use-player-view';
+import { useJudgeSfx } from './use-sfx';
 
 const VISIBLE_TIMER_PHASES = new Set([
   'answering',
@@ -54,6 +55,8 @@ export function JudgeGameScreen(_props: GamePluginScreenProps) {
     selectWinner,
     continueFromRoundResults,
   } = useJudgePlayerView(pluginEnabled);
+
+  useJudgeSfx(view, player?.id, remainingSeconds);
 
   const activeFinalResultsView =
     finalResultsView ?? (view?.gamePhase === 'match-completed' ? view : null);

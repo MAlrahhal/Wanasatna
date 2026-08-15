@@ -33,7 +33,6 @@ export function useTimingStartSound(view: TimingChallengePlayerView | null): voi
     prevRef.current = next;
 
     if (!prev) {
-      // Initial mount / reconnect — do not invent a start cue.
       return;
     }
 
@@ -43,7 +42,7 @@ export function useTimingStartSound(view: TimingChallengePlayerView | null): voi
       prev.round === view.currentRound &&
       prev.phase === 'ready'
     ) {
-      playGameSound('timer-start');
+      playGameSound('go', { eventKey: `go:${view.roundId}:hidden` });
       return;
     }
 
@@ -54,7 +53,7 @@ export function useTimingStartSound(view: TimingChallengePlayerView | null): voi
       prev.round === view.currentRound &&
       !prev.running
     ) {
-      playGameSound('timer-start');
+      playGameSound('go', { eventKey: `go:${view.roundId}:stop` });
     }
   }, [view]);
 }

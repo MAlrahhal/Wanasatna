@@ -127,10 +127,11 @@ test('root layout mounts global background layer', async () => {
   assert.match(layout, /wanas-site-bg-pattern/);
 });
 
-test('temporary timer-start asset exists', async () => {
+test('original go SFX exists and temp timer-start WAV is gone', async () => {
   const { existsSync } = await import('node:fs');
   const { join } = await import('node:path');
-  assert.equal(existsSync(join(__dirname, '..', 'public', 'sounds', 'timer-start.wav')), true);
+  assert.equal(existsSync(join(__dirname, '..', 'public', 'audio', 'sfx', 'go.wav')), true);
+  assert.equal(existsSync(join(__dirname, '..', 'public', 'sounds', 'timer-start.wav')), false);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

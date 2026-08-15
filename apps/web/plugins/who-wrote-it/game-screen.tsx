@@ -21,6 +21,7 @@ import { WhoWroteItAnsweringScreen } from './answering-screen';
 import { WhoWroteItGuessingScreen } from './guessing-screen';
 import { WhoWroteItRoundResultsScreen } from './round-results-screen';
 import { useWhoWroteItPlayerView } from './use-player-view';
+import { useWhoWroteItSfx } from './use-sfx';
 
 const VISIBLE_TIMER_PHASES = new Set([
   'answering',
@@ -54,6 +55,8 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
     submitOwnerGuess,
     continueFromRoundResults,
   } = useWhoWroteItPlayerView(pluginEnabled);
+
+  useWhoWroteItSfx(view, player?.id, remainingSeconds);
 
   const activeFinalResultsView =
     finalResultsView ?? (view?.gamePhase === 'match-completed' ? view : null);
