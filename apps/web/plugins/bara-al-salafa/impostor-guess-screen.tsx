@@ -8,8 +8,8 @@ import { cn } from '@/lib/utils';
 
 export type ImpostorGuessOption = {
   id: string;
-  emoji: string;
   label: string;
+  emoji?: string;
 };
 
 export type ImpostorGuessScreenProps = {
@@ -69,7 +69,7 @@ function GuessOptionButton({
       disabled={disabled}
       onClick={() => onSelect?.(option.id)}
       className={cn(
-        'relative flex min-h-[92px] flex-col items-center justify-center gap-2 rounded-[22px] border-2 px-3 py-4 text-center transition-all duration-200',
+        'relative flex min-h-[92px] flex-col items-center justify-center gap-1 rounded-[22px] border-2 px-3 py-5 text-center transition-all duration-200',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/45 focus-visible:ring-offset-2',
         'active:scale-[0.98]',
         'disabled:cursor-not-allowed',
@@ -82,10 +82,7 @@ function GuessOptionButton({
       aria-label={selected ? `${option.label} — مختار` : `اختيار ${option.label}`}
     >
       <SelectionCheckIcon selected={selected} />
-      <span className="text-3xl leading-none" aria-hidden>
-        {option.emoji}
-      </span>
-      <span className="max-w-full truncate px-1 text-sm font-semibold text-wanas-text-primary">
+      <span className="max-w-full truncate px-1 text-base font-semibold leading-snug text-wanas-text-primary">
         {option.label}
       </span>
       {selected ? (
@@ -120,10 +117,9 @@ function SubmittedChoiceCard({ option }: { option: ImpostorGuessOption }) {
   return (
     <div className="mx-auto w-full max-w-xs rounded-[22px] border-2 border-wanas-success-border bg-wanas-success-surface/40 px-5 py-6 text-center">
       <p className="text-xs font-medium text-wanas-success-dark">اختيارك</p>
-      <span className="mt-3 block text-4xl leading-none" aria-hidden>
-        {option.emoji}
-      </span>
-      <p className="mt-3 truncate text-lg font-semibold text-wanas-text-primary">{option.label}</p>
+      <p className="mt-3 truncate text-lg font-semibold leading-snug text-wanas-text-primary">
+        {option.label}
+      </p>
     </div>
   );
 }

@@ -9,8 +9,6 @@ import type { RevealImpostorScreenProps } from './reveal-impostor-screen';
 import type { RoundResultsScreenProps } from './round-results-screen';
 import type { VotingScreenProps } from './voting-screen';
 
-const IMPOSTOR_GUESS_OPTION_EMOJIS = ['🚗', '🚲', '✈️', '🚢', '🚕', '🛵', '🚀', '📝'] as const;
-
 export function getParticipatingPlayers(players: LobbyPlayer[]): LobbyPlayer[] {
   return players.filter((participant) => !participant.isSpectator);
 }
@@ -110,10 +108,9 @@ export function mapRevealImpostorLiveProps(
 }
 
 export function mapImpostorGuessOptions(words: readonly string[]): ImpostorGuessOption[] {
-  return words.map((word, index) => ({
+  return words.map((word) => ({
     id: word,
     label: word,
-    emoji: IMPOSTOR_GUESS_OPTION_EMOJIS[index % IMPOSTOR_GUESS_OPTION_EMOJIS.length]!,
   }));
 }
 
