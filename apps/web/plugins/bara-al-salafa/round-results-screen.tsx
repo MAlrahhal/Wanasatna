@@ -46,14 +46,14 @@ function RoundSummaryCards({
 }: Pick<RoundResultsScreenProps, 'revealedWord' | 'impostorPlayerName'>) {
   return (
     <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
-      <div className="wanas-game-card flex h-[7rem] flex-col items-center justify-center rounded-[1.15rem] px-3 py-3 text-center sm:h-[8.5rem] sm:px-4">
-        <p className="text-[11px] font-medium text-wanas-text-muted sm:text-xs">برا السالفة</p>
+      <div className="wanas-game-card flex h-[5.25rem] flex-col items-center justify-center rounded-[1.15rem] px-3 py-3 text-center sm:h-[8.5rem] sm:px-4">
+        <p className="text-xs font-medium text-wanas-text-muted">برا السالفة</p>
         <p className="mt-1.5 max-w-full truncate text-base font-bold text-wanas-text-primary sm:text-lg">
           {impostorPlayerName}
         </p>
       </div>
-      <div className="wanas-game-card flex h-[7rem] flex-col items-center justify-center rounded-[1.15rem] px-3 py-3 text-center sm:h-[8.5rem] sm:px-4">
-        <p className="text-[11px] font-medium text-wanas-text-muted sm:text-xs">الكلمة</p>
+      <div className="wanas-game-card flex h-[5.25rem] flex-col items-center justify-center rounded-[1.15rem] px-3 py-3 text-center sm:h-[8.5rem] sm:px-4">
+        <p className="text-xs font-medium text-wanas-text-muted">الكلمة</p>
         <p className="mt-1.5 max-w-full break-words text-base font-bold text-wanas-text-primary sm:text-lg">
           {revealedWord}
         </p>
@@ -165,13 +165,13 @@ function RoundPointsList({
 
               <div className="flex shrink-0 items-center gap-2 text-end sm:gap-3">
                 <div>
-                  <p className="text-[10px] font-medium text-wanas-text-muted">الجولة</p>
+                  <p className="text-xs font-medium text-wanas-text-muted">الجولة</p>
                   <p className="font-mono text-sm font-bold tabular-nums text-wanas-success-dark">
                     +{player.roundPoints}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-medium text-wanas-text-muted">المجموع</p>
+                  <p className="text-xs font-medium text-wanas-text-muted">المجموع</p>
                   <p className="font-mono text-sm font-bold tabular-nums text-wanas-text-primary">
                     {player.totalPoints}
                   </p>

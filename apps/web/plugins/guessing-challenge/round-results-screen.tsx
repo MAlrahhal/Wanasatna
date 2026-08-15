@@ -129,6 +129,7 @@ export function GuessingChallengeRoundResultsScreen({
         </div>
 
         <GameplayScene
+          className="gc-results-scene"
           mode="reveal"
           matchMode={view.mode}
           selfTeam={view.selfTeam ?? undefined}
@@ -147,17 +148,17 @@ export function GuessingChallengeRoundResultsScreen({
 
         <GameCard className="p-4 sm:p-5">
           <h2 className="wanas-game-title mb-3">نقاط الجولة</h2>
-          <ul className="space-y-2" data-testid="gc-round-scores">
+        <ul className="space-y-2" data-testid="gc-round-scores">
             {sortedResults.map((entry) => (
               <li
                 key={entry.playerId}
-                className="flex items-center justify-between rounded-xl border border-border px-3 py-2 text-sm"
+                className="flex items-center justify-between gap-2 rounded-xl border border-border px-3 py-2 text-sm"
               >
                 <span className="min-w-0 break-words font-medium text-wanas-text-primary">
                   {entry.name}
                   {entry.isWinner ? ' ⭐' : ''}
                 </span>
-                <span className="shrink-0 text-wanas-text-muted">
+                <span className="shrink-0 text-xs text-wanas-text-muted sm:text-sm">
                   +{entry.roundPoints} · الإجمالي {entry.totalPoints}
                 </span>
               </li>

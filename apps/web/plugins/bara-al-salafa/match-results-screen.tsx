@@ -53,7 +53,7 @@ function WinnerHeroCard({ entry }: { entry: MatchLeaderboardEntry }) {
   return (
     <div className="flex flex-col items-center gap-4 text-center">
       <div
-        className="flex size-20 items-center justify-center rounded-full text-3xl font-semibold ring-4 ring-[color:var(--wanas-game-card-border)] shadow-lg sm:size-24 sm:text-4xl"
+        className="flex size-16 items-center justify-center rounded-full text-2xl font-semibold ring-4 ring-[color:var(--wanas-game-card-border)] shadow-lg sm:size-24 sm:text-4xl"
         style={{ backgroundColor: avatarColors.bg, color: avatarColors.text }}
         aria-hidden
       >
@@ -73,9 +73,9 @@ function WinnerHero({ winners }: { winners: MatchLeaderboardEntry[] }) {
   const isTie = winners.length > 1;
 
   return (
-    <div className="wanas-game-card rounded-[2rem] border-wanas-warning-border/70 bg-wanas-warning-surface px-5 py-6 text-center sm:px-8 sm:py-8">
-      <div className="flex flex-col items-center gap-5">
-        <span className="text-5xl sm:text-6xl" aria-hidden>
+    <div className="wanas-game-card rounded-[1.5rem] border-wanas-warning-border/70 bg-wanas-warning-surface px-4 py-4 text-center sm:rounded-[2rem] sm:px-8 sm:py-8">
+      <div className="flex flex-col items-center gap-3 sm:gap-5">
+        <span className="text-4xl sm:text-6xl" aria-hidden>
           👑
         </span>
         <h2 className="text-xl font-semibold text-wanas-warning-dark sm:text-2xl">
@@ -217,7 +217,7 @@ function MatchStats({
           key={stat.label}
           className="min-w-0 rounded-[1.1rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-2 py-3 text-center shadow-sm sm:px-4 sm:py-4"
         >
-          <p className="truncate text-[10px] font-medium text-wanas-text-muted sm:text-xs">{stat.label}</p>
+          <p className="truncate text-xs font-medium text-wanas-text-muted">{stat.label}</p>
           <p className="mt-1 font-mono text-base font-bold tabular-nums text-wanas-text-primary sm:text-lg">
             {stat.value}
           </p>

@@ -36,7 +36,8 @@ export function GameCard({
   const isLobbyCard = !showcase;
 
   const cardClassName = cn(
-    'group relative flex h-full min-h-[168px] flex-col rounded-xl border p-3 text-center transition-colors duration-200',
+    'group relative flex h-full flex-col rounded-xl border text-center transition-colors duration-200',
+    isShowcaseCard ? 'min-h-[168px] p-3' : 'min-h-0 p-2.5 xl:min-h-[168px] xl:p-3',
     selected ? 'border-wanas-accent bg-wanas-accent/10' : 'bg-wanas-surface-soft',
     isLobbyCard && !isDisabled && !selected && 'hover:border-wanas-accent/35 hover:bg-wanas-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/30',
     isLobbyCard && isDisabled && 'cursor-default',
@@ -61,7 +62,8 @@ export function GameCard({
 
       <div
         className={cn(
-          'mx-auto mb-2 flex size-12 items-center justify-center rounded-full text-2xl leading-none',
+          'mx-auto mb-1.5 flex items-center justify-center rounded-full leading-none xl:mb-2',
+          isShowcaseCard ? 'size-12 text-2xl' : 'size-10 text-xl xl:size-12 xl:text-2xl',
           iconClassName,
         )}
         style={
@@ -74,12 +76,24 @@ export function GameCard({
         {game.emoji}
       </div>
 
-      <h3 className="min-h-10 text-sm font-bold leading-5 text-wanas-text-primary">{game.title}</h3>
-      <p className="mt-1 line-clamp-2 min-h-8 flex-1 text-xs leading-4 text-wanas-text-muted">
+      <h3
+        className={cn(
+          'font-bold leading-5 text-wanas-text-primary',
+          isShowcaseCard ? 'min-h-10 text-sm' : 'text-sm xl:min-h-10',
+        )}
+      >
+        {game.title}
+      </h3>
+      <p
+        className={cn(
+          'mt-1 line-clamp-2 flex-1 leading-4 text-wanas-text-muted',
+          isShowcaseCard ? 'min-h-8 text-xs' : 'min-h-0 text-[11px] xl:min-h-8 xl:text-xs',
+        )}
+      >
         {game.description}
       </p>
       {playerRange ? (
-        <p className="mt-2 text-[11px] font-medium text-wanas-text-subtle">{playerRange}</p>
+        <p className="mt-1.5 text-[11px] font-medium text-wanas-text-subtle xl:mt-2">{playerRange}</p>
       ) : null}
     </>
   );

@@ -8,6 +8,7 @@ import { getGameCatalogEntry } from '@/lib/public/game-catalog';
 import { mockLobbyGames } from '@/lib/lobby/mock-games';
 import { Button } from '@/components/ui/button';
 import { SystemStatus } from '@/components/ui/system-status';
+import { cn } from '@/lib/utils';
 
 export function LobbyStartGamePanel() {
   const {
@@ -95,35 +96,65 @@ export function LobbyStartGamePanel() {
 
   if (!isHost) {
     return (
-      <section className="rounded-xl border border-wanas-border bg-wanas-surface px-3 py-2.5">
+      <section className="rounded-xl border border-wanas-border bg-wanas-surface px-3 py-2">
         <SystemStatus tone="info" title="بانتظار المضيف لبدء اللعبة." />
       </section>
     );
   }
 
-  return (
-    <section className="rounded-xl border border-wanas-border bg-wanas-surface px-3 py-2.5">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="text-sm font-bold text-wanas-text-primary">بدء اللعبة</p>
-        {selectedGame ? (
-          <p className="truncate text-[11px] text-wanas-text-muted">{selectedGame.title}</p>
-        ) : (
-          <p className="text-[11px] text-wanas-text-muted">اختر لعبة من القائمة ثم ابدأ.</p>
-        )}
-      </div>
+  const startDisabled = Boolean(disabledReason) || isStarting;
+
+  function renderStartButton() {
+    return (
       <Button
         type="button"
         size="lg"
-        className="w-full"
-        disabled={Boolean(disabledReason) || isStarting}
+        className="w-full text-white"
+        disabled={startDisabled}
         loading={isStarting}
         onClick={() => void handleStartGame()}
       >
         {isStarting ? 'جاري البدء…' : 'بدء اللعبة'}
       </Button>
-      {disabledReason ? (
-        <p className="mt-1.5 text-center text-xs font-medium text-wanas-text-muted">{disabledReason}</p>
-      ) : null}
-    </section>
+    );
+  }
+
+  return (
+    <>
+      <section className="hidden rounded-xl border border-wanas-border bg-wanas-surface px-3 py-2.5 xl:block">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p className="text-sm font-bold text-wanas-text-primary">بدء اللعبة</p>
+          {selectedGame ? (
+            <p className="truncate text-[11px] text-wanas-text-muted">{selectedGame.title}</p>
+          ) : (
+            <p className="text-[11px] text-wanas-text-muted">اختر لعبة من القائمة ثم ابدأ.</p>
+          )}
+        </div>
+        {renderStartButton()}
+        {disabledReason ? (
+          <p className="mt-1.5 text-center text-xs font-medium text-wanas-text-muted">{disabledReason}</p>
+        ) : null}
+      </section>
+
+      <div
+        aria-hidden
+        className={cn(
+          'xl:hidden',
+          disabledReason
+            ? 'h-[calc(7.25rem+env(safe-area-inset-bottom,0px))]'
+            : 'h-[calc(5.5rem+env(safe-area-inset-bottom,0px))]',
+        )}
+      />
+      <div
+        data-lobby-sticky-start=""
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-wanas-border bg-wanas-surface/95 px-3 pt-2 backdrop-blur-sm xl:hidden"
+        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}
+      >
+        {renderStartButton()}
+        {disabledReason ? (
+          <p className="mt-1.5 text-center text-xs font-medium text-wanas-text-muted">{disabledReason}</p>
+        ) : null}
+      </div>
+    </>
   );
 }

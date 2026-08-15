@@ -62,7 +62,7 @@ export function CountdownScreen({
     <GameScreen
       ariaLabel="العد التنازلي قبل بدء الجولة"
       maxWidth="3xl"
-      className={cn('flex min-h-[min(62vh,560px)] flex-col', className)}
+      className={cn('flex min-h-[min(48vh,420px)] flex-col sm:min-h-[min(62vh,560px)]', className)}
     >
       <GameHeader
         gameName={gameName}
@@ -73,14 +73,14 @@ export function CountdownScreen({
         phaseLabel="العد التنازلي"
       />
 
-      <div className="flex flex-1 flex-col items-center justify-center py-6 sm:py-10">
-        <GameCard className="flex w-full max-w-md flex-col items-center px-6 py-9 text-center sm:px-10 sm:py-12">
-          <h2 className="text-2xl font-semibold text-wanas-text-primary sm:text-3xl">استعدوا</h2>
+      <div className="flex flex-1 flex-col items-center justify-center py-4 sm:py-10">
+        <GameCard className="flex w-full max-w-md flex-col items-center px-5 py-6 text-center sm:px-10 sm:py-12">
+          <h2 className="text-xl font-semibold text-wanas-text-primary sm:text-3xl">استعدوا</h2>
 
-          <div className="bara-countdown-ring relative mt-6 flex size-[9rem] items-center justify-center min-[360px]:size-[10.5rem] sm:mt-8 sm:size-[12.5rem]">
+          <div className="bara-countdown-ring relative mt-4 flex size-[8rem] items-center justify-center min-[360px]:size-[9.5rem] sm:mt-8 sm:size-[12.5rem]">
             <p
               key={currentNumber}
-              className="bara-countdown-number font-mono text-[4.75rem] leading-none font-bold tabular-nums text-wanas-primary-dark min-[360px]:text-[5.5rem] sm:text-[6.5rem]"
+              className="bara-countdown-number font-mono text-[4rem] leading-none font-bold tabular-nums text-wanas-primary-dark min-[360px]:text-[4.75rem] sm:text-[6.5rem]"
               aria-live="polite"
               aria-atomic="true"
             >
@@ -88,7 +88,7 @@ export function CountdownScreen({
             </p>
           </div>
 
-          <p className="mt-8 text-base font-medium text-wanas-text-secondary sm:mt-10 sm:text-lg">
+          <p className="mt-5 text-base font-medium text-wanas-text-secondary sm:mt-10 sm:text-lg">
             بتبدأ الجولة الآن
           </p>
         </GameCard>

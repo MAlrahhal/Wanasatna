@@ -34,7 +34,7 @@ function CategoryChip({
       aria-pressed={selected}
       onClick={onSelect}
       className={cn(
-        'inline-flex h-8 w-full items-center justify-center gap-1 rounded-lg border px-2 text-[11px] font-semibold transition-colors sm:h-9 sm:text-xs',
+        'inline-flex h-10 min-h-10 w-full items-center justify-center gap-1 rounded-lg border px-2 text-xs font-semibold transition-colors xl:h-9 xl:min-h-9 xl:text-xs',
         selected
           ? 'border-wanas-accent bg-wanas-accent text-white'
           : 'border-wanas-border-strong bg-wanas-surface text-wanas-text-primary',
@@ -116,7 +116,7 @@ export function RoundCategoryPanel({
         </div>
       </div>
 
-      <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-5">
+      <div className="mt-2 grid grid-cols-2 gap-1.5 min-[360px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-5">
         {config.categories.map((category) => (
           <CategoryChip
             key={category.id}

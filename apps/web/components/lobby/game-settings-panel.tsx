@@ -37,7 +37,7 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
     Boolean(teamSnapshot) || Boolean(selectedGame && getGameTeamCapability(selectedGame.id));
 
   return (
-    <section className="rounded-xl border border-wanas-border bg-wanas-surface px-3 py-2.5">
+    <section className="rounded-xl border border-wanas-border bg-wanas-surface px-2.5 py-2 xl:px-3 xl:py-2.5">
       <div className="mb-2 flex items-start gap-2">
         <span
           className="flex size-8 shrink-0 items-center justify-center rounded-full bg-wanas-primary-surface text-sm"

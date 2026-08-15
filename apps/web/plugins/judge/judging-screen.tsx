@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { JudgeAnonymousAnswer } from '@wanasatna/shared';
 import { GameScreen } from '@/components/game/game-card';
+import { GameMobileStickyCta, GameMobileStickyCtaSpacer } from '@/components/game/game-mobile-sticky-cta';
 import { Button } from '@/components/ui/button';
 import { JudgeAnswerCard } from './judge-answer-card';
 
@@ -32,8 +33,8 @@ export function JudgeJudgingScreen({
   return (
     <GameScreen ariaLabel="القاضي يختار" maxWidth="4xl">
       <div className="flex flex-col gap-4 sm:gap-5">
-        <div className="wanas-game-card rounded-[1.25rem] px-5 py-5 text-center sm:px-6">
-          <p className="break-words text-lg font-bold leading-snug text-wanas-text-primary sm:text-xl">
+        <div className="wanas-game-card rounded-[1.25rem] px-4 py-4 text-center sm:px-6 sm:py-5">
+          <p className="break-words text-base font-bold leading-snug text-wanas-text-primary sm:text-xl">
             {prompt}
           </p>
         </div>
@@ -56,17 +57,31 @@ export function JudgeJudgingScreen({
         </div>
 
         {canInteract && selectedAnswerId ? (
-          <div className="flex justify-center">
-            <Button
-              type="button"
-              size="lg"
-              loading={isSubmitting}
-              onClick={() => onSelectWinner(selectedAnswerId)}
-              className="min-h-12 min-w-48"
-            >
-              تأكيد الاختيار
-            </Button>
-          </div>
+          <>
+            <div className="hidden justify-center lg:flex">
+              <Button
+                type="button"
+                size="lg"
+                loading={isSubmitting}
+                onClick={() => onSelectWinner(selectedAnswerId)}
+                className="min-h-12 min-w-48"
+              >
+                تأكيد الاختيار
+              </Button>
+            </div>
+            <GameMobileStickyCtaSpacer />
+            <GameMobileStickyCta>
+              <Button
+                type="button"
+                size="lg"
+                className="w-full"
+                loading={isSubmitting}
+                onClick={() => onSelectWinner(selectedAnswerId)}
+              >
+                تأكيد الاختيار
+              </Button>
+            </GameMobileStickyCta>
+          </>
         ) : null}
 
         {actionError ? (

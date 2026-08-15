@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { GuessingChallengePlayerView } from '@wanasatna/shared';
 import { GameScreen } from '@/components/game/game-card';
+import { GameMobileStickyCta, GameMobileStickyCtaSpacer } from '@/components/game/game-mobile-sticky-cta';
 import { GameHeader } from '@/components/game/game-header';
 import { Button } from '@/components/ui/button';
+import { shouldAutofocusFormField } from '@/lib/ui/should-autofocus-form-field';
 import {
   GUESSING_CHALLENGE_GAME_ICON,
   GUESSING_CHALLENGE_GAME_NAME,
@@ -96,6 +98,7 @@ export function GuessingChallengePlayingScreen({
 
   const guessPrompt = view.mode === '2v2' ? 'ما هي هوية فريقكم؟' : 'من تعتقد أنك؟';
   const composingGuessRef = useRef(false);
+  const guessInputRef = useRef<HTMLInputElement>(null);
   const turnInstruction = view.isMyTurn
     ? view.mode === '2v2'
       ? 'اسأل الفريق الثاني سؤالاً إجابته نعم أو لا، وحاول تعرف شخصيتكم.'
@@ -110,6 +113,13 @@ export function GuessingChallengePlayingScreen({
       setGuess('');
     }
   }, [view.canGuess]);
+
+  useEffect(() => {
+    if (!showGuessForm || !view.canGuess || !shouldAutofocusFormField()) {
+      return;
+    }
+    guessInputRef.current?.focus();
+  }, [showGuessForm, view.canGuess]);
 
   function submitCurrentGuess(): void {
     if (isSubmittingAction || !view.canGuess || !guess.trim()) {
@@ -141,7 +151,7 @@ export function GuessingChallengePlayingScreen({
           </p>
         ) : null}
 
-        <div className="relative rounded-[1.5rem]">
+        <div className="relative min-w-0 overflow-x-hidden rounded-[1.5rem]">
           <GameplayScene
             mode="playing"
             matchMode={view.mode}
@@ -200,6 +210,7 @@ export function GuessingChallengePlayingScreen({
           >
             <p className="mb-3 text-sm font-semibold text-wanas-text-primary">{guessPrompt}</p>
             <input
+              ref={guessInputRef}
               value={guess}
               onChange={(event) => setGuess(event.target.value)}
               onCompositionStart={() => {
@@ -225,6 +236,7 @@ export function GuessingChallengePlayingScreen({
               <Button
                 type="submit"
                 data-testid="gc-confirm-guess"
+                className="hidden min-h-11 lg:inline-flex"
                 disabled={isSubmittingAction || !guess.trim()}
               >
                 تأكيد التخمين
@@ -232,6 +244,7 @@ export function GuessingChallengePlayingScreen({
               <Button
                 type="button"
                 variant="outline"
+                className="min-h-11"
                 disabled={isSubmittingAction}
                 onClick={() => {
                   setShowGuessForm(false);
@@ -241,10 +254,21 @@ export function GuessingChallengePlayingScreen({
                 إلغاء
               </Button>
             </div>
+            <GameMobileStickyCtaSpacer />
+            <GameMobileStickyCta>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={isSubmittingAction || !guess.trim()}
+              >
+                تأكيد التخمين
+              </Button>
+            </GameMobileStickyCta>
           </form>
         ) : null}
 
-        {view.isMyTurn ? (
+        {view.isMyTurn && !showGuessForm ? (
           <div className="flex flex-col gap-2 sm:gap-3" data-testid="gc-primary-actions">
             <Button
               type="button"

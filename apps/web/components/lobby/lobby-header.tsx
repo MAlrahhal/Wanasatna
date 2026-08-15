@@ -74,8 +74,16 @@ export function LobbyHeader({
     });
   }
 
+  const mobileActionClassName = 'h-11 min-h-11 w-full xl:h-9 xl:min-h-9 xl:w-auto';
+
   const leaveControl = (
-    <Button type="button" variant="destructive" size="sm" onClick={() => setLeaveOpen(true)}>
+    <Button
+      type="button"
+      variant="destructive"
+      size="sm"
+      className={mobileActionClassName}
+      onClick={() => setLeaveOpen(true)}
+    >
       مغادرة الغرفة
     </Button>
   );
@@ -100,7 +108,7 @@ export function LobbyHeader({
   if (!showInvitationDetails) {
     return (
       <header className="wanas-panel">
-        <div className="flex items-center justify-end gap-2 p-3 sm:p-4">{leaveControl}</div>
+        <div className="flex items-center justify-end gap-2 p-2.5 xl:p-4">{leaveControl}</div>
         {leaveDialog}
       </header>
     );
@@ -108,12 +116,12 @@ export function LobbyHeader({
 
   return (
     <header className="wanas-panel">
-      <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-4">
-        <div className="flex items-start justify-between gap-3 sm:order-2">
+      <div className="flex flex-col gap-2.5 p-2.5 xl:flex-row xl:items-center xl:justify-between xl:gap-4 xl:p-4">
+        <div className="flex items-center justify-between gap-3 xl:order-2">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <div className="rounded-xl border border-wanas-border bg-wanas-surface-soft px-3 py-2">
+            <div className="min-w-0 rounded-xl border border-wanas-border bg-wanas-surface-soft px-2.5 py-1.5 xl:px-3 xl:py-2">
               <p className="text-[11px] font-medium text-wanas-text-muted">رمز الغرفة</p>
-              <p dir="ltr" className="mt-0.5 font-mono text-xl font-bold tracking-[0.2em] text-wanas-text-primary sm:text-2xl">
+              <p dir="ltr" className="mt-0.5 font-mono text-lg font-bold tracking-[0.18em] text-wanas-text-primary xl:text-2xl xl:tracking-[0.2em]">
                 {roomCode}
               </p>
             </div>
@@ -138,7 +146,7 @@ export function LobbyHeader({
             type="button"
             variant="outline"
             size="sm"
-            className="size-9 min-h-9 px-0 sm:hidden"
+            className="size-11 min-h-11 px-0 xl:hidden"
             aria-expanded={menuOpen}
             aria-controls="lobby-header-menu"
             aria-label={menuOpen ? 'إغلاق قائمة الغرفة' : 'فتح قائمة الغرفة'}
@@ -151,22 +159,35 @@ export function LobbyHeader({
         <div
           id="lobby-header-menu"
           className={cn(
-            'flex flex-col gap-2 sm:order-1 sm:flex-row sm:flex-wrap sm:items-center',
-            menuOpen ? 'flex' : 'hidden sm:flex',
+            'flex flex-col gap-2 xl:order-1 xl:flex-row xl:flex-wrap xl:items-center',
+            menuOpen ? 'flex' : 'hidden xl:flex',
           )}
         >
-          <Button type="button" variant="outline" size="sm" onClick={() => void handleCopyCode()} aria-live="polite">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={mobileActionClassName}
+            onClick={() => void handleCopyCode()}
+            aria-live="polite"
+          >
             {copied ? 'تم النسخ' : 'نسخ الرمز'}
           </Button>
-          <Button type="button" variant="outline" size="sm" onClick={() => void handleCopyRoomLink()}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={mobileActionClassName}
+            onClick={() => void handleCopyRoomLink()}
+          >
             {shareMessage === SYSTEM_COPY.copiedLink ? 'تم نسخ الرابط' : 'مشاركة الغرفة'}
           </Button>
           {isLocked ? (
-            <Button type="button" variant="outline" size="sm" onClick={onUnlockRoom}>
+            <Button type="button" variant="outline" size="sm" className={mobileActionClassName} onClick={onUnlockRoom}>
               فتح الغرفة
             </Button>
           ) : (
-            <Button type="button" variant="outline" size="sm" onClick={onLockRoom}>
+            <Button type="button" variant="outline" size="sm" className={mobileActionClassName} onClick={onLockRoom}>
               قفل الغرفة
             </Button>
           )}

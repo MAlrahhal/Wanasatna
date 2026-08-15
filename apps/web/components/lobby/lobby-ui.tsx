@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 type LobbyPanelProps = {
   title: string;
-  description?: string;
+  description?: ReactNode;
   action?: ReactNode;
   children: ReactNode;
   className?: string;

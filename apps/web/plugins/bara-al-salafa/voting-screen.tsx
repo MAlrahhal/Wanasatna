@@ -95,7 +95,7 @@ function VotablePlayerCard({
       type="button"
       onClick={() => onSelect?.(player.id)}
       className={cn(
-        'flex min-h-[80px] w-full items-center gap-3.5 rounded-[22px] border-2 px-4 py-4 text-start transition-all duration-200',
+        'flex min-h-14 w-full items-center gap-3 rounded-[18px] border-2 px-3 py-2.5 text-start transition-all duration-200 sm:min-h-[80px] sm:gap-3.5 sm:rounded-[22px] sm:px-4 sm:py-4',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/45 focus-visible:ring-offset-2',
         'active:scale-[0.99]',
         selected
@@ -127,7 +127,7 @@ function ConfirmedVoteCard({ player }: { player: LobbyPlayer }) {
   const avatarColors = getPlayerAvatarColors(player.id);
 
   return (
-    <div className="flex min-h-[80px] items-center gap-3.5 rounded-[22px] border border-wanas-success-border bg-[color:var(--wanas-game-card)] px-4 py-4 shadow-sm">
+    <div className="flex min-h-14 items-center gap-3 rounded-[18px] border border-wanas-success-border bg-[color:var(--wanas-game-card)] px-3 py-2.5 shadow-sm sm:min-h-[80px] sm:gap-3.5 sm:rounded-[22px] sm:px-4 sm:py-4">
       <div
         className="flex size-12 shrink-0 items-center justify-center rounded-full text-sm font-semibold ring-2 ring-[color:var(--wanas-game-card-border)]"
         style={{ backgroundColor: avatarColors.bg, color: avatarColors.text }}
@@ -158,7 +158,7 @@ function VotingQuestionHero({
 }) {
   return (
     <div className="text-center">
-      <h2 className="text-2xl font-semibold text-wanas-text-primary sm:text-3xl">{questionTitle}</h2>
+      <h2 className="text-xl font-semibold text-wanas-text-primary sm:text-3xl">{questionTitle}</h2>
       {questionHelper ? (
         <p className="mx-auto mt-3 max-w-md wanas-game-helper">{questionHelper}</p>
       ) : null}
@@ -250,7 +250,7 @@ function VotingConfirmedView({
 
   return (
     <div className="flex flex-col gap-6 sm:gap-7">
-      <GameCard className="border-wanas-success-border/70 bg-wanas-success-surface px-6 py-10 text-center sm:px-8 sm:py-12">
+      <GameCard className="border-wanas-success-border/70 bg-wanas-success-surface px-5 py-6 text-center sm:px-8 sm:py-12">
         <span
           className="mx-auto flex size-12 items-center justify-center rounded-full bg-wanas-success/15 text-xl text-wanas-success-dark"
           aria-hidden

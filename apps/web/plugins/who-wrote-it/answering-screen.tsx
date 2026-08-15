@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { WHO_WROTE_IT_MAX_ANSWER_LENGTH } from '@wanasatna/shared';
 import { GameScreen } from '@/components/game/game-card';
+import { GameMobileStickyCta, GameMobileStickyCtaSpacer } from '@/components/game/game-mobile-sticky-cta';
 import { Button } from '@/components/ui/button';
+import { shouldAutofocusFormField } from '@/lib/ui/should-autofocus-form-field';
 import { cn } from '@/lib/utils';
 
 export type WhoWroteItAnsweringScreenProps = {
@@ -33,7 +35,7 @@ export function WhoWroteItAnsweringScreen({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (canSubmit) {
+    if (canSubmit && shouldAutofocusFormField()) {
       textareaRef.current?.focus();
     }
   }, [canSubmit, question]);
@@ -50,8 +52,8 @@ export function WhoWroteItAnsweringScreen({
   return (
     <GameScreen ariaLabel="أجب على السؤال" maxWidth="3xl">
       <div className="flex flex-col gap-5 sm:gap-6">
-        <div className="wanas-game-card rounded-[1.75rem] px-5 py-8 text-center sm:px-8 sm:py-10">
-          <p className="break-words text-2xl font-bold leading-snug tracking-tight text-wanas-text-primary min-[360px]:text-3xl sm:text-4xl">
+        <div className="wanas-game-card rounded-[1.5rem] px-4 py-5 text-center sm:rounded-[1.75rem] sm:px-8 sm:py-10">
+          <p className="break-words text-xl font-bold leading-snug tracking-tight text-wanas-text-primary min-[360px]:text-2xl sm:text-4xl">
             {question}
           </p>
         </div>
@@ -81,22 +83,23 @@ export function WhoWroteItAnsweringScreen({
               value={answer}
               maxLength={WHO_WROTE_IT_MAX_ANSWER_LENGTH}
               disabled={!canSubmit || isSubmitting}
-              rows={4}
+              rows={3}
               onChange={(event) => setAnswer(event.target.value)}
               placeholder="اكتب إجابتك هنا..."
               className={cn(
-                'min-h-24 w-full resize-none rounded-xl border border-wanas-border bg-wanas-surface px-4 py-3',
+                'min-h-20 w-full resize-none rounded-xl border border-wanas-border bg-wanas-surface px-4 py-3',
                 'text-base text-wanas-text-primary placeholder:text-wanas-text-muted',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/40',
               )}
             />
             <div className="flex items-center justify-between gap-3">
-              <p className="text-xs tabular-nums text-wanas-text-muted">
+              <p className="text-xs tabular-nums text-wanas-text-muted sm:text-sm">
                 {answer.trim().length} / {WHO_WROTE_IT_MAX_ANSWER_LENGTH}
               </p>
               <Button
                 type="submit"
                 size="lg"
+                className="hidden lg:inline-flex"
                 loading={isSubmitting}
                 disabled={!answer.trim() || !canSubmit}
               >
@@ -104,6 +107,18 @@ export function WhoWroteItAnsweringScreen({
               </Button>
             </div>
             {actionError ? <p className="text-sm text-destructive">{actionError}</p> : null}
+            <GameMobileStickyCtaSpacer />
+            <GameMobileStickyCta>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                loading={isSubmitting}
+                disabled={!answer.trim() || !canSubmit}
+              >
+                إرسال الإجابة
+              </Button>
+            </GameMobileStickyCta>
           </form>
         )}
       </div>

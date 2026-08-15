@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { JUDGE_MAX_ANSWER_LENGTH } from '@wanasatna/shared';
 import { GameScreen } from '@/components/game/game-card';
+import { GameMobileStickyCta, GameMobileStickyCtaSpacer } from '@/components/game/game-mobile-sticky-cta';
 import { Button } from '@/components/ui/button';
+import { shouldAutofocusFormField } from '@/lib/ui/should-autofocus-form-field';
 import { cn } from '@/lib/utils';
 
 export type JudgeAnsweringScreenProps = {
@@ -35,7 +37,7 @@ export function JudgeAnsweringScreen({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (canSubmit) {
+    if (canSubmit && shouldAutofocusFormField()) {
       textareaRef.current?.focus();
     }
   }, [canSubmit, prompt]);
@@ -52,8 +54,8 @@ export function JudgeAnsweringScreen({
   return (
     <GameScreen ariaLabel="أجب على السؤال" maxWidth="3xl">
       <div className="flex flex-col gap-5 sm:gap-6">
-        <div className="wanas-game-card rounded-[1.5rem] px-5 py-7 text-center sm:px-8 sm:py-8">
-          <p className="break-words text-xl font-bold leading-snug tracking-tight text-wanas-text-primary min-[360px]:text-2xl sm:text-3xl">
+        <div className="wanas-game-card rounded-[1.25rem] px-4 py-4 text-center sm:rounded-[1.5rem] sm:px-8 sm:py-8">
+          <p className="break-words text-lg font-bold leading-snug tracking-tight text-wanas-text-primary min-[360px]:text-xl sm:text-3xl">
             {prompt}
           </p>
         </div>
@@ -97,22 +99,23 @@ export function JudgeAnsweringScreen({
               value={answer}
               maxLength={JUDGE_MAX_ANSWER_LENGTH}
               disabled={!canSubmit || isSubmitting}
-              rows={4}
+              rows={3}
               onChange={(event) => setAnswer(event.target.value)}
               placeholder="اكتب إجابتك هنا..."
               className={cn(
-                'min-h-28 w-full resize-none rounded-xl border border-wanas-border bg-wanas-surface px-4 py-3',
+                'min-h-20 w-full resize-none rounded-xl border border-wanas-border bg-wanas-surface px-4 py-3',
                 'text-base text-wanas-text-primary placeholder:text-wanas-text-muted',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/40',
               )}
             />
             <div className="flex items-center justify-between gap-3">
-              <p className="text-xs tabular-nums text-wanas-text-muted">
+              <p className="text-xs tabular-nums text-wanas-text-muted sm:text-sm">
                 {answer.trim().length} / {JUDGE_MAX_ANSWER_LENGTH}
               </p>
               <Button
                 type="submit"
                 size="lg"
+                className="hidden lg:inline-flex"
                 loading={isSubmitting}
                 disabled={!answer.trim() || !canSubmit}
               >
@@ -120,6 +123,18 @@ export function JudgeAnsweringScreen({
               </Button>
             </div>
             {actionError ? <p className="text-sm text-destructive">{actionError}</p> : null}
+            <GameMobileStickyCtaSpacer />
+            <GameMobileStickyCta>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                loading={isSubmitting}
+                disabled={!answer.trim() || !canSubmit}
+              >
+                إرسال الإجابة
+              </Button>
+            </GameMobileStickyCta>
           </form>
         )}
       </div>

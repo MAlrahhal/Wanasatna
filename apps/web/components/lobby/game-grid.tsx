@@ -21,9 +21,10 @@ export function GameGrid({ games, selectedGameId, canSelect, onSelectGame }: Gam
           ? 'اختر لعبة لعرض إعداداتها وبدء الوناسة.'
           : 'اختيار اللعبة متاح للمضيف فقط. بانتظار المضيف.'
       }
-      bodyClassName="gap-3 p-3"
+      headerClassName="px-3 py-2.5 xl:px-4 xl:py-3"
+      bodyClassName="gap-2.5 p-2.5 xl:gap-3 xl:p-3"
     >
-      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 min-[360px]:grid-cols-2 xl:grid-cols-3">
         {gridGames.map((game) => {
           const entry = getGameCatalogEntry(game.id);
 

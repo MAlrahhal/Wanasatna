@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { GameScreen } from '@/components/game/game-card';
+import { GameMobileStickyCta, GameMobileStickyCtaSpacer } from '@/components/game/game-mobile-sticky-cta';
 import { Button } from '@/components/ui/button';
+import { shouldAutofocusFormField } from '@/lib/ui/should-autofocus-form-field';
 import { cn } from '@/lib/utils';
 
 export type FastAnswerQuestionScreenProps = {
@@ -26,7 +28,9 @@ export function FastAnswerQuestionScreen({
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    inputRef.current?.focus();
+    if (shouldAutofocusFormField()) {
+      inputRef.current?.focus();
+    }
   }, [question]);
 
   function handleSubmit(event: FormEvent) {
@@ -45,8 +49,8 @@ export function FastAnswerQuestionScreen({
   return (
     <GameScreen ariaLabel="سؤال أسرع إجابة" maxWidth="3xl">
       <div className="flex flex-col gap-5 sm:gap-6">
-        <div className="wanas-game-card rounded-[2rem] px-5 py-8 text-center sm:px-8 sm:py-10">
-          <p className="break-words text-2xl font-bold leading-snug tracking-tight text-wanas-text-primary min-[360px]:text-3xl sm:text-4xl">
+        <div className="wanas-game-card rounded-[1.5rem] px-4 py-5 text-center sm:rounded-[2rem] sm:px-8 sm:py-10">
+          <p className="break-words text-xl font-bold leading-snug tracking-tight text-wanas-text-primary min-[360px]:text-2xl sm:text-4xl">
             {question}
           </p>
         </div>
@@ -81,7 +85,7 @@ export function FastAnswerQuestionScreen({
                 size="md"
                 disabled={!canSubmit || isSubmitting || answer.trim().length === 0}
                 loading={isSubmitting}
-                className="sm:min-w-28"
+                className="hidden min-h-11 sm:min-w-28 lg:inline-flex"
               >
                 إرسال
               </Button>
@@ -90,6 +94,18 @@ export function FastAnswerQuestionScreen({
               <p className="text-sm text-destructive">{incorrectFeedback}</p>
             ) : null}
             {actionError ? <p className="text-sm text-destructive">{actionError}</p> : null}
+            <GameMobileStickyCtaSpacer />
+            <GameMobileStickyCta>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={!canSubmit || isSubmitting || answer.trim().length === 0}
+                loading={isSubmitting}
+              >
+                إرسال
+              </Button>
+            </GameMobileStickyCta>
           </form>
         ) : null}
       </div>

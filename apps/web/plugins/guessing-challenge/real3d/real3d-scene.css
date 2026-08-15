@@ -17,9 +17,30 @@
   width: 100%;
 }
 
+@media (max-width: 1023px) {
+  .gc-real3d-canvas-shell {
+    height: min(42dvh, 320px);
+    min-height: 180px;
+  }
+}
+
 @media (max-width: 639px) {
   .gc-real3d-canvas-shell {
-    height: min(48vh, 360px);
-    min-height: 220px;
+    height: min(36dvh, 260px);
+    min-height: 168px;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .gc-real3d-canvas-shell {
+    height: min(46dvh, 200px);
+    min-height: 132px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .gc-results-scene .gc-real3d-canvas-shell {
+    height: min(28dvh, 200px);
+    min-height: 140px;
   }
 }

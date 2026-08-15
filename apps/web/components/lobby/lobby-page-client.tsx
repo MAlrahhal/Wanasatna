@@ -8,9 +8,13 @@ import { LobbyScreen } from '@/components/lobby/lobby-screen';
 export function LobbyPageClient() {
   return (
     <RoomNavigationGuardProvider>
-      <PublicNavbar />
+      <div className="hidden xl:block">
+        <PublicNavbar />
+      </div>
       <LobbyScreen />
-      <PublicFooter />
+      <div className="hidden xl:block">
+        <PublicFooter />
+      </div>
     </RoomNavigationGuardProvider>
   );
 }

@@ -55,16 +55,16 @@ export function InviteJoinCard({
   actionError,
 }: InviteJoinCardProps) {
   return (
-    <main className="flex min-h-[calc(100vh-7.5rem)] items-center justify-center px-4 py-10">
+    <main className="flex items-start justify-center px-4 py-6 sm:min-h-[calc(100vh-5rem)] sm:items-center sm:py-10">
       <section id={HOME_ROOM_ACTIONS_ID} className="w-full max-w-md">
         {actionError && !isJoining ? (
           <div className="mb-4">
             <SystemStatus tone="error" {...presentRoomActionError(actionError)} />
           </div>
         ) : null}
-        <article className="wanas-panel border border-wanas-accent p-6 sm:p-8 shadow-[0_0_0_1px_rgba(0,210,255,0.25)]">
-          <div className="mb-6 flex flex-col items-center text-center">
-            <span className="mb-3 flex size-12 items-center justify-center rounded-full bg-wanas-accent/15 text-wanas-accent">
+        <article className="wanas-panel border border-wanas-accent p-4 shadow-[0_0_0_1px_rgba(0,210,255,0.25)] sm:p-8">
+          <div className="mb-4 flex flex-col items-center text-center sm:mb-6">
+            <span className="mb-2 flex size-12 items-center justify-center rounded-full bg-wanas-accent/15 text-wanas-accent sm:mb-3">
               <LinkIcon />
             </span>
             <h1 className="text-2xl font-extrabold text-wanas-text-primary">دخول الغرفة</h1>

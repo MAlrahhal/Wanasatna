@@ -35,7 +35,8 @@ export function GuessingChallengeIdentityCard({
       className={cn(
         'flex w-full flex-col justify-center rounded-2xl border text-center',
         size === 'distant' && 'min-h-[4.25rem] max-w-[13.5rem] px-3 py-3 sm:min-h-[4.75rem]',
-        size === 'foreground' && 'min-h-[5.5rem] max-w-[18rem] px-4 py-4 sm:min-h-[6.25rem] sm:px-5',
+        size === 'foreground' &&
+          'min-h-[4.5rem] max-w-[14rem] px-3 py-3 sm:min-h-[6.25rem] sm:max-w-[18rem] sm:px-5 sm:py-4',
         highlight
           ? 'border-wanas-success-border/80 bg-wanas-success-surface'
           : 'border-slate-500/40 bg-slate-900/95',

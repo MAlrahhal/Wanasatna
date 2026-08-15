@@ -47,12 +47,12 @@ export function PublicNavbar() {
         isScrolled && 'shadow-md shadow-wanas-brand-navy/20',
       )}
     >
-      <div className="mx-auto flex h-[72px] max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6 lg:h-[72px] lg:gap-4">
         <GuardedPublicLink
           href={PUBLIC_ROUTES.home}
           className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-wanas-navbar"
         >
-          <PublicBrandLogo size="sm" tone="on-dark" />
+          <PublicBrandLogo size="sm" tone="on-dark" className="gap-2 lg:gap-3" />
         </GuardedPublicLink>
 
         <nav aria-label="التنقل الرئيسي" className="hidden items-center gap-1 lg:flex">
@@ -116,7 +116,7 @@ export function PublicNavbar() {
           aria-controls="public-mobile-nav"
           aria-label={mobileOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
           onClick={() => setMobileOpen((v) => !v)}
-          className="inline-flex size-10 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-white lg:hidden"
+          className="inline-flex size-11 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-white lg:hidden"
         >
           {mobileOpen ? '✕' : '☰'}
         </button>

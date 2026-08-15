@@ -123,12 +123,12 @@ export function GuessingChallengeSpecialCardsPanel({
     detail && detailCard && mounted
       ? createPortal(
           <div
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/55 p-3"
+            className="fixed inset-0 z-[200] flex items-end justify-center bg-black/55 p-0 sm:items-center sm:p-3"
             data-testid="gc-card-detail-backdrop"
             onClick={() => setDetailCard(null)}
           >
             <div
-              className="relative z-[201] w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-2xl"
+              className="relative z-[201] max-h-[min(88dvh,100%)] w-full max-w-sm overflow-y-auto rounded-t-2xl border border-border bg-card p-5 shadow-2xl sm:rounded-2xl pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]"
               data-testid="gc-card-detail"
               data-card={detailCard}
               dir="rtl"
@@ -165,10 +165,11 @@ export function GuessingChallengeSpecialCardsPanel({
                 </div>
               ) : null}
 
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                 {detailAvailable && (detailCanUse || isReviewingTeammateRequest) ? (
                   <Button
                     type="button"
+                    className="min-h-11 w-full sm:w-auto"
                     data-testid="gc-confirm-card-use"
                     disabled={disabled || Boolean(confirmForDetail?.selfConfirmed)}
                     onClick={() => {
@@ -185,7 +186,7 @@ export function GuessingChallengeSpecialCardsPanel({
                     {isReviewingTeammateRequest ? 'موافقة' : 'استخدام البطاقة'}
                   </Button>
                 ) : (
-                  <Button type="button" disabled data-testid="gc-confirm-card-use">
+                  <Button type="button" className="min-h-11 w-full sm:w-auto" disabled data-testid="gc-confirm-card-use">
                     {detailAvailable ? 'ليست دور فريقكم' : 'تم الاستخدام'}
                   </Button>
                 )}
@@ -193,6 +194,7 @@ export function GuessingChallengeSpecialCardsPanel({
                   <Button
                     type="button"
                     variant="danger"
+                    className="min-h-11 w-full sm:w-auto"
                     data-testid="gc-reject-card-use"
                     disabled={disabled}
                     onClick={() => {
@@ -206,6 +208,7 @@ export function GuessingChallengeSpecialCardsPanel({
                 <Button
                   type="button"
                   variant="outline"
+                  className="min-h-11 w-full sm:w-auto"
                   data-testid="gc-close-card-detail"
                   onClick={() => setDetailCard(null)}
                 >
@@ -221,7 +224,7 @@ export function GuessingChallengeSpecialCardsPanel({
   return (
     <div className={cn('pointer-events-none', className)}>
       <div
-        className="pointer-events-auto absolute inset-x-2 top-[18%] flex items-start justify-between gap-3 sm:inset-x-5 sm:top-[20%] md:top-[22%]"
+        className="pointer-events-none absolute inset-x-2 top-[18%] flex items-start justify-between gap-3 sm:inset-x-5 sm:top-[20%] md:top-[22%]"
         data-testid="gc-special-cards-panel"
       >
         <PhysicalMiniCard
@@ -238,10 +241,10 @@ export function GuessingChallengeSpecialCardsPanel({
 
       {teammateRequest ? (
         <div
-          className="pointer-events-auto absolute inset-x-2 top-2 z-20 sm:inset-x-4"
+          className="pointer-events-none absolute inset-x-2 top-2 z-20 sm:inset-x-4"
           data-testid="gc-teammate-card-request"
         >
-          <div className="rounded-xl border border-amber-300/50 bg-slate-950/90 px-3 py-2.5 shadow-lg backdrop-blur-sm">
+          <div className="pointer-events-auto rounded-xl border border-amber-300/50 bg-slate-950/90 px-3 py-2.5 shadow-lg backdrop-blur-sm">
             <p className="text-sm font-bold text-amber-100">
               {teammateRequest.requestingPlayerName} يريد استخدام{' '}
               {teammateRequest.card === 'yellow' ? 'البطاقة الصفراء' : 'البطاقة الحمراء'}
@@ -253,7 +256,7 @@ export function GuessingChallengeSpecialCardsPanel({
             <Button
               type="button"
               size="sm"
-              className="mt-2"
+              className="mt-2 min-h-11"
               data-testid="gc-review-card-request"
               onClick={() => setDetailCard(teammateRequest.card)}
             >
@@ -311,7 +314,7 @@ function PhysicalMiniCard({
       data-available={available ? 'true' : 'false'}
       data-compact="true"
       className={cn(
-        'flex h-[4.8rem] w-[3.4rem] flex-col items-center justify-center rounded-xl border-2 px-1 py-1.5 text-center shadow-[0_12px_22px_rgba(0,0,0,0.4)] transition-transform sm:h-[5.2rem] sm:w-[3.75rem]',
+        'pointer-events-auto flex h-[4.25rem] w-[3.1rem] flex-col items-center justify-center rounded-xl border-2 px-1 py-1.5 text-center shadow-[0_12px_22px_rgba(0,0,0,0.4)] transition-transform sm:h-[5.2rem] sm:w-[3.75rem]',
         'hover:-translate-y-0.5 active:translate-y-0',
         variant === 'yellow' &&
           'border-amber-200 bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 text-amber-950',
@@ -323,10 +326,10 @@ function PhysicalMiniCard({
       <span className="text-lg leading-none sm:text-xl" aria-hidden>
         {copy.icon}
       </span>
-      <span className="mt-1 text-[0.62rem] font-extrabold leading-tight sm:text-[0.68rem]">
+      <span className="mt-1 text-[0.7rem] font-extrabold leading-4 sm:text-[0.68rem]">
         {copy.shortName}
       </span>
-      <span className="mt-0.5 text-[0.55rem] font-semibold opacity-90">
+      <span className="mt-0.5 text-[0.7rem] font-semibold leading-4 opacity-90">
         {used ? 'تم الاستخدام' : 'متاحة'}
       </span>
     </button>

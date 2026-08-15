@@ -61,37 +61,39 @@ export function DrawingTurnsScreen({
         timer={{ remainingSeconds, format: 'seconds', lowTimeThreshold: 3 }}
       />
 
-      <div className="flex flex-col gap-4 sm:gap-5">
+      <div className="flex flex-col gap-3 sm:gap-5">
         {isSpectator ? <SpectatorNotice /> : null}
-        <GameCard className="px-5 py-4 text-center sm:px-8">
+        <GameCard className="px-4 py-2.5 text-center sm:px-8 sm:py-4">
           <p className="text-xs font-medium text-wanas-text-muted">دور</p>
-          <p className="mt-1 text-2xl font-bold text-wanas-text-primary sm:text-3xl">
+          <p className="mt-1 text-xl font-bold text-wanas-text-primary sm:text-3xl">
             {currentDrawerName ?? 'لاعب'}
           </p>
         </GameCard>
 
-        <DrawingCanvas
-          strokes={strokes}
-          readOnly={!canDraw}
-          tool={tool}
-          color={color}
-          size={size}
-          onStrokeStart={canDraw && onEmitStroke ? onEmitStroke : undefined}
-          onStrokePoints={canDraw && onEmitStrokePoints ? onEmitStrokePoints : undefined}
-          onStrokeEnd={canDraw && onEmitStroke ? onEmitStroke : undefined}
-        />
-
-        {canDraw ? (
-          <DrawingToolbar
+        <div className="flex flex-col gap-2">
+          <DrawingCanvas
+            strokes={strokes}
+            readOnly={!canDraw}
             tool={tool}
             color={color}
             size={size}
-            onToolChange={setTool}
-            onColorChange={setColor}
-            onSizeChange={setSize}
-            onUndo={onUndo}
+            onStrokeStart={canDraw && onEmitStroke ? onEmitStroke : undefined}
+            onStrokePoints={canDraw && onEmitStrokePoints ? onEmitStrokePoints : undefined}
+            onStrokeEnd={canDraw && onEmitStroke ? onEmitStroke : undefined}
           />
-        ) : null}
+
+          {canDraw ? (
+            <DrawingToolbar
+              tool={tool}
+              color={color}
+              size={size}
+              onToolChange={setTool}
+              onColorChange={setColor}
+              onSizeChange={setSize}
+              onUndo={onUndo}
+            />
+          ) : null}
+        </div>
 
         {actionError ? (
           <p className="text-center text-sm text-destructive" role="alert">

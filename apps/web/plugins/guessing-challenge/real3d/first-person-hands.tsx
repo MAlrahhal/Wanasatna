@@ -28,8 +28,9 @@ export function FirstPersonHands({
   reduceMotion = false,
 }: FirstPersonHandsProps) {
   const group = useRef<THREE.Group>(null);
-  const { camera } = useThree();
+  const { camera, size } = useThree();
   const bob = useRef(0);
+  const compactHud = size.height > 0 && size.height < 360;
 
   useFrame((_, delta) => {
     if (!group.current) return;
@@ -47,7 +48,11 @@ export function FirstPersonHands({
   return (
     <group ref={group}>
       {/* Local space in front of camera — slightly lower so it does not dominate */}
-      <group position={[0, -0.48, -0.9]} rotation={[-0.12, 0, 0]}>
+      <group
+        position={compactHud ? [0, -0.22, -1.22] : [0, -0.48, -0.9]}
+        rotation={[-0.12, 0, 0]}
+        scale={compactHud ? 0.62 : 1}
+      >
         {/* Left sleeve + glove */}
         <group position={[0.28, -0.02, 0.05]} rotation={[0.35, 0.25, 0.45]}>
           <mesh position={[0, 0, -0.12]} castShadow>

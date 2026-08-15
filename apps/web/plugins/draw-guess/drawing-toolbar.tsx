@@ -55,15 +55,16 @@ export function DrawingToolbar({
   return (
     <div
       className={cn(
-        'wanas-game-card flex flex-col gap-3 rounded-[1.25rem] p-3 sm:gap-4 sm:p-5',
+        'wanas-game-card flex flex-col gap-2 rounded-[1.25rem] p-2 sm:gap-3 sm:p-5',
         className,
       )}
     >
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           type="button"
           size="sm"
           variant={tool === 'draw' ? 'primary' : 'outline'}
+          className="min-h-11 lg:min-h-9"
           disabled={disabled}
           onClick={() => onToolChange('draw')}
         >
@@ -73,6 +74,7 @@ export function DrawingToolbar({
           type="button"
           size="sm"
           variant={tool === 'erase' ? 'primary' : 'outline'}
+          className="min-h-11 lg:min-h-9"
           disabled={disabled}
           onClick={() => onToolChange('erase')}
         >
@@ -83,6 +85,7 @@ export function DrawingToolbar({
             type="button"
             size="sm"
             variant="outline"
+            className="min-h-11 lg:min-h-9"
             disabled={disabled}
             loading={isUndoing}
             onClick={onUndo}
@@ -90,66 +93,60 @@ export function DrawingToolbar({
             تراجع
           </Button>
         ) : null}
+        {BRUSH_SIZES.map((brushSize) => (
+          <Button
+            key={brushSize}
+            type="button"
+            size="sm"
+            variant={size === brushSize ? 'primary' : 'outline'}
+            className="min-h-11 min-w-11 lg:min-h-9"
+            disabled={disabled}
+            aria-label={`حجم الفرشاة ${brushSize}`}
+            aria-pressed={size === brushSize}
+            onClick={() => onSizeChange(brushSize)}
+          >
+            {brushSize}
+          </Button>
+        ))}
         {onClear ? (
           <Button
             type="button"
             size="sm"
             variant="danger"
+            className="ms-auto min-h-11 lg:min-h-9"
             disabled={disabled}
             loading={isClearing}
             onClick={onClear}
-            className="ms-auto"
           >
             مسح اللوحة
           </Button>
         ) : null}
       </div>
 
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-wanas-text-muted">الألوان</p>
-        <div className="flex flex-wrap gap-2">
-          {PRESET_COLORS.map((preset) => {
-            const selected = color.toLowerCase() === preset.value.toLowerCase();
+      <div className="flex gap-2 overflow-x-auto overscroll-x-contain pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
+        {PRESET_COLORS.map((preset) => {
+          const selected = color.toLowerCase() === preset.value.toLowerCase();
 
-            return (
-              <button
-                key={preset.id}
-                type="button"
-                disabled={disabled || tool === 'erase'}
-                aria-label={preset.label}
-                aria-pressed={selected}
-                onClick={() => onColorChange(preset.value)}
-                className={cn(
-                  'size-9 shrink-0 rounded-full border-2 transition-transform sm:size-10',
-                  selected
-                    ? 'scale-110 border-wanas-accent ring-2 ring-wanas-accent/30'
-                    : 'border-[color:var(--wanas-game-card-border)]',
-                  preset.value.toLowerCase() === '#ffffff' && 'shadow-inner',
-                  (disabled || tool === 'erase') && 'opacity-50',
-                )}
-                style={{ backgroundColor: preset.value }}
-              />
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-wanas-text-muted">حجم الفرشاة</p>
-        <div className="flex flex-wrap gap-2">
-          {BRUSH_SIZES.map((brushSize) => (
-            <Button
-              key={brushSize}
+          return (
+            <button
+              key={preset.id}
               type="button"
-              size="sm"
-              variant={size === brushSize ? 'primary' : 'outline'}
-              disabled={disabled}
-              onClick={() => onSizeChange(brushSize)}
-            >
-              {brushSize}
-            </Button>
-          ))}
-        </div>
+              disabled={disabled || tool === 'erase'}
+              aria-label={preset.label}
+              aria-pressed={selected}
+              onClick={() => onColorChange(preset.value)}
+              className={cn(
+                'size-11 shrink-0 rounded-full border-2 transition-transform sm:size-10',
+                selected
+                  ? 'scale-110 border-wanas-accent ring-2 ring-wanas-accent/30'
+                  : 'border-[color:var(--wanas-game-card-border)]',
+                preset.value.toLowerCase() === '#ffffff' && 'shadow-inner',
+                (disabled || tool === 'erase') && 'opacity-50',
+              )}
+              style={{ backgroundColor: preset.value }}
+            />
+          );
+        })}
       </div>
     </div>
   );

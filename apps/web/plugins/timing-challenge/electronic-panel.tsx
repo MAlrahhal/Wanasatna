@@ -48,7 +48,7 @@ export function DigitalTimerDisplay({
       ) : null}
       <div
         className={cn(
-          'inline-flex min-w-[12.5rem] items-center justify-center rounded-xl border border-wanas-border px-4 py-3 sm:min-w-[14rem] sm:px-5',
+          'inline-flex w-full max-w-[12.5rem] min-w-0 items-center justify-center rounded-xl border border-wanas-border px-3 py-3 sm:min-w-[14rem] sm:max-w-none sm:px-5',
           'bg-[#0a0a16]',
           running && 'border-wanas-accent/40',
         )}
@@ -56,7 +56,7 @@ export function DigitalTimerDisplay({
       >
         <span
           className={cn(
-            'font-mono text-[1.75rem] font-bold tabular-nums tracking-[0.08em] text-wanas-accent sm:text-[2.15rem]',
+            'font-mono text-[1.5rem] font-bold tabular-nums tracking-[0.08em] text-wanas-accent sm:text-[2.15rem]',
             value.includes('-') && 'text-wanas-text-muted',
           )}
           aria-hidden={value.includes('-') ? true : undefined}

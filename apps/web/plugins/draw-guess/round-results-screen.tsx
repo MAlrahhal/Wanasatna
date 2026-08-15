@@ -153,13 +153,13 @@ export function DrawGuessRoundResultsScreen({
 
                   <div className="flex shrink-0 items-center gap-2 text-end sm:gap-3">
                     <div>
-                      <p className="text-[10px] font-medium text-wanas-text-muted">الجولة</p>
+                      <p className="text-xs font-medium text-wanas-text-muted">الجولة</p>
                       <p className="font-mono text-sm font-bold tabular-nums text-wanas-success-dark">
                         +{player.roundPoints}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-medium text-wanas-text-muted">المجموع</p>
+                      <p className="text-xs font-medium text-wanas-text-muted">المجموع</p>
                       <p className="font-mono text-sm font-bold tabular-nums text-wanas-text-primary">
                         {player.totalPoints}
                       </p>

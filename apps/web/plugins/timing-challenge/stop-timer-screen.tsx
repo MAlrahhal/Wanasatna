@@ -80,7 +80,7 @@ export function StopTimerScreen({
 
   return (
     <div className="space-y-4">
-      <ElectronicPanel ariaLabel="أوقف الوقت" className="min-h-[280px]">
+      <ElectronicPanel ariaLabel="أوقف الوقت" className="min-h-0 sm:min-h-[280px]">
         <DigitalTimerDisplay
           value={formatDigitalTimer(targetMs)}
           label="الوقت المطلوب"

@@ -28,7 +28,7 @@ export function PlayerCard({
   return (
     <div
       className={cn(
-        'flex items-center gap-2.5 rounded-lg border px-2.5 py-2',
+        'flex items-center gap-2.5 rounded-lg border px-2.5 py-1.5 xl:py-2',
         isCurrentPlayer
           ? 'border-wanas-accent/35 bg-wanas-accent/8'
           : 'border-wanas-border bg-wanas-surface-soft',
@@ -99,6 +99,7 @@ export function PlayerCard({
           type="button"
           variant="destructive"
           size="sm"
+          className="h-11 min-h-11 xl:h-9 xl:min-h-9"
           aria-label={`طرد ${player.name}`}
           onClick={() => onKick?.(player.id)}
         >

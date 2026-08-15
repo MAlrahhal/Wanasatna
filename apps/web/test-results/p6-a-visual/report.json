@@ -1,0 +1,387 @@
+[
+  {
+    "name": "home-320",
+    "viewport": "320x700",
+    "url": "http://localhost:3000/",
+    "scrollW": 320,
+    "clientW": 320,
+    "overflow": false,
+    "overflowing": [
+      {
+        "tag": "DIV",
+        "cls": "pointer-events-none absolute -start-6 top-8 text-white/15",
+        "left": 280,
+        "right": 344
+      },
+      {
+        "tag": "svg",
+        "cls": "[object SVGAnimatedString]",
+        "left": 280,
+        "right": 344
+      },
+      {
+        "tag": "path",
+        "cls": "[object SVGAnimatedString]",
+        "left": 296,
+        "right": 328
+      },
+      {
+        "tag": "path",
+        "cls": "[object SVGAnimatedString]",
+        "left": 301,
+        "right": 323
+      }
+    ],
+    "hamburgerCount": 1,
+    "hamburgerLabels": [
+      "فتح القائمة"
+    ],
+    "footerVisible": true,
+    "tabs": [],
+    "catalogCols": null,
+    "stickyVisible": false,
+    "headerH": 57,
+    "waitingHost": false,
+    "startCta": false,
+    "desktopGridPresent": false
+  },
+  {
+    "name": "home-390",
+    "viewport": "390x844",
+    "url": "http://localhost:3000/",
+    "scrollW": 390,
+    "clientW": 390,
+    "overflow": false,
+    "overflowing": [
+      {
+        "tag": "DIV",
+        "cls": "pointer-events-none absolute -start-6 top-8 text-white/15",
+        "left": 350,
+        "right": 414
+      },
+      {
+        "tag": "svg",
+        "cls": "[object SVGAnimatedString]",
+        "left": 350,
+        "right": 414
+      },
+      {
+        "tag": "path",
+        "cls": "[object SVGAnimatedString]",
+        "left": 366,
+        "right": 398
+      },
+      {
+        "tag": "path",
+        "cls": "[object SVGAnimatedString]",
+        "left": 371,
+        "right": 393
+      }
+    ],
+    "hamburgerCount": 1,
+    "hamburgerLabels": [
+      "فتح القائمة"
+    ],
+    "footerVisible": true,
+    "tabs": [],
+    "catalogCols": null,
+    "stickyVisible": false,
+    "headerH": 57,
+    "waitingHost": false,
+    "startCta": false,
+    "desktopGridPresent": false
+  },
+  {
+    "name": "invite-320",
+    "viewport": "320x700",
+    "url": "http://localhost:3000/?code=123456",
+    "scrollW": 320,
+    "clientW": 320,
+    "overflow": false,
+    "overflowing": [],
+    "hamburgerCount": 1,
+    "hamburgerLabels": [
+      "فتح القائمة"
+    ],
+    "footerVisible": false,
+    "tabs": [],
+    "catalogCols": null,
+    "stickyVisible": false,
+    "headerH": 57,
+    "waitingHost": false,
+    "startCta": false,
+    "desktopGridPresent": false
+  },
+  {
+    "name": "invite-390",
+    "viewport": "390x844",
+    "url": "http://localhost:3000/?code=123456",
+    "scrollW": 390,
+    "clientW": 390,
+    "overflow": false,
+    "overflowing": [],
+    "hamburgerCount": 1,
+    "hamburgerLabels": [
+      "فتح القائمة"
+    ],
+    "footerVisible": false,
+    "tabs": [],
+    "catalogCols": null,
+    "stickyVisible": false,
+    "headerH": 57,
+    "waitingHost": false,
+    "startCta": false,
+    "desktopGridPresent": false
+  },
+  {
+    "name": "lobby-games-320",
+    "viewport": "320x700",
+    "url": "http://localhost:3000/lobby?code=860635",
+    "scrollW": 320,
+    "clientW": 320,
+    "overflow": false,
+    "overflowing": [],
+    "hamburgerCount": 1,
+    "hamburgerLabels": [
+      "فتح قائمة الغرفة"
+    ],
+    "footerVisible": false,
+    "tabs": [
+      "الألعاب",
+      "اللاعبون"
+    ],
+    "catalogCols": 2,
+    "stickyVisible": true,
+    "headerH": 0,
+    "waitingHost": false,
+    "startCta": true,
+    "desktopGridPresent": true
+  },
+  {
+    "name": "lobby-menu-320",
+    "viewport": "320x700",
+    "url": "http://localhost:3000/lobby?code=860635",
+    "scrollW": 320,
+    "clientW": 320,
+    "overflow": false,
+    "overflowing": [],
+    "hamburgerCount": 0,
+    "hamburgerLabels": [],
+    "footerVisible": false,
+    "tabs": [
+      "الألعاب",
+      "اللاعبون"
+    ],
+    "catalogCols": 2,
+    "stickyVisible": true,
+    "headerH": 0,
+    "waitingHost": false,
+    "startCta": true,
+    "desktopGridPresent": true
+  },
+  {
+    "name": "lobby-leave-320",
+    "viewport": "320x700",
+    "url": "http://localhost:3000/lobby?code=860635",
+    "scrollW": 320,
+    "clientW": 320,
+    "overflow": false,
+    "overflowing": [],
+    "hamburgerCount": 0,
+    "hamburgerLabels": [],
+    "footerVisible": false,
+    "tabs": [
+      "الألعاب",
+      "اللاعبون"
+    ],
+    "catalogCols": 2,
+    "stickyVisible": true,
+    "headerH": 0,
+    "waitingHost": false,
+    "startCta": true,
+    "desktopGridPresent": true
+  },
+  {
+    "name": "lobby-players-320",
+    "viewport": "320x700",
+    "url": "http://localhost:3000/lobby?code=860635",
+    "scrollW": 320,
+    "clientW": 320,
+    "overflow": false,
+    "overflowing": [],
+    "hamburgerCount": 1,
+    "hamburgerLabels": [
+      "فتح قائمة الغرفة"
+    ],
+    "footerVisible": false,
+    "tabs": [
+      "الألعاب",
+      "اللاعبون"
+    ],
+    "catalogCols": 2,
+    "stickyVisible": false,
+    "headerH": 0,
+    "waitingHost": false,
+    "startCta": false,
+    "desktopGridPresent": true
+  },
+  {
+    "name": "lobby-games-390",
+    "viewport": "390x844",
+    "url": "http://localhost:3000/lobby?code=860635",
+    "scrollW": 390,
+    "clientW": 390,
+    "overflow": false,
+    "overflowing": [],
+    "hamburgerCount": 1,
+    "hamburgerLabels": [
+      "فتح قائمة الغرفة"
+    ],
+    "footerVisible": false,
+    "tabs": [
+      "الألعاب",
+      "اللاعبون"
+    ],
+    "catalogCols": 2,
+    "stickyVisible": true,
+    "headerH": 0,
+    "waitingHost": false,
+    "startCta": true,
+    "desktopGridPresent": true
+  },
+  {
+    "name": "lobby-menu-390",
+    "viewport": "390x844",
+    "url": "http://localhost:3000/lobby?code=860635",
+    "scrollW": 390,
+    "clientW": 390,
+    "overflow": false,
+    "overflowing": [],
+    "hamburgerCount": 0,
+    "hamburgerLabels": [],
+    "footerVisible": false,
+    "tabs": [
+      "الألعاب",
+      "اللاعبون"
+    ],
+    "catalogCols": 2,
+    "stickyVisible": true,
+    "headerH": 0,
+    "waitingHost": false,
+    "startCta": true,
+    "desktopGridPresent": true
+  },
+  {
+    "name": "lobby-leave-390",
+    "viewport": "390x844",
+    "url": "http://localhost:3000/lobby?code=860635",
+    "scrollW": 390,
+    "clientW": 390,
+    "overflow": false,
+    "overflowing": [],
+    "hamburgerCount": 0,
+    "hamburgerLabels": [],
+    "footerVisible": false,
+    "tabs": [
+      "الألعاب",
+      "اللاعبون"
+    ],
+    "catalogCols": 2,
+    "stickyVisible": true,
+    "headerH": 0,
+    "waitingHost": false,
+    "startCta": true,
+    "desktopGridPresent": true
+  },
+  {
+    "name": "lobby-players-390",
+    "viewport": "390x844",
+    "url": "http://localhost:3000/lobby?code=860635",
+    "scrollW": 390,
+    "clientW": 390,
+    "overflow": false,
+    "overflowing": [],
+    "hamburgerCount": 1,
+    "hamburgerLabels": [
+      "فتح قائمة الغرفة"
+    ],
+    "footerVisible": false,
+    "tabs": [
+      "الألعاب",
+      "اللاعبون"
+    ],
+    "catalogCols": 2,
+    "stickyVisible": false,
+    "headerH": 0,
+    "waitingHost": false,
+    "startCta": false,
+    "desktopGridPresent": true
+  },
+  {
+    "name": "lobby-games-430",
+    "viewport": "430x932",
+    "url": "http://localhost:3000/lobby?code=860635",
+    "scrollW": 430,
+    "clientW": 430,
+    "overflow": false,
+    "overflowing": [],
+    "hamburgerCount": 1,
+    "hamburgerLabels": [
+      "فتح قائمة الغرفة"
+    ],
+    "footerVisible": false,
+    "tabs": [
+      "الألعاب",
+      "اللاعبون"
+    ],
+    "catalogCols": 2,
+    "stickyVisible": true,
+    "headerH": 0,
+    "waitingHost": false,
+    "startCta": true,
+    "desktopGridPresent": true
+  },
+  {
+    "name": "lobby-nonhost-390",
+    "viewport": "390x844",
+    "url": "http://localhost:3000/lobby?code=860635",
+    "scrollW": 390,
+    "clientW": 390,
+    "overflow": false,
+    "overflowing": [],
+    "hamburgerCount": 0,
+    "hamburgerLabels": [],
+    "footerVisible": false,
+    "tabs": [
+      "الألعاب",
+      "اللاعبون"
+    ],
+    "catalogCols": 2,
+    "stickyVisible": false,
+    "headerH": 0,
+    "waitingHost": true,
+    "startCta": false,
+    "desktopGridPresent": true
+  },
+  {
+    "name": "lobby-desktop-1366",
+    "viewport": "1366x768",
+    "url": "http://localhost:3000/lobby?code=860635",
+    "scrollW": 1366,
+    "clientW": 1366,
+    "overflow": false,
+    "overflowing": [],
+    "hamburgerCount": 0,
+    "hamburgerLabels": [],
+    "footerVisible": true,
+    "tabs": [
+      "الألعاب"
+    ],
+    "catalogCols": 3,
+    "stickyVisible": false,
+    "headerH": 73,
+    "waitingHost": false,
+    "startCta": true,
+    "desktopGridPresent": true
+  }
+]

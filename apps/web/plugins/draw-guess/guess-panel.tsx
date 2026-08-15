@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
+import { GameMobileStickyCta, GameMobileStickyCtaSpacer } from '@/components/game/game-mobile-sticky-cta';
 import { cn } from '@/lib/utils';
 
 export type GuessPanelProps = {
@@ -70,11 +71,23 @@ export function GuessPanel({
           size="md"
           disabled={disabled || isSubmitting || guess.trim().length === 0}
           loading={isSubmitting}
-          className="sm:min-w-28"
+          className="hidden min-h-11 sm:min-w-28 lg:inline-flex"
         >
           إرسال
         </Button>
       </div>
+      <GameMobileStickyCtaSpacer />
+      <GameMobileStickyCta>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          disabled={disabled || isSubmitting || guess.trim().length === 0}
+          loading={isSubmitting}
+        >
+          إرسال
+        </Button>
+      </GameMobileStickyCta>
       {disabled ? (
         <p className="text-xs text-wanas-text-muted">الرسام لا يمكنه التخمين.</p>
       ) : null}

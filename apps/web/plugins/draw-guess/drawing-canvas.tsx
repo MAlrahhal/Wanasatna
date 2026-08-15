@@ -261,10 +261,10 @@ export function DrawingCanvas({
         width={CANVAS_WIDTH}
         height={CANVAS_HEIGHT}
         className={cn(
-          'block h-auto w-full touch-none',
+          'block w-full touch-none',
+          'h-[min(36dvh,_240px)] min-h-[10rem] lg:h-auto lg:min-h-0 lg:aspect-[8/5]',
           readOnly ? 'cursor-default' : 'cursor-crosshair',
         )}
-        style={{ aspectRatio: `${CANVAS_WIDTH} / ${CANVAS_HEIGHT}` }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={endStroke}

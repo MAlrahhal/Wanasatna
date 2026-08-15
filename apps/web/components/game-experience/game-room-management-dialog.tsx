@@ -100,7 +100,7 @@ export function GameRoomManagementDialog({
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center"
+        className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4"
         role="presentation"
         onClick={onClose}
       >
@@ -111,7 +111,7 @@ export function GameRoomManagementDialog({
           aria-labelledby="game-room-management-title"
           dir="rtl"
           className={cn(
-            'relative z-10 w-full max-w-md rounded-[var(--wanas-radius-panel)] border border-wanas-border bg-wanas-surface p-5 shadow-[var(--wanas-shadow-panel)] sm:p-6',
+            'relative z-10 flex max-h-[min(88dvh,100%)] w-full max-w-md flex-col overflow-y-auto rounded-t-[var(--wanas-radius-panel)] border border-wanas-border bg-wanas-surface p-5 shadow-[var(--wanas-shadow-panel)] sm:rounded-[var(--wanas-radius-panel)] sm:p-6',
             'pb-[max(1.25rem,env(safe-area-inset-bottom))]',
           )}
           onClick={(event) => event.stopPropagation()}
@@ -129,7 +129,7 @@ export function GameRoomManagementDialog({
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex size-9 min-h-9 min-w-9 items-center justify-center rounded-lg text-wanas-text-muted hover:bg-wanas-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/45"
+              className="inline-flex size-11 min-h-11 min-w-11 items-center justify-center rounded-lg text-wanas-text-muted hover:bg-wanas-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/45"
               aria-label="إغلاق"
             >
               ✕
@@ -147,7 +147,7 @@ export function GameRoomManagementDialog({
                   type="button"
                   size="sm"
                   variant="secondary"
-                  className="min-h-9"
+                  className="min-h-11 sm:min-h-9"
                   onClick={() => {
                     void copyText(roomCode).then((copied) => {
                       if (copied) setCopiedCode(true);

@@ -186,8 +186,34 @@
   box-shadow: 0 14px 30px rgb(0 0 0 / 0.4);
 }
 
+@media (max-width: 639px) {
+  .gc-fp-scene {
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
+
+  .gc-fp-self-card {
+    width: min(100%, 14rem);
+    transform: rotateX(6deg) scale(0.9);
+  }
+
+  .gc-fp-turn {
+    padding: 0.5rem 0.7rem;
+  }
+
+  .gc-results-scene.gc-fp-scene .gc-fp-stage {
+    min-height: 10rem;
+  }
+}
+
 .gc-fp-self-card.is-revealed {
   transform: rotateX(4deg) scale(1.02);
+}
+
+@media (max-width: 639px) {
+  .gc-fp-self-card.is-revealed {
+    transform: rotateX(4deg) scale(0.9);
+  }
 }
 
 .gc-fp-hands {

@@ -61,9 +61,9 @@ function RoleHeading({ role }: { role: RoleRevealRole }) {
 
 function SecretWordDisplay({ secretWord }: { secretWord?: string }) {
   return (
-    <div className="mt-10 w-full max-w-sm">
-      <div className="rounded-[1.35rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-6 py-7 shadow-[var(--wanas-game-shadow)] sm:px-8 sm:py-8">
-        <p className="text-3xl font-bold leading-tight tracking-tight text-wanas-text-primary min-[360px]:text-4xl sm:text-5xl md:text-[3.25rem]">
+    <div className="mt-4 w-full max-w-sm sm:mt-10">
+      <div className="rounded-[1.35rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-4 py-5 shadow-[var(--wanas-game-shadow)] sm:px-8 sm:py-8">
+        <p className="text-2xl font-bold leading-tight tracking-tight text-wanas-text-primary min-[360px]:text-3xl sm:text-5xl md:text-[3.25rem]">
           {secretWord}
         </p>
       </div>
@@ -73,9 +73,9 @@ function SecretWordDisplay({ secretWord }: { secretWord?: string }) {
 
 function ImpostorMysteryDisplay() {
   return (
-    <div className="mt-10 w-full max-w-sm">
-      <div className="rounded-[1.35rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-6 py-8 sm:px-8 sm:py-10">
-        <p className="text-6xl leading-none sm:text-7xl" aria-hidden>
+    <div className="mt-4 w-full max-w-sm sm:mt-10">
+      <div className="rounded-[1.35rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-4 py-5 sm:px-8 sm:py-10">
+        <p className="text-5xl leading-none sm:text-7xl" aria-hidden>
           ❓
         </p>
         <p className="mt-4 text-sm font-medium text-wanas-text-muted">الكلمة مخفية عنك</p>
@@ -86,7 +86,7 @@ function ImpostorMysteryDisplay() {
 
 function RoleRevealInstruction({ role }: { role: RoleRevealRole }) {
   return (
-    <p className="mt-8 max-w-sm text-sm leading-relaxed text-wanas-text-secondary">
+    <p className="mt-4 max-w-sm text-sm leading-relaxed text-wanas-text-secondary sm:mt-8">
       {role === 'impostor'
         ? 'حاول تسمع إجابات اللاعبين وتكتشف الكلمة المخفية دون أن تكشف نفسك.'
         : 'احفظ الكلمة جيدًا.'}
@@ -116,7 +116,7 @@ function RoleRevealCard({ role, secretWord }: { role: RoleRevealRole; secretWord
   const isImpostor = role === 'impostor';
 
   return (
-    <div className="wanas-game-card rounded-[2rem] px-5 py-8 sm:px-10 sm:py-14 md:px-12 md:py-16">
+    <div className="wanas-game-card rounded-[1.5rem] px-4 py-5 sm:rounded-[2rem] sm:px-10 sm:py-14 md:px-12 md:py-16">
       <div className="flex flex-col items-center text-center">
         <RoleHeading role={role} />
         {isImpostor ? <ImpostorMysteryDisplay /> : <SecretWordDisplay secretWord={secretWord} />}

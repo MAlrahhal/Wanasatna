@@ -66,21 +66,21 @@ export function HomePageClient() {
   return (
     <main className="overflow-x-hidden">
       <section className="relative overflow-hidden border-b border-wanas-border">
-        <div aria-hidden className="pointer-events-none absolute -start-6 top-8 text-white/15">
+        <div aria-hidden className="pointer-events-none absolute start-2 top-8 text-white/15">
           <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
             <path d="M6 9h12v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9Z" stroke="currentColor" strokeWidth="1.5" />
             <path d="M8 9V7a4 4 0 1 1 8 0v2" stroke="currentColor" strokeWidth="1.5" />
           </svg>
         </div>
-        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:py-16">
+        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-14 lg:py-16">
           <div className="relative max-w-3xl">
             <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-wanas-text-primary sm:text-5xl lg:text-[3.25rem]">
               مكان واحد تلعب فيه مع أصحابك
             </h1>
-            <p className="mt-5 max-w-xl text-base leading-8 text-wanas-text-secondary">
+            <p className="mt-3 max-w-xl text-base leading-8 text-wanas-text-secondary sm:mt-5">
               أنشئ غرفة، شارك الرمز مع أصحابك، وابدؤوا اللعب خلال ثوانٍ — بدون تسجيل.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-5 flex flex-col gap-3 sm:mt-8 sm:flex-row">
               <Button
                 type="button"
                 variant="primary"
@@ -98,7 +98,7 @@ export function HomePageClient() {
         </div>
       </section>
 
-      <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 sm:py-12 lg:gap-12">
+      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 sm:gap-10 sm:px-6 sm:py-12 lg:gap-12">
         <HomeActiveRoomResume />
 
         {room.errorMessage && !hasFieldError && !room.isCreating && !room.isJoining ? (
@@ -119,7 +119,7 @@ export function HomePageClient() {
         />
 
         <section>
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="mb-5 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
             <SectionHeader
               title="ألعاب مميزة"
               description="جرّب أبرز الألعاب المتاحة الآن — المزيد في صفحة الألعاب."
@@ -138,12 +138,12 @@ export function HomePageClient() {
           </div>
         </section>
 
-        <section className="wanas-section-frame -mx-4 px-4 py-8 sm:-mx-6 sm:px-6">
+        <section className="wanas-section-frame -mx-4 px-4 py-5 sm:-mx-6 sm:px-6 sm:py-8">
           <SectionHeader
             title="ابدأ الوناسة بثلاث خطوات"
             description="من الغرفة إلى اللعب — بخطوات بسيطة."
             align="center"
-            className="mb-8"
+            className="mb-5 sm:mb-8"
           />
           <ol className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {steps.map((step) => (

@@ -41,11 +41,15 @@ export function PlayersPanel({
   return (
     <LobbyPanel
       title="اللاعبون"
-      description={`${players.length} / ${MAX_ROOM_PLAYERS}`}
+      description={
+        <span dir="ltr" className="inline-block tabular-nums tracking-wide">
+          {players.length} / {MAX_ROOM_PLAYERS}
+        </span>
+      }
       className="h-fit xl:max-h-[calc(100vh-220px)]"
-      bodyClassName="gap-2 p-3 sm:p-4"
+      bodyClassName="gap-2 p-2.5 sm:p-4"
     >
-      <div className="flex max-h-[min(70vh,560px)] flex-col gap-2 overflow-y-auto">
+      <div className="flex flex-col gap-2 xl:max-h-[min(70vh,560px)] xl:overflow-y-auto">
         {players.map((player) => (
           <PlayerCard
             key={player.id}

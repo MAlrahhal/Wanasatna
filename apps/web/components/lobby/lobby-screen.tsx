@@ -39,7 +39,7 @@ export function LobbyScreen() {
     selectedRoundCategoryId,
   } = useRoom();
 
-  const [mobileSection, setMobileSection] = useState<'games' | 'players' | 'chat'>('games');
+  const [mobileSection, setMobileSection] = useState<'games' | 'players'>('games');
   const [lobbyNotice, setLobbyNotice] = useState<string | null>(null);
   const [recovered, setRecovered] = useState(false);
   const wasReconnecting = useRef(false);
@@ -102,7 +102,7 @@ export function LobbyScreen() {
   }
 
   return (
-    <div className="relative mx-auto flex w-full max-w-[1440px] flex-col gap-3 px-3 py-4 sm:px-5 sm:py-5 lg:gap-4">
+    <div className="relative mx-auto flex w-full max-w-[1440px] flex-col gap-3 px-3 py-3 sm:px-5 sm:py-5 lg:gap-4">
       {status === 'reconnecting' ? (
         <SystemStatus tone="reconnecting" title={SYSTEM_COPY.reconnecting} />
       ) : null}
@@ -125,7 +125,6 @@ export function LobbyScreen() {
           [
             ['games', 'الألعاب'],
             ['players', 'اللاعبون'],
-            ['chat', 'الدردشة'],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -134,9 +133,9 @@ export function LobbyScreen() {
             aria-pressed={mobileSection === id}
             onClick={() => setMobileSection(id)}
             className={cn(
-              'inline-flex h-11 flex-1 items-center justify-center rounded-xl border text-sm font-semibold transition-colors',
+              'inline-flex h-11 min-h-11 flex-1 items-center justify-center rounded-xl border text-sm font-semibold transition-colors',
               mobileSection === id
-                ? 'border-wanas-accent bg-wanas-accent/10 text-wanas-accent'
+                ? 'border-wanas-accent bg-wanas-accent text-white shadow-[inset_0_-3px_0_0_rgba(0,0,0,0.18)]'
                 : 'border-wanas-border bg-wanas-surface text-wanas-text-muted',
             )}
           >
@@ -145,14 +144,14 @@ export function LobbyScreen() {
         ))}
       </div>
 
-      <div className="grid flex-1 grid-cols-1 gap-3 lg:gap-4 xl:grid-cols-[minmax(220px,260px)_minmax(0,1fr)_minmax(168px,200px)]">
-        <div className={cn('xl:order-3', mobileSection !== 'chat' && 'hidden xl:block')}>
+      <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 lg:gap-4 xl:grid-cols-[minmax(220px,260px)_minmax(0,1fr)_minmax(168px,200px)]">
+        <div className="hidden min-w-0 xl:order-3 xl:block">
           <LobbyChat />
         </div>
 
         <div
           className={cn(
-            'flex flex-col gap-2 xl:order-2 lg:gap-2',
+            'flex min-w-0 flex-col gap-2 xl:order-2 lg:gap-2',
             mobileSection !== 'games' && 'hidden xl:flex',
           )}
         >

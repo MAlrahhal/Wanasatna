@@ -10,71 +10,35 @@ import { GameExperienceHeader } from './game-experience-header';
 import { GameLeaderboardPanel } from './game-leaderboard-panel';
 import { GamePlayerRecoveryOverlay } from './game-player-recovery-overlay';
 
-type MobilePanel = 'leaderboard' | 'chat' | null;
-
 type GameExperienceShellProps = {
   children: ReactNode;
 };
 
-function MobilePanelToggle({
-  panel,
-  activePanel,
-  label,
-  onSelect,
-}: {
-  panel: Exclude<MobilePanel, null>;
-  activePanel: MobilePanel;
-  label: string;
-  onSelect: (panel: Exclude<MobilePanel, null>) => void;
-}) {
-  const isActive = activePanel === panel;
-  return (
-    <Button
-      type="button"
-      size="sm"
-      variant={isActive ? 'primary' : 'secondary'}
-      className="min-h-9 px-2.5 text-xs sm:px-3"
-      aria-pressed={isActive}
-      aria-label={label}
-      onClick={() => onSelect(isActive ? panel : panel)}
-    >
-      {label}
-    </Button>
-  );
-}
-
 export function GameExperienceShell({ children }: GameExperienceShellProps) {
   const meta = useGameExperienceMeta();
   const { playerRecovery } = useGameShell();
-  const [mobilePanel, setMobilePanel] = useState<MobilePanel>(null);
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
 
   if (!meta) {
     return <>{children}</>;
   }
 
-  const toggleMobile = (panel: Exclude<MobilePanel, null>) => {
-    setMobilePanel((current) => (current === panel ? null : panel));
-  };
-
   const mobileControls = (
-    <div className="flex items-center gap-1 lg:hidden">
-      <MobilePanelToggle
-        panel="chat"
-        activePanel={mobilePanel}
-        label="الدردشة"
-        onSelect={toggleMobile}
-      />
-      <MobilePanelToggle
-        panel="leaderboard"
-        activePanel={mobilePanel}
-        label="الترتيب"
-        onSelect={toggleMobile}
-      />
-    </div>
+    <Button
+      type="button"
+      size="sm"
+      variant={leaderboardOpen ? 'primary' : 'secondary'}
+      className="min-h-11 px-3 text-sm lg:hidden"
+      aria-pressed={leaderboardOpen}
+      aria-label="الترتيب"
+      onClick={() => setLeaderboardOpen((open) => !open)}
+    >
+      الترتيب
+    </Button>
   );
 
   return (
-        <div className="flex min-h-0 w-full flex-1 flex-col gap-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+    <div className="flex min-h-0 w-full flex-1 flex-col gap-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
       <GameExperienceHeader meta={meta} mobilePanelControls={mobileControls} />
 
       <div className="hidden min-h-0 flex-1 gap-2 lg:grid lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)_minmax(220px,260px)]">
@@ -94,34 +58,30 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
         {playerRecovery ? <GamePlayerRecoveryOverlay recovery={playerRecovery} /> : null}
       </div>
 
-      {mobilePanel ? (
+      {leaderboardOpen ? (
         <div
           className="fixed inset-x-0 bottom-0 z-40 max-h-[55dvh] overflow-hidden rounded-t-2xl border-t border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-panel-bg)] p-4 shadow-[var(--wanas-game-shadow)] lg:hidden"
+          style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
           role="dialog"
-          aria-label={mobilePanel === 'leaderboard' ? 'الترتيب' : 'الدردشة'}
+          aria-label="الترتيب"
         >
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-sm font-semibold text-[color:var(--wanas-game-text-primary)]">
-              {mobilePanel === 'leaderboard' ? 'الترتيب' : 'الدردشة'}
-            </p>
+            <p className="text-sm font-semibold text-[color:var(--wanas-game-text-primary)]">الترتيب</p>
             <button
               type="button"
               className={cn(
-                'inline-flex size-9 min-h-9 min-w-9 items-center justify-center rounded-lg',
+                'inline-flex size-11 min-h-11 min-w-11 items-center justify-center rounded-lg',
                 'text-[color:var(--wanas-game-text-secondary)] hover:bg-[color:var(--wanas-game-card)]',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--wanas-game-accent)]',
               )}
               aria-label="إغلاق"
-              onClick={() => setMobilePanel(null)}
+              onClick={() => setLeaderboardOpen(false)}
             >
               ✕
             </button>
           </div>
-          <div className="max-h-[calc(55dvh-3.5rem)] overflow-y-auto">
-            {mobilePanel === 'leaderboard' ? (
-              <GameLeaderboardPanel entries={meta.leaderboardEntries} />
-            ) : null}
-            {mobilePanel === 'chat' ? <GameChatMockPanel /> : null}
+          <div className="max-h-[calc(55dvh-4.5rem)] overflow-y-auto">
+            <GameLeaderboardPanel entries={meta.leaderboardEntries} />
           </div>
         </div>
       ) : null}

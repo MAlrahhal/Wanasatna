@@ -33,7 +33,7 @@ export function RoomActionCards({
   const busy = isCreating || isJoining;
 
   return (
-    <section id={HOME_ROOM_ACTIONS_ID} className="scroll-mt-24">
+    <section id={HOME_ROOM_ACTIONS_ID} className="scroll-mt-20 lg:scroll-mt-24">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <article className="wanas-panel border-t-2 border-t-wanas-accent p-5 sm:p-6">
           <div className="mb-4 flex items-center gap-3">

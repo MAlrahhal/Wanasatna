@@ -49,8 +49,8 @@ export function WhoWroteItGuessingScreen({
   return (
     <GameScreen ariaLabel="من كتب هذه الإجابة؟" maxWidth="3xl">
       <div className="flex flex-col gap-4 sm:gap-5">
-        <div className="wanas-game-card rounded-[1.75rem] px-5 py-8 text-center sm:px-8 sm:py-10">
-          <p className="break-words text-2xl font-bold leading-snug text-wanas-text-primary sm:text-3xl">
+        <div className="wanas-game-card rounded-[1.25rem] px-4 py-5 text-center sm:rounded-[1.75rem] sm:px-8 sm:py-10">
+          <p className="max-h-[40vh] overflow-y-auto break-words text-xl font-bold leading-snug text-wanas-text-primary sm:text-3xl">
             «{currentAnswer.text}»
           </p>
         </div>
