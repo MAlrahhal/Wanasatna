@@ -12,6 +12,8 @@ export const guessingChallengeRoundCategories: GameRoundCategoriesConfig = {
     { id: 'series', label: 'مسلسلات', emoji: '📺' },
     { id: 'games', label: 'ألعاب', emoji: '🎮' },
     { id: 'tech', label: 'تقنيات', emoji: '📱' },
+    { id: 'household', label: 'أغراض منزلية', emoji: '🏠' },
+    { id: 'tools', label: 'أدوات', emoji: '🔧' },
     { id: 'random', label: 'عشوائي', emoji: '🎲' },
   ],
 };

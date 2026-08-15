@@ -1,82 +1,91 @@
 [
-  {
-    "id": "funny-1",
-    "categoryId": "funny",
-    "text": "وش أغرب عذر ممكن تستخدمه عشان ما تروح الدوام؟"
-  },
-  {
-    "id": "funny-2",
-    "categoryId": "funny",
-    "text": "لو صحيت ولقيت نفسك مشهور، أول شيء بتسويه؟"
-  },
-  {
-    "id": "funny-3",
-    "categoryId": "funny",
-    "text": "وش أسوأ نصيحة ممكن تعطيها لشخص قبل مقابلة عمل؟"
-  },
-  {
-    "id": "funny-4",
-    "categoryId": "funny",
-    "text": "لو صار عندك زر يوقف الزمن دقيقة واحدة، وش بتسوي فيها؟"
-  },
-  {
-    "id": "personal-1",
-    "categoryId": "personal",
-    "text": "وش عادة فيك تتمنى تغيرها؟"
-  },
-  {
-    "id": "personal-2",
-    "categoryId": "personal",
-    "text": "وش أكثر شيء يخليك تعصب بسرعة؟"
-  },
-  {
-    "id": "personal-3",
-    "categoryId": "personal",
-    "text": "وش شيء صغير يسعدك بدون سبب واضح؟"
-  },
-  {
-    "id": "personal-4",
-    "categoryId": "personal",
-    "text": "وش أكثر موقف تتذكره من طفولتك؟"
-  },
-  {
-    "id": "situations-1",
-    "categoryId": "situations",
-    "text": "لو ضعت في مدينة ما تعرفها، وش أول شيء بتسويه؟"
-  },
-  {
-    "id": "situations-2",
-    "categoryId": "situations",
-    "text": "لو انقطع النت عندك لأسبوع، وش بتشغل نفسك فيه؟"
-  },
-  {
-    "id": "situations-3",
-    "categoryId": "situations",
-    "text": "لو اكتشفت إن عندك يوم إجازة مفاجئ بكرة، وش خطتك؟"
-  },
-  {
-    "id": "situations-4",
-    "categoryId": "situations",
-    "text": "لو طفشت وسط تجمع كبير، وش تسوي عادة؟"
-  },
-  {
-    "id": "preferences-1",
-    "categoryId": "preferences",
-    "text": "وش الشيء اللي مستحيل تتنازل عنه في السفر؟"
-  },
-  {
-    "id": "preferences-2",
-    "categoryId": "preferences",
-    "text": "قهوة ولا شاي؟ وليه؟"
-  },
-  {
-    "id": "preferences-3",
-    "categoryId": "preferences",
-    "text": "وش نوع الأكل اللي تطلبه دائماً إذا ما قدرت تقرر؟"
-  },
-  {
-    "id": "preferences-4",
-    "categoryId": "preferences",
-    "text": "تفضّل الصباح الهادئ ولا السهرة الطويلة؟"
-  }
+  { "id": "funny-1", "categoryId": "funny", "text": "وش أغرب عذر ممكن تستخدمه عشان ما تروح الدوام؟" },
+  { "id": "funny-2", "categoryId": "funny", "text": "لو صحيت ولقيت نفسك مشهور، أول شيء بتسويه؟" },
+  { "id": "funny-3", "categoryId": "funny", "text": "وش أسوأ نصيحة ممكن تعطيها لشخص قبل مقابلة عمل؟" },
+  { "id": "funny-4", "categoryId": "funny", "text": "لو صار عندك زر يوقف الزمن دقيقة واحدة، وش بتسوي فيها؟" },
+  { "id": "funny-superpower", "categoryId": "funny", "text": "وش أسخف قدرة خارقة ممكن تتمناها؟" },
+  { "id": "funny-pet-job", "categoryId": "funny", "text": "لو حيوانك الأليف صار مديرك، وش أول قرار ياخذه؟" },
+  { "id": "funny-wrong-gift", "categoryId": "funny", "text": "وش أسوأ هدية ممكن تنحرج إذا فتحتها قدام الناس؟" },
+  { "id": "funny-voice-note", "categoryId": "funny", "text": "لو أصحابك سووا لك جائزة سنوية، وش تتوقع اسم الجائزة؟" },
+  { "id": "funny-group-chat", "categoryId": "funny", "text": "وش الشيء اللي يخليك تطلع من قروب واتساب بدون ما تقول شيء؟" },
+  { "id": "funny-mirror", "categoryId": "funny", "text": "لو جوالك يقدر يفضح عادة وحدة عندك، وش بيقول؟" },
+  { "id": "funny-alarm", "categoryId": "funny", "text": "وش أغرب طريقة تستخدمها عشان تقوم من النوم؟" },
+  { "id": "funny-guest", "categoryId": "funny", "text": "وش أكذب جملة تقولها لما يجي ضيف والبيت مو جاهز؟" },
+  { "id": "funny-food-lie", "categoryId": "funny", "text": "وش أكلة تدّعي إنك تحبها عشان ما تجرح أحد؟" },
+  { "id": "funny-shortcut", "categoryId": "funny", "text": "وش أكثر كذبة بيضاء تستخدمها عشان تخلص مكالمة بسرعة؟" },
+  { "id": "funny-talent", "categoryId": "funny", "text": "وش مهارة تافهة تتقنها وما لها فايدة؟" },
+  { "id": "funny-autopilot", "categoryId": "funny", "text": "وش شيء تسويه وأنت مو منتبه وبعدين تستغرب نفسك؟" },
+  { "id": "funny-caption", "categoryId": "funny", "text": "لو حياتك صارت فيلم، وش يكون عنوانه المضحك؟" },
+  { "id": "funny-excuse-late", "categoryId": "funny", "text": "لو لازم تخترع عذر مستحيل للتأخير، وش بتقول؟" },
+  { "id": "funny-sport", "categoryId": "funny", "text": "وش رياضة لو دخلتها بتكون أسوأ لاعب فيها؟" },
+  { "id": "funny-robot", "categoryId": "funny", "text": "وش عادة فيك لو أحد قلدها بيعرفون فوراً إنه يقلدك؟" },
+  { "id": "funny-wish", "categoryId": "funny", "text": "لو انطلب منك أمنية واحدة سخيفة، وش تطلب؟" },
+  { "id": "funny-nickname", "categoryId": "funny", "text": "وش لقب مضحك يستاهله صاحبك بدون ما تذكر اسمه؟" },
+  { "id": "personal-1", "categoryId": "personal", "text": "وش عادة فيك تتمنى تغيرها؟" },
+  { "id": "personal-2", "categoryId": "personal", "text": "وش أكثر شيء يخليك تعصب بسرعة؟" },
+  { "id": "personal-3", "categoryId": "personal", "text": "وش شيء صغير يسعدك بدون سبب واضح؟" },
+  { "id": "personal-4", "categoryId": "personal", "text": "وش أكثر موقف تتذكره من طفولتك؟" },
+  { "id": "personal-morning", "categoryId": "personal", "text": "وش أول شيء تسويه عادة بعد ما تصحى؟" },
+  { "id": "personal-proud", "categoryId": "personal", "text": "وش شيء بسيط تفتخر إنك صرت تسويه؟" },
+  { "id": "personal-hate-wait", "categoryId": "personal", "text": "وش نوع الانتظار اللي ما تتحمله أبد؟" },
+  { "id": "personal-comfort", "categoryId": "personal", "text": "وش الشيء اللي يريحك بسرعة إذا كنت متوتر؟" },
+  { "id": "personal-collection", "categoryId": "personal", "text": "وش شيء تحب تجمعه أو تحتفظ فيه بدون سبب قوي؟" },
+  { "id": "personal-skill", "categoryId": "personal", "text": "وش مهارة ودك تتعلمها لو عندك وقت كل أسبوع؟" },
+  { "id": "personal-room", "categoryId": "personal", "text": "وش الشيء اللي غرفتك ما تصير كاملة بدونه؟" },
+  { "id": "personal-text", "categoryId": "personal", "text": "وش نوع الرسائل اللي ترد عليها بسرعة دائماً؟" },
+  { "id": "personal-walk", "categoryId": "personal", "text": "وش أكثر شيء يشغل بالك إذا جلست لحالك بدون جوال؟" },
+  { "id": "personal-snack", "categoryId": "personal", "text": "وش أكلك المفضل لما تجوع فجأة في البيت؟" },
+  { "id": "personal-song", "categoryId": "personal", "text": "وش نوع الأغاني اللي تحطها وأنت ترتب؟" },
+  { "id": "personal-friend", "categoryId": "personal", "text": "وش صفة تحبها في أصحابك أكثر شيء؟" },
+  { "id": "personal-weekend", "categoryId": "personal", "text": "وش خطتك المثالية ليوم إجازة بدون التزامات؟" },
+  { "id": "personal-fear-small", "categoryId": "personal", "text": "وش خوف صغير مضحك عندك وما تقوله كثير؟" },
+  { "id": "personal-app", "categoryId": "personal", "text": "وش تطبيق تفتحه بدون ما تنتبه؟" },
+  { "id": "personal-weather", "categoryId": "personal", "text": "أي جو يخليك مزاجك أحسن؟" },
+  { "id": "personal-sleep", "categoryId": "personal", "text": "أنت من اللي ينام بدري ولا يسهر؟ وليه؟" },
+  { "id": "personal-laugh", "categoryId": "personal", "text": "وش نوع النكت اللي تضحكك بسرعة؟" },
+  { "id": "personal-focus", "categoryId": "personal", "text": "وش الشيء اللي يشتت تركيزك أكثر من غيره؟" },
+  { "id": "situations-1", "categoryId": "situations", "text": "لو علقت في مدينة ما تعرفها ومعك ساعة فاضية، وين أول مكان ودك تروح له؟" },
+  { "id": "situations-2", "categoryId": "situations", "text": "لو انقطع النت عندك لأسبوع، وش بتشغل نفسك فيه؟" },
+  { "id": "situations-3", "categoryId": "situations", "text": "لو اكتشفت إن عندك يوم إجازة مفاجئ بكرة، وش خطتك؟" },
+  { "id": "situations-4", "categoryId": "situations", "text": "لو طفشت وسط تجمع كبير، وش تسوي عادة؟" },
+  { "id": "situations-wrong-name", "categoryId": "situations", "text": "لو اضطررت تستخدم اسم مستعار يوم كامل، وش تختار؟" },
+  { "id": "situations-silence", "categoryId": "situations", "text": "وش موضوع تفتحه عادة إذا صار الصمت محرج بينكم؟" },
+  { "id": "situations-rain", "categoryId": "situations", "text": "لو علقت تحت المطر مع أصحابك، وش الحركة اللي غالباً بتسويها؟" },
+  { "id": "situations-queue", "categoryId": "situations", "text": "وش الشيء اللي ممكن يخليك تصبر على طابور طويل؟" },
+  { "id": "situations-forgot", "categoryId": "situations", "text": "لو نسيت اسم شخص قدامك، وش حيلتك؟" },
+  { "id": "situations-food-share", "categoryId": "situations", "text": "لو طلبك في المطعم طلع سيئ جداً، وش أول تعليق بيطلع منك؟" },
+  { "id": "situations-late-host", "categoryId": "situations", "text": "لو كل واحد في القروب له دور ثابت، وش الدور اللي غالباً يكون دورك؟" },
+  { "id": "situations-photo", "categoryId": "situations", "text": "وش شيء بسيط لو شفته في غرفة شخص يخليك تتوقع إنك بتتفاهم معه؟" },
+  { "id": "situations-wrong-chat", "categoryId": "situations", "text": "لو أرسلت شيء بالغلط للقروب، وش أكثر نوع رسالة ممكن تورطك؟" },
+  { "id": "situations-power", "categoryId": "situations", "text": "لو انقطعت الكهرباء ليلة كاملة، وش الشيء اللي بتفتقده أول؟" },
+  { "id": "situations-neighbor", "categoryId": "situations", "text": "لو جارك طلب منك خدمة غريبة، وش أكثر طلب ممكن توافق عليه؟" },
+  { "id": "situations-meeting", "categoryId": "situations", "text": "لو عطوك دقيقة تتكلم عن أي موضوع بدون تجهيز، وش الموضوع اللي تختاره؟" },
+  { "id": "situations-lost-item", "categoryId": "situations", "text": "لو اختفى جوالك 24 ساعة، وش أكثر شيء بتفتقده فيه؟" },
+  { "id": "situations-surprise", "categoryId": "situations", "text": "لو انطلب منك ترتب مفاجأة لصديق، وش تكون فكرتك؟" },
+  { "id": "situations-new-city", "categoryId": "situations", "text": "لو انتقلت لحي جديد، وش أول مكان تزوره؟" },
+  { "id": "situations-awkward", "categoryId": "situations", "text": "وش حركتك المعتادة إذا شفت شخص تعرفه من بعيد وما تدري تسلم أو لا؟" },
+  { "id": "situations-gift", "categoryId": "situations", "text": "وش نوع هدية لو وصلتك بتعرف فوراً مين اللي جابها؟" },
+  { "id": "situations-plan-cancel", "categoryId": "situations", "text": "لو انلغت خطتكم في آخر لحظة، وش البديل؟" },
+  { "id": "preferences-1", "categoryId": "preferences", "text": "وش الشيء اللي مستحيل تتنازل عنه في السفر؟" },
+  { "id": "preferences-2", "categoryId": "preferences", "text": "قهوة ولا شاي؟ وليه؟" },
+  { "id": "preferences-3", "categoryId": "preferences", "text": "وش نوع الأكل اللي تطلبه دائماً إذا ما قدرت تقرر؟" },
+  { "id": "preferences-4", "categoryId": "preferences", "text": "تفضّل الصباح الهادئ ولا السهرة الطويلة؟" },
+  { "id": "preferences-seat", "categoryId": "preferences", "text": "في الطيارة تفضل نافذة ولا ممر؟ وليه؟" },
+  { "id": "preferences-movie", "categoryId": "preferences", "text": "فيلم في البيت ولا سينما؟ وليه؟" },
+  { "id": "preferences-text-call", "categoryId": "preferences", "text": "رسائل ولا اتصال؟ وليه؟" },
+  { "id": "preferences-heat", "categoryId": "preferences", "text": "حر ولا برد؟ وكيف تتعامل معه؟" },
+  { "id": "preferences-team", "categoryId": "preferences", "text": "تشتغل لحالك ولا مع مجموعة؟ وليه؟" },
+  { "id": "preferences-trip", "categoryId": "preferences", "text": "رحلة بحر ولا جبل؟ وليه؟" },
+  { "id": "preferences-sweet", "categoryId": "preferences", "text": "حلو ولا مالح إذا بتختر واحد بس؟" },
+  { "id": "preferences-playlist", "categoryId": "preferences", "text": "وش نوع الموسيقى اللي تحطها وأنت على الطريق؟" },
+  { "id": "preferences-home", "categoryId": "preferences", "text": "بيت هادي ولا بيت فيه حركة طول الوقت؟" },
+  { "id": "preferences-game", "categoryId": "preferences", "text": "تفضّل ألعاب جوال ولا ألعاب طاولة مع الناس؟" },
+  { "id": "preferences-photo", "categoryId": "preferences", "text": "تصور كثير ولا تعيش اللحظة بدون صور؟" },
+  { "id": "preferences-plan", "categoryId": "preferences", "text": "تخطط كل شيء ولا تمشي على المزاج؟" },
+  { "id": "preferences-food-out", "categoryId": "preferences", "text": "أكل بيت ولا مطعم إذا كان يومك تعبان؟" },
+  { "id": "preferences-clothes", "categoryId": "preferences", "text": "راحة في اللبس ولا شكل مرتب حتى في البيت؟" },
+  { "id": "preferences-news", "categoryId": "preferences", "text": "تفضل تعيد فيلم تحبه أو تبدأ فيلم جديد؟ وليه؟" },
+  { "id": "preferences-gift-give", "categoryId": "preferences", "text": "تفضّل تهدي شيء عملي ولا شيء له ذكرى؟" },
+  { "id": "preferences-weekend-people", "categoryId": "preferences", "text": "ويكند مع ناس كثير ولا عدد صغير؟" },
+  { "id": "preferences-learn", "categoryId": "preferences", "text": "تتعلم أشياء جديدة من فيديو ولا من تجربة؟" }
 ]

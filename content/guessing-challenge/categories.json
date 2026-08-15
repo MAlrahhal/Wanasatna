@@ -7,5 +7,7 @@
   { "id": "movies", "name": "أفلام", "enabled": true },
   { "id": "series", "name": "مسلسلات", "enabled": true },
   { "id": "games", "name": "ألعاب", "enabled": true },
-  { "id": "tech", "name": "تقنيات", "enabled": true }
+  { "id": "tech", "name": "تقنيات", "enabled": true },
+  { "id": "household", "name": "أغراض منزلية", "enabled": true },
+  { "id": "tools", "name": "أدوات", "enabled": true }
 ]

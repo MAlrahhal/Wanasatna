@@ -5,9 +5,11 @@ import {
   IMPOSTER_DRAW_GAME_ID,
   GUESSING_CHALLENGE_GAME_ID,
   JUDGE_GAME_ID,
+  TIMING_CHALLENGE_GAME_ID,
   WHO_WROTE_IT_GAME_ID,
 } from '@wanasatna/shared';
 import { baraAlSalafaRoundCategories } from './bara-al-salafa';
+import { drawableRoundCategories } from './drawable';
 import { guessingChallengeRoundCategories } from './guessing-challenge';
 import { judgeRoundCategories } from './judge';
 import { whoWroteItRoundCategories } from './who-wrote-it';
@@ -15,9 +17,9 @@ import type { GameRoundCategoriesConfig, RoundCategory } from './types';
 
 const gameRoundCategoriesById: Record<string, GameRoundCategoriesConfig> = {
   [BARA_AL_SALAFA_GAME_ID]: baraAlSalafaRoundCategories,
-  [DRAW_GUESS_GAME_ID]: baraAlSalafaRoundCategories,
-  [IMPOSTER_DRAW_GAME_ID]: baraAlSalafaRoundCategories,
   [FAST_ANSWER_GAME_ID]: baraAlSalafaRoundCategories,
+  [DRAW_GUESS_GAME_ID]: drawableRoundCategories,
+  [IMPOSTER_DRAW_GAME_ID]: drawableRoundCategories,
   [WHO_WROTE_IT_GAME_ID]: whoWroteItRoundCategories,
   [JUDGE_GAME_ID]: judgeRoundCategories,
   [GUESSING_CHALLENGE_GAME_ID]: guessingChallengeRoundCategories,
@@ -27,7 +29,7 @@ const gameRoundCategoriesById: Record<string, GameRoundCategoriesConfig> = {
 export function getGameRoundCategories(
   gameId: string | null | undefined,
 ): GameRoundCategoriesConfig | null {
-  if (!gameId) {
+  if (!gameId || gameId === TIMING_CHALLENGE_GAME_ID) {
     return null;
   }
 

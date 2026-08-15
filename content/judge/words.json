@@ -1,82 +1,92 @@
 [
-  {
-    "id": "funny-1",
-    "categoryId": "funny",
-    "text": "وش أسوأ عذر ممكن تقوله إذا تأخرت ساعتين؟"
-  },
-  {
-    "id": "funny-2",
-    "categoryId": "funny",
-    "text": "لو انمسكت تكلم نفسك، وش بتقول عشان تبرر؟"
-  },
-  {
-    "id": "funny-3",
-    "categoryId": "funny",
-    "text": "وش أكثر موقف محرج ممكن يصير لك في مطعم؟"
-  },
-  {
-    "id": "funny-4",
-    "categoryId": "funny",
-    "text": "لو نمت في الشغل، وش أول شيء بتسويه لما تصحى؟"
-  },
-  {
-    "id": "hypothetical-1",
-    "categoryId": "hypothetical",
-    "text": "لو صحيت ولقيت عندك مليون ريال ليوم واحد فقط، وش بتسوي؟"
-  },
-  {
-    "id": "hypothetical-2",
-    "categoryId": "hypothetical",
-    "text": "لو قدرت تبدّل حياتك مع أي شخص ليوم واحد، مين تختار؟"
-  },
-  {
-    "id": "hypothetical-3",
-    "categoryId": "hypothetical",
-    "text": "لو اختفى النت من العالم لأسبوع، وش بتشغل نفسك فيه؟"
-  },
-  {
-    "id": "hypothetical-4",
-    "categoryId": "hypothetical",
-    "text": "لو صار عندك قدرة تقرأ الأفكار دقيقة واحدة، وش أول شيء بتسويه؟"
-  },
-  {
-    "id": "daily-1",
-    "categoryId": "daily",
-    "text": "وش أفضل حجة عشان تطلع من اجتماع ممل؟"
-  },
-  {
-    "id": "daily-2",
-    "categoryId": "daily",
-    "text": "وش أكثر شيء يضايقك في الانتظار بالطابور؟"
-  },
-  {
-    "id": "daily-3",
-    "categoryId": "daily",
-    "text": "لو جاك ضيف فجأة والبيت مو مرتب، وش خطتك؟"
-  },
-  {
-    "id": "daily-4",
-    "categoryId": "daily",
-    "text": "وش أسهل طريقة تقنع فيها نفسك تقوم بدري؟"
-  },
-  {
-    "id": "weird-1",
-    "categoryId": "weird",
-    "text": "لو حيوانك الأليف قدر يتكلم خمس دقائق، وش أول شيء تتوقع يقوله؟"
-  },
-  {
-    "id": "weird-2",
-    "categoryId": "weird",
-    "text": "لو لقيت باب سري في بيتك، وش أول شيء تسويه؟"
-  },
-  {
-    "id": "weird-3",
-    "categoryId": "weird",
-    "text": "لو كل الأشياء حوّلك صارت ملونة بلون واحد، أي لون تختار؟"
-  },
-  {
-    "id": "weird-4",
-    "categoryId": "weird",
-    "text": "لو اكتشفت إن ظلّك له رأي مختلف عنك، وش بيقول؟"
-  }
+  { "id": "funny-1", "categoryId": "funny", "text": "وش أسوأ عذر ممكن تقوله إذا تأخرت ساعتين؟" },
+  { "id": "funny-2", "categoryId": "funny", "text": "لو انمسكت تكلم نفسك، وش بتقول عشان تبرر؟" },
+  { "id": "funny-3", "categoryId": "funny", "text": "وش أكثر موقف محرج ممكن يصير لك في مطعم؟" },
+  { "id": "funny-4", "categoryId": "funny", "text": "لو نمت في الشغل، وش أول شيء بتسويه لما تصحى؟" },
+  { "id": "funny-autocorrect", "categoryId": "funny", "text": "لو التصحيح التلقائي خانك في رسالة مهمة، وش كتبت بالغلط؟" },
+  { "id": "funny-elevator", "categoryId": "funny", "text": "لو المصعد وقف دقيقتين مع شخص ما تعرفه، وش أول جملة تقولها؟" },
+  { "id": "funny-zoom", "categoryId": "funny", "text": "لو نسيت المايك مفتوح في اجتماع، وش كانوا سمعوا؟" },
+  { "id": "funny-wallet", "categoryId": "funny", "text": "لو دفعت ببطاقة فاضية قدام الكاشير، وش تقول؟" },
+  { "id": "funny-sneeze", "categoryId": "funny", "text": "لو عطست بصوت أقوى من المتوقع في مكان هادي، وش تسوي بعدها؟" },
+  { "id": "funny-wave", "categoryId": "funny", "text": "لو لوحت لشخص وهو يلوح للي وراك، وش ردك؟" },
+  { "id": "funny-password", "categoryId": "funny", "text": "لو انطلب منك تقول كلمة السر بصوت عالي، وش البديل المضحك؟" },
+  { "id": "funny-pet-meet", "categoryId": "funny", "text": "لو قدمت حيوانك الأليف لضيف جديد، وش تقول عنه؟" },
+  { "id": "funny-map", "categoryId": "funny", "text": "لو ضعت وأنت تدّعي إنك تعرف الطريق، وش كذبتك؟" },
+  { "id": "funny-karaoke", "categoryId": "funny", "text": "لو غصباً عليك تغني في عرس وما تعرف كلمات الأغنية، كيف تنقذ الموقف؟" },
+  { "id": "funny-photo-fail", "categoryId": "funny", "text": "لو صورتك الجماعية طلعت وأنت مغمض، وش التعليق اللي تحطه؟" },
+  { "id": "funny-rain-run", "categoryId": "funny", "text": "لو ركضت من المطر وزلّيت، وش أول جملة بعد ما تقوم؟" },
+  { "id": "funny-wrong-order", "categoryId": "funny", "text": "وصل لك طلب أكل مو طلبك لكنه أفخم بكثير... وش خطتك قبل ما يكتشفون؟" },
+  { "id": "funny-name-tag", "categoryId": "funny", "text": "لو انكتب اسمك غلط على الكوب، وش تصير شخصيتك الجديدة؟" },
+  { "id": "funny-chair", "categoryId": "funny", "text": "لو الكرسي طاح وأنت عليه قدام الكل، وش تقول وأنت على الأرض؟" },
+  { "id": "funny-alarm-public", "categoryId": "funny", "text": "لو منبهك رن في مكان عام بنغمة محرجة، وش هي؟" },
+  { "id": "funny-spell", "categoryId": "funny", "text": "لو كل خطأ إملائي تسويه يتحول لشيء حقيقي، وش أسوأ كلمة ممكن تغلط فيها؟" },
+  { "id": "funny-boss-text", "categoryId": "funny", "text": "لو أرسلت إيموجي بالغلط لمديرك، وش كان؟" },
+  { "id": "hypothetical-1", "categoryId": "hypothetical", "text": "لو صحيت ولقيت عندك مليون ريال ليوم واحد فقط، وش بتسوي؟" },
+  { "id": "hypothetical-2", "categoryId": "hypothetical", "text": "لو قدرت تبدّل حياتك مع أي شخص ليوم واحد، مين تختار؟" },
+  { "id": "hypothetical-3", "categoryId": "hypothetical", "text": "لو اختفى النت من العالم لأسبوع، وش بتشغل نفسك فيه؟" },
+  { "id": "hypothetical-4", "categoryId": "hypothetical", "text": "لو صار عندك قدرة تقرأ الأفكار دقيقة واحدة، وش أول شيء بتسويه؟" },
+  { "id": "hypothetical-invisible", "categoryId": "hypothetical", "text": "لو صرت شفاف ساعة واحدة، وش تستخدمها فيه بدون أذى؟" },
+  { "id": "hypothetical-animal", "categoryId": "hypothetical", "text": "لو تحولت لحيوان ليوم، أي حيوان تختار وليه؟" },
+  { "id": "hypothetical-pause", "categoryId": "hypothetical", "text": "لو قدرت توقف العالم عشر ثواني، وش تستغلها فيه؟" },
+  { "id": "hypothetical-clone", "categoryId": "hypothetical", "text": "لو صار عندك نسخة منك تسوي المهام المملة، وش أول مهمة تعطيها؟" },
+  { "id": "hypothetical-map", "categoryId": "hypothetical", "text": "لو كل مدينة تزورها تعطيك قدرة مرتبطة فيها، أي مدينة تختار وش القدرة؟" },
+  { "id": "hypothetical-skill", "categoryId": "hypothetical", "text": "لو تقدر تتقن مهارة مستحيلة وغير مفيدة تماماً، وش تختار؟" },
+  { "id": "hypothetical-time", "categoryId": "hypothetical", "text": "لو رجعت لعمر خمسة عشر ليوم واحد، وش تسوي مختلف؟" },
+  { "id": "hypothetical-food", "categoryId": "hypothetical", "text": "لو آخر أكلة تاكلها كل يوم تصير اسمك الجديد، وش تتمنى تكون؟" },
+  { "id": "hypothetical-house", "categoryId": "hypothetical", "text": "لو بيت أحلامك لازم يحتوي غرفة مالها أي فائدة منطقية، وش تكون؟" },
+  { "id": "hypothetical-mute", "categoryId": "hypothetical", "text": "لو الناس ما تقدر تسمع صوتك ليوم، كيف تتواصل؟" },
+  { "id": "hypothetical-weather", "categoryId": "hypothetical", "text": "لو تتحكم بالجو بزر واحد لكن له عطل غريب، وش العطل؟" },
+  { "id": "hypothetical-guest", "categoryId": "hypothetical", "text": "لو شخصية كرتونية بتسكن معك أسبوع، مين تختار وش أول مشكلة بتسويها؟" },
+  { "id": "hypothetical-job", "categoryId": "hypothetical", "text": "لو جربت مهنة غريبة أسبوع، وش المهنة؟" },
+  { "id": "hypothetical-island", "categoryId": "hypothetical", "text": "لو علقت في جزيرة وفيك ثلاثة أشياء بس، وش تاخذ؟" },
+  { "id": "hypothetical-language", "categoryId": "hypothetical", "text": "لو صحيت تتكلم لغة ما يعرفها إلا الحيوانات، وش أول حيوان تفاوضه؟" },
+  { "id": "hypothetical-size", "categoryId": "hypothetical", "text": "لو صرت بحجم كف اليد لساعة، وش تستكشف؟" },
+  { "id": "hypothetical-book", "categoryId": "hypothetical", "text": "لو انكتبت قصتك في كتاب، وش الفصل اللي تحذف؟" },
+  { "id": "hypothetical-button", "categoryId": "hypothetical", "text": "لو عندك زر يمسح نوع واحد من المواقف المحرجة من حياتك، وش تمسح؟" },
+  { "id": "hypothetical-swap-pet", "categoryId": "hypothetical", "text": "لو الحيوانات في الشارع تقدر تقيم البشر من خمس نجوم، وش تتوقع تقييمك وليه؟" },
+  { "id": "daily-1", "categoryId": "daily", "text": "وش أفضل حجة عشان تطلع من اجتماع ممل؟" },
+  { "id": "daily-2", "categoryId": "daily", "text": "أنت في طابور طويل وقالوا: اللي يضحك الناس يتقدم خمسة أماكن. وش تسوي؟" },
+  { "id": "daily-3", "categoryId": "daily", "text": "لو جاك ضيف فجأة والبيت مو مرتب، وش خطتك؟" },
+  { "id": "daily-4", "categoryId": "daily", "text": "وش أسهل طريقة تقنع فيها نفسك تقوم بدري؟" },
+  { "id": "daily-dishes", "categoryId": "daily", "text": "لو الصحون تقدر تختار مين يغسلها، كيف تقنعها تختارك آخر واحد؟" },
+  { "id": "daily-traffic", "categoryId": "daily", "text": "لو الزحمة واقفة وأنت متأخر، وش تسوي في السيارة؟" },
+  { "id": "daily-lunch", "categoryId": "daily", "text": "وش قرار الغداء اللي ينتهي بندم دائماً؟" },
+  { "id": "daily-notif", "categoryId": "daily", "text": "وصلك إشعار مكتوب فيه: \"لا تفتحه قدام الناس\". وش تتوقع داخله؟" },
+  { "id": "daily-laundry", "categoryId": "daily", "text": "طلعت من الغسالة جوربة مو لك. اخترع قصتها." },
+  { "id": "daily-meeting-cam", "categoryId": "daily", "text": "فتحت الكاميرا بالغلط ووراك شيء غريب. وش أسوأ شيء ممكن يكون؟" },
+  { "id": "daily-keys", "categoryId": "daily", "text": "ضيعت مفاتيحك للمرة العاشرة. اخترع مكاناً مستحيلاً تلقاها فيه." },
+  { "id": "daily-alarm-snooze", "categoryId": "daily", "text": "لو المنبه يقدر يهينك كل مرة تسوي Snooze، وش بيقول؟" },
+  { "id": "daily-grocery", "categoryId": "daily", "text": "دخلت البقالة تشتري غرض واحد وطلعت بعشرة. وش أغرب شيء شريته؟" },
+  { "id": "daily-email", "categoryId": "daily", "text": "وصلك إيميل بعنوان \"ضروري جداً\" لكن محتواه شيء تافه. وش المحتوى؟" },
+  { "id": "daily-walk", "categoryId": "daily", "text": "أنت مستعجل وواحد قدامك يمشي ببطء خيالي. وش تسوي بدون ما تزعلّه؟" },
+  { "id": "daily-water", "categoryId": "daily", "text": "لو قنينة الماء ترسل لك إشعار كل ما نسيتها، وش الرسالة اللي بتكتبها؟" },
+  { "id": "daily-charger", "categoryId": "daily", "text": "شاحن جوالك اختفى قبل النوم والبطارية 1%. وين تتوقع تلقاه بطريقة عبثية؟" },
+  { "id": "daily-smalltalk", "categoryId": "daily", "text": "وش جملة المجاملة اللي تستخدمها وأنت مستعجل؟" },
+  { "id": "daily-fridge", "categoryId": "daily", "text": "تفتح الثلاجة ليه حتى لو تعرف إنك مو جوعان؟" },
+  { "id": "daily-playlist", "categoryId": "daily", "text": "لو لازم يكون لك موسيقى دخول كل مرة تدخل المطبخ، وش نوعها؟" },
+  { "id": "daily-shoes", "categoryId": "daily", "text": "لو حذاؤك يكتب مراجعة عنك بعد يوم طويل، وش بيكتب؟" },
+  { "id": "daily-group", "categoryId": "daily", "text": "القروب ساكت من أسبوع. اكتب رسالة واحدة ترجع الفوضى." },
+  { "id": "daily-desk", "categoryId": "daily", "text": "لو مكتبك يقدر يرمي غرض واحد منك للأبد، وش تتوقع يرمي؟" },
+  { "id": "weird-1", "categoryId": "weird", "text": "لو حيوانك الأليف قدر يتكلم خمس دقائق، وش أول شيء تتوقع يقوله؟" },
+  { "id": "weird-2", "categoryId": "weird", "text": "لو لقيت باب سري في بيتك، وش أول شيء تسويه؟" },
+  { "id": "weird-3", "categoryId": "weird", "text": "لو كل لون صار له صوت، أي لون بيكون أزعج واحد وش صوته؟" },
+  { "id": "weird-4", "categoryId": "weird", "text": "لو اكتشفت إن ظلّك له رأي مختلف عنك، وش بيقول؟" },
+  { "id": "weird-clouds", "categoryId": "weird", "text": "لو السحاب صار يكتب رسائل، وش أول جملة تشوفها فوق البيت؟" },
+  { "id": "weird-furniture", "categoryId": "weird", "text": "لو الأثاث قدر يشتكي، أي قطعة بتشتكي أول وليه؟" },
+  { "id": "weird-echo", "categoryId": "weird", "text": "لو صدى صوتك صار يرد بتعليق، وش نوع تعليقاته؟" },
+  { "id": "weird-food-talk", "categoryId": "weird", "text": "لو الأكل قدر يختار مصيره، أي أكلة ترفض تنأكل؟" },
+  { "id": "weird-gravity", "categoryId": "weird", "text": "لو الجاذبية ضعفت شوي في المطبخ، وش أول فوضى تصير؟" },
+  { "id": "weird-clock", "categoryId": "weird", "text": "لو ساعتك تعطيك وقتاً مزيفاً متعمداً كل يوم، وش أغرب سبب ممكن يكون؟" },
+  { "id": "weird-plants", "categoryId": "weird", "text": "لو النباتات قيّمت اهتمامك فيها، وش تقييمها؟" },
+  { "id": "weird-socks", "categoryId": "weird", "text": "لو الجوارب الضائعة كونت نادي، وش شعارهم؟" },
+  { "id": "weird-mirror-day", "categoryId": "weird", "text": "لو المرآة تعرض نسخة بديلة منك عاشت قراراً مختلفاً، وش أول فرق تلاحظه؟" },
+  { "id": "weird-rain-up", "categoryId": "weird", "text": "لو المطر نزل لفوق يوم، وش أول مشهد تتخيله؟" },
+  { "id": "weird-buttons", "categoryId": "weird", "text": "لو زر الإنارة يطلب كلمة سر كل مرة، وش أغبى كلمة سر ممكن تحطها؟" },
+  { "id": "weird-dream-job", "categoryId": "weird", "text": "لو مكتبك يظهر كل يوم في مكان عشوائي، وش أسوأ مكان ممكن يطلع فيه؟" },
+  { "id": "weird-map-house", "categoryId": "weird", "text": "لو بيتك يقرر يهرب منك ليلة كاملة، وين تتوقع تلقاه الصباح؟" },
+  { "id": "weird-taste", "categoryId": "weird", "text": "لو الألوان لها طعم، الأحمر وش طعمه عندك؟" },
+  { "id": "weird-wifi", "categoryId": "weird", "text": "لو الواي فاي صار كائن حي، وش يطلب منك مقابل الخدمة؟" },
+  { "id": "weird-shoes", "categoryId": "weird", "text": "لو حذاؤك اختار الطريق، وين يوديك اليوم؟" },
+  { "id": "weird-radio", "categoryId": "weird", "text": "لو الراديو يذيع أفكارك بالغلط دقيقة، وش الخبر العاجل؟" },
+  { "id": "weird-moon-note", "categoryId": "weird", "text": "لو القمر ترك لك ورقة على الشباك، وش مكتوب فيها؟" }
 ]
