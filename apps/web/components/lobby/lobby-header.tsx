@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { UiDialog } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { GameAudioControl } from '@/components/game/game-audio-control';
 import { canViewRoomInvitationDetails } from '@/lib/room/navigation-guard';
 import { buildRoomInviteUrl } from '@/lib/room/session';
 import { SYSTEM_COPY, copyLinkFailedMessage } from '@/lib/ui/system-copy';
@@ -108,7 +109,10 @@ export function LobbyHeader({
   if (!showInvitationDetails) {
     return (
       <header className="wanas-panel">
-        <div className="flex items-center justify-end gap-2 p-2.5 xl:p-4">{leaveControl}</div>
+        <div className="flex items-center justify-end gap-2 p-2.5 xl:p-4">
+          <GameAudioControl />
+          {leaveControl}
+        </div>
         {leaveDialog}
       </header>
     );
@@ -142,18 +146,21 @@ export function LobbyHeader({
             ) : null}
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="size-11 min-h-11 px-0 xl:hidden"
-            aria-expanded={menuOpen}
-            aria-controls="lobby-header-menu"
-            aria-label={menuOpen ? 'إغلاق قائمة الغرفة' : 'فتح قائمة الغرفة'}
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            {menuOpen ? '✕' : '☰'}
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            <GameAudioControl className="xl:hidden" />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="size-11 min-h-11 px-0 xl:hidden"
+              aria-expanded={menuOpen}
+              aria-controls="lobby-header-menu"
+              aria-label={menuOpen ? 'إغلاق قائمة الغرفة' : 'فتح قائمة الغرفة'}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              {menuOpen ? '✕' : '☰'}
+            </Button>
+          </div>
         </div>
 
         <div
@@ -192,6 +199,7 @@ export function LobbyHeader({
             </Button>
           )}
           {leaveControl}
+          <GameAudioControl className="hidden xl:block" />
           {shareMessage ? (
             <span className="text-xs font-medium text-wanas-text-muted" aria-live="polite">
               {shareMessage}

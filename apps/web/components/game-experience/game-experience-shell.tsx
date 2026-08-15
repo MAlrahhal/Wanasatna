@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { useGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
+import { clearGameAudioEventKeys, stopAllGameSounds } from '@/lib/game/sounds';
 import { cn } from '@/lib/utils';
 import { GameChatMockPanel } from './game-chat-mock-panel';
 import { GameExperienceHeader } from './game-experience-header';
@@ -18,6 +19,13 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
   const meta = useGameExperienceMeta();
   const { playerRecovery } = useGameShell();
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      stopAllGameSounds();
+      clearGameAudioEventKeys();
+    };
+  }, []);
 
   if (!meta) {
     return <>{children}</>;

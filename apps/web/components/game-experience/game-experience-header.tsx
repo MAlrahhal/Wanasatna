@@ -2,6 +2,7 @@
 
 import type { ReactElement, ReactNode } from 'react';
 import { cloneElement, isValidElement, useState } from 'react';
+import { GameAudioControl } from '@/components/game/game-audio-control';
 import { GameTimerChip } from '@/components/game/game-timer-chip';
 import { Button } from '@/components/ui/button';
 import { UiDialog } from '@/components/ui/dialog';
@@ -157,6 +158,7 @@ export function GameExperienceHeader({
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
+              <GameAudioControl />
               {renderRoomAction(true)}
               {renderLeaveAction()}
               {panelControls}
@@ -222,6 +224,7 @@ export function GameExperienceHeader({
             ) : null}
             {renderRoundChip()}
             {renderTimerChip()}
+            <GameAudioControl />
             {renderRoomAction(false)}
             {renderLeaveAction()}
             {panelControls ? cloneElement(panelControls) : null}

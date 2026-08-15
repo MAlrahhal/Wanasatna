@@ -1,133 +1,350 @@
 /**
- * Minimal reusable game sound helper.
- * Temporary assets live under /public/sounds and can be replaced later.
+ * Shared SFX engine. Temporary cue: /public/sounds/timer-start.wav (unlicensed; P7-D replaces).
  */
 
 export type GameSoundId = 'timer-start' | 'card-request';
 
-const SOUND_SRC: Record<GameSoundId, string> = {
-  // TEMPORARY development cue — replace with final production SFX later.
+export type GameAudioPreferences = {
+  muted: boolean;
+  volume: number;
+};
+
+export type PlayGameSoundOptions = {
+  eventKey?: string;
+};
+
+const PREFS_KEY = 'wanasatna:audio-prefs';
+const DEFAULT_PREFS: GameAudioPreferences = { muted: false, volume: 0.6 };
+const POOL_SIZE = 3;
+const MAX_CONCURRENT = 2;
+const SAME_SOUND_THROTTLE_MS = 120;
+const EVENT_KEY_LIMIT = 256;
+
+// Map only files that exist. P7-C can add: countdown-tick, go, your-turn, correct, wrong, time-up, round-result, match-win, notify.
+const SOUND_SRC: Partial<Record<GameSoundId, string>> = {
   'timer-start': '/sounds/timer-start.wav',
-  // Soft reuse of the same asset at lower volume for teammate card-confirm pings.
   'card-request': '/sounds/timer-start.wav',
 };
 
+
+const SOUND_GAIN: Partial<Record<GameSoundId, number>> = {
+  'card-request': 0.35,
+};
+
+type PoolNode = {
+  el: HTMLAudioElement;
+  busy: boolean;
+  gain: number;
+};
+
 let unlocked = false;
-let sharedAudio: HTMLAudioElement | null = null;
+let unlocking = false;
+let prefs: GameAudioPreferences = { ...DEFAULT_PREFS };
+let prefsSnapshot: GameAudioPreferences = { ...DEFAULT_PREFS };
+let prefsLoaded = false;
+let pool: PoolNode[] | null = null;
+let activeCount = 0;
+const eventKeys = new Set<string>();
+const lastPlayedAt = new Map<string, number>();
+const listeners = new Set<(prefs: GameAudioPreferences) => void>();
 
-function getAudioElement(): HTMLAudioElement | null {
-  if (typeof window === 'undefined') {
-    return null;
+function clampVolume(value: number): number {
+  if (!Number.isFinite(value)) {
+    return DEFAULT_PREFS.volume;
   }
-
-  if (!sharedAudio) {
-    sharedAudio = new Audio();
-    sharedAudio.preload = 'auto';
-  }
-
-  return sharedAudio;
+  return Math.min(1, Math.max(0, value));
 }
 
-/** Call from a user gesture (Ready / Start) to unlock autoplay policies. */
+function isBrowser(): boolean {
+  return typeof window !== 'undefined';
+}
+
+function readStoredPrefs(): GameAudioPreferences {
+  if (!isBrowser()) {
+    return { ...DEFAULT_PREFS };
+  }
+  try {
+    const raw = window.localStorage.getItem(PREFS_KEY);
+    if (!raw) {
+      return { ...DEFAULT_PREFS };
+    }
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') {
+      return { ...DEFAULT_PREFS };
+    }
+    const record = parsed as { muted?: unknown; volume?: unknown };
+    return {
+      muted: typeof record.muted === 'boolean' ? record.muted : DEFAULT_PREFS.muted,
+      volume: typeof record.volume === 'number' ? clampVolume(record.volume) : DEFAULT_PREFS.volume,
+    };
+  } catch {
+    return { ...DEFAULT_PREFS };
+  }
+}
+
+function persistPrefs(): void {
+  if (!isBrowser()) {
+    return;
+  }
+  try {
+    window.localStorage.setItem(
+      PREFS_KEY,
+      JSON.stringify({ muted: prefs.muted, volume: prefs.volume }),
+    );
+  } catch {
+    // Persistence is best-effort.
+  }
+}
+
+function ensurePrefs(): GameAudioPreferences {
+  if (!prefsLoaded) {
+    prefs = readStoredPrefs();
+    prefsLoaded = true;
+  }
+  return prefs;
+}
+
+function snapshotPrefs(): GameAudioPreferences {
+  if (prefsSnapshot.muted !== prefs.muted || prefsSnapshot.volume !== prefs.volume) {
+    prefsSnapshot = { muted: prefs.muted, volume: prefs.volume };
+  }
+  return prefsSnapshot;
+}
+
+function emitPrefs(): void {
+  const snapshot = snapshotPrefs();
+  listeners.forEach((listener) => listener(snapshot));
+}
+
+function applyNodeVolume(node: PoolNode): void {
+  node.el.volume = clampVolume(prefs.volume * node.gain);
+}
+
+function ensureEngine(): PoolNode[] | null {
+  if (!isBrowser()) {
+    return null;
+  }
+  ensurePrefs();
+  if (!pool) {
+    pool = Array.from({ length: POOL_SIZE }, () => {
+      const el = new Audio();
+      el.preload = 'auto';
+      return { el, busy: false, gain: 1 };
+    });
+  }
+  return pool;
+}
+
+function releaseNode(node: PoolNode): void {
+  if (!node.busy) {
+    return;
+  }
+  node.busy = false;
+  activeCount = Math.max(0, activeCount - 1);
+}
+
+function pickNode(): PoolNode | null {
+  const nodes = ensureEngine();
+  if (!nodes) {
+    return null;
+  }
+  return nodes.find((node) => !node.busy) ?? null;
+}
+
+function documentIsHidden(): boolean {
+  return isBrowser() && document.hidden === true;
+}
+
+export function getGameAudioPreferences(): GameAudioPreferences {
+  ensurePrefs();
+  return snapshotPrefs();
+}
+
+export function getGameAudioServerSnapshot(): GameAudioPreferences {
+  return DEFAULT_PREFS;
+}
+
+export function subscribeGameAudioPreferences(
+  listener: (prefs: GameAudioPreferences) => void,
+): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+export function setGameAudioMuted(muted: boolean): void {
+  ensurePrefs();
+  prefs = { ...prefs, muted: Boolean(muted) };
+  persistPrefs();
+  if (prefs.muted) {
+    stopAllGameSounds();
+  }
+  emitPrefs();
+}
+
+export function setGameAudioVolume(volume: number): void {
+  ensurePrefs();
+  prefs = { ...prefs, volume: clampVolume(volume) };
+  persistPrefs();
+  pool?.forEach(applyNodeVolume);
+  emitPrefs();
+}
+
+/** Silent unlock after a real user gesture. Idempotent. Never throws. */
 export function unlockGameAudio(): void {
-  if (typeof window === 'undefined' || unlocked) {
+  if (!isBrowser() || unlocked || unlocking) {
     return;
   }
 
-  const audio = getAudioElement();
-
-  if (!audio) {
+  const nodes = ensureEngine();
+  const node = nodes?.[0];
+  if (!node) {
     return;
   }
+
+  unlocking = true;
 
   try {
-    audio.src = SOUND_SRC['timer-start'];
-    audio.volume = 0;
-    const playPromise = audio.play();
+    const src = SOUND_SRC['timer-start'];
+    if (!src) {
+      unlocked = true;
+      unlocking = false;
+      return;
+    }
+    node.el.muted = true;
+    node.el.volume = 0;
+    node.el.src = src;
+    const playPromise = node.el.play();
+    const finish = (): void => {
+      try {
+        node.el.pause();
+        node.el.currentTime = 0;
+      } catch {
+        // ignore
+      }
+      node.el.muted = false;
+      applyNodeVolume(node);
+      unlocked = true;
+      unlocking = false;
+    };
 
     if (playPromise && typeof playPromise.then === 'function') {
-      void playPromise
-        .then(() => {
-          audio.pause();
-          audio.currentTime = 0;
-          audio.volume = 1;
-          unlocked = true;
-        })
-        .catch(() => {
-          audio.volume = 1;
-        });
+      void playPromise.then(finish).catch(() => {
+        node.el.muted = false;
+        applyNodeVolume(node);
+        unlocking = false;
+      });
       return;
     }
 
-    audio.pause();
-    audio.currentTime = 0;
-    audio.volume = 1;
-    unlocked = true;
+    finish();
   } catch {
-    // Audio unlock is best-effort; gameplay must continue.
+    unlocking = false;
   }
 }
 
-export function playGameSound(id: GameSoundId): void {
-  if (typeof window === 'undefined') {
+export function playGameSound(id: GameSoundId, options?: PlayGameSoundOptions): void {
+  if (!isBrowser()) {
+    return;
+  }
+
+  ensurePrefs();
+
+  if (!unlocked || prefs.muted || documentIsHidden()) {
     return;
   }
 
   const src = SOUND_SRC[id];
-  const audio = getAudioElement();
+  if (!src) {
+    return;
+  }
 
-  if (!audio || !src) {
+  const eventKey = options?.eventKey;
+  if (eventKey && eventKeys.has(eventKey)) {
+    return;
+  }
+
+  const now = Date.now();
+  const previous = lastPlayedAt.get(id) ?? 0;
+  if (now - previous < SAME_SOUND_THROTTLE_MS) {
+    return;
+  }
+
+  if (activeCount >= MAX_CONCURRENT) {
+    return;
+  }
+
+  const node = pickNode();
+  if (!node) {
     return;
   }
 
   try {
-    audio.src = src;
-    audio.volume = id === 'card-request' ? 0.35 : 1;
-    audio.currentTime = 0;
-    const playPromise = audio.play();
+    if (eventKey) {
+      if (eventKeys.size >= EVENT_KEY_LIMIT) {
+        eventKeys.clear();
+      }
+      eventKeys.add(eventKey);
+    }
+    lastPlayedAt.set(id, now);
+    node.gain = SOUND_GAIN[id] ?? 1;
+    node.el.src = src;
+    applyNodeVolume(node);
+    node.el.currentTime = 0;
+    node.busy = true;
+    activeCount += 1;
+    node.el.onended = () => {
+      releaseNode(node);
+    };
 
+    const playPromise = node.el.play();
     if (playPromise && typeof playPromise.catch === 'function') {
       void playPromise.catch(() => {
-        // Autoplay blocked or missing asset — ignore.
+        releaseNode(node);
       });
     }
   } catch {
-    // Never break gameplay for sound failures.
+    releaseNode(node);
   }
 }
 
-/** Soft teammate card-request ping. Prefer Web Audio beep; fall back to quiet game sound. */
-export function playSoftCardRequestPing(): void {
-  if (typeof window === 'undefined') {
+export function stopAllGameSounds(): void {
+  if (!pool) {
+    activeCount = 0;
     return;
   }
-
-  try {
-    const AudioCtx =
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AudioCtx) {
-      playGameSound('card-request');
-      return;
+  for (const node of pool) {
+    try {
+      node.el.pause();
+      node.el.currentTime = 0;
+    } catch {
+      // ignore
     }
-
-    const ctx = new AudioCtx();
-    const oscillator = ctx.createOscillator();
-    const gain = ctx.createGain();
-    oscillator.type = 'sine';
-    oscillator.frequency.value = 880;
-    gain.gain.value = 0.0001;
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-    const now = ctx.currentTime;
-    gain.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
-    oscillator.start(now);
-    oscillator.stop(now + 0.2);
-    oscillator.onended = () => {
-      void ctx.close().catch(() => undefined);
-    };
-  } catch {
-    playGameSound('card-request');
+    node.busy = false;
   }
+  activeCount = 0;
+}
+
+export function clearGameAudioEventKeys(): void {
+  eventKeys.clear();
+  lastPlayedAt.clear();
+}
+
+export function playSoftCardRequestPing(): void {
+  playGameSound('card-request');
+}
+
+export function resetGameAudioForTests(): void {
+  stopAllGameSounds();
+  pool = null;
+  unlocked = false;
+  unlocking = false;
+  prefs = { ...DEFAULT_PREFS };
+  prefsSnapshot = { ...DEFAULT_PREFS };
+  prefsLoaded = false;
+  eventKeys.clear();
+  lastPlayedAt.clear();
+  activeCount = 0;
+  listeners.clear();
 }
