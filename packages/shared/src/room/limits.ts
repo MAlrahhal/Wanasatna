@@ -1,2 +1,2 @@
-/** Free-tier authoritative room capacity (Premium may raise later). */
+/** Default public room capacity. */
 export const MAX_ROOM_PLAYERS = 8;

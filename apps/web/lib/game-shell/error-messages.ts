@@ -1,5 +1,6 @@
 import type { GameErrorCode } from '@wanasatna/shared';
 import { toSafeUserErrorMessage } from '@/lib/ui/system-copy';
+import { getRoomErrorMessage } from '@/lib/room/error-messages';
 
 const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   VALIDATION_ERROR: 'يرجى التحقق من البيانات المدخلة.',
@@ -26,6 +27,8 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   TEAM_FULL: 'هذا الفريق ممتلئ.',
   INVALID_TEAM_ASSIGNMENT: 'توزيع الفرق غير مكتمل أو غير صالح.',
   PLAYER_NOT_ELIGIBLE: 'هذا اللاعب غير مؤهل لتوزيع الفرق.',
+  RATE_LIMITED: 'طلبات كثيرة بسرعة، انتظر شوي وحاول مرة ثانية.',
+  CONNECTION_FAILED: getRoomErrorMessage('CONNECTION_FAILED'),
 };
 
 export function getGameShellErrorMessage(code: GameErrorCode, fallback?: string): string {

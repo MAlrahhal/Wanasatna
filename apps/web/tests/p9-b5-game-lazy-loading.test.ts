@@ -78,7 +78,10 @@ test('renderer remounts per gameId and shows existing loading/error UI', () => {
   assert.match(lazy, /ssr:\s*false/);
   assert.match(lazy, /GameSystemLoading/);
   assert.match(lazy, /GameSystemError/);
-  assert.match(lazy, /SYSTEM_COPY\.unexpectedError/);
+  assert.match(lazy, /SYSTEM_COPY\.gameLoadFailed/);
+  assert.match(lazy, /onRetry=\{reloadStaleGameChunk\}/);
+  const reload = read('lib/game-plugins/reload-stale-game-chunk.ts');
+  assert.match(reload, /location\.reload/);
 });
 
 test('Guessing Challenge Real3D stays a nested dynamic import', () => {

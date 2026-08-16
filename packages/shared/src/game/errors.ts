@@ -22,7 +22,9 @@ export type GameErrorCode =
   | 'TEAM_NOT_SUPPORTED'
   | 'TEAM_FULL'
   | 'INVALID_TEAM_ASSIGNMENT'
-  | 'PLAYER_NOT_ELIGIBLE';
+  | 'PLAYER_NOT_ELIGIBLE'
+  | 'RATE_LIMITED'
+  | 'CONNECTION_FAILED';
 
 export type GameError = {
   code: GameErrorCode;

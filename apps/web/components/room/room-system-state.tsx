@@ -15,7 +15,13 @@ export function GameSystemLoading() {
   return <SystemStatus tone="loading" title={SYSTEM_COPY.loading} className="mx-auto max-w-lg" />;
 }
 
-export function GameSystemError({ message }: { message?: string | null }) {
+export function GameSystemError({
+  message,
+  onRetry,
+}: {
+  message?: string | null;
+  onRetry?: () => void;
+}) {
   const presented = presentRoomActionError(message);
   return (
     <SystemStatus
@@ -23,6 +29,13 @@ export function GameSystemError({ message }: { message?: string | null }) {
       title={presented.title}
       description={presented.description}
       className="mx-auto max-w-lg"
+      action={
+        onRetry ? (
+          <Button type="button" className="min-h-11" onClick={onRetry}>
+            {SYSTEM_COPY.retry}
+          </Button>
+        ) : undefined
+      }
     />
   );
 }

@@ -279,14 +279,6 @@ export function UiPlaygroundClient() {
                 <p className="text-sm text-wanas-text-muted">معاينة بطاقة الغرفة — بدون منطق أعمال.</p>
               </RoomCard>
             </PlaygroundSubsection>
-            <PlaygroundSubsection title="Premium Card">
-              <FeatureCard
-                accent="purple"
-                title="وناستنا بريميوم"
-                description="مزايا إضافية اختيارية للراغبين في تجربة أوسع."
-                icon={<span className="text-lg">★</span>}
-              />
-            </PlaygroundSubsection>
             <PlaygroundSubsection title="Feature Card">
               <FeatureCard
                 accent="blue"
@@ -301,14 +293,12 @@ export function UiPlaygroundClient() {
         <PlaygroundSection id="badges" title="Badges">
           <div className="flex flex-wrap gap-3">
             <Badge variant="host" />
-            <Badge variant="premium" />
             <Badge variant="online" />
             <Badge variant="offline" />
             <Badge variant="coming-soon" />
             <Badge variant="selected" />
             <StatusBadge variant="available" />
             <StatusBadge variant="coming-soon" />
-            <StatusBadge variant="premium" />
           </div>
         </PlaygroundSection>
 

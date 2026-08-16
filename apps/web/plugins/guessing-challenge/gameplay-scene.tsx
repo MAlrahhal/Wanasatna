@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
-import { FirstPersonGameScene } from './first-person-game-scene';
+import { CssGameplayFallback, SceneFallbackBoundary } from './scene-fallback';
 import { detectWebGLSupport, type GuessingChallengeSceneProps } from './scene-props';
 
 const Real3DSceneLazy = dynamic(
@@ -22,7 +22,7 @@ const Real3DSceneLazy = dynamic(
 
 /**
  * Chooses Real3D (lazy) when WebGL is available; otherwise CSS first-person fallback.
- * Never eagerly pulls Three.js into lobby/home bundles.
+ * Import failure and runtime 3D errors also use the same CSS scene — never the whole GameScreen error.
  */
 export function GameplayScene(props: GuessingChallengeSceneProps) {
   const [mode, setMode] = useState<'pending' | 'real3d' | 'fallback'>('pending');
@@ -43,12 +43,12 @@ export function GameplayScene(props: GuessingChallengeSceneProps) {
   }
 
   if (mode === 'fallback') {
-    return (
-      <div data-testid="gc-css-fallback-scene">
-        <FirstPersonGameScene {...props} />
-      </div>
-    );
+    return <CssGameplayFallback {...props} />;
   }
 
-  return <Real3DSceneLazy {...props} />;
+  return (
+    <SceneFallbackBoundary fallback={<CssGameplayFallback {...props} />}>
+      <Real3DSceneLazy {...props} />
+    </SceneFallbackBoundary>
+  );
 }

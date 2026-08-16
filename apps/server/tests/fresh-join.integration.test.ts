@@ -97,12 +97,14 @@ async function main(): Promise<void> {
     const { host, clients, roomCode } = await startThreePlayerMatch();
     const waiter = await joinFreshPlayer(roomCode, 'أحمد');
 
-    const syncRes = await ack<{ success: boolean; error?: { code: string } }>(
-      waiter.socket,
-      BARA_AL_SALAFA_SYNC_EVENT,
-    );
-    assert.equal(syncRes.success, false);
-    assert.equal(syncRes.error?.code, 'NOT_PARTICIPANT');
+    const syncRes = await ack<{
+      success: boolean;
+      error?: { code: string };
+      data?: { view?: { isMatchSpectator?: boolean; displayText?: string; role?: string } };
+    }>(waiter.socket, BARA_AL_SALAFA_SYNC_EVENT);
+    assert.equal(syncRes.success, true);
+    assert.equal(syncRes.data?.view?.isMatchSpectator, true);
+    assert.equal(syncRes.data?.view?.displayText, '');
 
     host.socket.disconnect();
     clients.forEach((c) => c.socket.disconnect());

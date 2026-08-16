@@ -13,6 +13,7 @@ import {
 import { getRoomChannel } from '../room/room.utils.js';
 import {
   getGameSocketContext,
+  rejectIfGameSyncRateLimited,
   sendGameInternalError,
   sendGameResponse,
 } from './game.socket.utils.js';
@@ -39,6 +40,10 @@ export function registerPregameTeamHandlers(io: Server, socket: Socket): void {
     const contextError = getGameSocketContext(socket);
     if (contextError) {
       sendGameResponse(callback, contextError);
+      return;
+    }
+
+    if (rejectIfGameSyncRateLimited(socket, callback)) {
       return;
     }
 

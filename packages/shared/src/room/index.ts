@@ -4,5 +4,6 @@ export * from './events.js';
 export * from './limits.js';
 export * from './payloads.js';
 export * from './player.js';
+export * from './player-name.js';
 export * from './responses.js';
 export * from './room.js';

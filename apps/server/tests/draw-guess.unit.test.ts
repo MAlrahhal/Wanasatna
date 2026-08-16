@@ -28,6 +28,7 @@ import {
   serializeDrawGuessState,
   withRound,
 } from '../src/modules/game/plugins/draw-guess/state.js';
+import { isOversizedGameAnswer } from '../src/modules/game/runtime/game-answer-text.js';
 import { isCorrectGuess, normalizeGuessText } from '../src/modules/game/plugins/draw-guess/words.js';
 
 registerGameContent(DRAW_GUESS_GAME_ID);
@@ -241,6 +242,15 @@ test('guess normalization Arabic variants', () => {
   assert.equal(normalizeGuessText('  آيس كريم '), normalizeGuessText('ايس كريم'));
   assert.ok(isCorrectGuess('أسد', 'اسد'));
   assert.equal(isCorrectGuess('فيل', 'أسد'), false);
+});
+
+test('guess length: 1-char and 150 accepted by matcher; 151 is oversized', () => {
+  assert.equal(isOversizedGameAnswer('أ'), false);
+  assert.equal(isOversizedGameAnswer('قطة'), false);
+  assert.equal(isOversizedGameAnswer('ا'.repeat(150)), false);
+  assert.equal(isOversizedGameAnswer('ا'.repeat(151)), true);
+  assert.equal(isOversizedGameAnswer('   '), false);
+  assert.ok(isCorrectGuess('أسد', 'اسد'));
 });
 
 test('scoring: +100 guesser and drawer; zero when unsolved', () => {

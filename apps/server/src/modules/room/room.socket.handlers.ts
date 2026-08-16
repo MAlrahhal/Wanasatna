@@ -23,22 +23,31 @@ import { evaluatePlayerRecovery } from '../game/runtime/player-recovery.js';
 import {
   onRoomDeleted,
   onRoomPlayerRemoved,
-  onRoomRosterJoined,
 } from '../game/runtime/pregame-teams-room-hooks.js';
+import {
+  consumeCreateRoomLimit,
+  consumeJoinRoomLimit,
+  consumeReconnectLimit,
+  consumeRoomSyncLimit,
+  forgetSocketAbuseState,
+} from '../../lib/abuse-limiter.js';
 import { announcePermanentPlayerRemoval } from './services/disconnected-player-expiry.service.js';
 import {
-  createRoom,
   handlePlayerDisconnect,
-  joinRoom,
   kickPlayer,
-  leaveRoom,
   lockRoom,
-  reconnectPlayer,
-  syncBoundRoomSession,
   unlockRoom,
 } from './room.service.js';
+import { roomMutationRuntime } from './room-mutation-runtime.js';
 import {
-  bindSocketToRoomSession,
+  bindNewIdentityOrAbandon,
+  connectionFailedRoomError,
+  rateLimitedRoomError,
+  roomEntryBusyError,
+  toPublicReconnectFailure,
+} from './room-abuse.js';
+import { endRoomEntry, tryBeginRoomEntry } from './room-entry-lock.js';
+import {
   clearSocketSession,
   getSocketContext,
   sendInternalError,
@@ -48,39 +57,74 @@ import {
   broadcastRoomPlayersSnapshot,
   getPlayerChannel,
   getRoomChannel,
-  loadActiveRoomPlayers,
 } from './room.utils.js';
+import { validateCreateRoomPayload, validateJoinRoomPayload } from './room.validators.js';
 
 export function registerCreateRoomHandler(io: Server, socket: Socket): void {
   socket.on(
     CREATE_ROOM_EVENT,
     async (payload: unknown, callback?: (response: CreateRoomResponse) => void) => {
+      if (!tryBeginRoomEntry(socket.id)) {
+        sendResponse(callback, roomEntryBusyError());
+        return;
+      }
+
       try {
         console.info('[create-room]', { stage: 'socket-handler-received' });
+
+        const validation = validateCreateRoomPayload(payload);
+
+        if (!validation.success) {
+          sendResponse(callback, validation);
+          return;
+        }
+
+        if (!consumeCreateRoomLimit(socket)) {
+          sendResponse(callback, rateLimitedRoomError());
+          return;
+        }
 
         // Fresh Create is a hard identity boundary: terminate any prior RoomPlayer
         // bound to this socket before creating a new host.
         if (socket.data.playerId && socket.data.roomId) {
           const priorPlayerId = socket.data.playerId as string;
           const priorRoomId = socket.data.roomId as string;
-          const priorLeave = await leaveRoom(priorPlayerId, priorRoomId);
-          await clearSocketSession(socket);
+          const priorLeave = await roomMutationRuntime.leaveRoom(priorPlayerId, priorRoomId);
+          await roomMutationRuntime.clearSocketSession(socket);
 
           if (priorLeave.success) {
-            await announcePermanentPlayerRemoval(io, priorRoomId, priorPlayerId, priorLeave.data);
+            await roomMutationRuntime.announcePermanentPlayerRemoval(
+              io,
+              priorRoomId,
+              priorPlayerId,
+              priorLeave.data,
+            );
           }
         } else if (socket.data.playerId || socket.data.roomId) {
-          await clearSocketSession(socket);
+          await roomMutationRuntime.clearSocketSession(socket);
         }
 
-        const response = await createRoom(payload);
+        const response = await roomMutationRuntime.createRoom(payload);
 
         if (response.success) {
-          await bindSocketToRoomSession(
+          const bindResult = await bindNewIdentityOrAbandon(
             socket,
             response.data.room.id,
             response.data.player.id,
+            roomMutationRuntime.bindSocketToRoomSession,
+            roomMutationRuntime.leaveRoom,
+            roomMutationRuntime.clearSocketSession,
           );
+
+          if (bindResult === 'abandoned') {
+            console.info('[create-room]', {
+              stage: 'socket-handler-complete',
+              callbackErrorCode: 'CONNECTION_FAILED',
+            });
+            sendResponse(callback, connectionFailedRoomError());
+            return;
+          }
+
           console.info('[create-room]', {
             stage: 'socket-handler-complete',
             callbackErrorCode: 'none',
@@ -101,6 +145,8 @@ export function registerCreateRoomHandler(io: Server, socket: Socket): void {
           callbackErrorCode: 'INTERNAL_ERROR',
         });
         sendInternalError(callback);
+      } finally {
+        endRoomEntry(socket.id);
       }
     },
   );
@@ -110,30 +156,64 @@ export function registerJoinRoomHandler(io: Server, socket: Socket): void {
   socket.on(
     JOIN_ROOM_EVENT,
     async (payload: unknown, callback?: (response: RoomActionResponse<unknown>) => void) => {
+      if (!tryBeginRoomEntry(socket.id)) {
+        sendResponse(callback, roomEntryBusyError());
+        return;
+      }
+
       try {
+        const validation = validateJoinRoomPayload(payload);
+
+        if (!validation.success) {
+          sendResponse(callback, validation);
+          return;
+        }
+
+        if (!consumeJoinRoomLimit(socket)) {
+          sendResponse(callback, rateLimitedRoomError());
+          return;
+        }
+
         // Fresh Join is a hard identity boundary: terminate any prior RoomPlayer
         // bound to this socket before joining the requested room.
         if (socket.data.playerId && socket.data.roomId) {
           const priorPlayerId = socket.data.playerId as string;
           const priorRoomId = socket.data.roomId as string;
-          const priorLeave = await leaveRoom(priorPlayerId, priorRoomId);
-          await clearSocketSession(socket);
+          const priorLeave = await roomMutationRuntime.leaveRoom(priorPlayerId, priorRoomId);
+          await roomMutationRuntime.clearSocketSession(socket);
 
           if (priorLeave.success) {
-            await announcePermanentPlayerRemoval(io, priorRoomId, priorPlayerId, priorLeave.data);
+            await roomMutationRuntime.announcePermanentPlayerRemoval(
+              io,
+              priorRoomId,
+              priorPlayerId,
+              priorLeave.data,
+            );
           }
         } else if (socket.data.playerId || socket.data.roomId) {
-          await clearSocketSession(socket);
+          await roomMutationRuntime.clearSocketSession(socket);
         }
 
-        const response = await joinRoom(payload);
+        const response = await roomMutationRuntime.joinRoom(payload);
 
         if (response.success) {
-          await bindSocketToRoomSession(
+          const bindResult = await bindNewIdentityOrAbandon(
             socket,
             response.data.room.id,
             response.data.player.id,
+            roomMutationRuntime.bindSocketToRoomSession,
+            roomMutationRuntime.leaveRoom,
+            roomMutationRuntime.clearSocketSession,
           );
+
+          if (bindResult === 'abandoned') {
+            console.info('[room-join]', {
+              stage: 'failed',
+              errorCode: 'CONNECTION_FAILED',
+            });
+            sendResponse(callback, connectionFailedRoomError());
+            return;
+          }
 
           console.info('[room-join]', {
             roomId: response.data.room.id,
@@ -141,8 +221,8 @@ export function registerJoinRoomHandler(io: Server, socket: Socket): void {
             playerId: response.data.player.id,
           });
 
-          await broadcastRoomPlayersSnapshot(io, response.data.room.id);
-          await onRoomRosterJoined(io, response.data.room.id);
+          await roomMutationRuntime.broadcastRoomPlayersSnapshot(io, response.data.room.id);
+          await roomMutationRuntime.onRoomRosterJoined(io, response.data.room.id);
         } else {
           console.info('[room-join]', {
             stage: 'failed',
@@ -153,6 +233,8 @@ export function registerJoinRoomHandler(io: Server, socket: Socket): void {
         sendResponse(callback, response);
       } catch {
         sendInternalError(callback);
+      } finally {
+        endRoomEntry(socket.id);
       }
     },
   );
@@ -172,7 +254,7 @@ export function registerLeaveRoomHandler(io: Server, socket: Socket): void {
       const { playerId, roomId } = socket.data;
 
       try {
-        const response = await leaveRoom(playerId!, roomId!);
+        const response = await roomMutationRuntime.leaveRoom(playerId!, roomId!);
 
         if (response.success) {
           console.info('[room-leave]', {
@@ -305,8 +387,20 @@ export function registerReconnectHandler(io: Server, socket: Socket): void {
   socket.on(
     RECONNECT_EVENT,
     async (payload: unknown, callback?: (response: RoomActionResponse<unknown>) => void) => {
+      if (!tryBeginRoomEntry(socket.id)) {
+        sendResponse(callback, roomEntryBusyError());
+        return;
+      }
+
+      let postAckRoomId: string | undefined;
+
       try {
-        const response = await reconnectPlayer(payload);
+        if (!consumeReconnectLimit(socket)) {
+          sendResponse(callback, rateLimitedRoomError());
+          return;
+        }
+
+        const response = await roomMutationRuntime.reconnectPlayer(payload);
 
         if (response.success) {
           const playerChannel = getPlayerChannel(response.data.player.id);
@@ -322,11 +416,30 @@ export function registerReconnectHandler(io: Server, socket: Socket): void {
             }
           }
 
-          await bindSocketToRoomSession(
+          if (!socket.connected) {
+            await roomMutationRuntime.handlePlayerDisconnect(
+              response.data.player.id,
+              response.data.room.id,
+            );
+            sendResponse(callback, connectionFailedRoomError());
+            return;
+          }
+
+          await roomMutationRuntime.bindSocketToRoomSession(
             socket,
             response.data.room.id,
             response.data.player.id,
           );
+
+          if (!socket.connected) {
+            await roomMutationRuntime.clearSocketSession(socket);
+            await roomMutationRuntime.handlePlayerDisconnect(
+              response.data.player.id,
+              response.data.room.id,
+            );
+            sendResponse(callback, connectionFailedRoomError());
+            return;
+          }
 
           console.info('[room-reconnect]', {
             roomId: response.data.room.id,
@@ -337,55 +450,60 @@ export function registerReconnectHandler(io: Server, socket: Socket): void {
           // Ack after bind so a later snapshot/recovery failure cannot surface as
           // INTERNAL_ERROR after the player was already reconnected successfully.
           sendResponse(callback, response);
+          postAckRoomId = response.data.room.id;
+        } else {
+          if (response.error?.code === 'RECONNECT_EXPIRED') {
+            const expiredMeta = response as ReconnectResponse & {
+              expiredRoomId?: string;
+              roomDeleted?: boolean;
+            };
+            const expiredPayload = payload as { playerId?: string; roomId?: string };
+            const expiredRoomId =
+              expiredMeta.expiredRoomId ?? expiredMeta.hostChanged?.roomId ?? expiredPayload.roomId;
+            const expiredPlayerId = expiredPayload.playerId;
 
-          try {
-            await broadcastRoomPlayersSnapshot(io, response.data.room.id);
-
-            ensureGameShellLifecycleProgress(io, response.data.room.id);
-            const shell = getGameShellByRoomId(response.data.room.id);
-
-            if (shell) {
-              socket.emit(GAME_SHELL_STATE_EVENT, { state: shell });
+            if (expiredRoomId && expiredPlayerId) {
+              await announcePermanentPlayerRemoval(io, expiredRoomId, expiredPlayerId, {
+                roomDeleted: Boolean(expiredMeta.roomDeleted),
+                hostChanged: response.hostChanged ?? null,
+              });
             }
-
-            await evaluatePlayerRecovery(io, response.data.room.id);
-          } catch (error) {
-            console.info('[reconnect]', {
-              stage: 'post-ack-side-effect-failed',
-              errorName: error instanceof Error ? error.name : typeof error,
-              errorMessage: error instanceof Error ? error.message : String(error),
-            });
+          } else if (response.hostChanged) {
+            io.to(getRoomChannel(response.hostChanged.roomId)).emit(
+              HOST_CHANGED_EVENT,
+              response.hostChanged,
+            );
           }
 
-          return;
+          sendResponse(callback, toPublicReconnectFailure(response));
         }
-
-        if (response.error?.code === 'RECONNECT_EXPIRED') {
-          const expiredMeta = response as ReconnectResponse & {
-            expiredRoomId?: string;
-            roomDeleted?: boolean;
-          };
-          const expiredPayload = payload as { playerId?: string; roomId?: string };
-          const expiredRoomId =
-            expiredMeta.expiredRoomId ?? expiredMeta.hostChanged?.roomId ?? expiredPayload.roomId;
-          const expiredPlayerId = expiredPayload.playerId;
-
-          if (expiredRoomId && expiredPlayerId) {
-            await announcePermanentPlayerRemoval(io, expiredRoomId, expiredPlayerId, {
-              roomDeleted: Boolean(expiredMeta.roomDeleted),
-              hostChanged: response.hostChanged ?? null,
-            });
-          }
-        } else if (response.hostChanged) {
-          io.to(getRoomChannel(response.hostChanged.roomId)).emit(
-            HOST_CHANGED_EVENT,
-            response.hostChanged,
-          );
-        }
-
-        sendResponse(callback, response);
       } catch {
         sendInternalError(callback);
+      } finally {
+        endRoomEntry(socket.id);
+      }
+
+      if (!postAckRoomId) {
+        return;
+      }
+
+      try {
+        await roomMutationRuntime.broadcastRoomPlayersSnapshot(io, postAckRoomId);
+
+        ensureGameShellLifecycleProgress(io, postAckRoomId);
+        const shell = getGameShellByRoomId(postAckRoomId);
+
+        if (shell) {
+          socket.emit(GAME_SHELL_STATE_EVENT, { state: shell });
+        }
+
+        await evaluatePlayerRecovery(io, postAckRoomId);
+      } catch (error) {
+        console.info('[reconnect]', {
+          stage: 'post-ack-side-effect-failed',
+          errorName: error instanceof Error ? error.name : typeof error,
+          errorMessage: error instanceof Error ? error.message : String(error),
+        });
       }
     },
   );
@@ -405,10 +523,15 @@ export function registerRoomSyncHandler(_io: Server, socket: Socket): void {
 
       const { playerId, roomId } = socket.data;
 
+      if (!consumeRoomSyncLimit(socket)) {
+        sendResponse(callback, rateLimitedRoomError());
+        return;
+      }
+
       try {
         // Re-assert channel membership in case transport recovery dropped it.
-        await bindSocketToRoomSession(socket, roomId!, playerId!);
-        const response = await syncBoundRoomSession(playerId!, roomId!);
+        await roomMutationRuntime.bindSocketToRoomSession(socket, roomId!, playerId!);
+        const response = await roomMutationRuntime.syncBoundRoomSession(playerId!, roomId!);
 
         if (response.success) {
           // CRITICAL: Reload roster immediately before ACK.
@@ -423,12 +546,12 @@ export function registerRoomSyncHandler(_io: Server, socket: Socket): void {
           }
           // Always re-read immediately before ACK (and once more after a tick) so a
           // concurrent join committed during syncBoundRoomSession is not missed.
-          let freshPlayers = await loadActiveRoomPlayers(
+          let freshPlayers = await roomMutationRuntime.loadActiveRoomPlayers(
             roomId!,
             response.data.room.hostPlayerId,
           );
           await new Promise<void>((resolve) => setImmediate(resolve));
-          freshPlayers = await loadActiveRoomPlayers(
+          freshPlayers = await roomMutationRuntime.loadActiveRoomPlayers(
             roomId!,
             response.data.room.hostPlayerId,
           );
@@ -462,6 +585,8 @@ export function registerRoomSyncHandler(_io: Server, socket: Socket): void {
 
 export function registerDisconnectHandler(io: Server, socket: Socket): void {
   socket.on('disconnect', async () => {
+    forgetSocketAbuseState(socket.id);
+
     const { playerId, roomId } = socket.data;
 
     if (!playerId || !roomId) {

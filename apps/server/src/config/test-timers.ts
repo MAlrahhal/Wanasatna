@@ -40,7 +40,7 @@ const TEST_INTERACTIVE_SECONDS = 15;
 const TEST_ROUND_RESULTS_SECONDS = 3;
 const TEST_LOBBY_WAIT_MS = 50;
 const TEST_SHELL_COUNTDOWN_SECONDS = 1;
-const TEST_PLAYER_RECOVERY_SECONDS = 10;
+export const TEST_PLAYER_RECOVERY_SECONDS = 10;
 
 /** Returns production or 1-second test duration. Production constants stay unchanged. */
 export function resolveTimedPhaseSeconds(productionSeconds: number): number {

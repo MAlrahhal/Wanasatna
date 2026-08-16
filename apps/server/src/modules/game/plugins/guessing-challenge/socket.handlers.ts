@@ -21,9 +21,14 @@ import {
   GUESSING_CHALLENGE_USE_YELLOW_CARD_EVENT,
   isActiveMatchParticipant,
 } from '@wanasatna/shared';
+import { consumeLookLimit } from '../../../../lib/abuse-limiter.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
-import { getGameSocketContext, sendGameResponse } from '../../game.socket.utils.js';
+import {
+  getGameSocketContext,
+  rejectIfGameSyncRateLimited,
+  sendGameResponse,
+} from '../../game.socket.utils.js';
 import { ensureGuessingChallengeMatchStateWithTimer } from './init-match.js';
 import {
   broadcastPhaseChanged,
@@ -137,6 +142,10 @@ export function registerGuessingChallengeSocketHandlers(io: Server, socket: Sock
 
     if (contextError) {
       sendGameResponse(callback, contextError);
+      return;
+    }
+
+    if (rejectIfGameSyncRateLimited(socket, callback)) {
       return;
     }
 
@@ -424,6 +433,10 @@ export function registerGuessingChallengeSocketHandlers(io: Server, socket: Sock
 
       if (contextError) {
         sendGameResponse(callback, contextError);
+        return;
+      }
+
+      if (!consumeLookLimit(socket)) {
         return;
       }
 

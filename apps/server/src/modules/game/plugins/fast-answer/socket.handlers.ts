@@ -8,11 +8,16 @@ import {
   isActiveMatchParticipant,
 } from '@wanasatna/shared';
 import { getGameShellByRoomId } from '../../game.service.js';
-import { getGameSocketContext, sendGameResponse } from '../../game.socket.utils.js';
+import {
+  getGameSocketContext,
+  rejectIfGameSyncRateLimited,
+  sendGameResponse,
+} from '../../game.socket.utils.js';
 import {
   isPlayerRecoveryActive,
   playerRecoveryBlockedError,
 } from '../../runtime/player-recovery.js';
+import { isOversizedGameAnswer } from '../../runtime/game-answer-text.js';
 import { isCorrectAnswer } from './answers.js';
 import { ensureFastAnswerMatchStateWithTimer } from './init-match.js';
 import { continueFromRoundResults, finalizeQuestionRound } from './match-lifecycle.js';
@@ -92,6 +97,10 @@ export function registerFastAnswerSocketHandlers(io: Server, socket: Socket): vo
       return;
     }
 
+    if (rejectIfGameSyncRateLimited(socket, callback)) {
+      return;
+    }
+
     const { roomId, playerId } = socket.data;
     const shell = getGameShellByRoomId(roomId!);
 
@@ -158,6 +167,11 @@ export function registerFastAnswerSocketHandlers(io: Server, socket: Socket): vo
 
       if (typeof answer !== 'string' || answer.trim().length === 0) {
         sendGameResponse(callback, invalidActionError('الإجابة غير صالحة.'));
+        return;
+      }
+
+      if (isOversizedGameAnswer(answer)) {
+        sendGameResponse(callback, invalidActionError('الإجابة طويلة جداً.'));
         return;
       }
 

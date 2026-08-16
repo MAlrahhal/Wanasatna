@@ -45,6 +45,7 @@ import {
   type PregameTeamSnapshot,
   type TeamId,
 } from '@wanasatna/shared';
+import { LOBBY_NOTICE_STORAGE_KEY } from '@/lib/game-shell/null-shell-recovery';
 import { emitGameShellWithAck } from '@/lib/game-shell/emit';
 import { getGameShellErrorMessage } from '@/lib/game-shell/error-messages';
 import { hasClientGamePlugin } from '@/lib/game-plugins/registry';
@@ -354,7 +355,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
 
       if (payload.message) {
         try {
-          sessionStorage.setItem('wanasatna:lobby-notice', payload.message);
+          sessionStorage.setItem(LOBBY_NOTICE_STORAGE_KEY, payload.message);
         } catch {
           /* storage unavailable */
         }

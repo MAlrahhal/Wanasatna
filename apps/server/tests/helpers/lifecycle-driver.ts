@@ -14,6 +14,12 @@ import {
   waitFor,
   type TestClient,
 } from './socket-utils.js';
+import { TEST_PLAYER_RECOVERY_SECONDS } from '../../src/config/test-timers.js';
+
+export { TEST_PLAYER_RECOVERY_SECONDS };
+
+/** Bounded wait slightly above the configured test recovery window. */
+export const TEST_PLAYER_RECOVERY_WAIT_MS = TEST_PLAYER_RECOVERY_SECONDS * 1000 + 2500;
 
 const PLAYER_NAMES = ['محمد', 'خالد', 'علي', 'سارة'] as const;
 

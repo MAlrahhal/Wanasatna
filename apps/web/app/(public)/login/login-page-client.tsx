@@ -6,15 +6,12 @@ import { ComingSoonNotice } from '@/components/public/coming-soon-notice';
 import { PublicField } from '@/components/public/public-field';
 import { PageHero } from '@/components/public/page-hero';
 import { FeatureCard } from '@/components/public/feature-card';
-import { BRAND_NAME_AR } from '@/lib/public/brand';
 import { PUBLIC_ROUTES } from '@/lib/public/routes';
 import { cn } from '@/lib/utils';
 
 const accountUses = [
-  { title: 'المشتريات', accent: 'blue' as const },
-  { title: `${BRAND_NAME_AR} بريميوم`, accent: 'purple' as const },
-  { title: 'حفظ التقدم والإحصائيات', accent: 'cyan' as const },
-  { title: 'مزايا الحساب المستقبلية', accent: 'orange' as const },
+  { title: 'حفظ الاسم المفضّل', accent: 'cyan' as const },
+  { title: 'اللعب بدون حساب يبقى متاحاً', accent: 'blue' as const },
 ];
 
 export function LoginPageClient() {
@@ -62,7 +59,7 @@ export function LoginPageClient() {
     <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-12">
       <PageHero
         title="تسجيل الدخول"
-        description="لا تحتاج إلى حساب للعب. الحساب اختياري للميزات الإضافية عند تفعيلها."
+        description="تسجيل الدخول قيد التطوير. يمكنك اللعب الآن بدون حساب. عند تفعيل الحساب، سيُحفظ اسمك المفضّل."
         variant="compact"
         className="mb-8"
       />

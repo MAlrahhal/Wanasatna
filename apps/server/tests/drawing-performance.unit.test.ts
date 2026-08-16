@@ -240,10 +240,12 @@ for (const [label, source, pointsEvent, syncEvent, viewBuilder] of [
 ] as const) {
   test(`${label}: point batch handler does not build player view or SYNC`, () => {
     const points = handlerBlock(source, pointsEvent);
-    assert.match(points, /appendAuthoritativeStrokePoints/);
+    assert.match(points, /processStrokePointsCommand/);
     assert.match(
       points,
-      new RegExp(`socket\\.to\\(getRoomChannel\\(roomId!\\)\\)\\.emit\\(${pointsEvent}, pointsPayload\\)`),
+      new RegExp(
+        `socket\\.to\\(getRoomChannel\\(roomId!\\)\\)\\.emit\\(${pointsEvent}, \\{\\s*turnId: result\\.turnId,\\s*strokeId: result\\.strokeId,\\s*points: result\\.points,\\s*\\}\\)`,
+      ),
     );
     assert.match(points, /data: \{ ok: true \}/);
     assert.doesNotMatch(points, new RegExp(viewBuilder));
@@ -254,18 +256,19 @@ for (const [label, source, pointsEvent, syncEvent, viewBuilder] of [
 
   test(`${label}: stroke start/end ACK is lightweight and end does not replace points`, () => {
     const stroke = handlerBlock(source, label === 'Draw Guess' ? 'DRAW_GUESS_STROKE_EVENT' : 'IMPOSTER_DRAW_STROKE_EVENT');
+    assert.match(stroke, /processStrokeCommand/);
     assert.match(stroke, /kind === 'end'/);
-    assert.match(stroke, /hasAuthoritativeStroke/);
-    assert.match(stroke, /startAuthoritativeStroke/);
+    assert.match(stroke, /start-noop/);
     assert.match(stroke, /data: \{ ok: true \}/);
     assert.doesNotMatch(stroke, new RegExp(viewBuilder));
 
     const endStart = stroke.indexOf("kind === 'end'");
-    const startCall = stroke.indexOf('startAuthoritativeStroke');
-    assert.ok(endStart >= 0 && startCall > endStart);
-    const endBlock = stroke.slice(endStart, startCall);
+    const mutateStart = stroke.indexOf('strokes: result.strokes');
+    assert.ok(endStart >= 0 && mutateStart > endStart);
+    const endBlock = stroke.slice(endStart, mutateStart);
     assert.doesNotMatch(endBlock, /points:/);
     assert.match(endBlock, /data: \{ ok: true \}/);
+    assert.doesNotMatch(endBlock, /broadcastCanvasUpdated/);
   });
 
   test(`${label}: SYNC still serializes the authoritative drawing snapshot`, () => {
@@ -274,13 +277,15 @@ for (const [label, source, pointsEvent, syncEvent, viewBuilder] of [
   });
 
   test(`${label}: stale turn drawing input is rejected`, () => {
-    assert.match(source, /match\.round\.turnId !== turnId/);
+    assert.match(source, /processStrokeCommand/);
+    assert.match(source, /processStrokePointsCommand/);
+    assert.match(source, /currentTurnId: match\.round\.turnId/);
   });
 }
 
 test('Imposter Draw point batches require current-turn stroke ownership', () => {
   const points = handlerBlock(imposterHandlers, 'IMPOSTER_DRAW_STROKE_POINTS_EVENT');
-  assert.match(points, /currentTurnStrokeIds\.includes\(pointsPayload\.strokeId\)/);
+  assert.match(points, /allowedStrokeIds: match\.round\.currentTurnStrokeIds/);
 });
 
 test('Imposter Draw canvas-updated broadcasts current-turn stroke ids', () => {

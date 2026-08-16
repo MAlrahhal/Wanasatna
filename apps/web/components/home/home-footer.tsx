@@ -9,7 +9,6 @@ const footerLinks = [
   { label: 'الألعاب', sectionId: HOME_SECTIONS.games },
   { label: 'الأسئلة الشائعة', sectionId: HOME_SECTIONS.faq },
   { label: 'تواصل معنا', sectionId: HOME_SECTIONS.contact },
-  { label: 'بريميوم', sectionId: HOME_SECTIONS.premium },
 ] as const;
 
 export function HomeFooter() {

@@ -13,6 +13,8 @@ export type RoomErrorCode =
   | 'MATCH_IN_PROGRESS'
   | 'ROOM_CODE_GENERATION_FAILED'
   | 'CONNECTION_FAILED'
+  | 'RATE_LIMITED'
+  | 'ROOM_ENTRY_IN_PROGRESS'
   | 'INTERNAL_ERROR';
 
 export type RoomError = {

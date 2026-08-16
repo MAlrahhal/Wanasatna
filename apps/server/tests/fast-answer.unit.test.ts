@@ -14,6 +14,7 @@ import {
   FAST_ANSWER_ROUND_RESULTS_SECONDS,
   FAST_ANSWER_WINNER_POINTS,
 } from '@wanasatna/shared';
+import { isOversizedGameAnswer } from '../src/modules/game/runtime/game-answer-text.js';
 import {
   isCorrectAnswer,
   normalizeAnswerText,
@@ -158,6 +159,15 @@ test('isCorrectAnswer matches accepted variants', () => {
   assert.equal(isCorrectAnswer('القاهرة', ['القاهرة', 'قاهره']), true);
   assert.equal(isCorrectAnswer('قاهره', ['القاهرة', 'قاهره']), true);
   assert.equal(isCorrectAnswer('الجيزة', ['القاهرة', 'قاهره']), false);
+});
+
+test('answer length: 1-char and 150 allowed; 151 oversized; matching unchanged', () => {
+  assert.equal(isOversizedGameAnswer('م'), false);
+  assert.equal(isOversizedGameAnswer('القاهرة'), false);
+  assert.equal(isOversizedGameAnswer('ا'.repeat(150)), false);
+  assert.equal(isOversizedGameAnswer('ا'.repeat(151)), true);
+  assert.equal(isOversizedGameAnswer('   '), false);
+  assert.equal(isCorrectAnswer('القاهرة', ['القاهرة', 'قاهره']), true);
 });
 
 test('tryAcceptCorrect twice sync → one winner', () => {

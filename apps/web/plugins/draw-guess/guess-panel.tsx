@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
+import { MAX_GAME_ANSWER_LENGTH } from '@wanasatna/shared';
 import { Button } from '@/components/ui/button';
 import { GameMobileStickyCta, GameMobileStickyCtaSpacer } from '@/components/game/game-mobile-sticky-cta';
 import { cn } from '@/lib/utils';
@@ -58,6 +59,7 @@ export function GuessPanel({
           onChange={(event) => setGuess(event.target.value)}
           disabled={disabled || isSubmitting}
           placeholder="اكتب تخمينك هنا..."
+          maxLength={MAX_GAME_ANSWER_LENGTH}
           autoComplete="off"
           className={cn(
             'min-h-11 w-full flex-1 rounded-[var(--wanas-radius-control)] border border-wanas-border bg-[color:var(--wanas-game-card)] px-3.5 text-sm text-wanas-text-primary',

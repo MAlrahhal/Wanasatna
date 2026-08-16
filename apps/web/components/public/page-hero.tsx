@@ -5,7 +5,7 @@ type PageHeroProps = {
   title: string;
   description?: string;
   children?: ReactNode;
-  variant?: 'default' | 'premium' | 'compact';
+  variant?: 'default' | 'compact';
   className?: string;
 };
 
@@ -19,10 +19,7 @@ export function PageHero({
   return (
     <section
       className={cn(
-        'relative overflow-hidden border-y border-wanas-border px-5 py-8 shadow-[var(--wanas-shadow-panel)] sm:px-8 sm:py-10',
-        variant === 'premium'
-          ? 'bg-wanas-background-strong'
-          : 'bg-wanas-hero',
+        'relative overflow-hidden border-y border-wanas-border bg-wanas-hero px-5 py-8 shadow-[var(--wanas-shadow-panel)] sm:px-8 sm:py-10',
         variant === 'compact' && 'py-6 sm:py-8',
         className,
       )}

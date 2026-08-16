@@ -49,7 +49,7 @@
   --wanas-accent-hover: #00ffea;
   --wanas-accent-soft: #22224a;
 
-  /* Premium — gold semantic only */
+  /* Gold semantic — used by role badges, not a public product surface */
   --wanas-premium: #d4a017;
   --wanas-premium-dark: #b8860b;
   --wanas-premium-surface: #1a1a35;

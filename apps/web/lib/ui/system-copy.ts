@@ -5,6 +5,8 @@ export const SYSTEM_COPY = {
   recovered: 'تمت إعادة الاتصال.',
   genericError: 'حدث خطأ',
   unexpectedError: 'حدث خطأ غير متوقع. حاول مرة أخرى.',
+  gameLoadFailed: 'تعذر تحميل اللعبة.',
+  gameLoadFailedHelper: 'تحقق من اتصالك وحاول مرة ثانية.',
   retry: 'إعادة المحاولة',
   backHome: 'العودة إلى الرئيسية',
   backLobby: 'العودة إلى اللوبي',
@@ -22,6 +24,7 @@ export const SYSTEM_COPY = {
   reconnectExpired: 'انتهت مهلة إعادة الاتصال. يرجى الانضمام من جديد.',
   gameUnavailable: 'اللعبة غير متاحة حالياً.',
   returningToLobby: 'جاري العودة إلى اللوبي…',
+  gameEndedReturnLobby: 'انتهت الجولة أو تمت إعادة تشغيل اللعبة، ورجعناك إلى اللوبي.',
   spectator: 'أنت مشاهد حالياً.',
   copiedLink: 'تم نسخ الرابط',
   leaving: 'جاري المغادرة…',
@@ -81,6 +84,17 @@ export function presentRoomActionError(message: string | null | undefined): {
 
   if (safe.includes('إعادة الاتصال')) {
     return { title: SYSTEM_COPY.reconnectExpired };
+  }
+
+  if (safe === SYSTEM_COPY.gameEndedReturnLobby) {
+    return { title: SYSTEM_COPY.gameEndedReturnLobby };
+  }
+
+  if (safe === SYSTEM_COPY.gameLoadFailed) {
+    return {
+      title: SYSTEM_COPY.gameLoadFailed,
+      description: SYSTEM_COPY.gameLoadFailedHelper,
+    };
   }
 
   return { title: SYSTEM_COPY.genericError, description: safe };

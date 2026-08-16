@@ -15,7 +15,6 @@ const navLinks = [
   { label: 'الألعاب', sectionId: HOME_SECTIONS.games },
   { label: 'الأسئلة الشائعة', sectionId: HOME_SECTIONS.faq },
   { label: 'تواصل معنا', sectionId: HOME_SECTIONS.contact },
-  { label: 'بريميوم', sectionId: HOME_SECTIONS.premium, premium: true },
 ] as const;
 
 export function HomeNavbar({ onLoginClick, onCreateRoomClick }: HomeNavbarProps) {
@@ -80,19 +79,8 @@ export function HomeNavbar({ onLoginClick, onCreateRoomClick }: HomeNavbarProps)
                 'inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-[#64748B] transition-colors',
                 'hover:bg-[#EFF6FF] hover:text-[#2563EB]',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6]/30 focus-visible:ring-offset-2',
-                'premium' in link && link.premium && 'text-[#0F172A]',
               )}
             >
-              {'premium' in link && link.premium ? (
-                <span
-                  aria-hidden
-                  className="flex size-4 items-center justify-center rounded-full bg-[#FEF3C7] text-[#B45309]"
-                >
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.6L5.7 21l2.3-7-6-4.6h7.6L12 2Z" />
-                  </svg>
-                </span>
-              ) : null}
               {link.label}
             </button>
           ))}
@@ -162,13 +150,6 @@ export function HomeNavbar({ onLoginClick, onCreateRoomClick }: HomeNavbarProps)
               onClick={() => handleNavClick(link.sectionId)}
               className="flex items-center gap-2 rounded-xl px-3 py-3 text-start text-sm font-medium text-[#0F172A] hover:bg-[#EFF6FF]"
             >
-              {'premium' in link && link.premium ? (
-                <span className="flex size-5 items-center justify-center rounded-full bg-[#FEF3C7] text-[#B45309]">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.6L5.7 21l2.3-7-6-4.6h7.6L12 2Z" />
-                  </svg>
-                </span>
-              ) : null}
               {link.label}
             </button>
           ))}

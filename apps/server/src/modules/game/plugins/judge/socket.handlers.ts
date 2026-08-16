@@ -15,7 +15,11 @@ import {
 } from '@wanasatna/shared';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
-import { getGameSocketContext, sendGameResponse } from '../../game.socket.utils.js';
+import {
+  getGameSocketContext,
+  rejectIfGameSyncRateLimited,
+  sendGameResponse,
+} from '../../game.socket.utils.js';
 import {
   isPlayerRecoveryActive,
   playerRecoveryBlockedError,
@@ -111,6 +115,10 @@ export function registerJudgeSocketHandlers(io: Server, socket: Socket): void {
 
     if (contextError) {
       sendGameResponse(callback, contextError);
+      return;
+    }
+
+    if (rejectIfGameSyncRateLimited(socket, callback)) {
       return;
     }
 

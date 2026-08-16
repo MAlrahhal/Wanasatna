@@ -1,5 +1,5 @@
 import type { GameActionResponse } from '@wanasatna/shared';
-import { getGameShellErrorMessage } from '@/lib/game-shell/error-messages';
+import { localizePluginAck, resolveGameAck } from '@/lib/socket/ack-response';
 import { getRoomSocket } from '@/lib/room/socket';
 
 export function emitPluginWithAck<T>(
@@ -9,30 +9,8 @@ export function emitPluginWithAck<T>(
   const socket = getRoomSocket();
 
   return new Promise((resolve) => {
-    socket.timeout(10000).emit(event, payload ?? {}, (error: unknown, response?: GameActionResponse<T>) => {
-      if (error || !response) {
-        resolve({
-          success: false,
-          error: {
-            code: 'INTERNAL_ERROR',
-            message: getGameShellErrorMessage('INTERNAL_ERROR'),
-          },
-        });
-        return;
-      }
-
-      if (!response.success) {
-        resolve({
-          success: false,
-          error: {
-            code: response.error.code,
-            message: getGameShellErrorMessage(response.error.code, response.error.message),
-          },
-        });
-        return;
-      }
-
-      resolve(response);
+    socket.timeout(10000).emit(event, payload ?? {}, (error: unknown, response?: unknown) => {
+      resolve(localizePluginAck(resolveGameAck<T>(error, response)));
     });
   });
 }

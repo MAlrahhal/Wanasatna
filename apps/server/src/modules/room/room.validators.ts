@@ -1,11 +1,15 @@
 import { z } from 'zod';
 import type { RoomActionResponse, RoomErrorCode } from '@wanasatna/shared';
+import { playerNameContainsForbiddenChars } from '@wanasatna/shared';
 
 const playerNameSchema = z
   .string()
   .trim()
   .min(2, 'Player name must be at least 2 characters')
-  .max(20, 'Player name must be at most 20 characters');
+  .max(20, 'Player name must be at most 20 characters')
+  .refine((name) => !playerNameContainsForbiddenChars(name), {
+    message: 'Player name contains invalid characters',
+  });
 
 const playerIdSchema = z.string().trim().min(1, 'Player ID is required');
 

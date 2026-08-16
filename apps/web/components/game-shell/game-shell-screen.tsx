@@ -12,15 +12,19 @@ import { GameShellPlayers } from './game-shell-players';
 import { GameShellTimers } from './game-shell-timers';
 
 export function GameShellScreen() {
-  const { state, errorMessage, isHost, isReady, setReady, syncShell } = useGameShell();
+  const { state, syncStatus, errorMessage, isHost, isReady, setReady, syncShell } = useGameShell();
 
-  if (!state) {
+  if (syncStatus !== 'ready' || !state) {
+    const recoveringToLobby = syncStatus === 'empty';
     return (
       <div className="mx-auto flex min-h-[60vh] w-full max-w-4xl flex-col justify-center gap-4 p-6">
-        {errorMessage ? (
+        {syncStatus === 'error' && errorMessage ? (
           <SystemStatus tone="error" {...presentRoomActionError(errorMessage)} />
         ) : (
-          <SystemStatus tone="loading" title={SYSTEM_COPY.loading} />
+          <SystemStatus
+            tone="loading"
+            title={recoveringToLobby ? SYSTEM_COPY.returningToLobby : SYSTEM_COPY.loading}
+          />
         )}
       </div>
     );

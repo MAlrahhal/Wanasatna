@@ -96,10 +96,14 @@ test('A lazy Real3D loader + CSS fallback exist', () => {
   assert.match(gameplay, /ssr:\s*false/);
   assert.match(gameplay, /real3d\/real3d-scene/);
   assert.match(gameplay, /detectWebGLSupport/);
-  assert.match(gameplay, /FirstPersonGameScene/);
-  assert.match(gameplay, /gc-css-fallback-scene/);
-  assert.match(real3d, /Real3DErrorBoundary/);
-  assert.match(real3d, /FirstPersonGameScene/);
+  assert.match(gameplay, /CssGameplayFallback/);
+  assert.match(gameplay, /SceneFallbackBoundary/);
+  assert.match(gameplay, /gc-real3d-loading/);
+  const fallback = readPlugin('scene-fallback.tsx');
+  assert.match(fallback, /gc-css-fallback-scene/);
+  assert.match(fallback, /FirstPersonGameScene \{\.\.\.props\}/);
+  assert.match(real3d, /SceneFallbackBoundary/);
+  assert.match(real3d, /CssGameplayFallback/);
   assert.match(pkg, /"three"/);
   assert.match(pkg, /"@react-three\/fiber"/);
   assert.match(pkg, /"@react-three\/drei"/);

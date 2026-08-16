@@ -2,7 +2,6 @@ import { cn } from '@/lib/utils';
 
 export type BadgeVariant =
   | 'host'
-  | 'premium'
   | 'online'
   | 'offline'
   | 'coming-soon'
@@ -19,7 +18,6 @@ type BadgeProps = {
 
 const variantClasses: Record<BadgeVariant, string> = {
   host: 'bg-wanas-warning-surface text-wanas-warning-dark border-wanas-warning-border',
-  premium: 'bg-wanas-warning-surface text-wanas-warning-dark border-wanas-warning-border-strong',
   online: 'bg-wanas-success-surface text-wanas-success-dark border-wanas-success-border',
   offline: 'bg-wanas-surface-muted text-wanas-text-muted border-wanas-disabled',
   'coming-soon': 'bg-wanas-surface-muted text-wanas-text-muted border-wanas-disabled',
@@ -32,7 +30,6 @@ const variantClasses: Record<BadgeVariant, string> = {
 
 const labels: Record<BadgeVariant, string> = {
   host: '★ المضيف',
-  premium: 'بريميوم',
   online: 'متصل',
   offline: 'غير متصل',
   'coming-soon': 'قريباً',

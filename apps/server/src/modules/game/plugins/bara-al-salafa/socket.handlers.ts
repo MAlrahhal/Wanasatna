@@ -19,7 +19,11 @@ import {
   isActiveMatchParticipant,
 } from '@wanasatna/shared';
 import { getGameShellByRoomId } from '../../game.service.js';
-import { getGameSocketContext, sendGameResponse } from '../../game.socket.utils.js';
+import {
+  getGameSocketContext,
+  rejectIfGameSyncRateLimited,
+  sendGameResponse,
+} from '../../game.socket.utils.js';
 import {
   isPlayerRecoveryActive,
   playerRecoveryBlockedError,
@@ -125,6 +129,10 @@ export function registerBaraAlSalafaSocketHandlers(io: Server, socket: Socket): 
 
     if (contextError) {
       sendGameResponse(callback, contextError);
+      return;
+    }
+
+    if (rejectIfGameSyncRateLimited(socket, callback)) {
       return;
     }
 

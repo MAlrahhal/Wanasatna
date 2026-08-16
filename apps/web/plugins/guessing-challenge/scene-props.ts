@@ -46,6 +46,14 @@ export type GuessingChallengeSceneProps = {
   className?: string;
 };
 
+export function shouldUseCssGameplayFallback(input: {
+  webglSupported: boolean;
+  real3dImportFailed?: boolean;
+  real3dRuntimeFailed?: boolean;
+}): boolean {
+  return !input.webglSupported || Boolean(input.real3dImportFailed) || Boolean(input.real3dRuntimeFailed);
+}
+
 export function detectWebGLSupport(): boolean {
   if (typeof window === 'undefined') {
     return false;

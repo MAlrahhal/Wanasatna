@@ -4,7 +4,6 @@ export const HOME_SECTIONS = {
   games: 'games',
   faq: 'faq',
   contact: 'contact',
-  premium: 'premium',
 } as const;
 
 export type HomeSectionId = (typeof HOME_SECTIONS)[keyof typeof HOME_SECTIONS];

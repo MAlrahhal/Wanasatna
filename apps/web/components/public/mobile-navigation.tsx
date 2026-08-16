@@ -43,11 +43,6 @@ export function MobileNavigation({
                 : 'border-s-2 border-transparent text-white/85 hover:bg-wanas-surface hover:text-white',
             )}
           >
-            {'premium' in link && link.premium ? (
-              <span className="flex size-5 items-center justify-center rounded-full bg-wanas-premium-surface text-wanas-premium-dark">
-                ★
-              </span>
-            ) : null}
             {link.label}
           </GuardedPublicLink>
         ))}

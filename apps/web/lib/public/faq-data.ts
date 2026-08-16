@@ -1,4 +1,4 @@
-export type FaqCategory = 'play' | 'account' | 'premium' | 'technical';
+export type FaqCategory = 'play' | 'account' | 'technical';
 
 export type FaqItem = {
   id: string;
@@ -10,7 +10,6 @@ export type FaqItem = {
 export const faqCategories: { id: FaqCategory; label: string }[] = [
   { id: 'play', label: 'اللعب والغرف' },
   { id: 'account', label: 'الحساب' },
-  { id: 'premium', label: 'بريميوم' },
   { id: 'technical', label: 'المشاكل التقنية' },
 ];
 
@@ -20,14 +19,14 @@ export const faqItems: FaqItem[] = [
     category: 'play',
     question: 'هل أحتاج إلى حساب للعب؟',
     answer:
-      'لا. يمكنك اللعب مباشرة بإدخال اسمك فقط. الحساب اختياري ويُستخدم لاحقاً للمشتريات ومزايا بريميوم وحفظ التقدم.',
+      'لا. يمكنك اللعب مباشرة بإدخال اسمك فقط. الحساب اختياري وغير مطلوب للعب.',
   },
   {
     id: 'create-room',
     category: 'play',
     question: 'كيف أنشئ غرفة؟',
     answer:
-      'من الصفحة الرئيسية، أدخل اسمك في بطاقة «إنشاء غرفة» واضغط إنشاء. سيتم نقلك إلى اللobby حيث يمكنك مشاركة رمز الغرفة مع أصدقائك.',
+      'من الصفحة الرئيسية، أدخل اسمك في بطاقة «إنشاء غرفة» واضغط إنشاء. سيتم نقلك إلى اللوبي حيث يمكنك مشاركة رمز الغرفة مع أصدقائك.',
   },
   {
     id: 'join-room',
@@ -52,22 +51,14 @@ export const faqItems: FaqItem[] = [
     id: 'free-play',
     category: 'play',
     question: 'هل اللعب مجاني؟',
-    answer:
-      'نعم. اللعب الأساسي مجاني ولا يتطلب تسجيلاً. بريميوم سيوفر لاحقاً مزايا إضافية اختيارية.',
+    answer: 'نعم. اللعب الأساسي مجاني ولا يتطلب تسجيلاً.',
   },
   {
     id: 'login-benefit',
     category: 'account',
     question: 'ما فائدة تسجيل الدخول؟',
     answer:
-      'تسجيل الدخول اختياري وغير مطلوب للعب العادي. عند تفعيله لاحقاً، سيساعد في المشتريات ومزايا بريميوم وحفظ الإحصائيات والتقدم.',
-  },
-  {
-    id: 'premium-what',
-    category: 'premium',
-    question: 'ما هو وناستنا بريميوم؟',
-    answer:
-      'بريميوم تجربة اختيارية بمزايا إضافية مثل التخصيص وحزم المحتوى وحفظ التقدم. اللعب الأساسي يبقى متاحاً للجميع بدون حساب.',
+      'تسجيل الدخول قيد التطوير وغير مطلوب للعب. عند تفعيله، سيُحفظ اسمك المفضّل بين الجلسات.',
   },
   {
     id: 'disconnect',

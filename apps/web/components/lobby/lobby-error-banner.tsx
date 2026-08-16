@@ -10,10 +10,11 @@ type LobbyErrorBannerProps = {
 
 export function LobbyErrorBanner({ message, showHomeAction = false, onHome }: LobbyErrorBannerProps) {
   const presented = presentRoomActionError(message);
+  const isGameEndedNotice = message === SYSTEM_COPY.gameEndedReturnLobby;
 
   return (
     <SystemStatus
-      tone="error"
+      tone={isGameEndedNotice ? 'info' : 'error'}
       title={presented.title}
       description={presented.description}
       action={

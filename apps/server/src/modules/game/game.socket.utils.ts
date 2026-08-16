@@ -1,5 +1,7 @@
 import type { Socket } from 'socket.io';
 import type { GameActionResponse } from '@wanasatna/shared';
+import { consumeGameSyncLimit } from '../../lib/abuse-limiter.js';
+import { rateLimitedGameError } from '../room/room-abuse.js';
 import { invalidGameContextError } from './game.validators.js';
 
 export function sendGameResponse<T>(
@@ -31,4 +33,16 @@ export function getGameSocketContext(socket: Socket): GameActionResponse<never> 
   }
 
   return null;
+}
+
+export function rejectIfGameSyncRateLimited(
+  socket: Socket,
+  callback: ((response: GameActionResponse<unknown>) => void) | undefined,
+): boolean {
+  if (consumeGameSyncLimit(socket)) {
+    return false;
+  }
+
+  sendGameResponse(callback, rateLimitedGameError());
+  return true;
 }

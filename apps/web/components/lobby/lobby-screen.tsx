@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRoom } from '@/contexts/room-context';
 import { mockGameSettingsByGameId, mockLobbyGames } from '@/lib/lobby/mock-games';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
+import { LOBBY_NOTICE_STORAGE_KEY } from '@/lib/game-shell/null-shell-recovery';
 import { RoomSystemState } from '@/components/room/room-system-state';
 import { SystemStatus } from '@/components/ui/system-status';
 import { GameGrid } from './game-grid';
@@ -46,10 +47,10 @@ export function LobbyScreen() {
 
   useEffect(() => {
     try {
-      const notice = sessionStorage.getItem('wanasatna:lobby-notice');
+      const notice = sessionStorage.getItem(LOBBY_NOTICE_STORAGE_KEY);
       if (notice) {
         setLobbyNotice(notice);
-        sessionStorage.removeItem('wanasatna:lobby-notice');
+        sessionStorage.removeItem(LOBBY_NOTICE_STORAGE_KEY);
       }
     } catch {
       /* storage unavailable */

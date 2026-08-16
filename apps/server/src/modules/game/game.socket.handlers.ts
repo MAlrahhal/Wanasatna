@@ -8,6 +8,7 @@ import {
   GAME_SHELL_SET_READY_EVENT,
   GAME_SHELL_START_COUNTDOWN_EVENT,
   GAME_SHELL_START_FROM_LOBBY_EVENT,
+  GAME_SHELL_STATE_EVENT,
   GAME_SHELL_SYNC_EVENT,
   GUESSING_CHALLENGE_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
@@ -54,6 +55,7 @@ import {
 } from './game.timer.js';
 import {
   getGameSocketContext,
+  rejectIfGameSyncRateLimited,
   sendGameInternalError,
   sendGameResponse,
 } from './game.socket.utils.js';
@@ -108,6 +110,10 @@ export function registerGameShellSyncHandler(io: Server, socket: Socket): void {
       return;
     }
 
+    if (rejectIfGameSyncRateLimited(socket, callback)) {
+      return;
+    }
+
     const { roomId } = socket.data;
 
     try {
@@ -121,7 +127,7 @@ export function registerGameShellSyncHandler(io: Server, socket: Socket): void {
       const state = latest ?? (response.success ? response.data.state : null);
 
       if (state) {
-        broadcastGameShellState(io, state);
+        socket.emit(GAME_SHELL_STATE_EVENT, { state });
       }
 
       sendGameResponse(

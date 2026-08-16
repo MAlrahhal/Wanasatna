@@ -27,10 +27,19 @@ import {
 } from '@wanasatna/shared';
 import { getGameShellErrorMessage } from '@/lib/game-shell/error-messages';
 import { emitGameShellWithAck } from '@/lib/game-shell/emit';
+import {
+  applyLiveShellState,
+  applyShellSyncResponse,
+  beginShellSync,
+  createPendingShellSyncView,
+  type GameShellSyncStatus,
+  type ShellSyncView,
+} from '@/lib/game-shell/null-shell-recovery';
 import { getRoomSocket } from '@/lib/room/socket';
 
 type GameShellContextValue = {
   state: GameShellState | null;
+  syncStatus: GameShellSyncStatus;
   playerRecovery: GameShellPlayerRecoveryPayload | null;
   errorMessage: string | null;
   isHost: boolean;
@@ -56,10 +65,19 @@ export function GameShellProvider({
   hostPlayerId: string | null;
   currentPlayerId: string | null;
 }) {
-  const [state, setState] = useState<GameShellState | null>(null);
+  const [syncView, setSyncView] = useState<ShellSyncView>(() => createPendingShellSyncView());
+  const syncViewRef = useRef(syncView);
   const [playerRecovery, setPlayerRecovery] = useState<GameShellPlayerRecoveryPayload | null>(null);
   const recoverySequenceRef = useRef(0);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const state = syncView.state;
+  const errorMessage = syncView.errorMessage;
+  const syncStatus = syncView.status;
+
+  const replaceSyncView = useCallback((next: ShellSyncView) => {
+    syncViewRef.current = next;
+    setSyncView(next);
+  }, []);
 
   const isHost = Boolean(
     hostPlayerId && currentPlayerId && hostPlayerId === currentPlayerId,
@@ -69,16 +87,23 @@ export function GameShellProvider({
     currentPlayerId && state?.readyPlayerIds.includes(currentPlayerId),
   );
 
-  const handleFailure = useCallback((code: Parameters<typeof getGameShellErrorMessage>[0]) => {
-    setErrorMessage(getGameShellErrorMessage(code));
-  }, []);
+  const handleFailure = useCallback(
+    (code: Parameters<typeof getGameShellErrorMessage>[0]) => {
+      const current = syncViewRef.current;
+      replaceSyncView({
+        ...current,
+        status: current.status === 'ready' ? 'ready' : 'error',
+        errorMessage: getGameShellErrorMessage(code),
+      });
+    },
+    [replaceSyncView],
+  );
 
   useEffect(() => {
     const socket = getRoomSocket();
 
     function onStateUpdate(payload: { state: GameShellState }) {
-      setState(payload.state);
-      setErrorMessage(null);
+      replaceSyncView(applyLiveShellState(syncViewRef.current, payload.state));
     }
 
     function onRecoveryUpdate(payload: GameShellPlayerRecoveryPayload) {
@@ -103,20 +128,32 @@ export function GameShellProvider({
       socket.off(GAME_SHELL_STATE_EVENT, onStateUpdate);
       socket.off(GAME_SHELL_PLAYER_RECOVERY_EVENT, onRecoveryUpdate);
     };
-  }, []);
+  }, [replaceSyncView]);
 
   const syncShell = useCallback(async () => {
+    const started = beginShellSync(syncViewRef.current);
+    replaceSyncView(started.view);
+
     const response = await emitGameShellWithAck<{ state: GameShellState | null }>(
       GAME_SHELL_SYNC_EVENT,
     );
 
-    if (!response.success) {
-      handleFailure(response.error.code);
-      return;
-    }
+    const mapped = response.success
+      ? { success: true as const, state: response.data.state }
+      : {
+          success: false as const,
+          code: response.error.code,
+          message: getGameShellErrorMessage(response.error.code, response.error.message),
+        };
 
-    setState(response.data.state);
-  }, [handleFailure]);
+    replaceSyncView(
+      applyShellSyncResponse({
+        requestGeneration: started.requestGeneration,
+        current: syncViewRef.current,
+        response: mapped,
+      }),
+    );
+  }, [replaceSyncView]);
 
   useEffect(() => {
     if (!currentPlayerId) {
@@ -138,10 +175,9 @@ export function GameShellProvider({
         return;
       }
 
-      setState(response.data.state);
-      setErrorMessage(null);
+      replaceSyncView(applyLiveShellState(syncViewRef.current, response.data.state));
     },
-    [handleFailure],
+    [handleFailure, replaceSyncView],
   );
 
   const setReady = useCallback(
@@ -156,9 +192,9 @@ export function GameShellProvider({
         return;
       }
 
-      setState(response.data.state);
+      replaceSyncView(applyLiveShellState(syncViewRef.current, response.data.state));
     },
-    [handleFailure],
+    [handleFailure, replaceSyncView],
   );
 
   const startCountdown = useCallback(async () => {
@@ -171,8 +207,8 @@ export function GameShellProvider({
       return;
     }
 
-    setState(response.data.state);
-  }, [handleFailure]);
+    replaceSyncView(applyLiveShellState(syncViewRef.current, response.data.state));
+  }, [handleFailure, replaceSyncView]);
 
   const cancelCountdown = useCallback(async () => {
     const response = await emitGameShellWithAck<{ state: GameShellState }>(
@@ -184,8 +220,8 @@ export function GameShellProvider({
       return;
     }
 
-    setState(response.data.state);
-  }, [handleFailure]);
+    replaceSyncView(applyLiveShellState(syncViewRef.current, response.data.state));
+  }, [handleFailure, replaceSyncView]);
 
   const endGame = useCallback(async () => {
     const response = await emitGameShellWithAck<{ path: '/lobby' }>(GAME_SHELL_END_EVENT);
@@ -195,10 +231,15 @@ export function GameShellProvider({
       return;
     }
 
-    setState(null);
+    const current = syncViewRef.current;
+    replaceSyncView({
+      status: 'empty',
+      state: null,
+      errorMessage: null,
+      generation: current.generation + 1,
+    });
     setPlayerRecovery(null);
-    setErrorMessage(null);
-  }, [handleFailure]);
+  }, [handleFailure, replaceSyncView]);
 
   const resetShell = useCallback(async () => {
     const response = await emitGameShellWithAck<{ state: GameShellState }>(
@@ -210,8 +251,8 @@ export function GameShellProvider({
       return;
     }
 
-    setState(response.data.state);
-  }, [handleFailure]);
+    replaceSyncView(applyLiveShellState(syncViewRef.current, response.data.state));
+  }, [handleFailure, replaceSyncView]);
 
   const returnToLobby = useCallback(async () => {
     const response = await emitGameShellWithAck<{ path: '/lobby' }>(
@@ -226,6 +267,7 @@ export function GameShellProvider({
   const value = useMemo<GameShellContextValue>(
     () => ({
       state,
+      syncStatus,
       playerRecovery,
       errorMessage,
       isHost,
@@ -253,6 +295,7 @@ export function GameShellProvider({
       startCountdown,
       state,
       syncShell,
+      syncStatus,
     ],
   );
 

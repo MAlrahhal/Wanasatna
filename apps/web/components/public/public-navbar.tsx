@@ -69,16 +69,8 @@ export function PublicNavbar() {
                   isActive
                     ? 'border-b-2 border-wanas-accent text-white'
                     : 'border-b-2 border-transparent text-white/80 hover:border-wanas-primary-dark hover:text-white',
-                  'premium' in link && link.premium && !isActive && 'text-wanas-premium',
                 )}
               >
-                {'premium' in link && link.premium ? (
-                  <span aria-hidden className="flex size-4 items-center justify-center rounded-full bg-wanas-premium-surface text-wanas-premium-dark">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.6L5.7 21l2.3-7-6-4.6h7.6L12 2Z" />
-                    </svg>
-                  </span>
-                ) : null}
                 {link.label}
               </GuardedPublicLink>
             );

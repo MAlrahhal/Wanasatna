@@ -2,8 +2,6 @@ import type { Server, Socket } from 'socket.io';
 import type {
   DrawStroke,
   GameActionResponse,
-  ImposterDrawStrokePayload,
-  ImposterDrawStrokePointsPayload,
   ImposterDrawSubmitImageGuessPayload,
   ImposterDrawSubmitVotePayload,
 } from '@wanasatna/shared';
@@ -22,15 +20,19 @@ import {
 } from '@wanasatna/shared';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
-import { getGameSocketContext, sendGameResponse } from '../../game.socket.utils.js';
+import {
+  getGameSocketContext,
+  rejectIfGameSyncRateLimited,
+  sendGameResponse,
+} from '../../game.socket.utils.js';
 import {
   isPlayerRecoveryActive,
   playerRecoveryBlockedError,
 } from '../../runtime/player-recovery.js';
 import {
-  appendAuthoritativeStrokePoints,
-  hasAuthoritativeStroke,
-  startAuthoritativeStroke,
+  IMPOSTER_DRAW_BOARD_LIMITS,
+  processStrokeCommand,
+  processStrokePointsCommand,
 } from '../../runtime/drawing-strokes.js';
 import { ensureImposterDrawMatchStateWithTimer } from './init-match.js';
 import {
@@ -137,15 +139,6 @@ function broadcastCanvasUpdated(
   });
 }
 
-function isStrokePoint(value: unknown): value is { x: number; y: number } {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-
-  const point = value as { x?: unknown; y?: unknown };
-  return typeof point.x === 'number' && typeof point.y === 'number';
-}
-
 function parseTurnId(payload: unknown): string | null {
   if (!payload || typeof payload !== 'object') {
     return null;
@@ -155,71 +148,50 @@ function parseTurnId(payload: unknown): string | null {
   return typeof turnId === 'string' && turnId.length > 0 ? turnId : null;
 }
 
-function parseStrokePayload(
-  payload: unknown,
-):
-  | { kind: 'start'; value: ImposterDrawStrokePayload & { tool: 'draw' | 'erase'; color: string; size: number; points: DrawStroke['points'] } }
-  | { kind: 'end'; turnId: string; strokeId: string }
-  | null {
-  if (!payload || typeof payload !== 'object') {
-    return null;
+function mapStrokeCommandError(
+  error: 'invalid-payload' | 'unauthorized' | 'stale-turn' | 'missing-stroke' | 'limit',
+): Extract<GameActionResponse<never>, { success: false }> {
+  if (error === 'stale-turn') {
+    return invalidActionError('انتهت جولة الرسم الحالية.');
   }
 
-  const data = payload as Partial<ImposterDrawStrokePayload>;
-  const turnId = parseTurnId(payload);
-
-  if (!turnId || typeof data.strokeId !== 'string') {
-    return null;
+  if (error === 'unauthorized') {
+    return invalidActionError('ليس دورك للرسم.');
   }
 
-  if (!Array.isArray(data.points) || data.points.length === 0) {
-    return { kind: 'end', turnId, strokeId: data.strokeId };
+  if (error === 'missing-stroke') {
+    return invalidActionError('لم يتم العثور على خط الرسم.');
   }
 
-  if (
-    (data.tool !== 'draw' && data.tool !== 'erase') ||
-    typeof data.color !== 'string' ||
-    typeof data.size !== 'number' ||
-    !data.points.every(isStrokePoint)
-  ) {
-    return null;
-  }
-
-  return {
-    kind: 'start',
-    value: {
-      turnId,
-      strokeId: data.strokeId,
-      tool: data.tool,
-      color: data.color,
-      size: data.size,
-      points: data.points,
-    },
-  };
+  return invalidActionError('بيانات الرسم غير صالحة.');
 }
 
-function parseStrokePointsPayload(payload: unknown): ImposterDrawStrokePointsPayload | null {
-  if (!payload || typeof payload !== 'object') {
-    return null;
+function mapStrokePointsError(
+  error:
+    | 'invalid-payload'
+    | 'unauthorized'
+    | 'stale-turn'
+    | 'missing-stroke'
+    | 'limit'
+    | 'protected-stroke',
+): Extract<GameActionResponse<never>, { success: false }> {
+  if (error === 'stale-turn') {
+    return invalidActionError('انتهت جولة الرسم الحالية.');
   }
 
-  const data = payload as Partial<ImposterDrawStrokePointsPayload>;
-  const turnId = parseTurnId(payload);
-
-  if (
-    !turnId ||
-    typeof data.strokeId !== 'string' ||
-    !Array.isArray(data.points) ||
-    !data.points.every(isStrokePoint)
-  ) {
-    return null;
+  if (error === 'unauthorized') {
+    return invalidActionError('ليس دورك للرسم.');
   }
 
-  return {
-    turnId,
-    strokeId: data.strokeId,
-    points: data.points,
-  };
+  if (error === 'missing-stroke') {
+    return invalidActionError('لم يتم العثور على خط الرسم.');
+  }
+
+  if (error === 'protected-stroke') {
+    return invalidActionError('لا يمكن تعديل خط من دور سابق.');
+  }
+
+  return invalidActionError('بيانات نقاط الرسم غير صالحة.');
 }
 
 function currentDrawerId(match: NonNullable<ReturnType<typeof getImposterDrawState>>): string | null {
@@ -252,6 +224,10 @@ export function registerImposterDrawSocketHandlers(io: Server, socket: Socket): 
 
     if (contextError) {
       sendGameResponse(callback, contextError);
+      return;
+    }
+
+    if (rejectIfGameSyncRateLimited(socket, callback)) {
       return;
     }
 
@@ -384,65 +360,42 @@ export function registerImposterDrawSocketHandlers(io: Server, socket: Socket): 
         return;
       }
 
-      const strokePayload = parseStrokePayload(payload);
+      const result = processStrokeCommand({
+        playerIsCurrentDrawer: currentDrawerId(match) === playerId,
+        currentTurnId: match.round.turnId,
+        strokes: match.round.strokes,
+        payload,
+        limits: IMPOSTER_DRAW_BOARD_LIMITS,
+      });
 
-      if (!strokePayload) {
-        sendGameResponse(callback, invalidActionError('بيانات الرسم غير صالحة.'));
+      if (!result.ok) {
+        sendGameResponse(callback, mapStrokeCommandError(result.error));
         return;
       }
 
-      const authError = assertActiveDrawerTurn(
-        match,
-        playerId!,
-        strokePayload.kind === 'start' ? strokePayload.value.turnId : strokePayload.turnId,
-      );
-
-      if (authError) {
-        sendGameResponse(callback, authError);
-        return;
-      }
-
-      if (strokePayload.kind === 'end') {
-        if (!hasAuthoritativeStroke(match.round.strokes, strokePayload.strokeId)) {
-          sendGameResponse(callback, invalidActionError('لم يتم العثور على خط الرسم.'));
-          return;
-        }
-
+      if (result.kind === 'end' || result.kind === 'start-noop') {
         sendGameResponse(callback, { success: true, data: { ok: true } });
         return;
       }
 
-      const started = startAuthoritativeStroke(match.round.strokes, {
-        id: strokePayload.value.strokeId,
-        tool: strokePayload.value.tool,
-        color: strokePayload.value.color,
-        size: strokePayload.value.size,
-        points: strokePayload.value.points,
+      const nextTurnStrokeIds = match.round.currentTurnStrokeIds.includes(result.strokeId)
+          ? match.round.currentTurnStrokeIds
+          : [...match.round.currentTurnStrokeIds, result.strokeId];
+
+      const nextMatch = withRound(match, {
+        ...match.round,
+        strokes: result.strokes,
+        currentTurnStrokeIds: nextTurnStrokeIds,
       });
 
-      if (started.created) {
-        const nextTurnStrokeIds = match.round.currentTurnStrokeIds.includes(
-          strokePayload.value.strokeId,
-        )
-          ? match.round.currentTurnStrokeIds
-          : [...match.round.currentTurnStrokeIds, strokePayload.value.strokeId];
-
-        const nextMatch = withRound(match, {
-          ...match.round,
-          strokes: started.strokes,
-          currentTurnStrokeIds: nextTurnStrokeIds,
-        });
-
-        setImposterDrawState(roomId!, nextMatch);
-        broadcastCanvasUpdated(
-          io,
-          roomId!,
-          match.round.turnId,
-          started.strokes,
-          nextTurnStrokeIds,
-        );
-      }
-
+      setImposterDrawState(roomId!, nextMatch);
+      broadcastCanvasUpdated(
+        io,
+        roomId!,
+        match.round.turnId,
+        result.strokes,
+        nextTurnStrokeIds,
+      );
       sendGameResponse(callback, { success: true, data: { ok: true } });
     } catch {
       sendGameResponse(callback, {
@@ -483,43 +436,31 @@ export function registerImposterDrawSocketHandlers(io: Server, socket: Socket): 
         return;
       }
 
-      const pointsPayload = parseStrokePointsPayload(payload);
+      const result = processStrokePointsCommand({
+        playerIsCurrentDrawer: currentDrawerId(match) === playerId,
+        currentTurnId: match.round.turnId,
+        strokes: match.round.strokes,
+        payload,
+        limits: IMPOSTER_DRAW_BOARD_LIMITS,
+        allowedStrokeIds: match.round.currentTurnStrokeIds,
+      });
 
-      if (!pointsPayload) {
-        sendGameResponse(callback, invalidActionError('بيانات نقاط الرسم غير صالحة.'));
-        return;
-      }
-
-      const authError = assertActiveDrawerTurn(match, playerId!, pointsPayload.turnId);
-
-      if (authError) {
-        sendGameResponse(callback, authError);
-        return;
-      }
-
-      if (!match.round.currentTurnStrokeIds.includes(pointsPayload.strokeId)) {
-        sendGameResponse(callback, invalidActionError('لا يمكن تعديل خط من دور سابق.'));
-        return;
-      }
-
-      const nextStrokes = appendAuthoritativeStrokePoints(
-        match.round.strokes,
-        pointsPayload.strokeId,
-        pointsPayload.points,
-      );
-
-      if (!nextStrokes) {
-        sendGameResponse(callback, invalidActionError('لم يتم العثور على خط الرسم.'));
+      if (!result.ok) {
+        sendGameResponse(callback, mapStrokePointsError(result.error));
         return;
       }
 
       const nextMatch = withRound(match, {
         ...match.round,
-        strokes: nextStrokes,
+        strokes: result.strokes,
       });
 
       setImposterDrawState(roomId!, nextMatch);
-      socket.to(getRoomChannel(roomId!)).emit(IMPOSTER_DRAW_STROKE_POINTS_EVENT, pointsPayload);
+      socket.to(getRoomChannel(roomId!)).emit(IMPOSTER_DRAW_STROKE_POINTS_EVENT, {
+        turnId: result.turnId,
+        strokeId: result.strokeId,
+        points: result.points,
+      });
       sendGameResponse(callback, { success: true, data: { ok: true } });
     } catch {
       sendGameResponse(callback, {

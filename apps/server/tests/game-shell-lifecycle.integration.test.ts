@@ -285,9 +285,14 @@ async function main(): Promise<void> {
     assert.ok(shell.data.state?.matchParticipantIds);
     assert.ok(!shell.data.state!.matchParticipantIds!.includes(waiter.id));
 
-    // Waiting player plugin sync must not grant a participant view that mutates match.
-    const waiterSync = await ack<{ success: boolean }>(waiter.socket, DRAW_GUESS_SYNC_EVENT, {});
-    assert.equal(waiterSync.success, false);
+    // Waiting player plugin sync is a spectator view — no secret word, no match mutation.
+    const waiterSync = await ack<{
+      success: boolean;
+      data?: { view?: { isMatchSpectator?: boolean; secretWord?: string | null } };
+    }>(waiter.socket, DRAW_GUESS_SYNC_EVENT, {});
+    assert.equal(waiterSync.success, true);
+    assert.equal(waiterSync.data?.view?.isMatchSpectator, true);
+    assert.equal(waiterSync.data?.view?.secretWord ?? null, null);
 
     await hostEnd(host);
     waiter.socket.disconnect();

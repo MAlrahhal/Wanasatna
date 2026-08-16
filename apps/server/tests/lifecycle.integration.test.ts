@@ -13,6 +13,8 @@ import {
   reconnectClient,
   startMatchWithPlayers,
   startThreePlayerMatch,
+  TEST_PLAYER_RECOVERY_SECONDS,
+  TEST_PLAYER_RECOVERY_WAIT_MS,
   waitForRecoveryActive,
   waitForRecoveryInactive,
 } from './helpers/lifecycle-driver.js';
@@ -122,7 +124,9 @@ async function main(): Promise<void> {
     assert.ok(active);
     assert.equal(active!.minimumCount, 3);
     assert.equal(active!.connectedCount, 1);
-    assert.ok(active!.remainingSeconds <= 2 && active!.remainingSeconds >= 1);
+    assert.ok(active!.remainingSeconds > 0);
+    assert.ok(active!.remainingSeconds <= TEST_PLAYER_RECOVERY_SECONDS);
+    assert.ok(active!.remainingSeconds >= TEST_PLAYER_RECOVERY_SECONDS - 2);
 
     host.socket.disconnect();
   });
@@ -158,35 +162,53 @@ async function main(): Promise<void> {
 
     await waitFor(
       async () => (host.navigations.includes('/lobby') ? true : null),
-      5000,
+      TEST_PLAYER_RECOVERY_WAIT_MS,
       'lobby after recovery timeout',
       200,
     );
 
+    const syncRes = await ack<{ success: boolean; data: { state: null | unknown } }>(
+      host.socket,
+      'game-shell-sync',
+    );
+    assert.ok(syncRes.success);
+    assert.equal(syncRes.data.state, null);
+
     host.socket.disconnect();
   });
 
-  await runTest('H timed phase timer freezes during recovery', async () => {
+  await runTest('H recovery pauses authoritative phase expiry', async () => {
     const { host, clients } = await startThreePlayerMatch();
-    const remainingBefore = (await syncView(host.socket)).phaseRemainingSeconds;
+    const viewBefore = await syncView(host.socket);
+    const phaseBefore = viewBefore.gamePhase;
 
     await disconnectClient(clients[1]!);
     await disconnectClient(clients[2]!);
     await waitForRecoveryActive(host);
 
-    const remainingDuring = (await syncView(host.socket)).phaseRemainingSeconds;
-    assert.equal(remainingDuring, remainingBefore, 'phase timer frozen during recovery');
-    await sleep(400);
-    const remainingStill = (await syncView(host.socket)).phaseRemainingSeconds;
-    assert.equal(remainingStill, remainingBefore, 'phase timer stays frozen');
+    const during = await syncView(host.socket);
+    assert.equal(during.gamePhase, phaseBefore, 'phase does not expire when recovery starts');
+    assert.equal(host.navigations.includes('/lobby'), false);
+
+    await sleep(1200);
+    const still = await syncView(host.socket);
+    assert.equal(still.gamePhase, phaseBefore, 'authoritative phase stays paused during recovery');
+    assert.equal(host.navigations.includes('/lobby'), false);
+    assert.ok(
+      host.recoveryEvents.some((event) => event.isActive),
+      'recovery remains active while players are missing',
+    );
+    // Display remaining may tick from deadlineAtMs; do not require a frozen number.
+    assert.equal(typeof during.phaseRemainingSeconds, 'number');
+    assert.equal(typeof still.phaseRemainingSeconds, 'number');
 
     await reconnectClient(clients[1]!);
     await reconnectClient(clients[2]!);
     await waitForRecoveryInactive(host);
-    await sleep(1200);
 
-    const remainingAfter = (await syncView(host.socket)).phaseRemainingSeconds;
-    assert.ok(remainingAfter <= remainingBefore, 'timer resumes after recovery');
+    const after = await syncView(host.socket);
+    assert.equal(after.gamePhase, phaseBefore, 'lifecycle remains valid after recovery resumes');
+    assert.equal(host.navigations.includes('/lobby'), false);
 
     for (const c of clients) {
       c.socket.disconnect();
@@ -194,26 +216,33 @@ async function main(): Promise<void> {
     host.socket.disconnect();
   });
 
-  await runTest('I multiple disconnect/reconnect keeps single recovery timer', async () => {
+  await runTest('I partial reconnect does not cancel recovery while below minimum', async () => {
     const { host, clients } = await startThreePlayerMatch();
 
     await disconnectClient(clients[1]!);
     await disconnectClient(clients[2]!);
     await waitForRecoveryActive(host);
-    const firstDeadline = host.recoveryEvents.find((event) => event.isActive)?.remainingSeconds;
+    const started = host.recoveryEvents.find((event) => event.isActive);
+    assert.ok(started);
+    assert.equal(started.minimumCount, 3);
+    assert.ok(started.connectedCount < started.minimumCount);
 
     await reconnectClient(clients[1]!);
-    await waitForRecoveryInactive(host);
+    const stillActive = await waitFor(
+      async () => {
+        const latest = [...host.recoveryEvents].reverse().find((event) => event.isActive);
+        return latest && latest.connectedCount === 2 && latest.minimumCount === 3 ? latest : null;
+      },
+      5000,
+      'recovery remains active after one of two missing players reconnects',
+      100,
+    );
 
-    await disconnectClient(clients[1]!);
-    await waitForRecoveryActive(host);
-    const secondDeadline = host.recoveryEvents.find((event) => event.isActive)?.remainingSeconds;
+    assert.equal(stillActive.isActive, true);
+    assert.ok(stillActive.remainingSeconds > 0);
+    assert.ok(stillActive.remainingSeconds <= TEST_PLAYER_RECOVERY_SECONDS);
 
-    assert.ok(typeof firstDeadline === 'number');
-    assert.ok(typeof secondDeadline === 'number');
-    assert.ok(secondDeadline <= 2);
-
-    await reconnectClient(clients[1]!);
+    await reconnectClient(clients[2]!);
     await waitForRecoveryInactive(host);
 
     for (const c of clients) {

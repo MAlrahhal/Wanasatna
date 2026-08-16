@@ -10,7 +10,6 @@ import { RoomActionCards } from '@/components/public/room-action-cards';
 import { SectionHeader } from '@/components/public/section-header';
 import { Button } from '@/components/ui/button';
 import { SystemStatus } from '@/components/ui/system-status';
-import { BRAND_NAME_AR } from '@/lib/public/brand';
 import { getFeaturedGames } from '@/lib/public/game-catalog';
 import { HOME_ROOM_ACTIONS_ID, PUBLIC_ROUTES } from '@/lib/public/routes';
 import { scrollToHomeRoomActions } from '@/lib/public/scroll-to-room-actions';
@@ -159,7 +158,7 @@ export function HomePageClient() {
           </ol>
         </section>
 
-        <section className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <section>
           <Link
             href={PUBLIC_ROUTES.games}
             className="wanas-interactive-card group border-t-2 border-t-wanas-brand-navy p-5"
@@ -172,19 +171,6 @@ export function HomePageClient() {
               الانتقال إلى الألعاب
             </span>
           </Link>
-          <div className="wanas-panel p-5">
-            <p className="text-[11px] font-semibold text-wanas-text-muted">قريباً — غير متاح حالياً</p>
-            <h3 className="mt-2 text-xl font-bold text-wanas-text-primary">{BRAND_NAME_AR} بريميوم</h3>
-            <p className="mt-2 text-sm leading-7 text-wanas-text-muted">
-              مزايا إضافية اختيارية — اللعب الأساسي يبقى بدون حساب.
-            </p>
-            <Link
-              href={PUBLIC_ROUTES.premium}
-              className="mt-4 inline-flex text-sm font-medium text-wanas-text-muted hover:text-wanas-text-secondary hover:underline"
-            >
-              تعرّف على بريميوم
-            </Link>
-          </div>
         </section>
       </div>
     </main>

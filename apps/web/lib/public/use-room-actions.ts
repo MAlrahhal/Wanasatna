@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { playerNameContainsForbiddenChars } from '@wanasatna/shared';
 import { replaceHomeClean } from '@/lib/public/home-url';
 import { HOME_ROOM_ACTIONS_ID } from '@/lib/public/routes';
 import { getRuntimeId, recordContinuity } from '@/lib/room-v2/continuity';
@@ -115,6 +116,13 @@ export function useRoomActions() {
       return;
     }
 
+    if (playerNameContainsForbiddenChars(trimmedName)) {
+      setErrorMessage('الاسم يحتوي على رموز غير مسموحة.');
+      setFieldErrors({ playerName: true });
+      scrollToRoomActions();
+      return;
+    }
+
     setErrorMessage(null);
     setFieldErrors({});
     inFlightRef.current = true;
@@ -197,6 +205,13 @@ export function useRoomActions() {
 
     if (trimmedName.length > 20) {
       setErrorMessage('يجب ألا يزيد الاسم عن 20 حرفاً.');
+      setFieldErrors({ playerName: true });
+      scrollToRoomActions();
+      return;
+    }
+
+    if (playerNameContainsForbiddenChars(trimmedName)) {
+      setErrorMessage('الاسم يحتوي على رموز غير مسموحة.');
       setFieldErrors({ playerName: true });
       scrollToRoomActions();
       return;

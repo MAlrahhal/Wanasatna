@@ -41,6 +41,8 @@ import {
   endQuestionTurn,
   expireGuessingChallengeTurn,
   markGuessingChallengePlayerDeparted,
+  applyLookDirection,
+  clearLookThrottleForRoom,
   reconcilePendingCardConfirm,
   getOpponentTeamId,
   viewContainsSecretLeak,
@@ -1184,6 +1186,24 @@ test('entire team permanent leave leaves no eligible actors', () => {
   );
   assert.equal(scored.teamScores.red, 0);
   assert.equal(scored.teamScores.blue, 0);
+});
+
+test('LOOK clamps NaN/Infinity/bounds and ignores non-participants', () => {
+  clearLookThrottleForRoom('room-look');
+  const match = makeMatch1v1();
+  const nan = applyLookDirection(match, 'room-look', 'p1', Number.NaN, Infinity, 1_000);
+  assert.ok(nan);
+  assert.equal(nan.yaw, 0);
+  assert.equal(nan.pitch, 0);
+
+  const clamped = applyLookDirection(match, 'room-look', 'p1', 5, -3, 1_200);
+  assert.ok(clamped);
+  assert.equal(clamped.yaw, 1);
+  assert.equal(clamped.pitch, -1);
+
+  const outsider = applyLookDirection(match, 'room-look', 'spectator', 0.2, 0.1, 1_400);
+  assert.equal(outsider, null);
+  assert.equal(match.lookByPlayerId.p1.yaw, 0);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
