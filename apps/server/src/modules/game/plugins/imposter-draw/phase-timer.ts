@@ -1,8 +1,7 @@
 import type { Server } from 'socket.io';
 import type { ImposterDrawMatchState } from '@wanasatna/shared';
-import { IMPOSTER_DRAW_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
-import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
+import { remainingMsUntilDeadline } from '../../runtime/phase-deadline.js';
 import {
   advanceDrawingTurn,
   advanceFromRoundResults,
@@ -13,11 +12,13 @@ import {
   startDrawingPhase,
   startRoundResults,
 } from './match-lifecycle.js';
-import { getImposterDrawState, setImposterDrawState } from './store.js';
 import { withRound } from './state.js';
+import { getImposterDrawState, setImposterDrawState } from './store.js';
 
-const timersByRoomId = new Map<string, ReturnType<typeof setInterval>>();
+const timersByRoomId = new Map<string, ReturnType<typeof setTimeout>>();
+const timerGenerationByRoomId = new Map<string, number>();
 const pausedRoomIds = new Set<string>();
+const pausedRemainingMsByRoomId = new Map<string, number>();
 
 const TIMED_PHASES = new Set<ImposterDrawMatchState['round']['gamePhase']>([
   'briefing',
@@ -30,38 +31,78 @@ const TIMED_PHASES = new Set<ImposterDrawMatchState['round']['gamePhase']>([
   'match-completed',
 ]);
 
+function roundToken(match: ImposterDrawMatchState): string {
+  return `${match.currentRound}:${match.round.gamePhase}:${match.round.turnId}:${match.round.currentDrawerIndex}`;
+}
+
+function bumpGeneration(roomId: string): number {
+  const next = (timerGenerationByRoomId.get(roomId) ?? 0) + 1;
+  timerGenerationByRoomId.set(roomId, next);
+  return next;
+}
+
 export function isImposterDrawPhaseTimerPaused(roomId: string): boolean {
   return pausedRoomIds.has(roomId);
 }
 
 export function pauseImposterDrawPhaseTimer(roomId: string): void {
   pausedRoomIds.add(roomId);
+
+  const match = getImposterDrawState(roomId);
+
+  if (match && TIMED_PHASES.has(match.round.gamePhase)) {
+    pausedRemainingMsByRoomId.set(
+      roomId,
+      remainingMsUntilDeadline(match.round.deadlineAtMs, match.round.phaseRemainingSeconds),
+    );
+  }
+
   stopImposterDrawPhaseTimer(roomId);
 }
 
 export function resumeImposterDrawPhaseTimer(io: Server, roomId: string): void {
   pausedRoomIds.delete(roomId);
+
+  const remainingMs = pausedRemainingMsByRoomId.get(roomId);
+  pausedRemainingMsByRoomId.delete(roomId);
+
+  const match = getImposterDrawState(roomId);
+
+  if (remainingMs !== undefined && match && TIMED_PHASES.has(match.round.gamePhase)) {
+    setImposterDrawState(
+      roomId,
+      withRound(match, {
+        ...match.round,
+        deadlineAtMs: Date.now() + remainingMs,
+        phaseRemainingSeconds: Math.max(0, Math.ceil(remainingMs / 1000)),
+      }),
+    );
+  }
+
   startImposterDrawPhaseTimerIfNeeded(io, roomId);
 }
 
 export function stopImposterDrawPhaseTimer(roomId: string): void {
-  const intervalId = timersByRoomId.get(roomId);
+  const timeoutId = timersByRoomId.get(roomId);
 
-  if (!intervalId) {
+  if (!timeoutId) {
     return;
   }
 
-  clearInterval(intervalId);
+  clearTimeout(timeoutId);
   timersByRoomId.delete(roomId);
 }
 
 export function clearImposterDrawPhaseTimerRuntime(roomId: string): void {
   stopImposterDrawPhaseTimer(roomId);
   pausedRoomIds.delete(roomId);
+  pausedRemainingMsByRoomId.delete(roomId);
+  timerGenerationByRoomId.delete(roomId);
 }
 
 export function restartImposterDrawPhaseTimer(io: Server, roomId: string): void {
   stopImposterDrawPhaseTimer(roomId);
+  bumpGeneration(roomId);
   startImposterDrawPhaseTimerIfNeeded(io, roomId);
 }
 
@@ -117,6 +158,32 @@ function handlePhaseTimerExpired(
   }
 }
 
+function firePhaseExpiry(
+  io: Server,
+  roomId: string,
+  generation: number,
+  scheduledPhase: ImposterDrawMatchState['round']['gamePhase'],
+  scheduledToken: string,
+): void {
+  if (timerGenerationByRoomId.get(roomId) !== generation) {
+    return;
+  }
+
+  stopImposterDrawPhaseTimer(roomId);
+
+  const match = getImposterDrawState(roomId);
+
+  if (
+    !match ||
+    match.round.gamePhase !== scheduledPhase ||
+    roundToken(match) !== scheduledToken
+  ) {
+    return;
+  }
+
+  handlePhaseTimerExpired(io, roomId, match);
+}
+
 export function startImposterDrawPhaseTimerIfNeeded(io: Server, roomId: string): void {
   if (pausedRoomIds.has(roomId) || timersByRoomId.has(roomId)) {
     return;
@@ -128,39 +195,22 @@ export function startImposterDrawPhaseTimerIfNeeded(io: Server, roomId: string):
     return;
   }
 
-  if (match.round.phaseRemainingSeconds <= 0) {
-    handlePhaseTimerExpired(io, roomId, match);
+  const generation = timerGenerationByRoomId.get(roomId) ?? bumpGeneration(roomId);
+  const scheduledPhase = match.round.gamePhase;
+  const scheduledToken = roundToken(match);
+  const delayMs = remainingMsUntilDeadline(
+    match.round.deadlineAtMs,
+    match.round.phaseRemainingSeconds,
+  );
+
+  if (delayMs <= 0) {
+    firePhaseExpiry(io, roomId, generation, scheduledPhase, scheduledToken);
     return;
   }
 
-  const intervalId = setInterval(() => {
-    const currentMatch = getImposterDrawState(roomId);
+  const timeoutId = setTimeout(() => {
+    firePhaseExpiry(io, roomId, generation, scheduledPhase, scheduledToken);
+  }, delayMs);
 
-    if (!currentMatch || !TIMED_PHASES.has(currentMatch.round.gamePhase)) {
-      stopImposterDrawPhaseTimer(roomId);
-      return;
-    }
-
-    const shell = getGameShellByRoomId(roomId);
-
-    if (!shell || shell.phase !== 'PLAYING') {
-      stopImposterDrawPhaseTimer(roomId);
-      return;
-    }
-
-    const remainingSeconds = Math.max(0, currentMatch.round.phaseRemainingSeconds - 1);
-    const nextMatch = withRound(currentMatch, {
-      ...currentMatch.round,
-      phaseRemainingSeconds: remainingSeconds,
-    });
-
-    setImposterDrawState(roomId, nextMatch);
-    io.to(getRoomChannel(roomId)).emit(IMPOSTER_DRAW_PHASE_CHANGED_EVENT, {});
-
-    if (remainingSeconds <= 0) {
-      handlePhaseTimerExpired(io, roomId, nextMatch);
-    }
-  }, 1000);
-
-  timersByRoomId.set(roomId, intervalId);
+  timersByRoomId.set(roomId, timeoutId);
 }

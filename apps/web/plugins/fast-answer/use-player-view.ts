@@ -26,6 +26,15 @@ async function fetchPlayerView(): Promise<{
   return { view: response.data.view, errorMessage: null };
 }
 
+export function resolveFastAnswerDeadlineAtMs(
+  view: Pick<FastAnswerPlayerView, 'deadlineAtMs' | 'questionDeadlineAtMs'> | null | undefined,
+): number | null {
+  if (!view) {
+    return null;
+  }
+  return view.deadlineAtMs ?? view.questionDeadlineAtMs ?? null;
+}
+
 export function useFastAnswerPlayerView(enabled: boolean) {
   const [view, setView] = useState<FastAnswerPlayerView | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -33,7 +42,6 @@ export function useFastAnswerPlayerView(enabled: boolean) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [incorrectFeedback, setIncorrectFeedback] = useState<string | null>(null);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
-  const [remainingSeconds, setRemainingSeconds] = useState(0);
   const hasViewRef = useRef(false);
   const roundIdRef = useRef<string | null>(null);
 
@@ -51,7 +59,6 @@ export function useFastAnswerPlayerView(enabled: boolean) {
       hasViewRef.current = true;
       roundIdRef.current = result.view.roundId;
       setView(result.view);
-      setRemainingSeconds(result.view.phaseRemainingSeconds);
       setErrorMessage(null);
     } else if (isInitialLoad) {
       setErrorMessage(result.errorMessage);
@@ -72,7 +79,6 @@ export function useFastAnswerPlayerView(enabled: boolean) {
       setActionError(null);
       setIncorrectFeedback(null);
       setIsSubmittingAction(false);
-      setRemainingSeconds(0);
       return;
     }
 
@@ -101,30 +107,6 @@ export function useFastAnswerPlayerView(enabled: boolean) {
     };
   }, [enabled, syncView]);
 
-  useEffect(() => {
-    if (!enabled || !view) {
-      return;
-    }
-
-    if (view.gamePhase === 'question' && view.questionDeadlineAtMs) {
-      const updateRemaining = () => {
-        const seconds = Math.max(0, Math.ceil((view.questionDeadlineAtMs! - Date.now()) / 1000));
-        setRemainingSeconds(seconds);
-      };
-
-      updateRemaining();
-      const intervalId = window.setInterval(updateRemaining, 250);
-      return () => window.clearInterval(intervalId);
-    }
-
-    if (view.gamePhase === 'round-results' || view.gamePhase === 'match-completed') {
-      setRemainingSeconds(view.phaseRemainingSeconds);
-      const intervalId = window.setInterval(() => {
-        setRemainingSeconds((current) => Math.max(0, current - 1));
-      }, 1000);
-      return () => window.clearInterval(intervalId);
-    }
-  }, [enabled, view?.gamePhase, view?.questionDeadlineAtMs, view?.phaseRemainingSeconds, view?.roundId]);
 
   const submitAnswer = useCallback(
     async (answer: string) => {
@@ -152,7 +134,6 @@ export function useFastAnswerPlayerView(enabled: boolean) {
 
       setView(response.data.view);
       roundIdRef.current = response.data.view.roundId;
-      setRemainingSeconds(response.data.view.phaseRemainingSeconds);
 
       if (!response.data.correct) {
         setIncorrectFeedback('إجابة غير صحيحة');
@@ -185,7 +166,6 @@ export function useFastAnswerPlayerView(enabled: boolean) {
 
     setView(response.data.view);
     roundIdRef.current = response.data.view.roundId;
-    setRemainingSeconds(response.data.view.phaseRemainingSeconds);
     setIncorrectFeedback(null);
     setIsSubmittingAction(false);
   }, [enabled, isSubmittingAction]);
@@ -197,7 +177,6 @@ export function useFastAnswerPlayerView(enabled: boolean) {
     actionError,
     incorrectFeedback,
     isSubmittingAction,
-    remainingSeconds,
     submitAnswer,
     continueFromRoundResults,
   };

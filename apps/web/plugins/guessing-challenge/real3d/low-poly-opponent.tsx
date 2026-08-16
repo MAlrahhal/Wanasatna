@@ -13,6 +13,7 @@ export type SeatedOpponentProps = {
   holdOwnCard?: boolean;
   teamTint?: BeanTeamTint;
   teamDot?: 'blue' | 'red' | 'opponent';
+  lookPlayerId?: string;
   lookYaw?: number;
   lookPitch?: number;
   lookYawScale?: number;
@@ -90,6 +91,7 @@ export function LowPolyOpponent({
   holdOwnCard = true,
   teamTint = 'opponent',
   teamDot = 'opponent',
+  lookPlayerId,
   lookYaw = 0,
   lookPitch = 0,
   lookYawScale,
@@ -113,6 +115,8 @@ export function LowPolyOpponent({
       <group position={[0, 0.4, 0.06]}>
         <BeanCharacter
           teamTint={teamTint}
+          lookPlayerId={lookPlayerId}
+          lookFacing="toward-camera"
           lookYaw={lookYaw}
           lookPitch={lookPitch}
           lookYawScale={lookYawScale}

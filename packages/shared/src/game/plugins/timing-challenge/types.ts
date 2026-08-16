@@ -46,6 +46,8 @@ export type TimingChallengeRoundState = {
   roundId: string;
   gamePhase: TimingChallengeGamePhase;
   phaseRemainingSeconds: number;
+  /** Absolute expiry for visible timed phases. Never the hidden target clock. */
+  deadlineAtMs: number | null;
   /** Authoritative target / hidden duration. Never leak before reveal. */
   targetMs: number;
   /** Mode A: when the hidden timer started (Date.now). */
@@ -95,6 +97,7 @@ export type TimingChallengePlayerView = {
   gamePhase: TimingChallengeGamePhase;
   phaseLabel: string;
   phaseRemainingSeconds: number;
+  deadlineAtMs: number | null;
   mode: TimingChallengeMode;
   roundId: string;
   currentRound: number;

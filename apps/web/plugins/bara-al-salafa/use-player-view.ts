@@ -36,12 +36,11 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
   const [view, setView] = useState<BaraAlSalafaPlayerView | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [actionError, setActionError] = useState<string | null>(null);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const hasViewRef = useRef(false);
 
-  // Background re-syncs (per-second server ticks, phase changes) must never
+  // Background re-syncs (real phase changes) must never
   // flip the screen back to a loading/error state: loading and errors only
   // surface before the first view exists, and a transient failed re-sync
   // keeps the last good view instead of blanking the phase screen.
@@ -59,7 +58,6 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
       hasViewRef.current = true;
       setView(result.view);
       setErrorMessage(null);
-      setRemainingSeconds(result.view.phaseRemainingSeconds);
     } else if (isInitialLoad) {
       setErrorMessage(result.errorMessage);
     }
@@ -75,7 +73,6 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
       setView(null);
       setErrorMessage(null);
       setIsLoading(false);
-      setRemainingSeconds(0);
       setActionError(null);
       setIsSubmittingAction(false);
       return;
@@ -102,23 +99,6 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
     };
   }, [enabled, syncView]);
 
-  useEffect(() => {
-    const locallyTimedPhases = new Set(['description', 'reveal-impostor', 'match-completed']);
-
-    if (!enabled || !view || !locallyTimedPhases.has(view.gamePhase)) {
-      return;
-    }
-
-    setRemainingSeconds(view.phaseRemainingSeconds);
-
-    const intervalId = window.setInterval(() => {
-      setRemainingSeconds((current) => Math.max(0, current - 1));
-    }, 1000);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [enabled, view?.gamePhase, view?.phaseRemainingSeconds, view?.currentSpeakerName, view?.submittedVotesCount]);
 
   const submitRoleUnderstood = useCallback(async () => {
     if (!enabled || isSubmittingAction) {
@@ -139,7 +119,6 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
     }
 
     setView(response.data.view);
-    setRemainingSeconds(response.data.view.phaseRemainingSeconds);
     setIsSubmittingAction(false);
   }, [enabled, isSubmittingAction]);
 
@@ -184,7 +163,6 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
     }
 
     setView(response.data.view);
-    setRemainingSeconds(response.data.view.phaseRemainingSeconds);
     setIsSubmittingAction(false);
   }, [enabled, isSubmittingAction]);
 
@@ -346,7 +324,6 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
     view,
     errorMessage,
     isLoading,
-    remainingSeconds,
     actionError,
     isSubmittingAction,
     submitRoleUnderstood,

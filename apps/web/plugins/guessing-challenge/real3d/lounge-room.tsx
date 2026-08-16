@@ -4,7 +4,7 @@
  * Cozy Fall Guys–inspired lounge: purple walls, wood floor, rug, neon W, props.
  * Lightweight primitives only — no GLTF.
  */
-export function LoungeRoom() {
+export function LoungeRoom({ compactGpu = false }: { compactGpu?: boolean }) {
   return (
     <group>
       {/* Wood floor */}
@@ -63,20 +63,20 @@ export function LoungeRoom() {
 
       {/* Left shelf + props */}
       <group position={[-3.4, 0.9, -3.6]}>
-        <mesh castShadow>
+        <mesh castShadow={!compactGpu}>
           <boxGeometry args={[1.4, 0.08, 0.45]} />
           <meshStandardMaterial color="#78350f" />
         </mesh>
-        <mesh position={[-0.35, 0.28, 0]} castShadow>
+        <mesh position={[-0.35, 0.28, 0]} castShadow={!compactGpu}>
           <boxGeometry args={[0.28, 0.45, 0.28]} />
           <meshStandardMaterial color="#f59e0b" />
         </mesh>
-        <mesh position={[0.05, 0.22, 0.02]} castShadow>
+        <mesh position={[0.05, 0.22, 0.02]} castShadow={!compactGpu}>
           <boxGeometry args={[0.22, 0.35, 0.22]} />
           <meshStandardMaterial color="#38bdf8" />
         </mesh>
         {/* Trophy */}
-        <mesh position={[0.45, 0.35, 0]} castShadow>
+        <mesh position={[0.45, 0.35, 0]} castShadow={!compactGpu}>
           <cylinderGeometry args={[0.08, 0.1, 0.2, 10]} />
           <meshStandardMaterial color="#fbbf24" metalness={0.6} roughness={0.3} />
         </mesh>
@@ -88,16 +88,16 @@ export function LoungeRoom() {
 
       {/* Right shelf + plant */}
       <group position={[3.4, 0.9, -3.6]}>
-        <mesh castShadow>
+        <mesh castShadow={!compactGpu}>
           <boxGeometry args={[1.4, 0.08, 0.45]} />
           <meshStandardMaterial color="#78350f" />
         </mesh>
-        <mesh position={[-0.3, 0.2, 0]} castShadow>
+        <mesh position={[-0.3, 0.2, 0]} castShadow={!compactGpu}>
           <boxGeometry args={[0.25, 0.32, 0.25]} />
           <meshStandardMaterial color="#fb7185" />
         </mesh>
         {/* Plant pot */}
-        <mesh position={[0.35, 0.12, 0]} castShadow>
+        <mesh position={[0.35, 0.12, 0]} castShadow={!compactGpu}>
           <cylinderGeometry args={[0.12, 0.1, 0.18, 10]} />
           <meshStandardMaterial color="#92400e" />
         </mesh>
@@ -113,11 +113,11 @@ export function LoungeRoom() {
 
       {/* Sofa / beanbag left */}
       <group position={[-2.8, 0.28, -0.2]} rotation={[0, 0.55, 0]}>
-        <mesh castShadow>
+        <mesh castShadow={!compactGpu}>
           <sphereGeometry args={[0.55, 14, 10]} />
           <meshStandardMaterial color="#7c3aed" roughness={0.9} />
         </mesh>
-        <mesh position={[0, 0.15, -0.25]} scale={[1.05, 0.7, 0.55]} castShadow>
+        <mesh position={[0, 0.15, -0.25]} scale={[1.05, 0.7, 0.55]} castShadow={!compactGpu}>
           <sphereGeometry args={[0.45, 12, 8]} />
           <meshStandardMaterial color="#6d28d9" roughness={0.9} />
         </mesh>
@@ -125,19 +125,19 @@ export function LoungeRoom() {
 
       {/* Sofa / beanbag right */}
       <group position={[2.8, 0.28, -0.2]} rotation={[0, -0.55, 0]}>
-        <mesh castShadow>
+        <mesh castShadow={!compactGpu}>
           <sphereGeometry args={[0.55, 14, 10]} />
           <meshStandardMaterial color="#ea580c" roughness={0.9} />
         </mesh>
-        <mesh position={[0, 0.15, -0.25]} scale={[1.05, 0.7, 0.55]} castShadow>
+        <mesh position={[0, 0.15, -0.25]} scale={[1.05, 0.7, 0.55]} castShadow={!compactGpu}>
           <sphereGeometry args={[0.45, 12, 8]} />
           <meshStandardMaterial color="#c2410c" roughness={0.9} />
         </mesh>
       </group>
 
       {/* Warm lamps */}
-      <Lamp position={[-3.2, 0, -2.2]} />
-      <Lamp position={[3.2, 0, -2.2]} />
+      <Lamp position={[-3.2, 0, -2.2]} compactGpu={compactGpu} />
+      <Lamp position={[3.2, 0, -2.2]} compactGpu={compactGpu} />
     </group>
   );
 }
@@ -170,10 +170,16 @@ function NeonW({ position }: { position: [number, number, number] }) {
   );
 }
 
-function Lamp({ position }: { position: [number, number, number] }) {
+function Lamp({
+  position,
+  compactGpu = false,
+}: {
+  position: [number, number, number];
+  compactGpu?: boolean;
+}) {
   return (
     <group position={position}>
-      <mesh position={[0, 0.55, 0]} castShadow>
+      <mesh position={[0, 0.55, 0]} castShadow={!compactGpu}>
         <cylinderGeometry args={[0.05, 0.07, 1.1, 8]} />
         <meshStandardMaterial color="#44403c" />
       </mesh>

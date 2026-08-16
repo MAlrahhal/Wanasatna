@@ -18,7 +18,7 @@ export function mapDirectedQuestionsLiveProps(
   players: LobbyPlayer[],
   currentPlayerId: string,
   roomCode: string,
-  remainingSeconds: number,
+  deadlineAtMs: number | null | undefined,
 ): DirectedQuestionsScreenProps | null {
   const askerPlayerId = view.directedQuestionAskerPlayerId;
   const askerName = view.directedQuestionAskerName;
@@ -44,7 +44,8 @@ export function mapDirectedQuestionsLiveProps(
     players: getParticipatingPlayers(players),
     currentTurn: view.directedQuestionCurrentTurn,
     totalTurns: view.directedQuestionTotalTurns,
-    remainingSeconds,
+    deadlineAtMs,
+    remainingSeconds: 0,
     showTimer: true,
     roundNumber: view.currentRound,
     totalRounds: view.totalRounds,
@@ -57,7 +58,7 @@ export function mapVotingLiveProps(
   players: LobbyPlayer[],
   currentPlayerId: string,
   roomCode: string,
-  remainingSeconds: number,
+  deadlineAtMs: number | null | undefined,
   isSubmitting: boolean,
   errorMessage: string | null,
 ): VotingScreenProps {
@@ -73,7 +74,8 @@ export function mapVotingLiveProps(
     currentPlayerId,
     confirmedPlayerId,
     hasVoted: view.hasVoted,
-    remainingSeconds,
+    deadlineAtMs,
+    remainingSeconds: 0,
     showTimer: true,
     submittedVotesCount: view.submittedVotesCount,
     eligibleVotersCount: view.eligibleVotersCount,
@@ -89,7 +91,7 @@ export function mapVotingLiveProps(
 export function mapRevealImpostorLiveProps(
   view: BaraAlSalafaPlayerView,
   roomCode: string,
-  remainingSeconds: number,
+  deadlineAtMs: number | null | undefined,
 ): RevealImpostorScreenProps | null {
   if (!view.revealedImpostorPlayerId || !view.revealedImpostorName) {
     return null;
@@ -100,7 +102,8 @@ export function mapRevealImpostorLiveProps(
       id: view.revealedImpostorPlayerId,
       name: view.revealedImpostorName,
     },
-    remainingSeconds,
+    deadlineAtMs,
+    remainingSeconds: 0,
     roundNumber: view.currentRound,
     totalRounds: view.totalRounds,
     roomCode,
@@ -117,7 +120,7 @@ export function mapImpostorGuessOptions(words: readonly string[]): ImpostorGuess
 export function mapImpostorGuessLiveProps(
   view: BaraAlSalafaPlayerView,
   roomCode: string,
-  remainingSeconds: number,
+  deadlineAtMs: number | null | undefined,
 ): Pick<
   ImpostorGuessScreenProps,
   | 'isImpostor'
@@ -126,6 +129,7 @@ export function mapImpostorGuessLiveProps(
   | 'roundNumber'
   | 'totalRounds'
   | 'roomCode'
+  | 'deadlineAtMs'
   | 'remainingSeconds'
   | 'showTimer'
 > {
@@ -136,7 +140,8 @@ export function mapImpostorGuessLiveProps(
     roundNumber: view.currentRound,
     totalRounds: view.totalRounds,
     roomCode,
-    remainingSeconds,
+    deadlineAtMs,
+    remainingSeconds: 0,
     showTimer: true,
   };
 }
@@ -145,7 +150,7 @@ export function mapRoundResultsLiveProps(
   view: BaraAlSalafaPlayerView,
   currentPlayerId: string,
   roomCode: string,
-  remainingSeconds: number,
+  deadlineAtMs: number | null | undefined,
 ): RoundResultsScreenProps | null {
   if (!view.revealedWord || !view.revealedImpostorPlayerId || !view.revealedImpostorName) {
     return null;
@@ -171,7 +176,8 @@ export function mapRoundResultsLiveProps(
     currentPlayerId,
     roundNumber: view.currentRound,
     totalRounds: view.totalRounds,
-    remainingSeconds,
+    remainingSeconds: 0,
+    deadlineAtMs,
     totalDurationSeconds: BARA_AL_SALAFA_ROUND_RESULTS_DURATION_SECONDS,
     roomCode,
     continueLabel: view.canContinueFromRoundResults ? view.roundResultsContinueLabel : null,

@@ -27,6 +27,11 @@ import {
   isPlayerRecoveryActive,
   playerRecoveryBlockedError,
 } from '../../runtime/player-recovery.js';
+import {
+  appendAuthoritativeStrokePoints,
+  hasAuthoritativeStroke,
+  startAuthoritativeStroke,
+} from '../../runtime/drawing-strokes.js';
 import { ensureImposterDrawMatchStateWithTimer } from './init-match.js';
 import {
   applyBriefingAcknowledgement,
@@ -145,7 +150,12 @@ function parseTurnId(payload: unknown): string | null {
   return typeof turnId === 'string' && turnId.length > 0 ? turnId : null;
 }
 
-function parseStrokePayload(payload: unknown): ImposterDrawStrokePayload | null {
+function parseStrokePayload(
+  payload: unknown,
+):
+  | { kind: 'start'; value: ImposterDrawStrokePayload & { tool: 'draw' | 'erase'; color: string; size: number; points: DrawStroke['points'] } }
+  | { kind: 'end'; turnId: string; strokeId: string }
+  | null {
   if (!payload || typeof payload !== 'object') {
     return null;
   }
@@ -153,25 +163,33 @@ function parseStrokePayload(payload: unknown): ImposterDrawStrokePayload | null 
   const data = payload as Partial<ImposterDrawStrokePayload>;
   const turnId = parseTurnId(payload);
 
+  if (!turnId || typeof data.strokeId !== 'string') {
+    return null;
+  }
+
+  if (!Array.isArray(data.points) || data.points.length === 0) {
+    return { kind: 'end', turnId, strokeId: data.strokeId };
+  }
+
   if (
-    !turnId ||
-    typeof data.strokeId !== 'string' ||
     (data.tool !== 'draw' && data.tool !== 'erase') ||
     typeof data.color !== 'string' ||
     typeof data.size !== 'number' ||
-    !Array.isArray(data.points) ||
     !data.points.every(isStrokePoint)
   ) {
     return null;
   }
 
   return {
-    turnId,
-    strokeId: data.strokeId,
-    tool: data.tool,
-    color: data.color,
-    size: data.size,
-    points: data.points,
+    kind: 'start',
+    value: {
+      turnId,
+      strokeId: data.strokeId,
+      tool: data.tool,
+      color: data.color,
+      size: data.size,
+      points: data.points,
+    },
   };
 }
 
@@ -368,52 +386,53 @@ export function registerImposterDrawSocketHandlers(io: Server, socket: Socket): 
         return;
       }
 
-      const authError = assertActiveDrawerTurn(match, playerId!, strokePayload.turnId);
+      const authError = assertActiveDrawerTurn(
+        match,
+        playerId!,
+        strokePayload.kind === 'start' ? strokePayload.value.turnId : strokePayload.turnId,
+      );
 
       if (authError) {
         sendGameResponse(callback, authError);
         return;
       }
 
-      const existingIndex = match.round.strokes.findIndex(
-        (stroke) => stroke.id === strokePayload.strokeId,
-      );
+      if (strokePayload.kind === 'end') {
+        if (!hasAuthoritativeStroke(match.round.strokes, strokePayload.strokeId)) {
+          sendGameResponse(callback, invalidActionError('لم يتم العثور على خط الرسم.'));
+          return;
+        }
 
-      const nextStroke: DrawStroke = {
-        id: strokePayload.strokeId,
-        tool: strokePayload.tool,
-        color: strokePayload.color,
-        size: strokePayload.size,
-        points: strokePayload.points,
-      };
+        sendGameResponse(callback, { success: true, data: { ok: true } });
+        return;
+      }
 
-      const nextStrokes =
-        existingIndex >= 0
-          ? match.round.strokes.map((stroke, index) =>
-              index === existingIndex ? nextStroke : stroke,
-            )
-          : [...match.round.strokes, nextStroke];
+      const started = startAuthoritativeStroke(match.round.strokes, {
+        id: strokePayload.value.strokeId,
+        tool: strokePayload.value.tool,
+        color: strokePayload.value.color,
+        size: strokePayload.value.size,
+        points: strokePayload.value.points,
+      });
 
-      const nextTurnStrokeIds =
-        existingIndex >= 0
+      if (started.created) {
+        const nextTurnStrokeIds = match.round.currentTurnStrokeIds.includes(
+          strokePayload.value.strokeId,
+        )
           ? match.round.currentTurnStrokeIds
-          : match.round.currentTurnStrokeIds.includes(strokePayload.strokeId)
-            ? match.round.currentTurnStrokeIds
-            : [...match.round.currentTurnStrokeIds, strokePayload.strokeId];
+          : [...match.round.currentTurnStrokeIds, strokePayload.value.strokeId];
 
-      const nextMatch = withRound(match, {
-        ...match.round,
-        strokes: nextStrokes,
-        currentTurnStrokeIds: nextTurnStrokeIds,
-      });
+        const nextMatch = withRound(match, {
+          ...match.round,
+          strokes: started.strokes,
+          currentTurnStrokeIds: nextTurnStrokeIds,
+        });
 
-      setImposterDrawState(roomId!, nextMatch);
-      broadcastCanvasUpdated(io, roomId!, match.round.turnId, nextStrokes);
+        setImposterDrawState(roomId!, nextMatch);
+        broadcastCanvasUpdated(io, roomId!, match.round.turnId, started.strokes);
+      }
 
-      sendGameResponse(callback, {
-        success: true,
-        data: { view: buildImposterDrawPlayerView(nextMatch, playerId!, shell) },
-      });
+      sendGameResponse(callback, { success: true, data: { ok: true } });
     } catch {
       sendGameResponse(callback, {
         success: false,
@@ -472,20 +491,16 @@ export function registerImposterDrawSocketHandlers(io: Server, socket: Socket): 
         return;
       }
 
-      const strokeIndex = match.round.strokes.findIndex(
-        (stroke) => stroke.id === pointsPayload.strokeId,
+      const nextStrokes = appendAuthoritativeStrokePoints(
+        match.round.strokes,
+        pointsPayload.strokeId,
+        pointsPayload.points,
       );
 
-      if (strokeIndex < 0) {
+      if (!nextStrokes) {
         sendGameResponse(callback, invalidActionError('لم يتم العثور على خط الرسم.'));
         return;
       }
-
-      const nextStrokes = match.round.strokes.map((stroke, index) =>
-        index === strokeIndex
-          ? { ...stroke, points: [...stroke.points, ...pointsPayload.points] }
-          : stroke,
-      );
 
       const nextMatch = withRound(match, {
         ...match.round,
@@ -493,12 +508,8 @@ export function registerImposterDrawSocketHandlers(io: Server, socket: Socket): 
       });
 
       setImposterDrawState(roomId!, nextMatch);
-      io.to(getRoomChannel(roomId!)).emit(IMPOSTER_DRAW_STROKE_POINTS_EVENT, pointsPayload);
-
-      sendGameResponse(callback, {
-        success: true,
-        data: { view: buildImposterDrawPlayerView(nextMatch, playerId!, shell) },
-      });
+      socket.to(getRoomChannel(roomId!)).emit(IMPOSTER_DRAW_STROKE_POINTS_EVENT, pointsPayload);
+      sendGameResponse(callback, { success: true, data: { ok: true } });
     } catch {
       sendGameResponse(callback, {
         success: false,

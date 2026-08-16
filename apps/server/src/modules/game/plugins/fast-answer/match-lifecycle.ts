@@ -2,6 +2,7 @@ import type { Server } from 'socket.io';
 import type { FastAnswerMatchState, GameShellState } from '@wanasatna/shared';
 import { FAST_ANSWER_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
+import { timedPhaseClock } from '../../runtime/phase-deadline.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
 import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
@@ -36,8 +37,7 @@ export function startRoundResults(
   const nextMatch = withRound(scoredMatch, {
     ...scoredMatch.round,
     gamePhase: 'round-results',
-    phaseRemainingSeconds: timedPhaseDurations.fastAnswerRoundResults(),
-    deadlineAtMs: null,
+    ...timedPhaseClock(timedPhaseDurations.fastAnswerRoundResults()),
   });
 
   setFastAnswerState(roomId, nextMatch);
@@ -107,8 +107,7 @@ function startMatchCompletedPhase(
     {
       ...match.round,
       gamePhase: 'match-completed',
-      phaseRemainingSeconds: timedPhaseDurations.matchResults(),
-      deadlineAtMs: null,
+      ...timedPhaseClock(timedPhaseDurations.matchResults()),
     },
   );
 

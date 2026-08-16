@@ -126,6 +126,7 @@ test('C: Mode A hides target before reveal', () => {
       ...makeMatch('guess-time').round,
       gamePhase: 'guessing',
       phaseRemainingSeconds: 30,
+      deadlineAtMs: Date.now() + 30_000,
       targetMs: 8420,
     },
   });

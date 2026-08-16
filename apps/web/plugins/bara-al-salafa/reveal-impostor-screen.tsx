@@ -2,7 +2,7 @@
 
 import './reveal-impostor-screen.css';
 import { GameScreen } from '@/components/game/game-card';
-import { GameHeader } from '@/components/game/game-header';
+import { GameHeader, resolveHeaderTimer } from '@/components/game/game-header';
 import { BARA_AL_SALAFA_GAME_ICON } from '@/lib/game/bara-al-salafa-brand';
 
 export type RevealImpostorPlayer = {
@@ -13,6 +13,7 @@ export type RevealImpostorPlayer = {
 export type RevealImpostorScreenProps = {
   impostorPlayer: RevealImpostorPlayer;
   remainingSeconds: number;
+  deadlineAtMs?: number | null;
   roundNumber: number;
   totalRounds: number;
   roomCode: string;
@@ -34,6 +35,7 @@ function RevealImpostorContent({ impostorPlayer }: { impostorPlayer: RevealImpos
 export function RevealImpostorScreen({
   impostorPlayer,
   remainingSeconds,
+  deadlineAtMs,
   roundNumber,
   totalRounds,
   roomCode,
@@ -49,7 +51,12 @@ export function RevealImpostorScreen({
         currentRound={roundNumber}
         totalRounds={totalRounds}
         phaseLabel="كشف برا السالفة"
-        timer={{ remainingSeconds, format: 'seconds', lowTimeThreshold: 2 }}
+        timer={resolveHeaderTimer({
+          deadlineAtMs,
+          remainingSeconds,
+          format: 'seconds',
+          lowTimeThreshold: 2,
+        })}
       />
 
       <RevealImpostorContent key={impostorPlayer.id} impostorPlayer={impostorPlayer} />

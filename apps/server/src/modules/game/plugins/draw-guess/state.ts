@@ -15,6 +15,7 @@ import {
 } from '@wanasatna/shared';
 import { randomUUID } from 'node:crypto';
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
+import { remainingSecondsFromDeadline, timedPhaseClock } from '../../runtime/phase-deadline.js';
 import {
   buildLeaderboardEntries,
   buildResultsLeaderboardEntries,
@@ -114,7 +115,7 @@ export function createRoundState(
       wordCategoryId: wordEntry.categoryId,
       drawerPlayerId,
       gamePhase: 'drawing',
-      phaseRemainingSeconds: drawingDurationSeconds,
+      ...timedPhaseClock(drawingDurationSeconds),
       drawingDurationSeconds,
       strokes: [],
       correctGuesserPlayerId: null,
@@ -214,7 +215,10 @@ export function buildDrawGuessSpectatorView(match: DrawGuessMatchState): DrawGue
   return {
     gamePhase: round.gamePhase,
     phaseLabel: 'الجولة جارية',
-    phaseRemainingSeconds: round.phaseRemainingSeconds,
+    phaseRemainingSeconds: round.deadlineAtMs
+      ? remainingSecondsFromDeadline(round.deadlineAtMs)
+      : round.phaseRemainingSeconds,
+    deadlineAtMs: round.deadlineAtMs,
     role: 'guesser',
     secretWord: null,
     turnId: round.turnId,
@@ -250,7 +254,10 @@ export function buildDrawGuessPlayerView(
   const baseView: DrawGuessPlayerView = {
     gamePhase: round.gamePhase,
     phaseLabel: buildRoundPhaseLabel(match),
-    phaseRemainingSeconds: round.phaseRemainingSeconds,
+    phaseRemainingSeconds: round.deadlineAtMs
+      ? remainingSecondsFromDeadline(round.deadlineAtMs)
+      : round.phaseRemainingSeconds,
+    deadlineAtMs: round.deadlineAtMs,
     role: isDrawer ? 'drawer' : 'guesser',
     secretWord: isDrawer && isDrawingPhase ? round.word : null,
     turnId: round.turnId,

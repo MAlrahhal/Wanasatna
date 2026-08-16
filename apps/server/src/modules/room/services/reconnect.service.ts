@@ -1,11 +1,10 @@
 import { PlayerStatus } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
-import type { HostChangedPayload, ReconnectResponse } from '@wanasatna/shared';
+import type { ReconnectResponse } from '@wanasatna/shared';
 import { verifyReconnectToken } from '../reconnect-token.js';
 import { validateReconnectPayload } from '../room.validators.js';
 import { isReconnectExpired, loadActiveRoomPlayers, mapRoomSession } from '../room.utils.js';
-import { transferHost } from './host.service.js';
-import { cleanupRoomIfEmpty, deleteRoomWithRelations } from './room-cleanup.service.js';
+import { expireDisconnectedPlayer } from './disconnected-player-expiry.service.js';
 import { assertRoomNotClosed, serviceError } from './shared-room.service.js';
 
 export async function reconnectPlayer(payload: unknown): Promise<ReconnectResponse> {
@@ -47,36 +46,53 @@ export async function reconnectPlayer(payload: unknown): Promise<ReconnectRespon
   }
 
   if (player.status === PlayerStatus.DISCONNECTED && isReconnectExpired(player.lastSeenAt)) {
-    const wasHost = player.room.hostPlayerId === player.id;
+    const expired = await expireDisconnectedPlayer(player.id, player.roomId);
 
-    await prisma.player.update({
+    if (expired) {
+      return {
+        success: false,
+        error: {
+          code: 'RECONNECT_EXPIRED',
+          message: 'Reconnect window has expired.',
+        },
+        hostChanged: expired.hostChanged,
+        expiredRoomId: expired.roomId,
+        roomDeleted: expired.roomDeleted,
+      } as ReconnectResponse;
+    }
+
+    const latest = await prisma.player.findUnique({
       where: { id: player.id },
+      include: { room: true },
+    });
+
+    if (!latest || latest.status === PlayerStatus.LEFT) {
+      return serviceError('PLAYER_NOT_FOUND', 'Player session has ended.');
+    }
+
+    if (latest.status === PlayerStatus.DISCONNECTED && isReconnectExpired(latest.lastSeenAt)) {
+      return serviceError('PLAYER_NOT_FOUND', 'Player session has ended.');
+    }
+
+    const closedError = assertRoomNotClosed(latest.room);
+
+    if (closedError) {
+      return closedError;
+    }
+
+    const updatedPlayer = await prisma.player.update({
+      where: { id: latest.id },
       data: {
-        status: PlayerStatus.LEFT,
-        reconnectTokenHash: null,
+        status: PlayerStatus.CONNECTED,
+        lastSeenAt: new Date(),
       },
     });
 
-    let hostChanged: HostChangedPayload | null = null;
-
-    if (wasHost) {
-      hostChanged = await transferHost(player.roomId, player.id);
-
-      if (!hostChanged) {
-        await deleteRoomWithRelations(player.roomId);
-        return serviceError('RECONNECT_EXPIRED', 'Reconnect window has expired.');
-      }
-    }
-
-    await cleanupRoomIfEmpty(player.roomId);
+    const players = await loadActiveRoomPlayers(latest.room.id, latest.room.hostPlayerId);
 
     return {
-      success: false,
-      error: {
-        code: 'RECONNECT_EXPIRED',
-        message: 'Reconnect window has expired.',
-      },
-      hostChanged,
+      success: true,
+      data: mapRoomSession(latest.room, updatedPlayer, players, reconnectToken),
     };
   }
 

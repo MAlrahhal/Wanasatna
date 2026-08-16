@@ -882,7 +882,10 @@ async function main(): Promise<void> {
       reconnectToken: b.reconnectToken,
     });
     assert.equal(expired.success, false);
-    assert.equal(expired.error?.code, 'RECONNECT_EXPIRED');
+    assert.ok(
+      expired.error?.code === 'RECONNECT_EXPIRED' || expired.error?.code === 'PLAYER_NOT_FOUND',
+      `expired reconnect code: ${expired.error?.code}`,
+    );
 
     await waitFor(
       async () => {
@@ -950,6 +953,227 @@ async function main(): Promise<void> {
     assert.ok(synced.some((p) => p.id === c.id));
     await waitForRosterConvergence([host, b, c], 3, 'post-remount');
     await disconnectAll([host, b, c]);
+  });
+
+  await runTest('33 reconnect within window: cleanup does not expire', async () => {
+    const host = await createHost('مضيف');
+    const b = await joinPlayer(host.roomCode, 'لاعب-ب');
+    await waitForRosterConvergence([host, b], 2, 'pair');
+
+    await disconnectClient(host);
+    await waitFor(
+      async () => {
+        const players = await syncRoom(b);
+        return players.find((p) => p.id === host.id)?.status === 'DISCONNECTED' ? true : null;
+      },
+      5000,
+      'host disconnected',
+      50,
+    );
+    await sleep(700);
+
+    const duringWindow = await syncRoom(b);
+    const hostRow = duringWindow.find((p) => p.id === host.id);
+    assert.equal(hostRow?.status, 'DISCONNECTED');
+    assert.equal(hostRow?.isHost, true);
+
+    await reconnectClient(host);
+    const restored = await syncRoom(host);
+    assert.equal(restored.find((p) => p.id === host.id)?.status, 'CONNECTED');
+    assert.equal(restored.find((p) => p.isHost)?.id, host.id);
+    await disconnectAll([host, b]);
+  });
+
+  await runTest('34 abandoned host expires and new host can act', async () => {
+    const host = await createHost('مضيف');
+    const b = await joinPlayer(host.roomCode, 'لاعب-ب');
+    await waitForRosterConvergence([host, b], 2, 'pair');
+
+    await disconnectClient(host);
+    await waitFor(
+      async () => {
+        const players = await syncRoom(b);
+        return players.find((p) => p.id === host.id)?.status === 'DISCONNECTED' ? true : null;
+      },
+      5000,
+      'host marked disconnected',
+      50,
+    );
+
+    const { prisma } = await import('../src/lib/prisma.js');
+    await prisma.player.update({
+      where: { id: host.id },
+      data: { lastSeenAt: new Date(Date.now() - 4 * 60 * 1000) },
+    });
+
+    await waitFor(
+      async () => {
+        const players = await syncRoom(b);
+        const nextHost = players.find((p) => p.isHost);
+        return nextHost?.id === b.id && !players.some((p) => p.id === host.id) ? true : null;
+      },
+      8000,
+      'B becomes host after abandoned host expiry',
+      100,
+    );
+
+    const lockRes = await ack<{ success: boolean; data?: { isLocked: boolean }; error?: { code: string } }>(
+      b.socket,
+      'lock-room',
+    );
+    assert.ok(lockRes.success, lockRes.error?.code ?? 'new host lock-room');
+    assert.equal(lockRes.data?.isLocked, true);
+
+    const left = await prisma.player.findUnique({ where: { id: host.id }, select: { status: true } });
+    assert.equal(left?.status, 'LEFT');
+    await disconnectAll([b]);
+  });
+
+  await runTest('35 disconnected guest expires and no longer counts active', async () => {
+    const host = await createHost('مضيف');
+    const b = await joinPlayer(host.roomCode, 'لاعب-ب');
+    await waitForRosterConvergence([host, b], 2, 'pair');
+
+    await disconnectClient(b);
+    await waitFor(
+      async () => {
+        const players = await syncRoom(host);
+        return players.find((p) => p.id === b.id)?.status === 'DISCONNECTED' ? true : null;
+      },
+      5000,
+      'guest marked disconnected',
+      50,
+    );
+
+    const { prisma } = await import('../src/lib/prisma.js');
+    await prisma.player.update({
+      where: { id: b.id },
+      data: { lastSeenAt: new Date(Date.now() - 4 * 60 * 1000) },
+    });
+
+    await waitFor(
+      async () => {
+        const players = await syncRoom(host);
+        return !players.some((p) => p.id === b.id) ? true : null;
+      },
+      8000,
+      'expired guest removed from roster',
+      100,
+    );
+
+    const activeCount = await prisma.player.count({
+      where: {
+        roomId: host.roomId,
+        status: { in: ['CONNECTED', 'DISCONNECTED'] },
+      },
+    });
+    assert.equal(activeCount, 1);
+    assert.equal((await syncRoom(host)).find((p) => p.isHost)?.id, host.id);
+    await disconnectAll([host]);
+  });
+
+  await runTest('36 all disconnected players expire and room is deleted', async () => {
+    const host = await createHost('مضيف');
+    const b = await joinPlayer(host.roomCode, 'لاعب-ب');
+    await waitForRosterConvergence([host, b], 2, 'pair');
+    const roomId = host.roomId;
+    const { prisma } = await import('../src/lib/prisma.js');
+
+    await disconnectClient(host);
+    await disconnectClient(b);
+    await waitFor(
+      async () => {
+        const disconnected = await prisma.player.count({
+          where: { roomId, status: 'DISCONNECTED' },
+        });
+        return disconnected === 2 ? true : null;
+      },
+      5000,
+      'both players disconnected',
+      50,
+    );
+
+    const roomBefore = await prisma.room.findUnique({ where: { id: roomId }, select: { id: true } });
+    assert.ok(roomBefore);
+
+    await prisma.player.updateMany({
+      where: { roomId, status: 'DISCONNECTED' },
+      data: { lastSeenAt: new Date(Date.now() - 4 * 60 * 1000) },
+    });
+
+    await waitFor(
+      async () => {
+        const room = await prisma.room.findUnique({ where: { id: roomId }, select: { id: true } });
+        return room === null ? true : null;
+      },
+      8000,
+      'abandoned room deleted after expiry',
+      100,
+    );
+  });
+
+  await runTest('37 reconnect wins against stale expiry mutation', async () => {
+    const host = await createHost('مضيف');
+    const b = await joinPlayer(host.roomCode, 'لاعب-ب');
+    await waitForRosterConvergence([host, b], 2, 'pair');
+
+    await disconnectClient(b);
+    await reconnectClient(b);
+
+    const { expireDisconnectedPlayer } = await import(
+      '../src/modules/room/services/disconnected-player-expiry.service.js'
+    );
+    const expired = await expireDisconnectedPlayer(b.id, b.roomId);
+    assert.equal(expired, null);
+
+    const players = await syncRoom(host);
+    assert.equal(players.find((p) => p.id === b.id)?.status, 'CONNECTED');
+    await disconnectAll([host, b]);
+  });
+
+  await runTest('38 overlapping expiry is idempotent', async () => {
+    const host = await createHost('مضيف');
+    const b = await joinPlayer(host.roomCode, 'لاعب-ب');
+    await waitForRosterConvergence([host, b], 2, 'pair');
+
+    await disconnectClient(b);
+    await waitFor(
+      async () => {
+        const players = await syncRoom(host);
+        return players.find((p) => p.id === b.id)?.status === 'DISCONNECTED' ? true : null;
+      },
+      5000,
+      'guest marked disconnected before expiry',
+      50,
+    );
+    const { prisma } = await import('../src/lib/prisma.js');
+    await prisma.player.update({
+      where: { id: b.id },
+      data: { lastSeenAt: new Date(Date.now() - 4 * 60 * 1000) },
+    });
+
+    await waitFor(
+      async () => {
+        const players = await syncRoom(host);
+        return !players.some((p) => p.id === b.id) ? true : null;
+      },
+      8000,
+      'guest expired once',
+      100,
+    );
+
+    const { expireDisconnectedPlayer } = await import(
+      '../src/modules/room/services/disconnected-player-expiry.service.js'
+    );
+    const second = await expireDisconnectedPlayer(b.id, b.roomId);
+    assert.equal(second, null);
+
+    await sleep(500);
+    const players = await syncRoom(host);
+    assert.equal(players.filter((p) => p.isHost).length, 1);
+    assert.equal(players.find((p) => p.isHost)?.id, host.id);
+    assert.equal(players.length, 1);
+    await disconnectAll([host]);
   });
 
   console.log(`\n${passed} passed, ${failed} failed`);

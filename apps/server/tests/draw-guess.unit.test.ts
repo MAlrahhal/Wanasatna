@@ -88,6 +88,7 @@ function makeRound(overrides: Partial<DrawGuessRoundState> = {}): DrawGuessRound
     drawerPlayerId: 'p1',
     gamePhase: 'drawing',
     phaseRemainingSeconds: 60,
+    deadlineAtMs: Date.now() + 60_000,
     drawingDurationSeconds: 60,
     strokes: [],
     correctGuesserPlayerId: null,

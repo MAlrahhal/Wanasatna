@@ -1,7 +1,7 @@
 'use client';
 
 import type { WebClientGamePlugin } from '@/lib/game-plugins/types';
-import { BaraAlSalafaGameScreen } from './game-screen';
+import { lazyGameScreen } from '@/lib/game-plugins/lazy-game-screen';
 
 export const baraAlSalafaClientPlugin: WebClientGamePlugin = {
   metadata: {
@@ -12,8 +12,7 @@ export const baraAlSalafaClientPlugin: WebClientGamePlugin = {
     minPlayers: 3,
     maxPlayers: 8,
   },
-  GameScreen: BaraAlSalafaGameScreen,
+  GameScreen: lazyGameScreen(() =>
+    import('./game-screen').then((mod) => mod.BaraAlSalafaGameScreen),
+  ),
 };
-
-export { BaraAlSalafaGameScreen } from './game-screen';
-export { useBaraAlSalafaPlayerView } from './use-player-view';

@@ -31,14 +31,14 @@ test('client plugin metadata id matches shared constant', () => {
 test('GameScreen export is a renderable function', () => {
   assert.equal(typeof ImposterDrawGameScreen, 'function');
   assert.equal(typeof imposterDrawClientPlugin.GameScreen, 'function');
-  assert.equal(imposterDrawClientPlugin.GameScreen, ImposterDrawGameScreen);
 });
 
-test('registry resolves imposter-draw to the same GameScreen', () => {
+test('registry resolves imposter-draw to a lazy GameScreen entry', () => {
   registerAllClientGamePlugins();
   const plugin = getClientGamePlugin(IMPOSTER_DRAW_GAME_ID);
   assert.ok(plugin, 'plugin must resolve');
-  assert.equal(plugin.GameScreen, ImposterDrawGameScreen);
+  assert.equal(plugin.metadata.id, IMPOSTER_DRAW_GAME_ID);
+  assert.equal(typeof plugin.GameScreen, 'function');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

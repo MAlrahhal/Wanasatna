@@ -3,6 +3,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { env } from '../config/env.js';
 import { registerGameSockets } from '../modules/game/game.socket.js';
 import { registerRoomSockets } from '../modules/room/room.socket.js';
+import { startDisconnectedPlayerExpirySweep } from '../modules/room/services/disconnected-player-expiry.service.js';
 
 /**
  * Creates the Socket.IO server and attaches it to the HTTP server.
@@ -19,6 +20,7 @@ export function createSocketServer(httpServer: HttpServer): SocketIOServer {
 
   registerRoomSockets(io);
   registerGameSockets(io);
+  startDisconnectedPlayerExpirySweep(io);
 
   return io;
 }

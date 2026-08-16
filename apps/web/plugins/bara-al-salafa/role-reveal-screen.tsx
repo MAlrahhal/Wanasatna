@@ -1,7 +1,7 @@
 'use client';
 
 import { GameCard, GameScreen } from '@/components/game/game-card';
-import { GameHeader } from '@/components/game/game-header';
+import { GameHeader, resolveHeaderTimer } from '@/components/game/game-header';
 import { Button } from '@/components/ui/button';
 import { BARA_AL_SALAFA_GAME_ICON, BARA_AL_SALAFA_GAME_NAME } from '@/lib/game/bara-al-salafa-brand';
 import type { LobbyPlayer } from '@/lib/lobby/types';
@@ -14,6 +14,7 @@ export type RoleRevealScreenProps = {
   currentRound: number;
   totalRounds: number;
   remainingSeconds: number;
+  deadlineAtMs?: number | null;
   roomCode: string;
   role: RoleRevealRole;
   secretWord?: string;
@@ -131,6 +132,7 @@ export function RoleRevealScreen({
   currentRound,
   totalRounds,
   remainingSeconds,
+  deadlineAtMs,
   roomCode,
   role,
   secretWord,
@@ -152,7 +154,12 @@ export function RoleRevealScreen({
         phaseLabel="كشف الدور"
         timer={
           showFallbackTimer
-            ? { remainingSeconds: remainingSeconds || 30, format: 'mm:ss', lowTimeThreshold: 10 }
+            ? resolveHeaderTimer({
+                deadlineAtMs,
+                remainingSeconds: remainingSeconds || 30,
+                format: 'mm:ss',
+                lowTimeThreshold: 10,
+              })
             : undefined
         }
       />

@@ -1,17 +1,17 @@
 import type { Server } from 'socket.io';
 import type { FastAnswerMatchState } from '@wanasatna/shared';
-import { FAST_ANSWER_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
-import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
+import { remainingMsUntilDeadline } from '../../runtime/phase-deadline.js';
 import {
   advanceFromRoundResults,
   completeMatch,
   finalizeQuestionRound,
 } from './match-lifecycle.js';
-import { remainingSecondsFromDeadline, withRound } from './state.js';
+import { withRound } from './state.js';
 import { getFastAnswerState, setFastAnswerState } from './store.js';
 
-const timersByRoomId = new Map<string, ReturnType<typeof setInterval>>();
+const timersByRoomId = new Map<string, ReturnType<typeof setTimeout>>();
+const timerGenerationByRoomId = new Map<string, number>();
 const pausedRoomIds = new Set<string>();
 const pausedQuestionRemainingMsByRoomId = new Map<string, number>();
 
@@ -20,6 +20,16 @@ const TIMED_PHASES = new Set<FastAnswerMatchState['round']['gamePhase']>([
   'round-results',
   'match-completed',
 ]);
+
+function roundToken(match: FastAnswerMatchState): string {
+  return `${match.currentRound}:${match.round.gamePhase}:${match.round.roundId}`;
+}
+
+function bumpGeneration(roomId: string): number {
+  const next = (timerGenerationByRoomId.get(roomId) ?? 0) + 1;
+  timerGenerationByRoomId.set(roomId, next);
+  return next;
+}
 
 export function isFastAnswerPhaseTimerPaused(roomId: string): boolean {
   return pausedRoomIds.has(roomId);
@@ -30,10 +40,10 @@ export function pauseFastAnswerPhaseTimer(roomId: string): void {
 
   const match = getFastAnswerState(roomId);
 
-  if (match?.round.gamePhase === 'question' && match.round.deadlineAtMs) {
+  if (match && TIMED_PHASES.has(match.round.gamePhase)) {
     pausedQuestionRemainingMsByRoomId.set(
       roomId,
-      Math.max(0, match.round.deadlineAtMs - Date.now()),
+      remainingMsUntilDeadline(match.round.deadlineAtMs, match.round.phaseRemainingSeconds),
     );
   }
 
@@ -48,13 +58,13 @@ export function resumeFastAnswerPhaseTimer(io: Server, roomId: string): void {
 
   const match = getFastAnswerState(roomId);
 
-  if (remainingMs !== undefined && match?.round.gamePhase === 'question') {
+  if (remainingMs !== undefined && match && TIMED_PHASES.has(match.round.gamePhase)) {
     setFastAnswerState(
       roomId,
       withRound(match, {
         ...match.round,
         deadlineAtMs: Date.now() + remainingMs,
-        phaseRemainingSeconds: Math.max(1, Math.ceil(remainingMs / 1000)),
+        phaseRemainingSeconds: Math.max(0, Math.ceil(remainingMs / 1000)),
       }),
     );
   }
@@ -63,10 +73,10 @@ export function resumeFastAnswerPhaseTimer(io: Server, roomId: string): void {
 }
 
 export function stopFastAnswerPhaseTimer(roomId: string): void {
-  const intervalId = timersByRoomId.get(roomId);
+  const timeoutId = timersByRoomId.get(roomId);
 
-  if (intervalId) {
-    clearInterval(intervalId);
+  if (timeoutId) {
+    clearTimeout(timeoutId);
     timersByRoomId.delete(roomId);
   }
 }
@@ -75,10 +85,12 @@ export function clearFastAnswerPhaseTimerRuntime(roomId: string): void {
   stopFastAnswerPhaseTimer(roomId);
   pausedRoomIds.delete(roomId);
   pausedQuestionRemainingMsByRoomId.delete(roomId);
+  timerGenerationByRoomId.delete(roomId);
 }
 
 export function restartFastAnswerPhaseTimer(io: Server, roomId: string): void {
   stopFastAnswerPhaseTimer(roomId);
+  bumpGeneration(roomId);
   startFastAnswerPhaseTimerIfNeeded(io, roomId);
 }
 
@@ -112,6 +124,32 @@ function handlePhaseTimerExpired(
   }
 }
 
+function firePhaseExpiry(
+  io: Server,
+  roomId: string,
+  generation: number,
+  scheduledPhase: FastAnswerMatchState['round']['gamePhase'],
+  scheduledToken: string,
+): void {
+  if (timerGenerationByRoomId.get(roomId) !== generation) {
+    return;
+  }
+
+  stopFastAnswerPhaseTimer(roomId);
+
+  const match = getFastAnswerState(roomId);
+
+  if (
+    !match ||
+    match.round.gamePhase !== scheduledPhase ||
+    roundToken(match) !== scheduledToken
+  ) {
+    return;
+  }
+
+  handlePhaseTimerExpired(io, roomId, match);
+}
+
 export function startFastAnswerPhaseTimerIfNeeded(io: Server, roomId: string): void {
   if (pausedRoomIds.has(roomId) || timersByRoomId.has(roomId)) {
     return;
@@ -123,63 +161,22 @@ export function startFastAnswerPhaseTimerIfNeeded(io: Server, roomId: string): v
     return;
   }
 
-  if (match.round.gamePhase === 'question' && match.round.deadlineAtMs) {
-    if (match.round.deadlineAtMs - Date.now() <= 0) {
-      handlePhaseTimerExpired(io, roomId, match);
-      return;
-    }
-  } else if (match.round.phaseRemainingSeconds <= 0) {
-    handlePhaseTimerExpired(io, roomId, match);
+  const generation = timerGenerationByRoomId.get(roomId) ?? bumpGeneration(roomId);
+  const scheduledPhase = match.round.gamePhase;
+  const scheduledToken = roundToken(match);
+  const delayMs = remainingMsUntilDeadline(
+    match.round.deadlineAtMs,
+    match.round.phaseRemainingSeconds,
+  );
+
+  if (delayMs <= 0) {
+    firePhaseExpiry(io, roomId, generation, scheduledPhase, scheduledToken);
     return;
   }
 
-  const intervalId = setInterval(() => {
-    const currentMatch = getFastAnswerState(roomId);
+  const timeoutId = setTimeout(() => {
+    firePhaseExpiry(io, roomId, generation, scheduledPhase, scheduledToken);
+  }, delayMs);
 
-    if (!currentMatch || !TIMED_PHASES.has(currentMatch.round.gamePhase)) {
-      stopFastAnswerPhaseTimer(roomId);
-      return;
-    }
-
-    const shell = getGameShellByRoomId(roomId);
-
-    if (!shell || shell.phase !== 'PLAYING') {
-      stopFastAnswerPhaseTimer(roomId);
-      return;
-    }
-
-    if (
-      currentMatch.round.gamePhase === 'question' &&
-      currentMatch.round.deadlineAtMs &&
-      Date.now() >= currentMatch.round.deadlineAtMs
-    ) {
-      stopFastAnswerPhaseTimer(roomId);
-      handlePhaseTimerExpired(io, roomId, currentMatch);
-      return;
-    }
-
-    const remainingSeconds =
-      currentMatch.round.gamePhase === 'question'
-        ? remainingSecondsFromDeadline(currentMatch.round.deadlineAtMs)
-        : Math.max(0, currentMatch.round.phaseRemainingSeconds - 1);
-
-    const nextMatch = withRound(currentMatch, {
-      ...currentMatch.round,
-      phaseRemainingSeconds: remainingSeconds,
-    });
-
-    setFastAnswerState(roomId, nextMatch);
-    io.to(getRoomChannel(roomId)).emit(FAST_ANSWER_PHASE_CHANGED_EVENT, {});
-
-    if (
-      remainingSeconds <= 0 &&
-      (currentMatch.round.gamePhase === 'round-results' ||
-        currentMatch.round.gamePhase === 'match-completed')
-    ) {
-      stopFastAnswerPhaseTimer(roomId);
-      handlePhaseTimerExpired(io, roomId, nextMatch);
-    }
-  }, 1000);
-
-  timersByRoomId.set(roomId, intervalId);
+  timersByRoomId.set(roomId, timeoutId);
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { GameCard, GameScreen } from '@/components/game/game-card';
-import { GameHeader } from '@/components/game/game-header';
+import { GameHeader, resolveHeaderTimer } from '@/components/game/game-header';
 import { Button } from '@/components/ui/button';
 import { BARA_AL_SALAFA_GAME_ICON } from '@/lib/game/bara-al-salafa-brand';
 import { cn } from '@/lib/utils';
@@ -24,6 +24,7 @@ export type ImpostorGuessScreenProps = {
   gameIcon?: string;
   phaseLabel?: string;
   remainingSeconds?: number;
+  deadlineAtMs?: number | null;
   showTimer?: boolean;
   heroTitle?: string;
   heroHelper?: string;
@@ -255,6 +256,7 @@ export function ImpostorGuessScreen({
   gameIcon = BARA_AL_SALAFA_GAME_ICON,
   phaseLabel = 'تخمين الكلمة',
   remainingSeconds = 0,
+  deadlineAtMs,
   showTimer = false,
   heroTitle,
   heroHelper,
@@ -276,7 +278,12 @@ export function ImpostorGuessScreen({
         phaseLabel={phaseLabel}
         timer={
           showTimer
-            ? { remainingSeconds: remainingSeconds ?? 0, format: 'seconds', lowTimeThreshold: 5 }
+            ? resolveHeaderTimer({
+                deadlineAtMs,
+                remainingSeconds,
+                format: 'seconds',
+                lowTimeThreshold: 5,
+              })
             : undefined
         }
       />

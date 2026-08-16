@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
 import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
@@ -29,6 +30,7 @@ export type RoundResultsScreenProps = {
   roundNumber: number;
   totalRounds: number;
   remainingSeconds?: number;
+  deadlineAtMs?: number | null;
   totalDurationSeconds?: number;
   showTransitionTimer?: boolean;
   roomCode: string;
@@ -64,29 +66,19 @@ function RoundSummaryCards({
 
 function RoundTransitionProgressBar({
   remainingSeconds,
+  deadlineAtMs,
   totalDurationSeconds,
 }: {
   remainingSeconds: number;
+  deadlineAtMs?: number | null;
   totalDurationSeconds: number;
 }) {
-  const total = Math.max(totalDurationSeconds, 1);
-  const clampedRemaining = Math.max(0, Math.min(remainingSeconds, total));
-  const progressPercent = Math.round((clampedRemaining / total) * 100);
-
   return (
-    <div
-      className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted"
-      role="progressbar"
-      aria-valuemin={0}
-      aria-valuemax={total}
-      aria-valuenow={clampedRemaining}
-      aria-label={`الانتقال التلقائي ${clampedRemaining} من ${total} ثانية`}
-    >
-      <div
-        className="h-full rounded-full bg-wanas-accent transition-[width] duration-200 ease-linear"
-        style={{ width: `${progressPercent}%` }}
-      />
-    </div>
+    <DeadlineProgress
+      deadlineAtMs={deadlineAtMs}
+      remainingSeconds={remainingSeconds}
+      totalDurationSeconds={totalDurationSeconds}
+    />
   );
 }
 
@@ -191,17 +183,20 @@ function RoundTransitionFooter({
   isContinueLoading,
   onContinue,
   remainingSeconds,
+  deadlineAtMs,
   totalDurationSeconds,
 }: Pick<
   RoundResultsScreenProps,
   'continueLabel' | 'waitingMessage' | 'isContinueLoading' | 'onContinue'
 > & {
   remainingSeconds: number;
+  deadlineAtMs?: number | null;
   totalDurationSeconds: number;
 }) {
   const progress = (
     <RoundTransitionProgressBar
       remainingSeconds={remainingSeconds}
+      deadlineAtMs={deadlineAtMs}
       totalDurationSeconds={totalDurationSeconds}
     />
   );
@@ -247,6 +242,7 @@ export function RoundResultsScreen({
   roundNumber,
   totalRounds,
   remainingSeconds = 0,
+  deadlineAtMs,
   totalDurationSeconds = 10,
   roomCode,
   gameName = 'برا السالفة',
@@ -278,6 +274,7 @@ export function RoundResultsScreen({
           isContinueLoading={isContinueLoading}
           onContinue={onContinue}
           remainingSeconds={remainingSeconds}
+          deadlineAtMs={deadlineAtMs}
           totalDurationSeconds={totalDurationSeconds}
         />
       </div>

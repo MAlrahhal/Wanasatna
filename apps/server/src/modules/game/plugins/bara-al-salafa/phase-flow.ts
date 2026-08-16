@@ -17,6 +17,7 @@ import {
   isFreeQuestionsPhaseComplete,
   pickRandomPlayerId,
 } from './free-questions.js';
+import { timedPhaseClock } from '../../runtime/phase-deadline.js';
 import { withRound } from './round-state.js';
 import { applyVote, haveAllConnectedParticipantsVoted } from './voting.js';
 import {
@@ -84,7 +85,7 @@ export function startDirectedQuestionsPhase(
     withRound(match, {
       ...match.round,
       gamePhase: 'directed-questions',
-      phaseRemainingSeconds: turnSeconds,
+      ...timedPhaseClock(turnSeconds),
       speakingOrder,
       directedQuestionPairs,
       currentSpeakerIndex: 0,
@@ -131,7 +132,7 @@ export function advanceDirectedQuestionTurn(
     withRound(match, {
       ...match.round,
       currentSpeakerIndex: nextIndex,
-      phaseRemainingSeconds: match.round.questionTurnDurationSeconds,
+      ...timedPhaseClock(match.round.questionTurnDurationSeconds),
     }),
   );
 }
@@ -145,7 +146,7 @@ export function startFreeQuestionsPhase(
   const clearedRound = {
     ...match.round,
     gamePhase: 'free-questions' as const,
-    phaseRemainingSeconds: match.round.questionTurnDurationSeconds,
+    ...timedPhaseClock(match.round.questionTurnDurationSeconds),
     currentSpeakerIndex: match.round.directedQuestionPairs.length,
     completedFreeQuestionTurns: [],
     activeFreeQuestionPlayerId: null as string | null,
@@ -162,7 +163,7 @@ export function startFreeQuestionsPhase(
     withRound(clearedMatch, {
       ...clearedRound,
       activeFreeQuestionPlayerId: firstActivePlayerId,
-      phaseRemainingSeconds: match.round.questionTurnDurationSeconds,
+      ...timedPhaseClock(match.round.questionTurnDurationSeconds),
     }),
   );
 }
@@ -233,7 +234,7 @@ export function applyFreeQuestionAdvance(
       ...nextMatch.round,
       pendingFreeQuestionTargetPlayerId: null,
       activeFreeQuestionPlayerId: nextActivePlayerId,
-      phaseRemainingSeconds: nextMatch.round.questionTurnDurationSeconds,
+      ...timedPhaseClock(nextMatch.round.questionTurnDurationSeconds),
     }),
   );
 }
@@ -277,7 +278,7 @@ export function applyFreeQuestionSkipTurn(
       ...nextMatch.round,
       pendingFreeQuestionTargetPlayerId: null,
       activeFreeQuestionPlayerId: nextActivePlayerId,
-      phaseRemainingSeconds: nextMatch.round.questionTurnDurationSeconds,
+      ...timedPhaseClock(nextMatch.round.questionTurnDurationSeconds),
     }),
   );
 }
@@ -293,7 +294,7 @@ export function startVotingPhase(
     withRound(match, {
       ...match.round,
       gamePhase: 'voting',
-      phaseRemainingSeconds: match.round.votingDurationSeconds,
+      ...timedPhaseClock(match.round.votingDurationSeconds),
       activeFreeQuestionPlayerId: null,
       pendingFreeQuestionTargetPlayerId: null,
       votes: {},
@@ -360,7 +361,7 @@ export function startRevealImpostorPhase(
     withRound(match, {
       ...match.round,
       gamePhase: 'reveal-impostor',
-      phaseRemainingSeconds: match.round.revealDurationSeconds,
+      ...timedPhaseClock(match.round.revealDurationSeconds),
     }),
   );
 }
@@ -396,7 +397,7 @@ export function startImpostorGuessPhase(
     withRound(match, {
       ...match.round,
       gamePhase: 'impostor-guess',
-      phaseRemainingSeconds: match.round.impostorGuessDurationSeconds,
+      ...timedPhaseClock(match.round.impostorGuessDurationSeconds),
       impostorGuessOptions,
       selectedWord: null,
       guessedCorrectly: null,
@@ -457,7 +458,7 @@ export function startGuessResultPhase(
     withRound(finalizedMatch, {
       ...finalizedMatch.round,
       gamePhase: 'impostor-guess-result',
-      phaseRemainingSeconds: finalizedMatch.round.guessResultDurationSeconds,
+      ...timedPhaseClock(finalizedMatch.round.guessResultDurationSeconds),
     }),
   );
 }

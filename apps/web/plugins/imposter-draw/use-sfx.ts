@@ -4,10 +4,10 @@ import { useMemo } from 'react';
 import type { ImposterDrawPlayerView } from '@wanasatna/shared';
 import {
   decideFinalCue,
-  decideTimeUp,
   decideYourTurn,
   localWonMatch,
 } from '@/lib/game/sfx-policy';
+import { useDeadlineTimeUpSfx } from '@/lib/game/use-deadline-time-up-sfx';
 import { useViewTransitionSfx } from '@/lib/game/use-view-sfx';
 
 const TIMED = new Set(['drawing-turns', 'voting', 'impostor-guess']);
@@ -15,7 +15,6 @@ const RESULT_PHASES = new Set(['reveal', 'round-results']);
 
 type Snap = {
   phase: ImposterDrawPlayerView['gamePhase'];
-  remaining: number;
   turnId: string;
   acting: boolean;
   spectator: boolean;
@@ -32,14 +31,6 @@ function decide(prev: Snap, next: Snap) {
       acting: next.acting,
       turnKey: next.turnId,
       spectator: next.spectator,
-    }),
-    decideTimeUp({
-      prevReady: true,
-      prevRemaining: prev.remaining,
-      remaining: next.remaining,
-      phase: next.phase,
-      timedPhases: TIMED,
-      eventKey: `timeup:imposter-draw:${next.turnId}:${next.phase}`,
     }),
     enteredResult
       ? { id: 'round-result' as const, eventKey: `result:imposter-draw:${next.round}` }
@@ -58,22 +49,26 @@ function decide(prev: Snap, next: Snap) {
 export function useImposterDrawSfx(
   view: ImposterDrawPlayerView | null,
   playerId: string | undefined,
-  remaining: number,
 ): void {
+  useDeadlineTimeUpSfx({
+    deadlineAtMs: view?.deadlineAtMs,
+    enabled: Boolean(view && playerId && TIMED.has(view.gamePhase)),
+    eventKey: `timeup:imposter-draw:${view?.turnId ?? 'none'}:${view?.gamePhase ?? 'none'}`,
+  });
+
   const snapshot = useMemo<Snap | null>(() => {
     if (!view || !playerId) {
       return null;
     }
     return {
       phase: view.gamePhase,
-      remaining,
       turnId: view.turnId,
       acting: view.canDraw && !view.isMatchSpectator,
       spectator: view.isMatchSpectator,
       localWon: localWonMatch(view.resultsLeaderboard, playerId),
       round: view.currentRound,
     };
-  }, [view, playerId, remaining]);
+  }, [view, playerId]);
 
   useViewTransitionSfx(snapshot, decide);
 }

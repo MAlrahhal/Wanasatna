@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type RefObject } from 'react';
 import type {
   DrawGuessStrokePayload,
   DrawGuessStrokePointsPayload,
@@ -8,9 +8,9 @@ import type {
   DrawStroke,
 } from '@wanasatna/shared';
 import { GameCard, GameScreen } from '@/components/game/game-card';
-import { GameHeader } from '@/components/game/game-header';
+import { GameHeader, resolveHeaderTimer } from '@/components/game/game-header';
 import { DRAW_GUESS_GAME_ICON, DRAW_GUESS_GAME_NAME } from '@/lib/game/draw-guess-brand';
-import { DrawingCanvas } from './drawing-canvas';
+import { DrawingCanvas, type DrawingCanvasHandle } from './drawing-canvas';
 import { DrawingToolbar } from './drawing-toolbar';
 import { GuessPanel } from './guess-panel';
 
@@ -20,6 +20,7 @@ export type DrawingScreenProps = {
   secretWord: string | null;
   drawerName: string;
   remainingSeconds: number;
+  deadlineAtMs?: number | null;
   currentRound: number;
   totalRounds: number;
   roomCode: string;
@@ -32,6 +33,8 @@ export type DrawingScreenProps = {
   onUndo: () => void;
   onEmitStroke: (payload: Omit<DrawGuessStrokePayload, 'turnId'>) => void;
   onEmitStrokePoints: (payload: Omit<DrawGuessStrokePointsPayload, 'turnId'>) => void;
+  onEmitStrokeEnd?: (payload: { strokeId: string }) => void;
+  canvasRef?: RefObject<DrawingCanvasHandle | null>;
   className?: string;
 };
 
@@ -41,6 +44,7 @@ export function DrawingScreen({
   secretWord,
   drawerName,
   remainingSeconds,
+  deadlineAtMs,
   currentRound,
   totalRounds,
   roomCode,
@@ -53,6 +57,8 @@ export function DrawingScreen({
   onUndo,
   onEmitStroke,
   onEmitStrokePoints,
+  onEmitStrokeEnd,
+  canvasRef,
   className,
 }: DrawingScreenProps) {
   const [tool, setTool] = useState<DrawGuessTool>('draw');
@@ -68,7 +74,12 @@ export function DrawingScreen({
         currentRound={currentRound}
         totalRounds={totalRounds}
         phaseLabel="مرحلة الرسم"
-        timer={{ remainingSeconds, format: 'seconds', lowTimeThreshold: 10 }}
+        timer={resolveHeaderTimer({
+          deadlineAtMs,
+          remainingSeconds,
+          format: 'seconds',
+          lowTimeThreshold: 10,
+        })}
       />
 
       <div className="flex flex-col gap-3 sm:gap-5">
@@ -89,6 +100,7 @@ export function DrawingScreen({
 
         <div className="flex flex-col gap-2">
           <DrawingCanvas
+            ref={canvasRef}
             strokes={strokes}
             readOnly={!isDrawer}
             tool={tool}
@@ -96,7 +108,7 @@ export function DrawingScreen({
             size={size}
             onStrokeStart={isDrawer ? onEmitStroke : undefined}
             onStrokePoints={isDrawer ? onEmitStrokePoints : undefined}
-            onStrokeEnd={isDrawer ? onEmitStroke : undefined}
+            onStrokeEnd={isDrawer ? onEmitStrokeEnd : undefined}
           />
 
           {isDrawer ? (

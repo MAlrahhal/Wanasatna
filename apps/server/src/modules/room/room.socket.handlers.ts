@@ -14,6 +14,7 @@ import {
   ROOM_UPDATED_EVENT,
   UNLOCK_ROOM_EVENT,
   type CreateRoomResponse,
+  type ReconnectResponse,
   type RoomActionResponse,
 } from '@wanasatna/shared';
 import { getGameShellByRoomId } from '../game/game.service.js';
@@ -24,6 +25,7 @@ import {
   onRoomPlayerRemoved,
   onRoomRosterJoined,
 } from '../game/runtime/pregame-teams-room-hooks.js';
+import { announcePermanentPlayerRemoval } from './services/disconnected-player-expiry.service.js';
 import {
   createRoom,
   handlePlayerDisconnect,
@@ -64,14 +66,8 @@ export function registerCreateRoomHandler(io: Server, socket: Socket): void {
           const priorLeave = await leaveRoom(priorPlayerId, priorRoomId);
           await clearSocketSession(socket);
 
-          if (priorLeave.success && !priorLeave.data.roomDeleted) {
-            if (priorLeave.data.hostChanged) {
-              io.to(getRoomChannel(priorRoomId)).emit(HOST_CHANGED_EVENT, priorLeave.data.hostChanged);
-            }
-            await broadcastRoomPlayersSnapshot(io, priorRoomId);
-            await onRoomPlayerRemoved(io, priorRoomId, priorPlayerId, false);
-          } else if (priorLeave.success && priorLeave.data.roomDeleted) {
-            await onRoomDeleted(priorRoomId);
+          if (priorLeave.success) {
+            await announcePermanentPlayerRemoval(io, priorRoomId, priorPlayerId, priorLeave.data);
           }
         } else if (socket.data.playerId || socket.data.roomId) {
           await clearSocketSession(socket);
@@ -123,14 +119,8 @@ export function registerJoinRoomHandler(io: Server, socket: Socket): void {
           const priorLeave = await leaveRoom(priorPlayerId, priorRoomId);
           await clearSocketSession(socket);
 
-          if (priorLeave.success && !priorLeave.data.roomDeleted) {
-            if (priorLeave.data.hostChanged) {
-              io.to(getRoomChannel(priorRoomId)).emit(HOST_CHANGED_EVENT, priorLeave.data.hostChanged);
-            }
-            await broadcastRoomPlayersSnapshot(io, priorRoomId);
-            await onRoomPlayerRemoved(io, priorRoomId, priorPlayerId, false);
-          } else if (priorLeave.success && priorLeave.data.roomDeleted) {
-            await onRoomDeleted(priorRoomId);
+          if (priorLeave.success) {
+            await announcePermanentPlayerRemoval(io, priorRoomId, priorPlayerId, priorLeave.data);
           }
         } else if (socket.data.playerId || socket.data.roomId) {
           await clearSocketSession(socket);
@@ -193,18 +183,7 @@ export function registerLeaveRoomHandler(io: Server, socket: Socket): void {
           });
 
           await clearSocketSession(socket);
-
-          if (!response.data.roomDeleted) {
-            if (response.data.hostChanged) {
-              io.to(getRoomChannel(roomId!)).emit(HOST_CHANGED_EVENT, response.data.hostChanged);
-            }
-
-            await broadcastRoomPlayersSnapshot(io, roomId!);
-            await onRoomPlayerRemoved(io, roomId!, playerId!, false);
-            await evaluatePlayerRecovery(io, roomId!);
-          } else {
-            onRoomDeleted(roomId!);
-          }
+          await announcePermanentPlayerRemoval(io, roomId!, playerId!, response.data);
         }
 
         sendResponse(callback, response);
@@ -254,7 +233,7 @@ export function registerKickPlayerHandler(io: Server, socket: Socket): void {
             await onRoomPlayerRemoved(io, roomId!, response.data.kickedPlayerId, false);
             await evaluatePlayerRecovery(io, roomId!);
           } else {
-            onRoomDeleted(roomId!);
+            onRoomDeleted(io, roomId!);
           }
         }
 
@@ -381,7 +360,23 @@ export function registerReconnectHandler(io: Server, socket: Socket): void {
           return;
         }
 
-        if (response.hostChanged) {
+        if (response.error?.code === 'RECONNECT_EXPIRED') {
+          const expiredMeta = response as ReconnectResponse & {
+            expiredRoomId?: string;
+            roomDeleted?: boolean;
+          };
+          const expiredPayload = payload as { playerId?: string; roomId?: string };
+          const expiredRoomId =
+            expiredMeta.expiredRoomId ?? expiredMeta.hostChanged?.roomId ?? expiredPayload.roomId;
+          const expiredPlayerId = expiredPayload.playerId;
+
+          if (expiredRoomId && expiredPlayerId) {
+            await announcePermanentPlayerRemoval(io, expiredRoomId, expiredPlayerId, {
+              roomDeleted: Boolean(expiredMeta.roomDeleted),
+              hostChanged: response.hostChanged ?? null,
+            });
+          }
+        } else if (response.hostChanged) {
           io.to(getRoomChannel(response.hostChanged.roomId)).emit(
             HOST_CHANGED_EVENT,
             response.hostChanged,

@@ -14,6 +14,7 @@ import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
 import { mapWhoWroteItLeaderboard } from '@/lib/game/map-who-wrote-it-leaderboard';
+import { toExperienceTimer } from '@/lib/game/deadline-clock';
 import { WHO_WROTE_IT_GAME_ICON, WHO_WROTE_IT_GAME_NAME } from '@/lib/game/who-wrote-it-brand';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-screen';
@@ -50,13 +51,12 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
     isLoading,
     actionError,
     isSubmittingAction,
-    remainingSeconds,
     submitAnswer,
     submitOwnerGuess,
     continueFromRoundResults,
   } = useWhoWroteItPlayerView(pluginEnabled);
 
-  useWhoWroteItSfx(view, player?.id, remainingSeconds);
+  useWhoWroteItSfx(view, player?.id);
 
   const activeFinalResultsView =
     finalResultsView ?? (view?.gamePhase === 'match-completed' ? view : null);
@@ -101,7 +101,7 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
       timer: VISIBLE_TIMER_PHASES.has(activeView.gamePhase)
-        ? { remainingSeconds, format: 'seconds' as const, lowTimeThreshold: 5 }
+        ? toExperienceTimer(activeView.deadlineAtMs, { format: 'seconds', lowTimeThreshold: 5 })
         : undefined,
       leaderboardEntries: activeView.isMatchSpectator
         ? []
@@ -113,7 +113,6 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
     player,
     players,
     pluginEnabled,
-    remainingSeconds,
     setExperienceMeta,
     showFinalMatchResults,
     view,
@@ -155,7 +154,7 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
     const shellFinished = shellPhase === 'FINISHED';
     const isMatchCompletedPhase = activeFinalResultsView.gamePhase === 'match-completed';
     const autoReturnMessage = isMatchCompletedPhase
-      ? `العودة إلى اللوبي تلقائياً خلال ${Math.max(0, remainingSeconds)} ثانية`
+      ? null
       : !shellFinished
         ? SYSTEM_COPY.returningToLobby
         : !isHost
@@ -180,7 +179,7 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
         returnStatusMessage={
           isHost && (isMatchCompletedPhase || shellFinished) ? null : autoReturnMessage
         }
-        autoReturnSeconds={isMatchCompletedPhase ? remainingSeconds : undefined}
+        autoReturnDeadlineAtMs={isMatchCompletedPhase ? activeFinalResultsView.deadlineAtMs : undefined}
         autoReturnTotalSeconds={
           isMatchCompletedPhase ? MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS : undefined
         }
@@ -257,7 +256,8 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
           roundNumber={view.currentRound}
           totalRounds={view.totalRounds}
           roomCode={room.code}
-          remainingSeconds={remainingSeconds}
+          remainingSeconds={0}
+          deadlineAtMs={view.deadlineAtMs}
           totalDurationSeconds={WHO_WROTE_IT_ROUND_RESULTS_SECONDS}
           waitingMessage={view.roundResultsWaitingMessage}
         />
@@ -323,7 +323,8 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
           roundNumber={view.currentRound}
           totalRounds={view.totalRounds}
           roomCode={room.code}
-          remainingSeconds={remainingSeconds}
+          remainingSeconds={0}
+          deadlineAtMs={view.deadlineAtMs}
           totalDurationSeconds={WHO_WROTE_IT_ROUND_RESULTS_SECONDS}
           continueLabel={view.canContinueFromRoundResults ? view.roundResultsContinueLabel : null}
           waitingMessage={view.roundResultsWaitingMessage}

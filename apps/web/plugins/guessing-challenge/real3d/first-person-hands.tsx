@@ -1,6 +1,6 @@
 'use client';
 
-import { useFrame, useThree } from '@react-three/fiber';
+import { createPortal, useFrame, useThree } from '@react-three/fiber';
 import { useRef } from 'react';
 import * as THREE from 'three';
 import type { GuessingChallengeVisibleIdentity } from '@wanasatna/shared';
@@ -15,6 +15,8 @@ type FirstPersonHandsProps = {
   reduceMotion?: boolean;
 };
 
+const HAND_FINGER_X = [-0.045, -0.015, 0.015, 0.045] as const;
+
 /**
  * Orange sleeves + white gloves holding the local blank card in camera foreground.
  * Revealed own-identity text is not painted here — Round Results owns that reveal.
@@ -27,26 +29,24 @@ export function FirstPersonHands({
   selfHighlight: _selfHighlight = false,
   reduceMotion = false,
 }: FirstPersonHandsProps) {
-  const group = useRef<THREE.Group>(null);
-  const { camera, size } = useThree();
+  const bobGroup = useRef<THREE.Group>(null);
+  const camera = useThree((state) => state.camera);
+  const size = useThree((state) => state.size);
   const bob = useRef(0);
   const compactHud = size.height > 0 && size.height < 360;
 
   useFrame((_, delta) => {
-    if (!group.current) return;
-    // Parent near camera each frame
-    group.current.position.copy(camera.position);
-    group.current.quaternion.copy(camera.quaternion);
-
-    if (!reduceMotion) {
-      bob.current += delta;
-      const y = Math.sin(bob.current * 1.4) * 0.008;
-      group.current.translateY(y);
+    if (!bobGroup.current) return;
+    if (reduceMotion) {
+      bobGroup.current.position.y = 0;
+      return;
     }
+    bob.current += delta;
+    bobGroup.current.position.y = Math.sin(bob.current * 1.4) * 0.008;
   });
 
-  return (
-    <group ref={group}>
+  return createPortal(
+    <group ref={bobGroup}>
       {/* Local space in front of camera — slightly lower so it does not dominate */}
       <group
         position={compactHud ? [0, -0.22, -1.22] : [0, -0.48, -0.9]}
@@ -63,7 +63,7 @@ export function FirstPersonHands({
             <boxGeometry args={[0.13, 0.11, 0.15]} />
             <meshStandardMaterial color="#f8fafc" roughness={0.7} />
           </mesh>
-          {([-0.045, -0.015, 0.015, 0.045] as const).map((fx, i) => (
+          {HAND_FINGER_X.map((fx, i) => (
             <mesh key={i} position={[fx, 0.01, 0.15]}>
               <capsuleGeometry args={[0.016, 0.035, 3, 5]} />
               <meshStandardMaterial color="#f8fafc" />
@@ -81,7 +81,7 @@ export function FirstPersonHands({
             <boxGeometry args={[0.13, 0.11, 0.15]} />
             <meshStandardMaterial color="#f8fafc" roughness={0.7} />
           </mesh>
-          {([-0.045, -0.015, 0.015, 0.045] as const).map((fx, i) => (
+          {HAND_FINGER_X.map((fx, i) => (
             <mesh key={i} position={[fx, 0.01, 0.15]}>
               <capsuleGeometry args={[0.016, 0.035, 3, 5]} />
               <meshStandardMaterial color="#f8fafc" />
@@ -103,6 +103,7 @@ export function FirstPersonHands({
           />
         </group>
       </group>
-    </group>
+    </group>,
+    camera,
   );
 }

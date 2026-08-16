@@ -1,4 +1,5 @@
 import { prisma } from '../../../lib/prisma.js';
+import { Prisma } from '@prisma/client';
 import { countActivePlayers } from './shared-room.service.js';
 
 export async function deleteRoomWithRelations(roomId: string): Promise<void> {
@@ -21,6 +22,13 @@ export async function cleanupRoomIfEmpty(roomId: string): Promise<boolean> {
     return false;
   }
 
-  await deleteRoomWithRelations(roomId);
-  return true;
+  try {
+    await deleteRoomWithRelations(roomId);
+    return true;
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      return true;
+    }
+    throw error;
+  }
 }

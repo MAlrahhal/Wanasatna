@@ -1,7 +1,7 @@
 'use client';
 
 import type { WebClientGamePlugin } from '@/lib/game-plugins/types';
-import { WhoWroteItGameScreen } from './game-screen';
+import { lazyGameScreen } from '@/lib/game-plugins/lazy-game-screen';
 
 export const whoWroteItClientPlugin: WebClientGamePlugin = {
   metadata: {
@@ -11,5 +11,7 @@ export const whoWroteItClientPlugin: WebClientGamePlugin = {
     iconLabel: 'م',
     minPlayers: 3,
   },
-  GameScreen: WhoWroteItGameScreen,
+  GameScreen: lazyGameScreen(() =>
+    import('./game-screen').then((mod) => mod.WhoWroteItGameScreen),
+  ),
 };

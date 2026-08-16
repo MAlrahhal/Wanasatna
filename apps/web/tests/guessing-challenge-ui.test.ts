@@ -197,6 +197,8 @@ test('look emit is fire-and-forget and patches look updates', () => {
   assert.doesNotMatch(hook, /emitPluginWithAck\(GUESSING_CHALLENGE_LOOK_EVENT/);
   assert.match(hook, /lookYaw/);
   assert.match(hook, /lookPitch/);
+  assert.match(hook, /setGcLook/);
+  assert.doesNotMatch(hook, /patchLookInView/);
 });
 
 test('game screen passes emitLook to playing screen', () => {
@@ -355,11 +357,12 @@ test('card request sound helper exists once-per-request', () => {
 
 test('authoritative generations are sent with every gameplay mutation', () => {
   const hook = readPlugin('use-player-view.ts');
+  const game = readPlugin('game-screen.tsx');
   assert.match(hook, /roundId:\s*view\.roundId/);
   assert.match(hook, /turnId:\s*view\.turnId/);
   assert.match(hook, /requestId:\s*view\.cardConfirmStatus\.requestId/);
-  assert.match(hook, /deadlineAtMs/);
-  assert.match(hook, /remainingSeconds/);
+  assert.match(game, /deadlineAtMs/);
+  assert.doesNotMatch(hook, /setRemainingSeconds/);
   assert.doesNotMatch(hook, /GUESSING_CHALLENGE_SET_CATEGORY_EVENT/);
 });
 
@@ -373,7 +376,8 @@ test('minimal spectator screen replaces participant controls', () => {
   assert.match(game, /conciseGuessingChallengePhaseLabel/);
   assert.doesNotMatch(game, /phaseLabel: activeView\.phaseLabel/);
   assert.doesNotMatch(game, /الجولة جارية/);
-  assert.match(game, /remainingSeconds/);
+  assert.match(game, /deadlineAtMs/);
+  assert.match(game, /toExperienceTimer/);
   assert.match(game, /MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS/);
 });
 
@@ -395,7 +399,8 @@ test('round results use authoritative team winner and no category control', () =
   assert.match(results, /entry\.isWinner/);
   assert.match(results, /الهوية:/);
   assert.match(results, /\+100/);
-  assert.match(results, /remainingSeconds/);
+  assert.match(results, /deadlineAtMs/);
+  assert.match(results, /DeadlineProgress/);
   assert.doesNotMatch(results, /RoundCategoryPanel/);
   assert.doesNotMatch(results, /nextCategoryId/);
 });

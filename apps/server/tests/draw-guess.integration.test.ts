@@ -403,13 +403,15 @@ async function main(): Promise<void> {
       );
       assert.equal(guesserStroke.success, false);
 
-      const strokeOk = await ack<{ success: boolean; data?: { view: DrawGuessPlayerView } }>(
+      const strokeOk = await ack<{ success: boolean; data?: { ok?: boolean; view?: DrawGuessPlayerView } }>(
         drawer.client.socket,
         DRAW_GUESS_STROKE_EVENT,
         sampleStroke(turnId, 'drawer-stroke-1'),
       );
       assert.ok(strokeOk.success);
-      assert.equal(strokeOk.data?.view.strokes.length, 1);
+      assert.equal(strokeOk.data?.ok, true);
+      const afterStroke = await syncDrawGuess(drawer.client.socket);
+      assert.equal(afterStroke.strokes.length, 1);
 
       const undoOk = await ack<{ success: boolean; data?: { view: DrawGuessPlayerView } }>(
         drawer.client.socket,

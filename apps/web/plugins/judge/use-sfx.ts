@@ -6,17 +6,16 @@ import {
   decideFinalCue,
   decidePublicCorrect,
   decideRoundResult,
-  decideTimeUp,
   decideYourTurn,
   localWonMatch,
 } from '@/lib/game/sfx-policy';
+import { useDeadlineTimeUpSfx } from '@/lib/game/use-deadline-time-up-sfx';
 import { useViewTransitionSfx } from '@/lib/game/use-view-sfx';
 
 const TIMED = new Set(['answering', 'judging']);
 
 type Snap = {
   phase: JudgePlayerView['gamePhase'];
-  remaining: number;
   roundId: string;
   acting: boolean;
   spectator: boolean;
@@ -40,15 +39,6 @@ function decide(prev: Snap, next: Snap) {
       isCorrect: next.hasWinner,
       eventKey: `correct:judge:${next.roundId}`,
     }),
-    decideTimeUp({
-      prevReady: true,
-      prevRemaining: prev.remaining,
-      remaining: next.remaining,
-      phase: next.phase,
-      timedPhases: TIMED,
-      eventKey: `timeup:judge:${next.roundId}:${next.phase}`,
-      suppress: next.hasWinner,
-    }),
     decideRoundResult({
       prevReady: true,
       prevPhase: prev.phase,
@@ -69,15 +59,20 @@ function decide(prev: Snap, next: Snap) {
 export function useJudgeSfx(
   view: JudgePlayerView | null,
   playerId: string | undefined,
-  remaining: number,
 ): void {
+  useDeadlineTimeUpSfx({
+    deadlineAtMs: view?.deadlineAtMs,
+    enabled: Boolean(view && playerId && TIMED.has(view.gamePhase)),
+    eventKey: `timeup:judge:${view?.roundId ?? `r${view?.currentRound ?? 0}`}:${view?.gamePhase ?? 'none'}`,
+    suppress: Boolean(view?.winnerName),
+  });
+
   const snapshot = useMemo<Snap | null>(() => {
     if (!view || !playerId) {
       return null;
     }
     return {
       phase: view.gamePhase,
-      remaining,
       roundId: view.roundId ?? `r${view.currentRound}`,
       acting: view.isJudge && view.gamePhase === 'judging' && !view.isMatchSpectator,
       spectator: view.isMatchSpectator,
@@ -85,7 +80,7 @@ export function useJudgeSfx(
       localWon: localWonMatch(view.resultsLeaderboard, playerId),
       round: view.currentRound,
     };
-  }, [view, playerId, remaining]);
+  }, [view, playerId]);
 
   useViewTransitionSfx(snapshot, decide);
 }

@@ -3,7 +3,7 @@
 import type { ReactElement, ReactNode } from 'react';
 import { cloneElement, isValidElement, useState } from 'react';
 import { GameAudioControl } from '@/components/game/game-audio-control';
-import { GameTimerChip } from '@/components/game/game-timer-chip';
+import { DeadlineTimerChip } from '@/components/game/game-timer-chip';
 import { Button } from '@/components/ui/button';
 import { UiDialog } from '@/components/ui/dialog';
 import { useRoom } from '@/contexts/room-context';
@@ -113,8 +113,8 @@ export function GameExperienceHeader({
       return null;
     }
     return (
-      <GameTimerChip
-        remainingSeconds={meta.timer.remainingSeconds}
+      <DeadlineTimerChip
+        deadlineAtMs={meta.timer.deadlineAtMs}
         format={meta.timer.format}
         lowTimeThreshold={meta.timer.lowTimeThreshold}
       />

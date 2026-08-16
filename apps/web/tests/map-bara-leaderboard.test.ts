@@ -40,6 +40,7 @@ function baseView(overrides: Partial<BaraAlSalafaPlayerView> = {}): BaraAlSalafa
     gamePhase: 'description',
     phaseLabel: 'test',
     phaseRemainingSeconds: 0,
+    deadlineAtMs: null,
     categoryName: null,
     instruction: null,
     currentSpeakerName: null,

@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import type { GuessingChallengePlayerView } from '@wanasatna/shared';
+import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ export type GuessingChallengeRoundResultsScreenProps = {
   currentPlayerId: string;
   roomCode: string;
   remainingSeconds?: number;
+  deadlineAtMs?: number | null;
   totalDurationSeconds?: number;
   isContinueLoading?: boolean;
   onContinue?: () => void;
@@ -27,6 +29,7 @@ export function GuessingChallengeRoundResultsScreen({
   currentPlayerId,
   roomCode,
   remainingSeconds = 0,
+  deadlineAtMs,
   totalDurationSeconds = 10,
   isContinueLoading = false,
   onContinue,
@@ -96,8 +99,6 @@ export function GuessingChallengeRoundResultsScreen({
     view.winningTeamId !== view.selfTeam;
   const winningIdentity =
     view.revealEntries.find((entry) => entry.isWinner)?.identity?.value ?? null;
-  const progressMax = Math.max(1, totalDurationSeconds);
-  const progressNow = Math.max(0, Math.min(remainingSeconds, totalDurationSeconds));
 
   return (
     <GameScreen ariaLabel="نتائج الجولة" maxWidth="4xl" className="min-w-0 gap-3 sm:gap-4">
@@ -171,12 +172,11 @@ export function GuessingChallengeRoundResultsScreen({
             <p className="text-center text-sm text-wanas-text-muted">
               {presentSystemCopy(view.roundResultsWaitingMessage, SYSTEM_COPY.nextRoundAuto)}
             </p>
-            <div className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted">
-              <div
-                className="h-full rounded-full bg-wanas-accent transition-[width]"
-                style={{ width: `${Math.round((progressNow / progressMax) * 100)}%` }}
-              />
-            </div>
+            <DeadlineProgress
+              deadlineAtMs={deadlineAtMs}
+              remainingSeconds={remainingSeconds}
+              totalDurationSeconds={totalDurationSeconds}
+            />
             <Button
               type="button"
               size="lg"
@@ -192,12 +192,11 @@ export function GuessingChallengeRoundResultsScreen({
             <p className="text-center text-sm text-wanas-text-muted">
               {presentSystemCopy(view.roundResultsWaitingMessage, SYSTEM_COPY.nextRoundAuto)}
             </p>
-            <div className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted">
-              <div
-                className="h-full rounded-full bg-wanas-accent transition-[width]"
-                style={{ width: `${Math.round((progressNow / progressMax) * 100)}%` }}
-              />
-            </div>
+            <DeadlineProgress
+              deadlineAtMs={deadlineAtMs}
+              remainingSeconds={remainingSeconds}
+              totalDurationSeconds={totalDurationSeconds}
+            />
           </div>
         )}
       </div>

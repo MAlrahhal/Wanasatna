@@ -6,6 +6,7 @@ import {
   buildRoundResultsContinueCopy,
 } from '@wanasatna/shared';
 import { getConnectedParticipantIds } from './free-questions.js';
+import { remainingSecondsFromDeadline } from '../../runtime/phase-deadline.js';
 import {
   buildLeaderboardEntries,
   buildResultsLeaderboardEntries,
@@ -326,6 +327,18 @@ function buildVotingView(
   };
 }
 
+function visiblePhaseClock(round: BaraAlSalafaMatchState['round']): {
+  phaseRemainingSeconds: number;
+  deadlineAtMs: number | null;
+} {
+  return {
+    phaseRemainingSeconds: round.deadlineAtMs
+      ? remainingSecondsFromDeadline(round.deadlineAtMs)
+      : round.phaseRemainingSeconds,
+    deadlineAtMs: round.deadlineAtMs,
+  };
+}
+
 export function buildBaraAlSalafaSpectatorView(
   match: BaraAlSalafaMatchState,
 ): BaraAlSalafaPlayerView {
@@ -334,7 +347,7 @@ export function buildBaraAlSalafaSpectatorView(
     displayText: '',
     gamePhase: match.round.gamePhase,
     phaseLabel: 'الجولة جارية',
-    phaseRemainingSeconds: match.round.phaseRemainingSeconds,
+    ...visiblePhaseClock(match.round),
     categoryName: match.round.categoryName,
     instruction: 'أنت حالياً مشاهد، وبتقدر تلعب في المباراة القادمة.',
     currentSpeakerName: null,
@@ -362,7 +375,7 @@ export function buildBaraAlSalafaPlayerView(
     ...roleView,
     gamePhase: round.gamePhase,
     phaseLabel: buildRoundPhaseLabel(match),
-    phaseRemainingSeconds: round.phaseRemainingSeconds,
+    ...visiblePhaseClock(round),
     categoryName: round.categoryName,
     currentRound: match.currentRound,
     totalRounds: match.totalRounds,

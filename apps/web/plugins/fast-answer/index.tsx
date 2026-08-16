@@ -1,7 +1,7 @@
 'use client';
 
 import type { WebClientGamePlugin } from '@/lib/game-plugins/types';
-import { FastAnswerGameScreen } from './game-screen';
+import { lazyGameScreen } from '@/lib/game-plugins/lazy-game-screen';
 
 export const fastAnswerClientPlugin: WebClientGamePlugin = {
   metadata: {
@@ -11,5 +11,7 @@ export const fastAnswerClientPlugin: WebClientGamePlugin = {
     iconLabel: 'س',
     minPlayers: 2,
   },
-  GameScreen: FastAnswerGameScreen,
+  GameScreen: lazyGameScreen(() =>
+    import('./game-screen').then((mod) => mod.FastAnswerGameScreen),
+  ),
 };

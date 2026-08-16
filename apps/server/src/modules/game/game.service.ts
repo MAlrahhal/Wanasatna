@@ -25,6 +25,11 @@ export function deleteGameShell(roomId: string): void {
   shellsByRoomId.delete(roomId);
 }
 
+/** Test-only: install an in-memory shell without Prisma. */
+export function replaceGameShellForTests(shell: GameShellRecord): void {
+  saveShell(shell);
+}
+
 export function gameServiceError(
   code: GameErrorCode,
   message: string,

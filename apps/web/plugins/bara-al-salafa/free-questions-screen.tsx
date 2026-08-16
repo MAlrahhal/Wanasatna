@@ -1,7 +1,7 @@
 'use client';
 
 import { GameCard, GameScreen } from '@/components/game/game-card';
-import { GameHeader } from '@/components/game/game-header';
+import { GameHeader, resolveHeaderTimer } from '@/components/game/game-header';
 import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
 import { Button } from '@/components/ui/button';
 import { BARA_AL_SALAFA_GAME_ICON } from '@/lib/game/bara-al-salafa-brand';
@@ -21,6 +21,7 @@ export type FreeQuestionsScreenProps = {
   selectedTargetPlayerId?: string | null;
   completedPlayerIds: readonly string[];
   remainingSeconds?: number;
+  deadlineAtMs?: number | null;
   showTimer?: boolean;
   roundNumber: number;
   totalRounds: number;
@@ -269,6 +270,7 @@ export function FreeQuestionsScreen({
   selectedTargetPlayerId = null,
   completedPlayerIds,
   remainingSeconds = 0,
+  deadlineAtMs,
   showTimer = false,
   roundNumber,
   totalRounds,
@@ -296,7 +298,12 @@ export function FreeQuestionsScreen({
         phaseLabel="الأسئلة الحرة"
         timer={
           showTimer
-            ? { remainingSeconds: remainingSeconds ?? 0, format: 'seconds', lowTimeThreshold: 10 }
+            ? resolveHeaderTimer({
+                deadlineAtMs,
+                remainingSeconds,
+                format: 'seconds',
+                lowTimeThreshold: 10,
+              })
             : undefined
         }
       />

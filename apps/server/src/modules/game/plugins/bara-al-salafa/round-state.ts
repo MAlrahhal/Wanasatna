@@ -15,6 +15,7 @@ import {
   resolveQuestionTurnDurationSeconds,
   timedPhaseDurations,
 } from '../../../../config/test-timers.js';
+import { timedPhaseClock } from '../../runtime/phase-deadline.js';
 
 export function resolveTotalRounds(_settings?: GameContentSettings): number {
   return resolveMatchRounds(BARA_AL_SALAFA_DEFAULT_ROUNDS, BARA_AL_SALAFA_DEFAULT_ROUNDS);
@@ -77,7 +78,7 @@ export function createRoundState(
     categoryName: resolveCategoryName(bundle, wordEntry.categoryId),
     impostorPlayerId: impostor.id,
     gamePhase: 'description',
-    phaseRemainingSeconds: descriptionDurationSeconds,
+    ...timedPhaseClock(descriptionDurationSeconds),
     descriptionDurationSeconds,
     questionTurnDurationSeconds,
     speakingOrder: [],

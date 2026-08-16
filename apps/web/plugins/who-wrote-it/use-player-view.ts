@@ -33,7 +33,6 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
   const [isLoading, setIsLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
-  const [remainingSeconds, setRemainingSeconds] = useState(0);
   const hasViewRef = useRef(false);
   const roundIdRef = useRef<string | null>(null);
 
@@ -41,7 +40,6 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
     hasViewRef.current = true;
     roundIdRef.current = nextView.roundId;
     setView(nextView);
-    setRemainingSeconds(nextView.phaseRemainingSeconds);
     setErrorMessage(null);
   }, []);
 
@@ -75,7 +73,6 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
       setIsLoading(false);
       setActionError(null);
       setIsSubmittingAction(false);
-      setRemainingSeconds(0);
       return;
     }
 
@@ -104,38 +101,6 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
     };
   }, [enabled, syncView]);
 
-  useEffect(() => {
-    if (!enabled || !view) {
-      return;
-    }
-
-    if (
-      (view.gamePhase === 'answering' || view.gamePhase === 'guessing') &&
-      view.deadlineAtMs
-    ) {
-      const updateRemaining = () => {
-        setRemainingSeconds(Math.max(0, Math.ceil((view.deadlineAtMs! - Date.now()) / 1000)));
-      };
-
-      updateRemaining();
-      const intervalId = window.setInterval(updateRemaining, 250);
-      return () => window.clearInterval(intervalId);
-    }
-
-    if (view.gamePhase === 'round-results' || view.gamePhase === 'match-completed') {
-      setRemainingSeconds(view.phaseRemainingSeconds);
-      const intervalId = window.setInterval(() => {
-        setRemainingSeconds((current) => Math.max(0, current - 1));
-      }, 1000);
-      return () => window.clearInterval(intervalId);
-    }
-  }, [
-    enabled,
-    view?.gamePhase,
-    view?.deadlineAtMs,
-    view?.phaseRemainingSeconds,
-    view?.roundId,
-  ]);
 
   const submitAnswer = useCallback(
     async (answer: string) => {
@@ -220,7 +185,6 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
     isLoading,
     actionError,
     isSubmittingAction,
-    remainingSeconds,
     submitAnswer,
     submitOwnerGuess,
     continueFromRoundResults,

@@ -10,6 +10,7 @@ import {
   BARA_AL_SALAFA_PHASE_CHANGED_EVENT,
 } from '@wanasatna/shared';
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
+import { timedPhaseClock } from '../../runtime/phase-deadline.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
@@ -78,7 +79,7 @@ export function startRoundResultsPhase(
   const nextMatch = withRound(scoredMatch, {
     ...scoredMatch.round,
     gamePhase: 'round-results',
-    phaseRemainingSeconds: scoredMatch.round.roundResultsDurationSeconds,
+    ...timedPhaseClock(scoredMatch.round.roundResultsDurationSeconds),
   });
 
   setBaraAlSalafaState(roomId, nextMatch);
@@ -124,7 +125,7 @@ export function startMatchCompletedPhase(
     {
       ...match.round,
       gamePhase: 'match-completed',
-      phaseRemainingSeconds: timedPhaseDurations.matchResults(),
+      ...timedPhaseClock(timedPhaseDurations.matchResults()),
     },
   );
 

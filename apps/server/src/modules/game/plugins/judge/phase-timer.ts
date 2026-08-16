@@ -1,18 +1,18 @@
 import type { Server } from 'socket.io';
 import type { JudgeMatchState } from '@wanasatna/shared';
-import { JUDGE_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
-import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
+import { remainingMsUntilDeadline } from '../../runtime/phase-deadline.js';
 import {
   advanceFromRoundResults,
   completeMatch,
   startRoundResults,
   transitionToJudging,
 } from './match-lifecycle.js';
-import { isDeparted, remainingSecondsFromDeadline, withRound } from './state.js';
+import { isDeparted, withRound } from './state.js';
 import { getJudgeState, setJudgeState } from './store.js';
 
-const timersByRoomId = new Map<string, ReturnType<typeof setInterval>>();
+const timersByRoomId = new Map<string, ReturnType<typeof setTimeout>>();
+const timerGenerationByRoomId = new Map<string, number>();
 const pausedRoomIds = new Set<string>();
 const pausedDeadlineRemainingMsByRoomId = new Map<string, number>();
 
@@ -23,20 +23,25 @@ const TIMED_PHASES = new Set<JudgeMatchState['round']['gamePhase']>([
   'match-completed',
 ]);
 
-const DEADLINE_PHASES = new Set<JudgeMatchState['round']['gamePhase']>([
-  'answering',
-  'judging',
-]);
+function roundToken(match: JudgeMatchState): string {
+  return `${match.currentRound}:${match.round.gamePhase}:${match.round.roundId}`;
+}
+
+function bumpGeneration(roomId: string): number {
+  const next = (timerGenerationByRoomId.get(roomId) ?? 0) + 1;
+  timerGenerationByRoomId.set(roomId, next);
+  return next;
+}
 
 export function pauseJudgePhaseTimer(roomId: string): void {
   pausedRoomIds.add(roomId);
 
   const match = getJudgeState(roomId);
 
-  if (match && DEADLINE_PHASES.has(match.round.gamePhase) && match.round.deadlineAtMs) {
+  if (match && TIMED_PHASES.has(match.round.gamePhase)) {
     pausedDeadlineRemainingMsByRoomId.set(
       roomId,
-      Math.max(0, match.round.deadlineAtMs - Date.now()),
+      remainingMsUntilDeadline(match.round.deadlineAtMs, match.round.phaseRemainingSeconds),
     );
   }
 
@@ -51,13 +56,13 @@ export function resumeJudgePhaseTimer(io: Server, roomId: string): void {
 
   const match = getJudgeState(roomId);
 
-  if (remainingMs !== undefined && match && DEADLINE_PHASES.has(match.round.gamePhase)) {
+  if (remainingMs !== undefined && match && TIMED_PHASES.has(match.round.gamePhase)) {
     setJudgeState(
       roomId,
       withRound(match, {
         ...match.round,
         deadlineAtMs: Date.now() + remainingMs,
-        phaseRemainingSeconds: Math.max(1, Math.ceil(remainingMs / 1000)),
+        phaseRemainingSeconds: Math.max(0, Math.ceil(remainingMs / 1000)),
       }),
     );
   }
@@ -66,10 +71,10 @@ export function resumeJudgePhaseTimer(io: Server, roomId: string): void {
 }
 
 export function stopJudgePhaseTimer(roomId: string): void {
-  const intervalId = timersByRoomId.get(roomId);
+  const timeoutId = timersByRoomId.get(roomId);
 
-  if (intervalId) {
-    clearInterval(intervalId);
+  if (timeoutId) {
+    clearTimeout(timeoutId);
     timersByRoomId.delete(roomId);
   }
 }
@@ -78,10 +83,12 @@ export function clearJudgePhaseTimerRuntime(roomId: string): void {
   stopJudgePhaseTimer(roomId);
   pausedRoomIds.delete(roomId);
   pausedDeadlineRemainingMsByRoomId.delete(roomId);
+  timerGenerationByRoomId.delete(roomId);
 }
 
 export function restartJudgePhaseTimer(io: Server, roomId: string): void {
   stopJudgePhaseTimer(roomId);
+  bumpGeneration(roomId);
   startJudgePhaseTimerIfNeeded(io, roomId);
 }
 
@@ -94,6 +101,15 @@ function handlePhaseTimerExpired(
 
   if (!shell || shell.phase !== 'PLAYING') {
     stopJudgePhaseTimer(roomId);
+    return;
+  }
+
+  if (
+    match.round.gamePhase === 'judging' &&
+    isDeparted(match, match.round.judgePlayerId) &&
+    match.round.winningAnswerId === null
+  ) {
+    startRoundResults(io, roomId, match);
     return;
   }
 
@@ -117,6 +133,32 @@ function handlePhaseTimerExpired(
   }
 }
 
+function firePhaseExpiry(
+  io: Server,
+  roomId: string,
+  generation: number,
+  scheduledPhase: JudgeMatchState['round']['gamePhase'],
+  scheduledToken: string,
+): void {
+  if (timerGenerationByRoomId.get(roomId) !== generation) {
+    return;
+  }
+
+  stopJudgePhaseTimer(roomId);
+
+  const match = getJudgeState(roomId);
+
+  if (
+    !match ||
+    match.round.gamePhase !== scheduledPhase ||
+    roundToken(match) !== scheduledToken
+  ) {
+    return;
+  }
+
+  handlePhaseTimerExpired(io, roomId, match);
+}
+
 export function startJudgePhaseTimerIfNeeded(io: Server, roomId: string): void {
   if (pausedRoomIds.has(roomId) || timersByRoomId.has(roomId)) {
     return;
@@ -128,72 +170,22 @@ export function startJudgePhaseTimerIfNeeded(io: Server, roomId: string): void {
     return;
   }
 
-  if (DEADLINE_PHASES.has(match.round.gamePhase) && match.round.deadlineAtMs) {
-    if (match.round.deadlineAtMs - Date.now() <= 0) {
-      handlePhaseTimerExpired(io, roomId, match);
-      return;
-    }
-  } else if (match.round.phaseRemainingSeconds <= 0) {
-    handlePhaseTimerExpired(io, roomId, match);
+  const generation = timerGenerationByRoomId.get(roomId) ?? bumpGeneration(roomId);
+  const scheduledPhase = match.round.gamePhase;
+  const scheduledToken = roundToken(match);
+  const delayMs = remainingMsUntilDeadline(
+    match.round.deadlineAtMs,
+    match.round.phaseRemainingSeconds,
+  );
+
+  if (delayMs <= 0) {
+    firePhaseExpiry(io, roomId, generation, scheduledPhase, scheduledToken);
     return;
   }
 
-  const intervalId = setInterval(() => {
-    const currentMatch = getJudgeState(roomId);
+  const timeoutId = setTimeout(() => {
+    firePhaseExpiry(io, roomId, generation, scheduledPhase, scheduledToken);
+  }, delayMs);
 
-    if (!currentMatch || !TIMED_PHASES.has(currentMatch.round.gamePhase)) {
-      stopJudgePhaseTimer(roomId);
-      return;
-    }
-
-    const shell = getGameShellByRoomId(roomId);
-
-    if (!shell || shell.phase !== 'PLAYING') {
-      stopJudgePhaseTimer(roomId);
-      return;
-    }
-
-    if (
-      currentMatch.round.gamePhase === 'judging' &&
-      isDeparted(currentMatch, currentMatch.round.judgePlayerId) &&
-      currentMatch.round.winningAnswerId === null
-    ) {
-      stopJudgePhaseTimer(roomId);
-      startRoundResults(io, roomId, currentMatch);
-      return;
-    }
-
-    if (
-      DEADLINE_PHASES.has(currentMatch.round.gamePhase) &&
-      currentMatch.round.deadlineAtMs &&
-      Date.now() >= currentMatch.round.deadlineAtMs
-    ) {
-      stopJudgePhaseTimer(roomId);
-      handlePhaseTimerExpired(io, roomId, currentMatch);
-      return;
-    }
-
-    const remainingSeconds = DEADLINE_PHASES.has(currentMatch.round.gamePhase)
-      ? remainingSecondsFromDeadline(currentMatch.round.deadlineAtMs)
-      : Math.max(0, currentMatch.round.phaseRemainingSeconds - 1);
-
-    const nextMatch = withRound(currentMatch, {
-      ...currentMatch.round,
-      phaseRemainingSeconds: remainingSeconds,
-    });
-
-    setJudgeState(roomId, nextMatch);
-    io.to(getRoomChannel(roomId)).emit(JUDGE_PHASE_CHANGED_EVENT, {});
-
-    if (
-      remainingSeconds <= 0 &&
-      (currentMatch.round.gamePhase === 'round-results' ||
-        currentMatch.round.gamePhase === 'match-completed')
-    ) {
-      stopJudgePhaseTimer(roomId);
-      handlePhaseTimerExpired(io, roomId, nextMatch);
-    }
-  }, 1000);
-
-  timersByRoomId.set(roomId, intervalId);
+  timersByRoomId.set(roomId, timeoutId);
 }

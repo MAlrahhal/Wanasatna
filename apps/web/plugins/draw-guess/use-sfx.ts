@@ -6,17 +6,16 @@ import {
   decideFinalCue,
   decidePublicCorrect,
   decideRoundResult,
-  decideTimeUp,
   decideYourTurn,
   localWonMatch,
 } from '@/lib/game/sfx-policy';
+import { useDeadlineTimeUpSfx } from '@/lib/game/use-deadline-time-up-sfx';
 import { useViewTransitionSfx } from '@/lib/game/use-view-sfx';
 
 const DRAW_TIMED = new Set(['drawing']);
 
 type Snap = {
   phase: DrawGuessPlayerView['gamePhase'];
-  remaining: number;
   turnId: string;
   acting: boolean;
   spectator: boolean;
@@ -40,15 +39,6 @@ function decide(prev: Snap, next: Snap) {
       isCorrect: next.guessedCorrectly,
       eventKey: `correct:draw-guess:${next.turnId}`,
     }),
-    decideTimeUp({
-      prevReady: true,
-      prevRemaining: prev.remaining,
-      remaining: next.remaining,
-      phase: next.phase,
-      timedPhases: DRAW_TIMED,
-      eventKey: `timeup:draw-guess:${next.turnId}`,
-      suppress: next.guessedCorrectly,
-    }),
     decideRoundResult({
       prevReady: true,
       prevPhase: prev.phase,
@@ -69,15 +59,20 @@ function decide(prev: Snap, next: Snap) {
 export function useDrawGuessSfx(
   view: DrawGuessPlayerView | null,
   playerId: string | undefined,
-  remaining: number,
 ): void {
+  useDeadlineTimeUpSfx({
+    deadlineAtMs: view?.deadlineAtMs,
+    enabled: Boolean(view && playerId && DRAW_TIMED.has(view.gamePhase)),
+    eventKey: `timeup:draw-guess:${view?.turnId ?? 'none'}`,
+    suppress: Boolean(view?.guessedCorrectly),
+  });
+
   const snapshot = useMemo<Snap | null>(() => {
     if (!view || !playerId) {
       return null;
     }
     return {
       phase: view.gamePhase,
-      remaining,
       turnId: view.turnId,
       acting: view.role === 'drawer' && view.gamePhase === 'drawing' && !view.isMatchSpectator,
       spectator: view.isMatchSpectator,
@@ -85,7 +80,7 @@ export function useDrawGuessSfx(
       localWon: localWonMatch(view.resultsLeaderboard, playerId),
       round: view.currentRound,
     };
-  }, [view, playerId, remaining]);
+  }, [view, playerId]);
 
   useViewTransitionSfx(snapshot, decide);
 }

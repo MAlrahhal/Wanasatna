@@ -100,6 +100,7 @@ function makeRound(overrides: Partial<ImposterDrawRoundState> = {}): ImposterDra
     turnDurationSeconds: IMPOSTER_DRAW_TURN_SECONDS,
     gamePhase: 'briefing',
     phaseRemainingSeconds: IMPOSTER_DRAW_BRIEFING_SECONDS,
+    deadlineAtMs: Date.now() + IMPOSTER_DRAW_BRIEFING_SECONDS * 1000,
     strokes: [],
     roleUnderstoodPlayerIds: [],
     votes: {},

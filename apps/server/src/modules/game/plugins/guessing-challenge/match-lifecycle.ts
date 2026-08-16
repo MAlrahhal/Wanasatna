@@ -5,6 +5,7 @@ import {
   GUESSING_CHALLENGE_PHASE_CHANGED_EVENT,
 } from '@wanasatna/shared';
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
+import { timedPhaseClock } from '../../runtime/phase-deadline.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
 import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
@@ -51,8 +52,7 @@ export function startRoundResults(
   const nextMatch = withRound(scoredMatch, {
     ...scoredMatch.round,
     gamePhase: 'round-results',
-    phaseRemainingSeconds: timedPhaseDurations.guessingChallengeRoundResults(),
-    deadlineAtMs: null,
+    ...timedPhaseClock(timedPhaseDurations.guessingChallengeRoundResults()),
     cardConfirm: null,
   });
 
@@ -105,8 +105,7 @@ export function startGuessingChallengeMatchCompletedPhase(
     {
       ...match.round,
       gamePhase: 'match-completed',
-      phaseRemainingSeconds: timedPhaseDurations.matchResults(),
-      deadlineAtMs: null,
+      ...timedPhaseClock(timedPhaseDurations.matchResults()),
       winningTeamId: match.round.gamePhase === 'playing' ? null : match.round.winningTeamId,
       winningPlayerId: match.round.gamePhase === 'playing' ? null : match.round.winningPlayerId,
       winningGuess: match.round.gamePhase === 'playing' ? null : match.round.winningGuess,

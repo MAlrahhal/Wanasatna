@@ -1,6 +1,7 @@
 'use client';
 
 import type { GamePluginSettings } from '@wanasatna/shared';
+import { GameScreenChunkErrorBoundary } from '@/lib/game-plugins/lazy-game-screen';
 import { getClientGamePlugin } from '@/lib/game-plugins/registry';
 import { registerAllClientGamePlugins } from '@/plugins';
 import { GamePluginPlaceholder } from './game-plugin-placeholder';
@@ -34,11 +35,13 @@ export function GamePluginRenderer({ gameId, isHost, onAction }: GamePluginRende
   const GameScreen = plugin.GameScreen;
 
   return (
-    <GameScreen
-      state={null}
-      isHost={isHost}
-      dispatchAction={(action) => onAction?.(action)}
-    />
+    <GameScreenChunkErrorBoundary key={gameId}>
+      <GameScreen
+        state={null}
+        isHost={isHost}
+        dispatchAction={(action) => onAction?.(action)}
+      />
+    </GameScreenChunkErrorBoundary>
   );
 }
 

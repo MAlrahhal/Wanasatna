@@ -2,6 +2,7 @@ import type { Server } from 'socket.io';
 import type { DrawGuessMatchState, GameShellState } from '@wanasatna/shared';
 import { DRAW_GUESS_GAME_ID, DRAW_GUESS_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
+import { timedPhaseClock } from '../../runtime/phase-deadline.js';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
@@ -38,6 +39,7 @@ export function endDrawingRound(
     guessedCorrectly: outcome.guessedCorrectly,
     correctGuesserPlayerId: outcome.correctGuesserPlayerId,
     phaseRemainingSeconds: 0,
+    deadlineAtMs: null,
   });
 
   return startRoundResults(io, roomId, endedMatch);
@@ -52,7 +54,7 @@ export function startRoundResults(
   const nextMatch = withRound(scoredMatch, {
     ...scoredMatch.round,
     gamePhase: 'round-results',
-    phaseRemainingSeconds: timedPhaseDurations.drawGuessRoundResults(),
+    ...timedPhaseClock(timedPhaseDurations.drawGuessRoundResults()),
   });
 
   setDrawGuessState(roomId, nextMatch);
@@ -111,7 +113,7 @@ function startMatchCompletedPhase(
     {
       ...match.round,
       gamePhase: 'match-completed',
-      phaseRemainingSeconds: timedPhaseDurations.matchResults(),
+      ...timedPhaseClock(timedPhaseDurations.matchResults()),
     },
   );
 

@@ -15,6 +15,7 @@ import {
 } from '@wanasatna/shared';
 import { randomUUID } from 'node:crypto';
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
+import { remainingSecondsFromDeadline, timedPhaseClock } from '../../runtime/phase-deadline.js';
 import {
   buildLeaderboardEntries,
   buildResultsLeaderboardEntries,
@@ -61,7 +62,7 @@ export function createRoundState(
   return {
     roundId: randomUUID(),
     gamePhase: 'ready',
-    phaseRemainingSeconds: timedPhaseDurations.timingChallengeReady(),
+    ...timedPhaseClock(timedPhaseDurations.timingChallengeReady()),
     targetMs: pickTargetMs(settings),
     hiddenStartedAtMs: null,
     hiddenEndsAtMs: null,
@@ -158,6 +159,24 @@ function buildPeers(
   });
 }
 
+function visibleTimingClock(match: TimingChallengeMatchState): {
+  phaseRemainingSeconds: number;
+  deadlineAtMs: number | null;
+} {
+  const phase = match.round.gamePhase;
+
+  if (phase === 'hidden-timing') {
+    return { phaseRemainingSeconds: 0, deadlineAtMs: null };
+  }
+
+  return {
+    phaseRemainingSeconds: match.round.deadlineAtMs
+      ? remainingSecondsFromDeadline(match.round.deadlineAtMs)
+      : match.round.phaseRemainingSeconds,
+    deadlineAtMs: match.round.deadlineAtMs,
+  };
+}
+
 export function buildTimingChallengeSpectatorView(
   match: TimingChallengeMatchState,
 ): TimingChallengePlayerView {
@@ -170,7 +189,7 @@ export function buildTimingChallengeSpectatorView(
   return {
     gamePhase: phase,
     phaseLabel: 'الجولة جارية',
-    phaseRemainingSeconds: phase === 'hidden-timing' ? 0 : match.round.phaseRemainingSeconds,
+    ...visibleTimingClock(match),
     mode,
     roundId: match.round.roundId,
     currentRound: match.currentRound,
@@ -219,7 +238,7 @@ export function buildTimingChallengePlayerView(
   const base: TimingChallengePlayerView = {
     gamePhase: phase,
     phaseLabel: `${PHASE_LABELS[phase]} — الجولة ${match.currentRound}/${match.totalRounds}`,
-    phaseRemainingSeconds: phase === 'hidden-timing' ? 0 : match.round.phaseRemainingSeconds,
+    ...visibleTimingClock(match),
     mode,
     roundId: match.round.roundId,
     currentRound: match.currentRound,

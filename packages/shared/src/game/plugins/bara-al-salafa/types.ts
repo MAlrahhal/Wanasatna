@@ -89,6 +89,8 @@ export type BaraAlSalafaRoundState = {
   impostorPlayerId: string;
   gamePhase: BaraAlSalafaGamePhase;
   phaseRemainingSeconds: number;
+  /** Absolute phase expiry. Safe for countdown display. */
+  deadlineAtMs: number | null;
   descriptionDurationSeconds: number;
   questionTurnDurationSeconds: number;
   speakingOrder: string[];
@@ -133,6 +135,7 @@ export type BaraAlSalafaPlayerView = {
   gamePhase: BaraAlSalafaGamePhase;
   phaseLabel: string;
   phaseRemainingSeconds: number;
+  deadlineAtMs: number | null;
   /** Public category label, e.g. "أكلات". Never the secret word. */
   categoryName: string | null;
   instruction: string | null;

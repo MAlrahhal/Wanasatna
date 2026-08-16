@@ -5,10 +5,10 @@ import type { BaraAlSalafaPlayerView } from '@wanasatna/shared';
 import {
   decideFinalCue,
   decideRoundResult,
-  decideTimeUp,
   decideYourTurn,
   localWonMatch,
 } from '@/lib/game/sfx-policy';
+import { useDeadlineTimeUpSfx } from '@/lib/game/use-deadline-time-up-sfx';
 import { useViewTransitionSfx } from '@/lib/game/use-view-sfx';
 
 const TIMED = new Set([
@@ -21,7 +21,6 @@ const TIMED = new Set([
 
 type Snap = {
   phase: BaraAlSalafaPlayerView['gamePhase'];
-  remaining: number;
   turnKey: string | null;
   acting: boolean;
   spectator: boolean;
@@ -54,14 +53,6 @@ function decide(prev: Snap, next: Snap) {
       turnKey: next.turnKey,
       spectator: next.spectator,
     }),
-    decideTimeUp({
-      prevReady: true,
-      prevRemaining: prev.remaining,
-      remaining: next.remaining,
-      phase: next.phase,
-      timedPhases: TIMED,
-      eventKey: `timeup:bara:${next.round}:${next.phase}`,
-    }),
     decideRoundResult({
       prevReady: true,
       prevPhase: prev.phase,
@@ -82,8 +73,13 @@ function decide(prev: Snap, next: Snap) {
 export function useBaraAlSalafaSfx(
   view: BaraAlSalafaPlayerView | null,
   playerId: string | undefined,
-  remaining: number,
 ): void {
+  useDeadlineTimeUpSfx({
+    deadlineAtMs: view?.deadlineAtMs,
+    enabled: Boolean(view && playerId && TIMED.has(view.gamePhase)),
+    eventKey: `timeup:bara:${view?.currentRound ?? 0}:${view?.gamePhase ?? 'none'}`,
+  });
+
   const snapshot = useMemo<Snap | null>(() => {
     if (!view || !playerId) {
       return null;
@@ -91,14 +87,13 @@ export function useBaraAlSalafaSfx(
     const turnKey = actingTurnKey(view);
     return {
       phase: view.gamePhase,
-      remaining,
       turnKey,
       acting: turnKey !== null,
       spectator: view.isMatchSpectator,
       localWon: localWonMatch(view.resultsLeaderboard, playerId),
       round: view.currentRound,
     };
-  }, [view, playerId, remaining]);
+  }, [view, playerId]);
 
   useViewTransitionSfx(snapshot, decide);
 }

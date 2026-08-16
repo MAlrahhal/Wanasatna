@@ -160,10 +160,9 @@ export function buildFastAnswerPlayerView(
   const revealed = phase === 'round-results' || phase === 'match-completed';
   const isParticipant = match.playerIds.includes(playerId);
   const isMatchSpectator = !isParticipant;
-  const phaseRemainingSeconds =
-    phase === 'question'
-      ? remainingSecondsFromDeadline(match.round.deadlineAtMs)
-      : match.round.phaseRemainingSeconds;
+  const phaseRemainingSeconds = match.round.deadlineAtMs
+    ? remainingSecondsFromDeadline(match.round.deadlineAtMs)
+    : match.round.phaseRemainingSeconds;
 
   const base: FastAnswerPlayerView = {
     gamePhase: phase,
@@ -171,6 +170,7 @@ export function buildFastAnswerPlayerView(
       ? 'الجولة جارية'
       : `${PHASE_LABELS[phase]} — الجولة ${match.currentRound}/${match.totalRounds}`,
     phaseRemainingSeconds,
+    deadlineAtMs: match.round.deadlineAtMs,
     questionDeadlineAtMs: phase === 'question' ? match.round.deadlineAtMs : null,
     roundId: match.round.roundId,
     question: match.round.question,

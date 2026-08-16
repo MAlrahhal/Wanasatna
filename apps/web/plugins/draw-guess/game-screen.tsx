@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DrawGuessPlayerView, GamePluginScreenProps } from '@wanasatna/shared';
 import {
   DRAW_GUESS_GAME_ID,
@@ -12,9 +12,11 @@ import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
 import { GameSystemError, GameSystemLoading } from '@/components/room/room-system-state';
 import { DRAW_GUESS_GAME_ICON, DRAW_GUESS_GAME_NAME } from '@/lib/game/draw-guess-brand';
+import { toExperienceTimer } from '@/lib/game/deadline-clock';
 import { mapDrawGuessLeaderboard } from '@/lib/game/map-draw-guess-leaderboard';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-screen';
+import type { DrawingCanvasHandle } from './drawing-canvas';
 import { DrawingScreen } from './drawing-screen';
 import { DrawGuessRoundResultsScreen } from './round-results-screen';
 import { WaitingSpectatorScreen } from './waiting-spectator-screen';
@@ -32,11 +34,11 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
   const pluginEnabled = isDrawGuess && shellPhase === 'PLAYING';
   const [finalResultsView, setFinalResultsView] = useState<DrawGuessPlayerView | null>(null);
   const [isReturningToLobby, setIsReturningToLobby] = useState(false);
+  const canvasRef = useRef<DrawingCanvasHandle | null>(null);
   const {
     view,
     errorMessage,
     isLoading,
-    remainingSeconds,
     actionError,
     guessFeedback,
     isSubmittingAction,
@@ -46,9 +48,10 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
     continueFromRoundResults,
     emitStroke,
     emitStrokePoints,
-  } = useDrawGuessPlayerView(pluginEnabled);
+    emitStrokeEnd,
+  } = useDrawGuessPlayerView(pluginEnabled, canvasRef);
 
-  useDrawGuessSfx(view, player?.id, remainingSeconds);
+  useDrawGuessSfx(view, player?.id);
 
   const activeFinalResultsView =
     finalResultsView ?? (view?.gamePhase === 'match-completed' ? view : null);
@@ -90,7 +93,7 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
       timer: TIMED_DRAW_GUESS_PHASES.has(activeView.gamePhase)
-        ? { remainingSeconds, format: 'seconds' as const, lowTimeThreshold: 10 }
+        ? toExperienceTimer(activeView.deadlineAtMs, { format: 'seconds', lowTimeThreshold: 10 })
         : undefined,
       leaderboardEntries: mapDrawGuessLeaderboard(activeView, player.id, players),
     });
@@ -100,7 +103,6 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
     player,
     players,
     pluginEnabled,
-    remainingSeconds,
     setExperienceMeta,
     showFinalMatchResults,
     view,
@@ -142,7 +144,7 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
     const shellFinished = shellPhase === 'FINISHED';
     const isMatchCompletedPhase = activeFinalResultsView.gamePhase === 'match-completed';
     const autoReturnMessage = isMatchCompletedPhase
-      ? `العودة إلى اللوبي تلقائياً خلال ${Math.max(0, remainingSeconds)} ثانية`
+      ? null
       : !shellFinished
         ? SYSTEM_COPY.returningToLobby
         : !isHost
@@ -165,7 +167,7 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
         roomCode={room.code}
         gameName={DRAW_GUESS_GAME_NAME}
         returnStatusMessage={isHost && (isMatchCompletedPhase || shellFinished) ? null : autoReturnMessage}
-        autoReturnSeconds={isMatchCompletedPhase ? remainingSeconds : undefined}
+        autoReturnDeadlineAtMs={isMatchCompletedPhase ? activeFinalResultsView.deadlineAtMs : undefined}
         autoReturnTotalSeconds={
           isMatchCompletedPhase ? MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS : undefined
         }
@@ -198,10 +200,12 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
       <WaitingSpectatorScreen
         strokes={view.strokes}
         drawerName={view.drawerName}
-        remainingSeconds={remainingSeconds}
+        remainingSeconds={0}
+        deadlineAtMs={view.deadlineAtMs}
         currentRound={view.currentRound}
         totalRounds={view.totalRounds}
         roomCode={room.code}
+        canvasRef={canvasRef}
       />
     );
   }
@@ -225,7 +229,8 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
           roundNumber={view.currentRound}
           totalRounds={view.totalRounds}
           roomCode={room.code}
-          remainingSeconds={remainingSeconds}
+          remainingSeconds={0}
+        deadlineAtMs={view.deadlineAtMs}
           totalDurationSeconds={DRAW_GUESS_ROUND_RESULTS_DURATION_SECONDS}
           continueLabel={view.canContinueFromRoundResults ? view.roundResultsContinueLabel : null}
           waitingMessage={view.roundResultsWaitingMessage}
@@ -250,7 +255,8 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
         isDrawer={view.role === 'drawer'}
         secretWord={view.role === 'drawer' ? view.secretWord : null}
         drawerName={view.drawerName}
-        remainingSeconds={remainingSeconds}
+        remainingSeconds={0}
+        deadlineAtMs={view.deadlineAtMs}
         currentRound={view.currentRound}
         totalRounds={view.totalRounds}
         roomCode={room.code}
@@ -263,6 +269,8 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
         onUndo={() => void undoStroke()}
         onEmitStroke={(payload) => void emitStroke(payload)}
         onEmitStrokePoints={(payload) => void emitStrokePoints(payload)}
+        onEmitStrokeEnd={emitStrokeEnd}
+        canvasRef={canvasRef}
       />
     );
   }

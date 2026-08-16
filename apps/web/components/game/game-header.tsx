@@ -3,8 +3,31 @@
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { useGameExperienceShellActive } from '@/contexts/game-experience-context';
-import { GameTimerChip } from '@/components/game/game-timer-chip';
+import { DeadlineTimerChip, GameTimerChip } from '@/components/game/game-timer-chip';
 import { cn } from '@/lib/utils';
+
+export type GameHeaderTimer = {
+  remainingSeconds?: number;
+  deadlineAtMs?: number | null;
+  format?: 'mm:ss' | 'seconds';
+  lowTimeThreshold?: number;
+};
+
+export function resolveHeaderTimer(input: GameHeaderTimer): GameHeaderTimer {
+  if (input.deadlineAtMs != null) {
+    return {
+      deadlineAtMs: input.deadlineAtMs,
+      format: input.format,
+      lowTimeThreshold: input.lowTimeThreshold,
+    };
+  }
+
+  return {
+    remainingSeconds: input.remainingSeconds ?? 0,
+    format: input.format,
+    lowTimeThreshold: input.lowTimeThreshold,
+  };
+}
 
 export type GameHeaderProps = {
   gameName: string;
@@ -13,11 +36,7 @@ export type GameHeaderProps = {
   currentRound?: number;
   totalRounds?: number;
   phaseLabel?: string;
-  timer?: {
-    remainingSeconds: number;
-    format?: 'mm:ss' | 'seconds';
-    lowTimeThreshold?: number;
-  };
+  timer?: GameHeaderTimer;
   trailing?: ReactNode;
   className?: string;
 };
@@ -96,11 +115,19 @@ export function GameHeader({
         </span>
       ) : null}
       {timer ? (
-        <GameTimerChip
-          remainingSeconds={timer.remainingSeconds}
-          format={timer.format}
-          lowTimeThreshold={timer.lowTimeThreshold}
-        />
+        timer.deadlineAtMs != null ? (
+          <DeadlineTimerChip
+            deadlineAtMs={timer.deadlineAtMs}
+            format={timer.format}
+            lowTimeThreshold={timer.lowTimeThreshold}
+          />
+        ) : (
+          <GameTimerChip
+            remainingSeconds={timer.remainingSeconds ?? 0}
+            format={timer.format}
+            lowTimeThreshold={timer.lowTimeThreshold}
+          />
+        )
       ) : null}
       {trailing}
     </div>

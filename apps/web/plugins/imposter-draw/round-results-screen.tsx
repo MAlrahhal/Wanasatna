@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import type { ImposterDrawRoundResultEntry } from '@wanasatna/shared';
+import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
 import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
@@ -24,6 +25,7 @@ export type ImposterDrawRoundResultsScreenProps = {
   totalRounds: number;
   roomCode: string;
   remainingSeconds?: number;
+  deadlineAtMs?: number | null;
   totalDurationSeconds?: number;
   continueLabel?: string | null;
   waitingMessage?: string | null;
@@ -45,6 +47,7 @@ export function ImposterDrawRoundResultsScreen({
   totalRounds,
   roomCode,
   remainingSeconds = 0,
+  deadlineAtMs,
   totalDurationSeconds = 10,
   continueLabel,
   waitingMessage,
@@ -74,25 +77,14 @@ export function ImposterDrawRoundResultsScreen({
         ? `تخمين الصورة: خاطئ (${selectedImageGuess})`
         : 'تخمين الصورة: لم يُرسل';
 
-  const progressMax = Math.max(totalDurationSeconds, 1);
-  const progressNow = Math.max(0, Math.min(remainingSeconds, totalDurationSeconds));
-  const progressPercent = Math.round((progressNow / progressMax) * 100);
-
   const progressBar = (
-    <div
-      className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted"
-      role="progressbar"
-      aria-valuemin={0}
-      aria-valuemax={progressMax}
-      aria-valuenow={progressNow}
-      aria-label={`الانتقال التلقائي ${progressNow} من ${progressMax} ثانية`}
-    >
-      <div
-        className="h-full rounded-full bg-wanas-accent transition-[width] duration-200 ease-linear"
-        style={{ width: `${progressPercent}%` }}
-      />
-    </div>
+    <DeadlineProgress
+      deadlineAtMs={deadlineAtMs}
+      remainingSeconds={remainingSeconds}
+      totalDurationSeconds={totalDurationSeconds}
+    />
   );
+
 
   return (
     <GameScreen ariaLabel="نتائج الجولة" maxWidth="4xl" className={className}>

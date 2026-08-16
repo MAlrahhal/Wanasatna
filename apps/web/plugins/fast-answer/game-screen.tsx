@@ -14,12 +14,13 @@ import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
 import { GameSystemError, GameSystemLoading, SpectatorNotice } from '@/components/room/room-system-state';
 import { FAST_ANSWER_GAME_ICON, FAST_ANSWER_GAME_NAME } from '@/lib/game/fast-answer-brand';
+import { toExperienceTimer } from '@/lib/game/deadline-clock';
 import { mapFastAnswerLeaderboard } from '@/lib/game/map-fast-answer-leaderboard';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-screen';
 import { FastAnswerQuestionScreen } from './question-screen';
 import { FastAnswerRoundResultsScreen } from './round-results-screen';
-import { useFastAnswerPlayerView } from './use-player-view';
+import { useFastAnswerPlayerView, resolveFastAnswerDeadlineAtMs } from './use-player-view';
 import { useFastAnswerSfx } from './use-sfx';
 
 const VISIBLE_TIMER_PHASES = new Set(['question', 'round-results', 'match-completed']);
@@ -41,12 +42,11 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
     actionError,
     incorrectFeedback,
     isSubmittingAction,
-    remainingSeconds,
     submitAnswer,
     continueFromRoundResults,
   } = useFastAnswerPlayerView(pluginEnabled);
 
-  useFastAnswerSfx(view, player?.id, remainingSeconds);
+  useFastAnswerSfx(view, player?.id);
 
   const activeFinalResultsView =
     finalResultsView ?? (view?.gamePhase === 'match-completed' ? view : null);
@@ -91,7 +91,10 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
       timer: VISIBLE_TIMER_PHASES.has(activeView.gamePhase)
-        ? { remainingSeconds, format: 'seconds' as const, lowTimeThreshold: 5 }
+        ? toExperienceTimer(resolveFastAnswerDeadlineAtMs(activeView), {
+            format: 'seconds',
+            lowTimeThreshold: 5,
+          })
         : undefined,
       leaderboardEntries: activeView.isMatchSpectator
         ? []
@@ -103,7 +106,6 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
     player,
     players,
     pluginEnabled,
-    remainingSeconds,
     setExperienceMeta,
     showFinalMatchResults,
     view,
@@ -145,7 +147,7 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
     const shellFinished = shellPhase === 'FINISHED';
     const isMatchCompletedPhase = activeFinalResultsView.gamePhase === 'match-completed';
     const autoReturnMessage = isMatchCompletedPhase
-      ? `العودة إلى اللوبي تلقائياً خلال ${Math.max(0, remainingSeconds)} ثانية`
+      ? null
       : !shellFinished
         ? SYSTEM_COPY.returningToLobby
         : !isHost
@@ -170,7 +172,7 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
         returnStatusMessage={
           isHost && (isMatchCompletedPhase || shellFinished) ? null : autoReturnMessage
         }
-        autoReturnSeconds={isMatchCompletedPhase ? remainingSeconds : undefined}
+        autoReturnDeadlineAtMs={isMatchCompletedPhase ? activeFinalResultsView.deadlineAtMs : undefined}
         autoReturnTotalSeconds={
           isMatchCompletedPhase ? MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS : undefined
         }
@@ -223,7 +225,8 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
           roundNumber={view.currentRound}
           totalRounds={view.totalRounds}
           roomCode={room.code}
-          remainingSeconds={remainingSeconds}
+          remainingSeconds={0}
+          deadlineAtMs={view.deadlineAtMs}
           totalDurationSeconds={FAST_ANSWER_ROUND_RESULTS_SECONDS}
           waitingMessage={view.roundResultsWaitingMessage}
         />
@@ -270,7 +273,8 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
           roundNumber={view.currentRound}
           totalRounds={view.totalRounds}
           roomCode={room.code}
-          remainingSeconds={remainingSeconds}
+          remainingSeconds={0}
+          deadlineAtMs={view.deadlineAtMs}
           totalDurationSeconds={FAST_ANSWER_ROUND_RESULTS_SECONDS}
           continueLabel={view.canContinueFromRoundResults ? view.roundResultsContinueLabel : null}
           waitingMessage={view.roundResultsWaitingMessage}

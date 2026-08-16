@@ -1,5 +1,6 @@
 'use client';
 
+import { useDeadlineClock } from '@/lib/game/use-deadline-clock';
 import { cn } from '@/lib/utils';
 
 type GameTimerChipProps = {
@@ -59,5 +60,29 @@ export function GameTimerChip({
         {label}
       </span>
     </div>
+  );
+}
+
+export type DeadlineTimerChipProps = {
+  deadlineAtMs: number;
+  format?: 'mm:ss' | 'seconds';
+  lowTimeThreshold?: number;
+  className?: string;
+};
+
+export function DeadlineTimerChip({
+  deadlineAtMs,
+  format = 'mm:ss',
+  lowTimeThreshold = 10,
+  className,
+}: DeadlineTimerChipProps) {
+  const remainingSeconds = useDeadlineClock(deadlineAtMs);
+  return (
+    <GameTimerChip
+      remainingSeconds={remainingSeconds}
+      format={format}
+      lowTimeThreshold={lowTimeThreshold}
+      className={className}
+    />
   );
 }

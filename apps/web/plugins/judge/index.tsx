@@ -1,7 +1,7 @@
 'use client';
 
 import type { WebClientGamePlugin } from '@/lib/game-plugins/types';
-import { JudgeGameScreen } from './game-screen';
+import { lazyGameScreen } from '@/lib/game-plugins/lazy-game-screen';
 
 export const judgeClientPlugin: WebClientGamePlugin = {
   metadata: {
@@ -11,5 +11,7 @@ export const judgeClientPlugin: WebClientGamePlugin = {
     iconLabel: 'ق',
     minPlayers: 3,
   },
-  GameScreen: JudgeGameScreen,
+  GameScreen: lazyGameScreen(() =>
+    import('./game-screen').then((mod) => mod.JudgeGameScreen),
+  ),
 };

@@ -1,14 +1,18 @@
 import type { Server } from 'socket.io';
 import { TEAM_SNAPSHOT_EVENT } from '@wanasatna/shared';
 import { getRoomChannel } from '../../room/room.utils.js';
+import { deleteGameShell, getGameShellByRoomId } from '../game.service.js';
+import { cleanupGameShellRuntime } from '../game.lifecycle.js';
 import { handleGuessingChallengePermanentLeave } from '../plugins/guessing-challenge/match-lifecycle.js';
 import { handleJudgePermanentLeave } from '../plugins/judge/match-lifecycle.js';
+import { cleanupPluginMatchState } from './cleanup-plugin-match.js';
+import { clearPlayerRecoveryForTeardown } from './player-recovery.js';
 import {
   clearTeamsForRoom,
   loadEligibleLobbyPlayerIds,
   removePlayerFromPregameTeams,
   syncPregameTeamsWithRoster,
-} from '../runtime/pregame-teams.service.js';
+} from './pregame-teams.service.js';
 
 /** Call after join so lobby team state tracks the roster. */
 export async function onRoomRosterJoined(io: Server, roomId: string): Promise<void> {
@@ -41,6 +45,15 @@ export async function onRoomPlayerRemoved(
   }
 }
 
-export function onRoomDeleted(roomId: string): void {
+export function onRoomDeleted(io: Server, roomId: string): void {
+  const shell = getGameShellByRoomId(roomId);
+  clearPlayerRecoveryForTeardown(io, roomId);
+
+  if (shell) {
+    cleanupGameShellRuntime(roomId);
+    cleanupPluginMatchState(roomId, shell.gameId);
+    deleteGameShell(roomId);
+  }
+
   clearTeamsForRoom(roomId);
 }

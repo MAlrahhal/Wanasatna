@@ -2,6 +2,7 @@ import type { Server } from 'socket.io';
 import type { GameShellState, WhoWroteItMatchState } from '@wanasatna/shared';
 import { WHO_WROTE_IT_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
+import { timedPhaseClock } from '../../runtime/phase-deadline.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
 import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
@@ -98,8 +99,7 @@ export function startRoundResults(
   const nextMatch = withRound(scoredMatch, {
     ...scoredMatch.round,
     gamePhase: 'round-results',
-    phaseRemainingSeconds: timedPhaseDurations.whoWroteItRoundResults(),
-    deadlineAtMs: null,
+    ...timedPhaseClock(timedPhaseDurations.whoWroteItRoundResults()),
   });
 
   setWhoWroteItState(roomId, nextMatch);
@@ -147,8 +147,7 @@ function startMatchCompletedPhase(
     {
       ...match.round,
       gamePhase: 'match-completed',
-      phaseRemainingSeconds: timedPhaseDurations.matchResults(),
-      deadlineAtMs: null,
+      ...timedPhaseClock(timedPhaseDurations.matchResults()),
     },
   );
 

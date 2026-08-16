@@ -1,7 +1,7 @@
 'use client';
 
 import { GameCard, GameScreen } from '@/components/game/game-card';
-import { GameHeader } from '@/components/game/game-header';
+import { GameHeader, resolveHeaderTimer } from '@/components/game/game-header';
 import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
 import { IMPOSTER_DRAW_GAME_ICON, IMPOSTER_DRAW_GAME_NAME } from '@/lib/game/imposter-draw-brand';
 
@@ -10,6 +10,7 @@ export type ImposterDrawRevealScreenProps = {
   impostorPlayerId: string;
   impostorVotedOut: boolean | null;
   remainingSeconds: number;
+  deadlineAtMs?: number | null;
   currentRound: number;
   totalRounds: number;
   roomCode: string;
@@ -21,6 +22,7 @@ export function ImposterDrawRevealScreen({
   impostorPlayerId,
   impostorVotedOut,
   remainingSeconds,
+  deadlineAtMs,
   currentRound,
   totalRounds,
   roomCode,
@@ -37,7 +39,12 @@ export function ImposterDrawRevealScreen({
         currentRound={currentRound}
         totalRounds={totalRounds}
         phaseLabel="الكشف"
-        timer={{ remainingSeconds, format: 'seconds', lowTimeThreshold: 2 }}
+        timer={resolveHeaderTimer({
+          deadlineAtMs,
+          remainingSeconds,
+          format: 'seconds',
+          lowTimeThreshold: 2,
+        })}
       />
 
       <GameCard className="border-wanas-error-border/70 px-5 py-10 text-center sm:px-8">

@@ -1,7 +1,7 @@
 'use client';
 
 import type { WebClientGamePlugin } from '@/lib/game-plugins/types';
-import { DrawGuessGameScreen } from './game-screen';
+import { lazyGameScreen } from '@/lib/game-plugins/lazy-game-screen';
 
 export const drawGuessClientPlugin: WebClientGamePlugin = {
   metadata: {
@@ -11,5 +11,7 @@ export const drawGuessClientPlugin: WebClientGamePlugin = {
     iconLabel: 'ر',
     minPlayers: 2,
   },
-  GameScreen: DrawGuessGameScreen,
+  GameScreen: lazyGameScreen(() =>
+    import('./game-screen').then((mod) => mod.DrawGuessGameScreen),
+  ),
 };

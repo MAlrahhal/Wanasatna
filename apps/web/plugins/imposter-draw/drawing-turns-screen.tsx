@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type RefObject } from 'react';
 import type {
   DrawGuessTool,
   DrawStroke,
@@ -8,10 +8,10 @@ import type {
   ImposterDrawStrokePointsPayload,
 } from '@wanasatna/shared';
 import { GameCard, GameScreen } from '@/components/game/game-card';
-import { GameHeader } from '@/components/game/game-header';
+import { GameHeader, resolveHeaderTimer } from '@/components/game/game-header';
 import { SpectatorNotice } from '@/components/room/room-system-state';
 import { IMPOSTER_DRAW_GAME_ICON, IMPOSTER_DRAW_GAME_NAME } from '@/lib/game/imposter-draw-brand';
-import { DrawingCanvas } from '@/plugins/draw-guess/drawing-canvas';
+import { DrawingCanvas, type DrawingCanvasHandle } from '@/plugins/draw-guess/drawing-canvas';
 import { DrawingToolbar } from '@/plugins/draw-guess/drawing-toolbar';
 
 export type DrawingTurnsScreenProps = {
@@ -20,6 +20,7 @@ export type DrawingTurnsScreenProps = {
   isSpectator?: boolean;
   currentDrawerName: string | null;
   remainingSeconds: number;
+  deadlineAtMs?: number | null;
   currentRound: number;
   totalRounds: number;
   roomCode: string;
@@ -27,6 +28,8 @@ export type DrawingTurnsScreenProps = {
   onUndo?: () => void;
   onEmitStroke?: (payload: Omit<ImposterDrawStrokePayload, 'turnId'>) => void;
   onEmitStrokePoints?: (payload: Omit<ImposterDrawStrokePointsPayload, 'turnId'>) => void;
+  onEmitStrokeEnd?: (payload: { strokeId: string }) => void;
+  canvasRef?: RefObject<DrawingCanvasHandle | null>;
   className?: string;
 };
 
@@ -36,6 +39,7 @@ export function DrawingTurnsScreen({
   isSpectator = false,
   currentDrawerName,
   remainingSeconds,
+  deadlineAtMs,
   currentRound,
   totalRounds,
   roomCode,
@@ -43,6 +47,8 @@ export function DrawingTurnsScreen({
   onUndo,
   onEmitStroke,
   onEmitStrokePoints,
+  onEmitStrokeEnd,
+  canvasRef,
   className,
 }: DrawingTurnsScreenProps) {
   const [tool, setTool] = useState<DrawGuessTool>('draw');
@@ -58,7 +64,12 @@ export function DrawingTurnsScreen({
         currentRound={currentRound}
         totalRounds={totalRounds}
         phaseLabel={isSpectator ? 'مشاهدة' : 'دور الرسم'}
-        timer={{ remainingSeconds, format: 'seconds', lowTimeThreshold: 3 }}
+        timer={resolveHeaderTimer({
+          deadlineAtMs,
+          remainingSeconds,
+          format: 'seconds',
+          lowTimeThreshold: 3,
+        })}
       />
 
       <div className="flex flex-col gap-3 sm:gap-5">
@@ -72,6 +83,7 @@ export function DrawingTurnsScreen({
 
         <div className="flex flex-col gap-2">
           <DrawingCanvas
+            ref={canvasRef}
             strokes={strokes}
             readOnly={!canDraw}
             tool={tool}
@@ -79,7 +91,7 @@ export function DrawingTurnsScreen({
             size={size}
             onStrokeStart={canDraw && onEmitStroke ? onEmitStroke : undefined}
             onStrokePoints={canDraw && onEmitStrokePoints ? onEmitStrokePoints : undefined}
-            onStrokeEnd={canDraw && onEmitStroke ? onEmitStroke : undefined}
+            onStrokeEnd={canDraw && onEmitStrokeEnd ? onEmitStrokeEnd : undefined}
           />
 
           {canDraw ? (

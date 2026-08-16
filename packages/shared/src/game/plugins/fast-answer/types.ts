@@ -63,6 +63,7 @@ export type FastAnswerPlayerView = {
   gamePhase: FastAnswerGamePhase;
   phaseLabel: string;
   phaseRemainingSeconds: number;
+  deadlineAtMs: number | null;
   questionDeadlineAtMs: number | null;
   roundId: string | null;
   question: string | null;

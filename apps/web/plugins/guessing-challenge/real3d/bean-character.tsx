@@ -4,11 +4,19 @@ import { Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef, type ReactNode } from 'react';
 import * as THREE from 'three';
+import { getGcLook } from './look-runtime';
+import {
+  mapRemoteLookPitch,
+  mapRemoteLookYaw,
+  type RemoteAvatarFacing,
+} from './seat-layout';
 
 export type BeanTeamTint = 'blue' | 'red' | 'opponent';
 
 export type BeanCharacterProps = {
   teamTint?: BeanTeamTint;
+  lookPlayerId?: string;
+  lookFacing?: RemoteAvatarFacing;
   lookYaw?: number;
   lookPitch?: number;
   /**
@@ -26,6 +34,11 @@ export type BeanCharacterProps = {
   /** Small name badge parented to the head (world-space via Html). */
   nameBadge?: ReactNode;
 };
+
+const REST_LEFT: [number, number, number] = [-0.2, 0.12, 0.28];
+const REST_RIGHT: [number, number, number] = [0.2, 0.12, 0.28];
+const DEFAULT_REACH: [number, number, number] = [0, 0.42, 0.42];
+const FINGER_X = [-0.05, -0.015, 0.02, 0.055] as const;
 
 const TINTS: Record<
   BeanTeamTint,
@@ -56,6 +69,8 @@ const TINTS: Record<
  */
 export function BeanCharacter({
   teamTint = 'opponent',
+  lookPlayerId,
+  lookFacing = 'same-as-local',
   lookYaw = 0,
   lookPitch = 0,
   lookYawScale = 0.62,
@@ -70,7 +85,19 @@ export function BeanCharacter({
   const body = useRef<THREE.Group>(null);
   const head = useRef<THREE.Group>(null);
   const breath = useRef(0);
+  const lookPlayerIdRef = useRef(lookPlayerId);
+  const lookFacingRef = useRef(lookFacing);
+  const lookYawRef = useRef(lookYaw);
+  const lookPitchRef = useRef(lookPitch);
+  const lookYawScaleRef = useRef(lookYawScale);
+  const reduceMotionRef = useRef(reduceMotion);
   const colors = useMemo(() => TINTS[teamTint], [teamTint]);
+  lookPlayerIdRef.current = lookPlayerId;
+  lookFacingRef.current = lookFacing;
+  lookYawRef.current = lookYaw;
+  lookPitchRef.current = lookPitch;
+  lookYawScaleRef.current = lookYawScale;
+  reduceMotionRef.current = reduceMotion;
   // Network look: +yaw = look left, +pitch = look up (matches LookControls emit).
   // lookYaw is normalized -1..1. Scale by the camera yaw limit so remotes see
   // the same head turn the looker actually made.
@@ -78,14 +105,24 @@ export function BeanCharacter({
   const headPitch = lookPitch * 0.45;
 
   useFrame((_, delta) => {
-    if (reduceMotion) {
+    const live = getGcLook(lookPlayerIdRef.current);
+    const mappedYaw = live
+      ? mapRemoteLookYaw(live.yaw, lookFacingRef.current)
+      : lookYawRef.current;
+    const mappedPitch = live
+      ? mapRemoteLookPitch(live.pitch)
+      : lookPitchRef.current;
+    const targetHeadYaw = live ? mappedYaw * lookYawScaleRef.current : headYaw;
+    const targetHeadPitch = live ? mappedPitch * 0.45 : headPitch;
+
+    if (reduceMotionRef.current) {
       if (head.current) {
-        head.current.rotation.y = headYaw;
-        head.current.rotation.x = headPitch;
+        head.current.rotation.y = targetHeadYaw;
+        head.current.rotation.x = targetHeadPitch;
       }
       // Body stays mostly forward — only tiny look sway.
       if (body.current) {
-        body.current.rotation.y = lookYaw * 0.04;
+        body.current.rotation.y = mappedYaw * 0.04;
       }
       return;
     }
@@ -99,7 +136,7 @@ export function BeanCharacter({
       body.current.scale.y = 1 + inhale * 0.25;
       body.current.rotation.y = THREE.MathUtils.damp(
         body.current.rotation.y,
-        lookYaw * 0.05,
+        live ? mappedYaw * 0.05 : lookYaw * 0.05,
         6,
         delta,
       );
@@ -107,26 +144,24 @@ export function BeanCharacter({
     if (head.current) {
       head.current.rotation.y = THREE.MathUtils.damp(
         head.current.rotation.y,
-        headYaw,
+        targetHeadYaw,
         8,
         delta,
       );
       head.current.rotation.x = THREE.MathUtils.damp(
         head.current.rotation.x,
-        headPitch,
+        targetHeadPitch,
         8,
         delta,
       );
     }
   });
 
-  const restLeft: [number, number, number] = [-0.2, 0.12, 0.28];
-  const restRight: [number, number, number] = [0.2, 0.12, 0.28];
-  const reach = reachToward ?? [0, 0.42, 0.42];
+  const reach = reachToward ?? DEFAULT_REACH;
   const leftArmTarget: [number, number, number] =
-    holdHand === 'right' ? restLeft : holdHand === 'left' ? reach : reachToward ? [reach[0] - 0.08, reach[1], reach[2]] : [-0.22, 0.38, 0.38];
+    holdHand === 'right' ? REST_LEFT : holdHand === 'left' ? reach : reachToward ? [reach[0] - 0.08, reach[1], reach[2]] : [-0.22, 0.38, 0.38];
   const rightArmTarget: [number, number, number] =
-    holdHand === 'left' ? restRight : holdHand === 'right' ? reach : reachToward ? [reach[0] + 0.08, reach[1], reach[2]] : [0.22, 0.38, 0.38];
+    holdHand === 'left' ? REST_RIGHT : holdHand === 'right' ? reach : reachToward ? [reach[0] + 0.08, reach[1], reach[2]] : [0.22, 0.38, 0.38];
 
   return (
     <group ref={root} scale={scale}>
@@ -225,7 +260,7 @@ export function BeanCharacter({
             <meshStandardMaterial color="#f8fafc" roughness={0.7} />
           </mesh>
           {/* Four stubby fingers */}
-          {([-0.05, -0.015, 0.02, 0.055] as const).map((fx, i) => (
+          {FINGER_X.map((fx, i) => (
             <mesh key={i} position={[leftArmTarget[0] + fx, leftArmTarget[1] - 0.02, leftArmTarget[2] + 0.1]}>
               <capsuleGeometry args={[0.018, 0.04, 3, 6]} />
               <meshStandardMaterial color="#f8fafc" />
@@ -251,7 +286,7 @@ export function BeanCharacter({
             <boxGeometry args={[0.14, 0.12, 0.16]} />
             <meshStandardMaterial color="#f8fafc" roughness={0.7} />
           </mesh>
-          {([-0.05, -0.015, 0.02, 0.055] as const).map((fx, i) => (
+          {FINGER_X.map((fx, i) => (
             <mesh
               key={i}
               position={[rightArmTarget[0] + fx, rightArmTarget[1] - 0.02, rightArmTarget[2] + 0.1]}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { GamePluginScreenProps, ImposterDrawPlayerView } from '@wanasatna/shared';
 import {
   IMPOSTER_DRAW_GAME_ID,
@@ -8,18 +8,20 @@ import {
   MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS,
 } from '@wanasatna/shared';
 import { GameCard, GameScreen } from '@/components/game/game-card';
-import { GameHeader } from '@/components/game/game-header';
+import { GameHeader, resolveHeaderTimer } from '@/components/game/game-header';
 import { GameSystemError, GameSystemLoading, SpectatorNotice } from '@/components/room/room-system-state';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
 import { IMPOSTER_DRAW_GAME_ICON, IMPOSTER_DRAW_GAME_NAME } from '@/lib/game/imposter-draw-brand';
+import { toExperienceTimer } from '@/lib/game/deadline-clock';
 import { mapImposterDrawLeaderboard } from '@/lib/game/map-imposter-draw-leaderboard';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import type { LobbyPlayer } from '@/lib/lobby/types';
 import { ImpostorGuessScreen } from '@/plugins/bara-al-salafa/impostor-guess-screen';
 import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-screen';
 import { VotingScreen } from '@/plugins/bara-al-salafa/voting-screen';
+import type { DrawingCanvasHandle } from '@/plugins/draw-guess/drawing-canvas';
 import { ImposterDrawBriefingScreen } from './briefing-screen';
 import { DrawingTurnsScreen } from './drawing-turns-screen';
 import { ImposterDrawRevealScreen } from './reveal-screen';
@@ -72,12 +74,12 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
   const [isReturningToLobby, setIsReturningToLobby] = useState(false);
   const [selectedVoteTargetId, setSelectedVoteTargetId] = useState<string | null>(null);
   const [selectedGuessWord, setSelectedGuessWord] = useState<string | null>(null);
+  const canvasRef = useRef<DrawingCanvasHandle | null>(null);
 
   const {
     view,
     errorMessage,
     isLoading,
-    remainingSeconds,
     actionError,
     isSubmittingAction,
     submitRoleUnderstood,
@@ -87,9 +89,10 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
     continueFromRoundResults,
     emitStroke,
     emitStrokePoints,
-  } = useImposterDrawPlayerView(pluginEnabled);
+    emitStrokeEnd,
+  } = useImposterDrawPlayerView(pluginEnabled, canvasRef);
 
-  useImposterDrawSfx(view, player?.id, remainingSeconds);
+  useImposterDrawSfx(view, player?.id);
 
   const activeFinalResultsView =
     finalResultsView ?? (view?.gamePhase === 'match-completed' ? view : null);
@@ -141,7 +144,7 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
       timer: TIMED_PHASES.has(activeView.gamePhase)
-        ? { remainingSeconds, format: 'seconds' as const, lowTimeThreshold: 5 }
+        ? toExperienceTimer(activeView.deadlineAtMs, { format: 'seconds', lowTimeThreshold: 5 })
         : undefined,
       leaderboardEntries: activeView.isMatchSpectator
         ? []
@@ -153,7 +156,6 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
     player,
     players,
     pluginEnabled,
-    remainingSeconds,
     setExperienceMeta,
     showFinalMatchResults,
     view,
@@ -205,7 +207,7 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
     const shellFinished = shellPhase === 'FINISHED';
     const isMatchCompletedPhase = activeFinalResultsView.gamePhase === 'match-completed';
     const autoReturnMessage = isMatchCompletedPhase
-      ? `العودة إلى اللوبي تلقائياً خلال ${Math.max(0, remainingSeconds)} ثانية`
+      ? null
       : !shellFinished
         ? SYSTEM_COPY.returningToLobby
         : !isHost
@@ -230,7 +232,7 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
         returnStatusMessage={
           isHost && (isMatchCompletedPhase || shellFinished) ? null : autoReturnMessage
         }
-        autoReturnSeconds={isMatchCompletedPhase ? remainingSeconds : undefined}
+        autoReturnDeadlineAtMs={isMatchCompletedPhase ? activeFinalResultsView.deadlineAtMs : undefined}
         autoReturnTotalSeconds={
           isMatchCompletedPhase ? MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS : undefined
         }
@@ -266,10 +268,12 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
           canDraw={false}
           isSpectator
           currentDrawerName={view.currentDrawerName}
-          remainingSeconds={remainingSeconds}
+          remainingSeconds={0}
+          deadlineAtMs={view.deadlineAtMs}
           currentRound={view.currentRound}
           totalRounds={view.totalRounds}
           roomCode={room.code}
+          canvasRef={canvasRef}
         />
       );
     }
@@ -283,7 +287,11 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
           currentRound={view.currentRound}
           totalRounds={view.totalRounds}
           phaseLabel="مشاهدة"
-          timer={{ remainingSeconds, format: 'seconds', lowTimeThreshold: 5 }}
+          timer={resolveHeaderTimer({
+            deadlineAtMs: view.deadlineAtMs,
+            format: 'seconds',
+            lowTimeThreshold: 5,
+          })}
         />
         <SpectatorNotice />
       </GameScreen>
@@ -295,7 +303,8 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
       <ImposterDrawBriefingScreen
         role={view.role}
         referenceImage={view.referenceImage}
-        remainingSeconds={remainingSeconds}
+        remainingSeconds={0}
+        deadlineAtMs={view.deadlineAtMs}
         currentRound={view.currentRound}
         totalRounds={view.totalRounds}
         roomCode={room.code}
@@ -316,7 +325,8 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
         strokes={view.strokes}
         canDraw={view.canDraw}
         currentDrawerName={view.currentDrawerName}
-        remainingSeconds={remainingSeconds}
+        remainingSeconds={0}
+        deadlineAtMs={view.deadlineAtMs}
         currentRound={view.currentRound}
         totalRounds={view.totalRounds}
         roomCode={room.code}
@@ -324,6 +334,8 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
         onUndo={view.canDraw ? () => void undoStroke() : undefined}
         onEmitStroke={(payload) => void emitStroke(payload)}
         onEmitStrokePoints={(payload) => void emitStrokePoints(payload)}
+        onEmitStrokeEnd={emitStrokeEnd}
+        canvasRef={canvasRef}
       />
     );
   }
@@ -345,7 +357,8 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
         gameIcon={IMPOSTER_DRAW_GAME_ICON}
         questionTitle="من هو الإمبوستر؟"
         questionHelper=""
-        remainingSeconds={remainingSeconds}
+        remainingSeconds={0}
+        deadlineAtMs={view.deadlineAtMs}
         showTimer
         isSubmitting={isSubmittingAction}
         errorMessage={actionError}
@@ -365,7 +378,8 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
         impostorName={view.revealedImpostorName}
         impostorPlayerId={view.revealedImpostorPlayerId}
         impostorVotedOut={view.impostorVotedOut}
-        remainingSeconds={remainingSeconds}
+        remainingSeconds={0}
+        deadlineAtMs={view.deadlineAtMs}
         currentRound={view.currentRound}
         totalRounds={view.totalRounds}
         roomCode={room.code}
@@ -386,7 +400,8 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
         gameName={IMPOSTER_DRAW_GAME_NAME}
         gameIcon={IMPOSTER_DRAW_GAME_ICON}
         phaseLabel="تخمين الصورة"
-        remainingSeconds={remainingSeconds}
+        remainingSeconds={0}
+        deadlineAtMs={view.deadlineAtMs}
         showTimer
         showOptionsToObservers={false}
         waitingTitle="الإمبوستر يحاول تخمين الصورة..."
@@ -417,7 +432,11 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
           currentRound={view.currentRound}
           totalRounds={view.totalRounds}
           phaseLabel="نتيجة التخمين"
-          timer={{ remainingSeconds, format: 'seconds', lowTimeThreshold: 2 }}
+          timer={resolveHeaderTimer({
+            deadlineAtMs: view.deadlineAtMs,
+            format: 'seconds',
+            lowTimeThreshold: 2,
+          })}
         />
         <GameCard className="px-5 py-12 text-center">
           <p className="text-3xl font-bold text-wanas-text-primary">
@@ -443,7 +462,8 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
           roundNumber={view.currentRound}
           totalRounds={view.totalRounds}
           roomCode={room.code}
-          remainingSeconds={remainingSeconds}
+          remainingSeconds={0}
+          deadlineAtMs={view.deadlineAtMs}
           totalDurationSeconds={IMPOSTER_DRAW_ROUND_RESULTS_SECONDS}
           continueLabel={view.canContinueFromRoundResults ? view.roundResultsContinueLabel : null}
           waitingMessage={view.roundResultsWaitingMessage}

@@ -1,7 +1,7 @@
 'use client';
 
-import { Canvas, useThree } from '@react-three/fiber';
-import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { GuessingChallengeSceneProps, GuessingChallengeTeamSeat } from '../scene-props';
 import { FirstPersonGameScene } from '../first-person-game-scene';
 import { resolveIdentityCardText } from '../identity-display';
@@ -11,6 +11,8 @@ import { LookControls, type LookControlsHandle } from './look-controls';
 import { BeanCharacter } from './bean-character';
 import { LoungeRoom, OrangeArmchair } from './lounge-room';
 import { LowPolyOpponent } from './low-poly-opponent';
+import { registerGcCanvasInvalidator } from './look-runtime';
+import { useCompactGcGpu, usePageVisible } from './gpu-profile';
 import {
   CAMERA_FOV,
   cameraPositionForSeat,
@@ -24,6 +26,8 @@ const YAW_1V1 = (38 * Math.PI) / 180;
 /** 90° yaw so the local player can look to the far room corner / teammate. */
 const YAW_2V2 = (90 * Math.PI) / 180;
 const PITCH_LIMIT = (18 * Math.PI) / 180;
+const OPPONENT_REACH_RIGHT: [number, number, number] = [0.42, 0.48, 0.42];
+const OPPONENT_REACH_LEFT: [number, number, number] = [-0.42, 0.48, 0.42];
 
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
@@ -49,11 +53,60 @@ function opponentTint(
 }
 
 function CameraAnchor({ position }: { position: [number, number, number] }) {
-  const { camera } = useThree();
+  const camera = useThree((state) => state.camera);
   const [x, y, z] = position;
   useLayoutEffect(() => {
     camera.position.set(x, y, z);
   }, [camera, x, y, z]);
+  return null;
+}
+
+function SceneFramePulse({ reduceMotion }: { reduceMotion: boolean }) {
+  const invalidate = useThree((state) => state.invalidate);
+  const reduceMotionRef = useRef(reduceMotion);
+  reduceMotionRef.current = reduceMotion;
+
+  useEffect(() => registerGcCanvasInvalidator(invalidate), [invalidate]);
+
+  useFrame(() => {
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+      return;
+    }
+    if (!reduceMotionRef.current) {
+      invalidate();
+    }
+  });
+
+  return null;
+}
+
+function MobileShadowFreeze({ enabled }: { enabled: boolean }) {
+  const gl = useThree((state) => state.gl);
+  const frames = useRef(0);
+
+  useEffect(() => {
+    frames.current = 0;
+    gl.shadowMap.autoUpdate = true;
+    return () => {
+      gl.shadowMap.autoUpdate = true;
+    };
+  }, [enabled, gl]);
+
+  useFrame(() => {
+    if (!enabled) {
+      if (!gl.shadowMap.autoUpdate) {
+        gl.shadowMap.autoUpdate = true;
+      }
+      return;
+    }
+    if (gl.shadowMap.autoUpdate) {
+      frames.current += 1;
+      if (frames.current >= 10) {
+        gl.shadowMap.autoUpdate = false;
+      }
+    }
+  });
+
   return null;
 }
 
@@ -91,6 +144,8 @@ function TeammateSeat({
       <group position={[0, 0.4, 0.06]}>
         <BeanCharacter
           teamTint={tint}
+          lookPlayerId={teammate.playerId}
+          lookFacing="same-as-local"
           lookYaw={lookYaw}
           lookPitch={lookPitch}
           lookYawScale={lookYawScale}
@@ -138,10 +193,12 @@ function TeammateSeat({
 function SceneContent({
   props,
   reduceMotion,
+  compactGpu,
   onLookReady,
 }: {
   props: GuessingChallengeSceneProps;
   reduceMotion: boolean;
+  compactGpu: boolean;
   onLookReady: (handle: LookControlsHandle) => void;
 }) {
   const revealed = props.mode === 'reveal';
@@ -170,6 +227,8 @@ function SceneContent({
 
   return (
     <>
+      <SceneFramePulse reduceMotion={reduceMotion} />
+      <MobileShadowFreeze enabled={compactGpu} />
       <CameraAnchor position={cameraPosition} />
       <color attach="background" args={['#2e1065']} />
       <fog attach="fog" args={['#3b0764', 8, 18]} />
@@ -179,7 +238,7 @@ function SceneContent({
         intensity={0.95}
         position={[2.2, 4.8, 1.5]}
         color="#ffedd5"
-        shadow-mapSize={[1024, 1024]}
+        shadow-mapSize={compactGpu ? [512, 512] : [1024, 1024]}
       />
       <pointLight intensity={0.5} position={[0, 2.4, -1]} color="#fdba74" />
       <pointLight intensity={0.35} position={[0, 2.6, -3.8]} color="#f472b6" />
@@ -193,7 +252,7 @@ function SceneContent({
         onLookChange={props.onLookChange}
       />
 
-      <LoungeRoom />
+      <LoungeRoom compactGpu={compactGpu} />
 
       <FirstPersonHands
         selfName={props.selfName}
@@ -227,9 +286,10 @@ function SceneContent({
           {/* Left opponent — RIGHT (inner) hand toward shared card */}
           <LowPolyOpponent
             name={opponents[0].name}
+            lookPlayerId={opponents[0].playerId}
             holdOwnCard={false}
             holdHand="right"
-            reachToward={[0.42, 0.48, 0.42]}
+            reachToward={OPPONENT_REACH_RIGHT}
             teamTint={oppTint}
             teamDot={oppDot}
             lookYaw={mapRemoteLookYaw(opponents[0].lookYaw ?? 0, 'toward-camera')}
@@ -244,9 +304,10 @@ function SceneContent({
           {/* Right opponent — LEFT (inner) hand toward shared card */}
           <LowPolyOpponent
             name={opponents[1].name}
+            lookPlayerId={opponents[1].playerId}
             holdOwnCard={false}
             holdHand="left"
-            reachToward={[-0.42, 0.48, 0.42]}
+            reachToward={OPPONENT_REACH_LEFT}
             teamTint={oppTint}
             teamDot={oppDot}
             lookYaw={mapRemoteLookYaw(opponents[1].lookYaw ?? 0, 'toward-camera')}
@@ -262,6 +323,7 @@ function SceneContent({
       ) : (
         <LowPolyOpponent
           name={opponents[0]?.name ?? props.opponentName}
+          lookPlayerId={opponents[0]?.playerId}
           identity={props.opponentIdentity}
           holdOwnCard
           holdHand="both"
@@ -296,6 +358,8 @@ export function Real3DSceneInner(props: GuessingChallengeSceneProps) {
   const [look, setLook] = useState<LookControlsHandle | null>(null);
   const [canvasFailed, setCanvasFailed] = useState(false);
   const reduceMotion = usePrefersReducedMotion();
+  const compactGpu = useCompactGcGpu();
+  const pageVisible = usePageVisible();
   const onLookReady = useCallback((handle: LookControlsHandle) => {
     setLook(handle);
   }, []);
@@ -332,15 +396,19 @@ export function Real3DSceneInner(props: GuessingChallengeSceneProps) {
 
       <div className="gc-real3d-canvas-shell">
         <Canvas
+          frameloop={pageVisible ? 'demand' : 'never'}
           shadows
-          dpr={[1, 1.5]}
+          dpr={compactGpu ? [1, 1] : [1, 1.5]}
           camera={{
             position: cameraPositionForSeat(props.matchMode, props.selfSeat),
             fov: CAMERA_FOV,
             near: 0.15,
             far: 40,
           }}
-          gl={{ antialias: true, powerPreference: 'high-performance' }}
+          gl={{
+            antialias: !compactGpu,
+            powerPreference: compactGpu ? 'low-power' : 'high-performance',
+          }}
           onCreated={({ gl }) => {
             gl.setClearColor('#2e1065');
           }}
@@ -351,7 +419,12 @@ export function Real3DSceneInner(props: GuessingChallengeSceneProps) {
           style={{ width: '100%', height: '100%' }}
         >
           <Suspense fallback={null}>
-            <SceneContent props={props} reduceMotion={reduceMotion} onLookReady={onLookReady} />
+            <SceneContent
+              props={props}
+              reduceMotion={reduceMotion}
+              compactGpu={compactGpu}
+              onLookReady={onLookReady}
+            />
           </Suspense>
         </Canvas>
       </div>

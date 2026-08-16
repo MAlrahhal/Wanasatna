@@ -11,7 +11,7 @@ export type GameLeaderboardEntry = {
 };
 
 export type GameExperienceTimer = {
-  remainingSeconds: number;
+  deadlineAtMs: number;
   format?: 'mm:ss' | 'seconds';
   lowTimeThreshold?: number;
 };

@@ -5,16 +5,15 @@ import type { WhoWroteItPlayerView } from '@wanasatna/shared';
 import {
   decideFinalCue,
   decideRoundResult,
-  decideTimeUp,
   localWonMatch,
 } from '@/lib/game/sfx-policy';
+import { useDeadlineTimeUpSfx } from '@/lib/game/use-deadline-time-up-sfx';
 import { useViewTransitionSfx } from '@/lib/game/use-view-sfx';
 
 const TIMED = new Set(['answering', 'guessing']);
 
 type Snap = {
   phase: WhoWroteItPlayerView['gamePhase'];
-  remaining: number;
   roundId: string;
   spectator: boolean;
   localWon: boolean;
@@ -24,14 +23,6 @@ type Snap = {
 
 function decide(prev: Snap, next: Snap) {
   return [
-    decideTimeUp({
-      prevReady: true,
-      prevRemaining: prev.remaining,
-      remaining: next.remaining,
-      phase: next.phase,
-      timedPhases: TIMED,
-      eventKey: `timeup:who-wrote-it:${next.roundId}:${next.phase}`,
-    }),
     decideRoundResult({
       prevReady: true,
       prevPhase: prev.phase,
@@ -58,15 +49,19 @@ function decide(prev: Snap, next: Snap) {
 export function useWhoWroteItSfx(
   view: WhoWroteItPlayerView | null,
   playerId: string | undefined,
-  remaining: number,
 ): void {
+  useDeadlineTimeUpSfx({
+    deadlineAtMs: view?.deadlineAtMs,
+    enabled: Boolean(view && playerId && TIMED.has(view.gamePhase)),
+    eventKey: `timeup:who-wrote-it:${view?.roundId ?? `r${view?.currentRound ?? 0}`}:${view?.gamePhase ?? 'none'}`,
+  });
+
   const snapshot = useMemo<Snap | null>(() => {
     if (!view || !playerId) {
       return null;
     }
     return {
       phase: view.gamePhase,
-      remaining,
       roundId: view.roundId ?? `r${view.currentRound}`,
       spectator: view.isMatchSpectator,
       localWon: localWonMatch(view.resultsLeaderboard, playerId),
@@ -74,7 +69,7 @@ export function useWhoWroteItSfx(
         (view.roundResults.find((entry) => entry.playerId === playerId)?.correctCount ?? 0) > 0,
       round: view.currentRound,
     };
-  }, [view, playerId, remaining]);
+  }, [view, playerId]);
 
   useViewTransitionSfx(snapshot, decide);
 }

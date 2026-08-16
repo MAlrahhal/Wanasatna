@@ -1,7 +1,7 @@
 'use client';
 
 import type { WebClientGamePlugin } from '@/lib/game-plugins/types';
-import { TimingChallengeGameScreen } from './game-screen';
+import { lazyGameScreen } from '@/lib/game-plugins/lazy-game-screen';
 
 export const timingChallengeClientPlugin: WebClientGamePlugin = {
   metadata: {
@@ -11,5 +11,7 @@ export const timingChallengeClientPlugin: WebClientGamePlugin = {
     iconLabel: 'ت',
     minPlayers: 2,
   },
-  GameScreen: TimingChallengeGameScreen,
+  GameScreen: lazyGameScreen(() =>
+    import('./game-screen').then((mod) => mod.TimingChallengeGameScreen),
+  ),
 };

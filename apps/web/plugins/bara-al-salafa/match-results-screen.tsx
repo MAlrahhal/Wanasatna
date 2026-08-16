@@ -5,6 +5,7 @@ import { GameHeader } from '@/components/game/game-header';
 import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
 import { Button } from '@/components/ui/button';
 import { BARA_AL_SALAFA_GAME_ICON } from '@/lib/game/bara-al-salafa-brand';
+import { useDeadlineClock } from '@/lib/game/use-deadline-clock';
 import { presentSystemCopy } from '@/lib/ui/system-copy';
 import { cn } from '@/lib/utils';
 
@@ -26,6 +27,7 @@ export type MatchResultsScreenProps = {
   gameName?: string;
   returnStatusMessage?: string | null;
   autoReturnSeconds?: number;
+  autoReturnDeadlineAtMs?: number | null;
   autoReturnTotalSeconds?: number;
   isReturnToLobbyLoading?: boolean;
   onReturnToLobby?: () => void;
@@ -230,6 +232,7 @@ function MatchStats({
 function MatchActionsFooter({
   returnStatusMessage,
   autoReturnSeconds,
+  autoReturnDeadlineAtMs,
   autoReturnTotalSeconds,
   isReturnToLobbyLoading,
   onReturnToLobby,
@@ -238,17 +241,20 @@ function MatchActionsFooter({
   MatchResultsScreenProps,
   | 'returnStatusMessage'
   | 'autoReturnSeconds'
+  | 'autoReturnDeadlineAtMs'
   | 'autoReturnTotalSeconds'
   | 'isReturnToLobbyLoading'
   | 'onReturnToLobby'
   | 'onPlayAgain'
 >) {
+  const liveRemaining = useDeadlineClock(autoReturnDeadlineAtMs);
   const total = Math.max(autoReturnTotalSeconds ?? 30, 1);
-  const remaining = Math.max(0, autoReturnSeconds ?? 0);
-  const progressPercent =
-    typeof autoReturnSeconds === 'number'
-      ? Math.round((Math.min(remaining, total) / total) * 100)
-      : null;
+  const remaining = Math.max(
+    0,
+    autoReturnDeadlineAtMs != null ? liveRemaining : (autoReturnSeconds ?? 0),
+  );
+  const hasAutoReturn = autoReturnDeadlineAtMs != null || typeof autoReturnSeconds === 'number';
+  const progressPercent = hasAutoReturn ? Math.round((Math.min(remaining, total) / total) * 100) : null;
 
   const progressBar =
     progressPercent === null ? null : (
@@ -267,10 +273,9 @@ function MatchActionsFooter({
       </div>
     );
 
-  const autoMessage =
-    typeof autoReturnSeconds === 'number'
-      ? `العودة إلى اللوبي تلقائياً خلال ${remaining} ثانية`
-      : null;
+  const autoMessage = hasAutoReturn
+    ? `العودة إلى اللوبي تلقائياً خلال ${remaining} ثانية`
+    : null;
 
   if (onReturnToLobby && !returnStatusMessage) {
     return (
@@ -321,6 +326,7 @@ export function MatchResultsScreen({
   gameName = 'برا السالفة',
   returnStatusMessage = null,
   autoReturnSeconds,
+  autoReturnDeadlineAtMs,
   autoReturnTotalSeconds,
   isReturnToLobbyLoading = false,
   onReturnToLobby,
@@ -361,6 +367,7 @@ export function MatchResultsScreen({
         <MatchActionsFooter
           returnStatusMessage={returnStatusMessage}
           autoReturnSeconds={autoReturnSeconds}
+          autoReturnDeadlineAtMs={autoReturnDeadlineAtMs}
           autoReturnTotalSeconds={autoReturnTotalSeconds}
           isReturnToLobbyLoading={isReturnToLobbyLoading}
           onReturnToLobby={onReturnToLobby}

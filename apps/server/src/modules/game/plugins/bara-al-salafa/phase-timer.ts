@@ -1,14 +1,14 @@
 import type { Server } from 'socket.io';
 import type { BaraAlSalafaMatchState } from '@wanasatna/shared';
-import { BARA_AL_SALAFA_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
-import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
-import { getBaraAlSalafaState, setBaraAlSalafaState } from './store.js';
+import { remainingMsUntilDeadline } from '../../runtime/phase-deadline.js';
 import { withRound } from './round-state.js';
+import { getBaraAlSalafaState, setBaraAlSalafaState } from './store.js';
 
-const timersByRoomId = new Map<string, ReturnType<typeof setInterval>>();
+const timersByRoomId = new Map<string, ReturnType<typeof setTimeout>>();
 const timerGenerationByRoomId = new Map<string, number>();
 const pausedRoomIds = new Set<string>();
+const pausedRemainingMsByRoomId = new Map<string, number>();
 
 type PhaseExpiredHandler = (
   io: Server,
@@ -30,6 +30,17 @@ const TIMED_PHASES = new Set<BaraAlSalafaMatchState['round']['gamePhase']>([
   'match-completed',
 ]);
 
+function roundToken(match: BaraAlSalafaMatchState): string {
+  const round = match.round;
+  return [
+    match.currentRound,
+    round.gamePhase,
+    round.currentSpeakerIndex,
+    round.activeFreeQuestionPlayerId ?? '',
+    round.pendingFreeQuestionTargetPlayerId ?? '',
+  ].join(':');
+}
+
 export function registerBaraPhaseExpiredHandler(handler: PhaseExpiredHandler): void {
   phaseExpiredHandler = handler;
 }
@@ -46,29 +57,89 @@ export function bumpPhaseTimerGeneration(roomId: string): number {
 
 export function pausePhaseTimer(roomId: string): void {
   pausedRoomIds.add(roomId);
+
+  const match = getBaraAlSalafaState(roomId);
+
+  if (match && TIMED_PHASES.has(match.round.gamePhase)) {
+    pausedRemainingMsByRoomId.set(
+      roomId,
+      remainingMsUntilDeadline(match.round.deadlineAtMs, match.round.phaseRemainingSeconds),
+    );
+  }
+
   stopPhaseTimer(roomId);
 }
 
 export function resumePhaseTimer(io: Server, roomId: string): void {
   pausedRoomIds.delete(roomId);
+
+  const remainingMs = pausedRemainingMsByRoomId.get(roomId);
+  pausedRemainingMsByRoomId.delete(roomId);
+
+  const match = getBaraAlSalafaState(roomId);
+
+  if (remainingMs !== undefined && match && TIMED_PHASES.has(match.round.gamePhase)) {
+    setBaraAlSalafaState(
+      roomId,
+      withRound(match, {
+        ...match.round,
+        deadlineAtMs: Date.now() + remainingMs,
+        phaseRemainingSeconds: Math.max(0, Math.ceil(remainingMs / 1000)),
+      }),
+    );
+  }
+
   startPhaseTimerIfNeeded(io, roomId);
 }
 
 export function stopPhaseTimer(roomId: string): void {
-  const intervalId = timersByRoomId.get(roomId);
+  const timeoutId = timersByRoomId.get(roomId);
 
-  if (!intervalId) {
+  if (!timeoutId) {
     return;
   }
 
-  clearInterval(intervalId);
+  clearTimeout(timeoutId);
   timersByRoomId.delete(roomId);
 }
 
 export function clearPhaseTimerRuntime(roomId: string): void {
   stopPhaseTimer(roomId);
   pausedRoomIds.delete(roomId);
+  pausedRemainingMsByRoomId.delete(roomId);
   timerGenerationByRoomId.delete(roomId);
+}
+
+function firePhaseExpiry(
+  io: Server,
+  roomId: string,
+  generation: number,
+  scheduledPhase: BaraAlSalafaMatchState['round']['gamePhase'],
+  scheduledToken: string,
+): void {
+  if (timerGenerationByRoomId.get(roomId) !== generation) {
+    return;
+  }
+
+  stopPhaseTimer(roomId);
+
+  const match = getBaraAlSalafaState(roomId);
+
+  if (
+    !match ||
+    match.round.gamePhase !== scheduledPhase ||
+    roundToken(match) !== scheduledToken
+  ) {
+    return;
+  }
+
+  const shell = getGameShellByRoomId(roomId);
+
+  if (!shell || shell.phase !== 'PLAYING') {
+    return;
+  }
+
+  phaseExpiredHandler?.(io, roomId, match);
 }
 
 export function startPhaseTimerIfNeeded(io: Server, roomId: string): void {
@@ -83,44 +154,23 @@ export function startPhaseTimerIfNeeded(io: Server, roomId: string): void {
   }
 
   const generation = timerGenerationByRoomId.get(roomId) ?? bumpPhaseTimerGeneration(roomId);
+  const scheduledPhase = match.round.gamePhase;
+  const scheduledToken = roundToken(match);
+  const delayMs = remainingMsUntilDeadline(
+    match.round.deadlineAtMs,
+    match.round.phaseRemainingSeconds,
+  );
 
-  const intervalId = setInterval(() => {
-    if (timerGenerationByRoomId.get(roomId) !== generation) {
-      clearInterval(intervalId);
-      timersByRoomId.delete(roomId);
-      return;
-    }
+  if (delayMs <= 0) {
+    firePhaseExpiry(io, roomId, generation, scheduledPhase, scheduledToken);
+    return;
+  }
 
-    const currentMatch = getBaraAlSalafaState(roomId);
+  const timeoutId = setTimeout(() => {
+    firePhaseExpiry(io, roomId, generation, scheduledPhase, scheduledToken);
+  }, delayMs);
 
-    if (!currentMatch || !TIMED_PHASES.has(currentMatch.round.gamePhase)) {
-      stopPhaseTimer(roomId);
-      return;
-    }
-
-    const shell = getGameShellByRoomId(roomId);
-
-    if (!shell || shell.phase !== 'PLAYING') {
-      stopPhaseTimer(roomId);
-      return;
-    }
-
-    const remainingSeconds = Math.max(0, currentMatch.round.phaseRemainingSeconds - 1);
-    const nextMatch = withRound(currentMatch, {
-      ...currentMatch.round,
-      phaseRemainingSeconds: remainingSeconds,
-    });
-
-    setBaraAlSalafaState(roomId, nextMatch);
-    io.to(getRoomChannel(roomId)).emit(BARA_AL_SALAFA_PHASE_CHANGED_EVENT, {});
-
-    if (remainingSeconds <= 0) {
-      stopPhaseTimer(roomId);
-      phaseExpiredHandler?.(io, roomId, nextMatch);
-    }
-  }, 1000);
-
-  timersByRoomId.set(roomId, intervalId);
+  timersByRoomId.set(roomId, timeoutId);
 }
 
 /** Stop any running timer, bump generation, then start if the current phase is timed. */

@@ -46,6 +46,7 @@ export type ImposterDrawRoundState = {
   turnDurationSeconds: number;
   gamePhase: ImposterDrawGamePhase;
   phaseRemainingSeconds: number;
+  deadlineAtMs: number | null;
   strokes: DrawStroke[];
   roleUnderstoodPlayerIds: string[];
   votes: Record<string, string>;
@@ -89,6 +90,7 @@ export type ImposterDrawPlayerView = {
   gamePhase: ImposterDrawGamePhase;
   phaseLabel: string;
   phaseRemainingSeconds: number;
+  deadlineAtMs: number | null;
   role: ImposterDrawRole;
   /** Only present during briefing for crew (or reconnect during briefing). Never after. */
   referenceImage: ImposterDrawReferenceImage | null;
@@ -173,10 +175,11 @@ export const IMPOSTER_DRAW_STATE_EVENT = pluginStateEvent(IMPOSTER_DRAW_GAME_ID)
 export type ImposterDrawStrokePayload = {
   turnId: string;
   strokeId: string;
-  tool: DrawGuessTool;
-  color: string;
-  size: number;
-  points: DrawStrokePoint[];
+  tool?: DrawGuessTool;
+  color?: string;
+  size?: number;
+  /** Present on stroke start. Omitted/empty on stroke end so history is not resent. */
+  points?: DrawStrokePoint[];
 };
 
 export type ImposterDrawStrokePointsPayload = {

@@ -16,6 +16,7 @@ import {
   GUESSING_CHALLENGE_GAME_ICON,
   GUESSING_CHALLENGE_GAME_NAME,
 } from '@/lib/game/guessing-challenge-brand';
+import { toExperienceTimer } from '@/lib/game/deadline-clock';
 import { mapGuessingChallengeLeaderboard } from '@/lib/game/map-guessing-challenge-leaderboard';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-screen';
@@ -63,7 +64,6 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
     actionError,
     guessFeedback,
     isSubmittingAction,
-    remainingSeconds,
     endQuestion,
     submitFinalGuess,
     useYellowCard,
@@ -73,7 +73,7 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
     emitLook,
   } = useGuessingChallengePlayerView(pluginEnabled);
 
-  useGuessingChallengeSfx(view, player?.id, remainingSeconds, guessFeedback);
+  useGuessingChallengeSfx(view, player?.id, guessFeedback);
 
   const activeFinalResultsView =
     finalResultsView ?? (view?.gamePhase === 'match-completed' ? view : null);
@@ -117,11 +117,10 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
         : undefined,
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
-      timer: {
-        remainingSeconds,
-        format: 'seconds' as const,
+      timer: toExperienceTimer(activeView.deadlineAtMs, {
+        format: 'seconds',
         lowTimeThreshold: 5,
-      },
+      }),
       leaderboardEntries: mapGuessingChallengeLeaderboard(activeView, player.id, players),
     });
   }, [
@@ -130,7 +129,6 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
     player,
     players,
     pluginEnabled,
-    remainingSeconds,
     setExperienceMeta,
     showFinalMatchResults,
     view,
@@ -177,9 +175,9 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
         playerCount={activeFinalResultsView.resultsLeaderboard.length}
         roomCode={room.code}
         gameName={GUESSING_CHALLENGE_GAME_NAME}
-        autoReturnSeconds={
+        autoReturnDeadlineAtMs={
           activeFinalResultsView.gamePhase === 'match-completed'
-            ? remainingSeconds
+            ? activeFinalResultsView.deadlineAtMs
             : undefined
         }
         autoReturnTotalSeconds={
@@ -244,7 +242,8 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
         currentPlayerId={player.id}
         roomCode={room.code}
         isContinueLoading={isSubmittingAction}
-        remainingSeconds={remainingSeconds}
+        remainingSeconds={0}
+        deadlineAtMs={view.deadlineAtMs}
         totalDurationSeconds={GUESSING_CHALLENGE_ROUND_RESULTS_SECONDS}
         onContinue={continueFromRoundResults}
       />

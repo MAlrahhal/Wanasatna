@@ -1115,11 +1115,10 @@ export function buildGuessingChallengePlayerView(
     phaseLabel: isMatchSpectator
       ? 'الجولة جارية'
       : `${PHASE_LABELS[phase]} — الجولة ${match.currentRound}/${match.totalRounds}`,
-    phaseRemainingSeconds:
-      phase === 'playing'
-        ? remainingSecondsFromDeadline(match.round.deadlineAtMs)
-        : match.round.phaseRemainingSeconds,
-    deadlineAtMs: phase === 'playing' ? match.round.deadlineAtMs : null,
+    phaseRemainingSeconds: match.round.deadlineAtMs
+      ? remainingSecondsFromDeadline(match.round.deadlineAtMs)
+      : match.round.phaseRemainingSeconds,
+    deadlineAtMs: match.round.deadlineAtMs,
     roundId: match.round.roundId,
     turnId: match.round.turnId,
     categoryId: match.lockedCategoryId,

@@ -19,6 +19,7 @@ import {
 } from '@wanasatna/shared';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
+import { clearGcLooks, setGcLook } from './real3d/look-runtime';
 
 type SyncResponse = {
   view: GuessingChallengePlayerView;
@@ -39,39 +40,13 @@ async function fetchPlayerView(): Promise<{
   return { view: response.data.view, errorMessage: null };
 }
 
-function patchLookInView(
-  view: GuessingChallengePlayerView,
-  payload: GuessingChallengeLookUpdatePayload,
-): GuessingChallengePlayerView {
-  const { playerId, yaw, pitch } = payload;
-  let changed = false;
-
-  const teammate =
-    view.teammate?.playerId === playerId
-      ? { ...view.teammate, lookYaw: yaw, lookPitch: pitch }
-      : view.teammate;
-
-  if (teammate !== view.teammate) {
-    changed = true;
+function seedLooksFromView(view: GuessingChallengePlayerView): void {
+  if (view.teammate) {
+    setGcLook(view.teammate.playerId, view.teammate.lookYaw ?? 0, view.teammate.lookPitch ?? 0);
   }
-
-  const opponents = view.opponents.map((opponent) => {
-    if (opponent.playerId !== playerId) {
-      return opponent;
-    }
-    changed = true;
-    return { ...opponent, lookYaw: yaw, lookPitch: pitch };
-  });
-
-  if (!changed) {
-    return view;
+  for (const opponent of view.opponents) {
+    setGcLook(opponent.playerId, opponent.lookYaw ?? 0, opponent.lookPitch ?? 0);
   }
-
-  return {
-    ...view,
-    teammate,
-    opponents,
-  };
 }
 
 export function useGuessingChallengePlayerView(enabled: boolean) {
@@ -81,7 +56,6 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [guessFeedback, setGuessFeedback] = useState<string | null>(null);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
-  const [remainingSeconds, setRemainingSeconds] = useState(0);
   const hasViewRef = useRef(false);
 
   const syncView = useCallback(async () => {
@@ -96,6 +70,7 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
 
     if (result.view) {
       hasViewRef.current = true;
+      seedLooksFromView(result.view);
       setView(result.view);
       setErrorMessage(null);
     } else if (isInitialLoad) {
@@ -110,13 +85,13 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
   useEffect(() => {
     if (!enabled) {
       hasViewRef.current = false;
+      clearGcLooks();
       setView(null);
       setErrorMessage(null);
       setIsLoading(false);
       setActionError(null);
       setGuessFeedback(null);
       setIsSubmittingAction(false);
-      setRemainingSeconds(0);
       return;
     }
 
@@ -129,31 +104,7 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
     }
 
     setGuessFeedback(null);
-
-    if (view.gamePhase === 'playing' && view.deadlineAtMs) {
-      const updateRemaining = () => {
-        setRemainingSeconds(
-          Math.max(0, Math.ceil((view.deadlineAtMs! - Date.now()) / 1000)),
-        );
-      };
-      updateRemaining();
-      const intervalId = window.setInterval(updateRemaining, 250);
-      return () => window.clearInterval(intervalId);
-    }
-
-    setRemainingSeconds(view.phaseRemainingSeconds);
-    const intervalId = window.setInterval(() => {
-      setRemainingSeconds((current) => Math.max(0, current - 1));
-    }, 1000);
-    return () => window.clearInterval(intervalId);
-  }, [
-    enabled,
-    view?.deadlineAtMs,
-    view?.gamePhase,
-    view?.phaseRemainingSeconds,
-    view?.roundId,
-    view?.turnId,
-  ]);
+  }, [enabled, view?.gamePhase, view?.roundId, view?.turnId]);
 
   useEffect(() => {
     if (!enabled) {
@@ -173,7 +124,7 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
       ) {
         return;
       }
-      setView((prev) => (prev ? patchLookInView(prev, payload) : prev));
+      setGcLook(payload.playerId, payload.yaw, payload.pitch);
     };
 
     socket.on(GUESSING_CHALLENGE_PHASE_CHANGED_EVENT, onPhaseChanged);
@@ -202,6 +153,7 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
       }
 
       if (response.data?.view) {
+        seedLooksFromView(response.data.view);
         setView(response.data.view);
       }
       if (typeof response.data.guessFeedback === 'string') {
@@ -303,7 +255,6 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
     actionError,
     guessFeedback,
     isSubmittingAction,
-    remainingSeconds,
     endQuestion,
     submitFinalGuess,
     useYellowCard,

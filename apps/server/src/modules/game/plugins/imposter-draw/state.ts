@@ -14,6 +14,7 @@ import {
 } from '@wanasatna/shared';
 import { randomUUID } from 'node:crypto';
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
+import { remainingSecondsFromDeadline, timedPhaseClock } from '../../runtime/phase-deadline.js';
 import { buildPlaceholderImageUrl, pickImposterDrawImage } from './images.js';
 import {
   buildLeaderboardEntries,
@@ -108,7 +109,7 @@ export function createRoundState(
       currentTurnStrokeIds: [],
       turnDurationSeconds,
       gamePhase: 'briefing',
-      phaseRemainingSeconds: timedPhaseDurations.imposterDrawBriefing(),
+      ...timedPhaseClock(timedPhaseDurations.imposterDrawBriefing()),
       strokes: [],
       roleUnderstoodPlayerIds: [],
       votes: {},
@@ -167,6 +168,18 @@ function buildReferenceImage(round: ImposterDrawRoundState) {
   };
 }
 
+function visiblePhaseClock(round: ImposterDrawRoundState): {
+  phaseRemainingSeconds: number;
+  deadlineAtMs: number | null;
+} {
+  return {
+    phaseRemainingSeconds: round.deadlineAtMs
+      ? remainingSecondsFromDeadline(round.deadlineAtMs)
+      : round.phaseRemainingSeconds,
+    deadlineAtMs: round.deadlineAtMs,
+  };
+}
+
 export function buildImposterDrawSpectatorView(match: ImposterDrawMatchState): ImposterDrawPlayerView {
   const round = match.round;
   const isDrawing = round.gamePhase === 'drawing-turns';
@@ -187,7 +200,7 @@ export function buildImposterDrawSpectatorView(match: ImposterDrawMatchState): I
   return {
     gamePhase: round.gamePhase,
     phaseLabel: 'الجولة جارية',
-    phaseRemainingSeconds: round.phaseRemainingSeconds,
+    ...visiblePhaseClock(round),
     role: 'crew',
     referenceImage: null,
     turnId: round.turnId,
@@ -260,7 +273,7 @@ export function buildImposterDrawPlayerView(
   const baseView: ImposterDrawPlayerView = {
     gamePhase: round.gamePhase,
     phaseLabel: buildRoundPhaseLabel(match),
-    phaseRemainingSeconds: round.phaseRemainingSeconds,
+    ...visiblePhaseClock(round),
     role: isImpostor ? 'impostor' : 'crew',
     referenceImage: isBriefing && !isImpostor ? buildReferenceImage(round) : null,
     turnId: round.turnId,

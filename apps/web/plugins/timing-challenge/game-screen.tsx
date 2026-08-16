@@ -17,6 +17,7 @@ import {
   TIMING_CHALLENGE_GAME_ICON,
   TIMING_CHALLENGE_GAME_NAME,
 } from '@/lib/game/timing-challenge-brand';
+import { toExperienceTimer } from '@/lib/game/deadline-clock';
 import { mapTimingChallengeLeaderboard } from '@/lib/game/map-timing-challenge-leaderboard';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-screen';
@@ -46,7 +47,6 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
     view,
     errorMessage,
     isLoading,
-    remainingSeconds,
     actionError,
     isSubmittingAction,
     markReady,
@@ -99,7 +99,7 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
       timer: VISIBLE_TIMER_PHASES.has(activeView.gamePhase)
-        ? { remainingSeconds, format: 'seconds' as const, lowTimeThreshold: 5 }
+        ? toExperienceTimer(activeView.deadlineAtMs, { format: 'seconds', lowTimeThreshold: 5 })
         : undefined,
       leaderboardEntries: activeView.isMatchSpectator
         ? []
@@ -111,7 +111,6 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
     player,
     players,
     pluginEnabled,
-    remainingSeconds,
     setExperienceMeta,
     showFinalMatchResults,
     view,
@@ -153,7 +152,7 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
     const shellFinished = shellPhase === 'FINISHED';
     const isMatchCompletedPhase = activeFinalResultsView.gamePhase === 'match-completed';
     const autoReturnMessage = isMatchCompletedPhase
-      ? `العودة إلى اللوبي تلقائياً خلال ${Math.max(0, remainingSeconds)} ثانية`
+      ? null
       : !shellFinished
         ? SYSTEM_COPY.returningToLobby
         : !isHost
@@ -178,7 +177,7 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
         returnStatusMessage={
           isHost && (isMatchCompletedPhase || shellFinished) ? null : autoReturnMessage
         }
-        autoReturnSeconds={isMatchCompletedPhase ? remainingSeconds : undefined}
+        autoReturnDeadlineAtMs={isMatchCompletedPhase ? activeFinalResultsView.deadlineAtMs : undefined}
         autoReturnTotalSeconds={
           isMatchCompletedPhase ? MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS : undefined
         }
@@ -287,7 +286,8 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
           roundNumber={view.currentRound}
           totalRounds={view.totalRounds}
           roomCode={room.code}
-          remainingSeconds={remainingSeconds}
+          remainingSeconds={0}
+          deadlineAtMs={view.deadlineAtMs}
           totalDurationSeconds={TIMING_CHALLENGE_ROUND_RESULTS_SECONDS}
           continueLabel={view.canContinueFromRoundResults ? view.roundResultsContinueLabel : null}
           waitingMessage={view.roundResultsWaitingMessage}

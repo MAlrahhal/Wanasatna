@@ -360,10 +360,9 @@ export function buildJudgePlayerView(
     : undefined;
   const winnerOwnerId = getWinningOwnerId(match);
 
-  const phaseRemainingSeconds =
-    (phase === 'answering' || phase === 'judging') && match.round.deadlineAtMs
-      ? remainingSecondsFromDeadline(match.round.deadlineAtMs)
-      : match.round.phaseRemainingSeconds;
+  const phaseRemainingSeconds = match.round.deadlineAtMs
+    ? remainingSecondsFromDeadline(match.round.deadlineAtMs)
+    : match.round.phaseRemainingSeconds;
 
   const base: JudgePlayerView = {
     gamePhase: phase,
@@ -371,10 +370,7 @@ export function buildJudgePlayerView(
       ? 'الجولة جارية'
       : `${PHASE_LABELS[phase]} — الجولة ${match.currentRound}/${match.totalRounds}`,
     phaseRemainingSeconds,
-    deadlineAtMs:
-      (phase === 'answering' || phase === 'judging') && match.round.deadlineAtMs
-        ? match.round.deadlineAtMs
-        : null,
+    deadlineAtMs: match.round.deadlineAtMs,
     roundId: match.round.roundId,
     prompt: match.round.prompt,
     categoryId: match.lockedCategoryId,

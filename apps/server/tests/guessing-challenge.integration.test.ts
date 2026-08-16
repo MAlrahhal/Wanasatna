@@ -904,6 +904,102 @@ async function main(): Promise<void> {
     disconnectAll([a]);
   });
 
+  await runTest('1v1 disconnect does not complete match until expiry', async () => {
+    const { a, b } = await startMatch1v1();
+    b.socket.disconnect();
+    const { prisma } = await import('../src/lib/prisma.js');
+    await waitFor(async () => {
+      const row = await prisma.player.findUnique({ where: { id: b.id }, select: { status: true } });
+      return row?.status === 'DISCONNECTED' ? true : null;
+    }, 5000, 'B disconnected', 50);
+    await waitFor(async () => {
+      const view = await syncView(a);
+      return view.gamePhase === 'playing' ? view : null;
+    }, 5000, 'still playing after disconnect');
+
+    await prisma.player.update({
+      where: { id: b.id },
+      data: { lastSeenAt: new Date(Date.now() - 4 * 60 * 1000) },
+    });
+
+    await waitFor(async () => {
+      const row = await prisma.player.findUnique({ where: { id: b.id }, select: { status: true } });
+      return row?.status === 'LEFT' ? true : null;
+    }, 4000, '1v1 expired to LEFT', 100);
+
+    await waitFor(
+      async () => (a.navigations.some((path) => String(path).includes('lobby')) ? true : null),
+      12000,
+      '1v1 expiry lobby',
+    );
+    disconnectAll([a]);
+  });
+
+  await runTest('1v1 reconnect inside window does not complete match', async () => {
+    const { a, b } = await startMatch1v1();
+    const token = b.reconnectToken;
+    b.socket.disconnect();
+    await waitFor(async () => {
+      const view = await syncView(a);
+      return view.gamePhase === 'playing' ? view : null;
+    }, 5000, 'playing after disconnect');
+
+    b.socket = await connectClient();
+    trackClientEvents(b);
+    const resume = await ack<{ success: boolean }>(b.socket, RECONNECT_EVENT, {
+      playerId: b.id,
+      roomId: b.roomId,
+      roomCode: b.roomCode,
+      reconnectToken: token,
+    });
+    assert.equal(resume.success, true);
+    assert.equal((await syncView(a)).gamePhase, 'playing');
+    assert.equal((await syncView(b)).gamePhase, 'playing');
+    assert.equal(a.navigations.some((path) => String(path).includes('lobby')), false);
+    disconnectAll([a, b]);
+  });
+
+  await runTest('2v2 teammate expiry keeps team; last teammate expiry completes', async () => {
+    const { a, b, c, d } = await startMatch2v2();
+    assert.equal((await syncView(a)).teammate?.playerId, c.id);
+
+    c.socket.disconnect();
+    const { prisma } = await import('../src/lib/prisma.js');
+    await waitFor(async () => {
+      const row = await prisma.player.findUnique({ where: { id: c.id }, select: { status: true } });
+      return row?.status === 'DISCONNECTED' ? true : null;
+    }, 5000, 'C disconnected', 50);
+    await prisma.player.update({
+      where: { id: c.id },
+      data: { lastSeenAt: new Date(Date.now() - 4 * 60 * 1000) },
+    });
+
+    await waitFor(async () => {
+      const row = await prisma.player.findUnique({ where: { id: c.id }, select: { status: true } });
+      return row?.status === 'LEFT' ? true : null;
+    }, 4000, 'teammate expired to LEFT', 100);
+
+    const continued = await endQuestion(a);
+    assert.equal(continued.success, true, continued.error?.message ?? 'remaining teammate can still act');
+
+    a.socket.disconnect();
+    await waitFor(async () => {
+      const row = await prisma.player.findUnique({ where: { id: a.id }, select: { status: true } });
+      return row?.status === 'DISCONNECTED' ? true : null;
+    }, 5000, 'A disconnected', 50);
+    await prisma.player.update({
+      where: { id: a.id },
+      data: { lastSeenAt: new Date(Date.now() - 4 * 60 * 1000) },
+    });
+
+    await waitFor(
+      async () => (b.navigations.some((path) => String(path).includes('lobby')) ? true : null),
+      12000,
+      'last blue expiry lobby',
+    );
+    disconnectAll([b, d]);
+  });
+
   console.log(`\n${passed} passed, ${failed} failed`);
   process.exit(failed > 0 ? 1 : 0);
 }

@@ -68,6 +68,7 @@ function makeMatch(overrides?: Partial<BaraAlSalafaMatchState['round']>): BaraAl
       impostorPlayerId: 'p2',
       gamePhase: 'description',
       phaseRemainingSeconds: 20,
+      deadlineAtMs: Date.now() + 20_000,
       descriptionDurationSeconds: 20,
       questionTurnDurationSeconds: 60,
       speakingOrder: [],

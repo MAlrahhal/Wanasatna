@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import type { DrawGuessRoundResultEntry } from '@wanasatna/shared';
+import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
 import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
@@ -22,6 +23,7 @@ export type DrawGuessRoundResultsScreenProps = {
   totalRounds: number;
   roomCode: string;
   remainingSeconds?: number;
+  deadlineAtMs?: number | null;
   totalDurationSeconds?: number;
   continueLabel?: string | null;
   waitingMessage?: string | null;
@@ -41,6 +43,7 @@ export function DrawGuessRoundResultsScreen({
   totalRounds,
   roomCode,
   remainingSeconds = 0,
+  deadlineAtMs,
   totalDurationSeconds = 10,
   continueLabel,
   waitingMessage,
@@ -176,24 +179,11 @@ export function DrawGuessRoundResultsScreen({
             <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
               {presentSystemCopy(waitingMessage, SYSTEM_COPY.nextRoundAuto)}
             </p>
-            <div
-              className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={Math.max(totalDurationSeconds, 1)}
-              aria-valuenow={Math.max(0, Math.min(remainingSeconds, totalDurationSeconds))}
-            >
-              <div
-                className="h-full rounded-full bg-wanas-accent transition-[width] duration-200 ease-linear"
-                style={{
-                  width: `${Math.round(
-                    (Math.max(0, Math.min(remainingSeconds, totalDurationSeconds)) /
-                      Math.max(totalDurationSeconds, 1)) *
-                      100,
-                  )}%`,
-                }}
-              />
-            </div>
+            <DeadlineProgress
+              deadlineAtMs={deadlineAtMs}
+              remainingSeconds={remainingSeconds}
+              totalDurationSeconds={totalDurationSeconds}
+            />
             <Button
               size="lg"
               className="w-full min-h-14 focus-visible:ring-offset-4"
@@ -212,24 +202,11 @@ export function DrawGuessRoundResultsScreen({
             <p className="wanas-game-helper font-medium text-wanas-text-secondary">
               {presentSystemCopy(waitingMessage)}
             </p>
-            <div
-              className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted"
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={Math.max(totalDurationSeconds, 1)}
-              aria-valuenow={Math.max(0, Math.min(remainingSeconds, totalDurationSeconds))}
-            >
-              <div
-                className="h-full rounded-full bg-wanas-accent transition-[width] duration-200 ease-linear"
-                style={{
-                  width: `${Math.round(
-                    (Math.max(0, Math.min(remainingSeconds, totalDurationSeconds)) /
-                      Math.max(totalDurationSeconds, 1)) *
-                      100,
-                  )}%`,
-                }}
-              />
-            </div>
+            <DeadlineProgress
+              deadlineAtMs={deadlineAtMs}
+              remainingSeconds={remainingSeconds}
+              totalDurationSeconds={totalDurationSeconds}
+            />
           </div>
         ) : null}
       </div>

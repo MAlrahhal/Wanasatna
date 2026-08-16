@@ -234,6 +234,9 @@ test('player view privacy: no acceptedAnswers / revealed answer during question'
   assert.equal(view.categoryLabel, 'بلدان');
   assert.equal(view.roundId, 'round-1');
   assert.equal(view.totalRounds, 5);
+  assert.ok(view.deadlineAtMs);
+  assert.ok(view.questionDeadlineAtMs);
+  assert.equal(view.deadlineAtMs, view.questionDeadlineAtMs);
 });
 
 test('spectator cannot submit and sees no answer pre-result', () => {

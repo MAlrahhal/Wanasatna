@@ -1,7 +1,7 @@
 'use client';
 
 import type { WebClientGamePlugin } from '@/lib/game-plugins/types';
-import { ImposterDrawGameScreen } from './game-screen';
+import { lazyGameScreen } from '@/lib/game-plugins/lazy-game-screen';
 
 export const imposterDrawClientPlugin: WebClientGamePlugin = {
   metadata: {
@@ -11,5 +11,7 @@ export const imposterDrawClientPlugin: WebClientGamePlugin = {
     iconLabel: 'إ',
     minPlayers: 3,
   },
-  GameScreen: ImposterDrawGameScreen,
+  GameScreen: lazyGameScreen(() =>
+    import('./game-screen').then((mod) => mod.ImposterDrawGameScreen),
+  ),
 };

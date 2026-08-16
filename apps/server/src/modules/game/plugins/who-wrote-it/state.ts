@@ -392,10 +392,9 @@ export function buildWhoWroteItPlayerView(
   const guessCounts =
     phase === 'guessing' ? countGuessesForCurrentAnswer(match, shell) : { guessed: 0, required: 0 };
 
-  const phaseRemainingSeconds =
-    (phase === 'answering' || phase === 'guessing') && match.round.deadlineAtMs
-      ? remainingSecondsFromDeadline(match.round.deadlineAtMs)
-      : match.round.phaseRemainingSeconds;
+  const phaseRemainingSeconds = match.round.deadlineAtMs
+    ? remainingSecondsFromDeadline(match.round.deadlineAtMs)
+    : match.round.phaseRemainingSeconds;
 
   const base: WhoWroteItPlayerView = {
     gamePhase: phase,
@@ -403,10 +402,7 @@ export function buildWhoWroteItPlayerView(
       ? 'الجولة جارية'
       : `${PHASE_LABELS[phase]} — الجولة ${match.currentRound}/${match.totalRounds}`,
     phaseRemainingSeconds,
-    deadlineAtMs:
-      (phase === 'answering' || phase === 'guessing') && match.round.deadlineAtMs
-        ? match.round.deadlineAtMs
-        : null,
+    deadlineAtMs: match.round.deadlineAtMs,
     roundId: match.round.roundId,
     question: match.round.question,
     categoryId: match.lockedCategoryId,

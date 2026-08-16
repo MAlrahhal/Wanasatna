@@ -2,6 +2,7 @@ import type { Server } from 'socket.io';
 import type { GameShellState, TimingChallengeMatchState } from '@wanasatna/shared';
 import { TIMING_CHALLENGE_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
 import { timedPhaseDurations } from '../../../../config/test-timers.js';
+import { timedPhaseClock } from '../../runtime/phase-deadline.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
 import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
@@ -32,6 +33,7 @@ export function startHiddenTimingPhase(
     ...match.round,
     gamePhase: 'hidden-timing',
     phaseRemainingSeconds: Math.max(1, Math.ceil(match.round.targetMs / 1000)),
+    deadlineAtMs: null,
     hiddenStartedAtMs: now,
     hiddenEndsAtMs: now + match.round.targetMs,
   });
@@ -50,7 +52,7 @@ export function startGuessingPhase(
   const nextMatch = withRound(match, {
     ...match.round,
     gamePhase: 'guessing',
-    phaseRemainingSeconds: timedPhaseDurations.timingChallengeGuess(),
+    ...timedPhaseClock(timedPhaseDurations.timingChallengeGuess()),
     hiddenEndsAtMs: match.round.hiddenEndsAtMs ?? Date.now(),
   });
 
@@ -68,7 +70,7 @@ export function startStopTimerPhase(
   const nextMatch = withRound(match, {
     ...match.round,
     gamePhase: 'stop-timer',
-    phaseRemainingSeconds: timedPhaseDurations.timingChallengeStopPhase(),
+    ...timedPhaseClock(timedPhaseDurations.timingChallengeStopPhase()),
   });
 
   setTimingChallengeState(roomId, nextMatch);
@@ -90,7 +92,7 @@ export function startRoundResults(
   const nextMatch = withRound(scoredMatch, {
     ...scoredMatch.round,
     gamePhase: 'round-results',
-    phaseRemainingSeconds: timedPhaseDurations.timingChallengeRoundResults(),
+    ...timedPhaseClock(timedPhaseDurations.timingChallengeRoundResults()),
   });
 
   setTimingChallengeState(roomId, nextMatch);
@@ -130,7 +132,7 @@ function startMatchCompletedPhase(
     {
       ...match.round,
       gamePhase: 'match-completed',
-      phaseRemainingSeconds: timedPhaseDurations.matchResults(),
+      ...timedPhaseClock(timedPhaseDurations.matchResults()),
     },
   );
 

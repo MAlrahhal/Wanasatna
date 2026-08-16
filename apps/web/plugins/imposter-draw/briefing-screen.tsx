@@ -2,7 +2,7 @@
 
 import type { ImposterDrawReferenceImage } from '@wanasatna/shared';
 import { GameCard, GameScreen } from '@/components/game/game-card';
-import { GameHeader } from '@/components/game/game-header';
+import { GameHeader, resolveHeaderTimer } from '@/components/game/game-header';
 import { Button } from '@/components/ui/button';
 import { IMPOSTER_DRAW_GAME_ICON, IMPOSTER_DRAW_GAME_NAME } from '@/lib/game/imposter-draw-brand';
 
@@ -10,6 +10,7 @@ export type ImposterDrawBriefingScreenProps = {
   role: 'crew' | 'impostor';
   referenceImage: ImposterDrawReferenceImage | null;
   remainingSeconds: number;
+  deadlineAtMs?: number | null;
   currentRound: number;
   totalRounds: number;
   roomCode: string;
@@ -23,6 +24,7 @@ export function ImposterDrawBriefingScreen({
   role,
   referenceImage,
   remainingSeconds,
+  deadlineAtMs,
   currentRound,
   totalRounds,
   roomCode,
@@ -42,7 +44,12 @@ export function ImposterDrawBriefingScreen({
         currentRound={currentRound}
         totalRounds={totalRounds}
         phaseLabel="كشف الدور"
-        timer={{ remainingSeconds, format: 'seconds', lowTimeThreshold: 5 }}
+        timer={resolveHeaderTimer({
+          deadlineAtMs,
+          remainingSeconds,
+          format: 'seconds',
+          lowTimeThreshold: 5,
+        })}
       />
 
       <div className="mx-auto flex w-full max-w-xl flex-col gap-6 sm:gap-7">

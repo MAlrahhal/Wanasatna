@@ -9,6 +9,7 @@ import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
 import { BARA_AL_SALAFA_GAME_ICON } from '@/lib/game/bara-al-salafa-brand';
+import { toExperienceTimer } from '@/lib/game/deadline-clock';
 import { mapBaraAlSalafaLeaderboard } from '@/lib/game/map-bara-leaderboard';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import { DirectedQuestionsScreen } from './directed-questions-screen';
@@ -86,7 +87,6 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     view,
     errorMessage,
     isLoading,
-    remainingSeconds,
     actionError,
     isSubmittingAction,
     submitRoleUnderstood,
@@ -99,7 +99,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     submitImpostorGuess,
   } = useBaraAlSalafaPlayerView(pluginEnabled);
 
-  useBaraAlSalafaSfx(view, player?.id, remainingSeconds);
+  useBaraAlSalafaSfx(view, player?.id);
 
   const activeFinalResultsView =
     finalResultsView ?? (view?.gamePhase === 'match-completed' ? view : null);
@@ -161,7 +161,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
       timer: TIMED_BARA_PHASES.has(activeView.gamePhase)
-        ? { remainingSeconds, format: 'seconds' as const, lowTimeThreshold: 10 }
+        ? toExperienceTimer(activeView.deadlineAtMs, { format: 'seconds', lowTimeThreshold: 10 })
         : undefined,
       leaderboardEntries: mapBaraAlSalafaLeaderboard(activeView, player.id, players),
     });
@@ -171,7 +171,6 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     player,
     players,
     pluginEnabled,
-    remainingSeconds,
     setExperienceMeta,
     showFinalMatchResults,
     treatAsSpectator,
@@ -247,7 +246,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     const shellFinished = shellPhase === 'FINISHED';
     const isMatchCompletedPhase = activeFinalResultsView.gamePhase === 'match-completed';
     const autoReturnMessage = isMatchCompletedPhase
-      ? `العودة إلى اللوبي تلقائياً خلال ${Math.max(0, remainingSeconds)} ثانية`
+      ? null
       : !shellFinished
         ? SYSTEM_COPY.returningToLobby
         : !isHost
@@ -258,7 +257,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
       <MatchResultsScreen
         {...mapMatchResultsLiveProps(activeFinalResultsView, player.id, room.code)}
         returnStatusMessage={isHost && (isMatchCompletedPhase || shellFinished) ? null : autoReturnMessage}
-        autoReturnSeconds={isMatchCompletedPhase ? remainingSeconds : undefined}
+        autoReturnDeadlineAtMs={isMatchCompletedPhase ? activeFinalResultsView.deadlineAtMs : undefined}
         autoReturnTotalSeconds={
           isMatchCompletedPhase ? BARA_AL_SALAFA_MATCH_RESULTS_DURATION_SECONDS : undefined
         }
@@ -308,7 +307,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
       view,
       player.id,
       room.code,
-      remainingSeconds,
+      view.deadlineAtMs,
     );
 
     if (!roundResultsProps) {
@@ -340,7 +339,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
       return null;
     }
 
-    const revealImpostorProps = mapRevealImpostorLiveProps(view, room.code, remainingSeconds);
+    const revealImpostorProps = mapRevealImpostorLiveProps(view, room.code, view.deadlineAtMs);
 
     if (!revealImpostorProps) {
       return (
@@ -356,7 +355,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
       return null;
     }
 
-    const impostorGuessProps = mapImpostorGuessLiveProps(view, room.code, remainingSeconds);
+    const impostorGuessProps = mapImpostorGuessLiveProps(view, room.code, view.deadlineAtMs);
 
     return (
       <div className="space-y-4">
@@ -395,7 +394,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
       players,
       player.id,
       room.code,
-      remainingSeconds,
+      view.deadlineAtMs,
       isSubmittingAction,
       actionError,
     );
@@ -426,7 +425,8 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
         gameName="برا السالفة"
         currentRound={view.currentRound}
         totalRounds={view.totalRounds}
-        remainingSeconds={remainingSeconds}
+        remainingSeconds={0}
+        deadlineAtMs={view.deadlineAtMs}
         roomCode={room.code}
         role={role}
         secretWord={view.role === 'player' ? view.displayText : undefined}
@@ -440,7 +440,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
         acknowledged={view.hasAcknowledgedRole}
         roleAcknowledgementCount={view.roleAcknowledgementCount}
         eligibleRoleAcknowledgementCount={view.eligibleRoleAcknowledgementCount}
-        showFallbackTimer={remainingSeconds > 0}
+        showFallbackTimer={Boolean(view.deadlineAtMs)}
       />
     );
   }
@@ -455,7 +455,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
       players,
       player.id,
       room.code,
-      remainingSeconds,
+      view.deadlineAtMs,
     );
 
     if (!directedQuestionsProps) {
@@ -514,7 +514,8 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
           conversationTargetPlayerName={view.activeFreeQuestionTargetPlayerName}
           selectedTargetPlayerId={freeQuestionSelection}
           completedPlayerIds={view.completedFreeQuestionPlayerIds}
-          remainingSeconds={remainingSeconds}
+          remainingSeconds={0}
+          deadlineAtMs={view.deadlineAtMs}
           showTimer
           roundNumber={view.currentRound}
           totalRounds={view.totalRounds}

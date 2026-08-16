@@ -39,6 +39,11 @@ import {
 } from './state.js';
 import { deleteDrawGuessState, getDrawGuessState, setDrawGuessState } from './store.js';
 import { isCorrectGuess } from './words.js';
+import {
+  appendAuthoritativeStrokePoints,
+  hasAuthoritativeStroke,
+  startAuthoritativeStroke,
+} from '../../runtime/drawing-strokes.js';
 
 export { applyDrawGuessLobbySettings };
 
@@ -138,7 +143,12 @@ function parseTurnId(payload: unknown): string | null {
   return typeof turnId === 'string' && turnId.length > 0 ? turnId : null;
 }
 
-function parseStrokePayload(payload: unknown): DrawGuessStrokePayload | null {
+function parseStrokePayload(
+  payload: unknown,
+):
+  | { kind: 'start'; value: DrawGuessStrokePayload & { tool: 'draw' | 'erase'; color: string; size: number; points: DrawStroke['points'] } }
+  | { kind: 'end'; turnId: string; strokeId: string }
+  | null {
   if (!payload || typeof payload !== 'object') {
     return null;
   }
@@ -146,25 +156,33 @@ function parseStrokePayload(payload: unknown): DrawGuessStrokePayload | null {
   const data = payload as Partial<DrawGuessStrokePayload>;
   const turnId = parseTurnId(payload);
 
+  if (!turnId || typeof data.strokeId !== 'string') {
+    return null;
+  }
+
+  if (!Array.isArray(data.points) || data.points.length === 0) {
+    return { kind: 'end', turnId, strokeId: data.strokeId };
+  }
+
   if (
-    !turnId ||
-    typeof data.strokeId !== 'string' ||
     (data.tool !== 'draw' && data.tool !== 'erase') ||
     typeof data.color !== 'string' ||
     typeof data.size !== 'number' ||
-    !Array.isArray(data.points) ||
     !data.points.every(isStrokePoint)
   ) {
     return null;
   }
 
   return {
-    turnId,
-    strokeId: data.strokeId,
-    tool: data.tool,
-    color: data.color,
-    size: data.size,
-    points: data.points,
+    kind: 'start',
+    value: {
+      turnId,
+      strokeId: data.strokeId,
+      tool: data.tool,
+      color: data.color,
+      size: data.size,
+      points: data.points,
+    },
   };
 }
 
@@ -303,44 +321,46 @@ export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): voi
         return;
       }
 
-      const authError = assertActiveDrawerTurn(match, playerId!, strokePayload.turnId);
+      const authError = assertActiveDrawerTurn(
+        match,
+        playerId!,
+        strokePayload.kind === 'start' ? strokePayload.value.turnId : strokePayload.turnId,
+      );
 
       if (authError) {
         sendGameResponse(callback, authError);
         return;
       }
 
-      const existingIndex = match.round.strokes.findIndex(
-        (stroke) => stroke.id === strokePayload.strokeId,
-      );
+      if (strokePayload.kind === 'end') {
+        if (!hasAuthoritativeStroke(match.round.strokes, strokePayload.strokeId)) {
+          sendGameResponse(callback, invalidActionError('لم يتم العثور على خط الرسم.'));
+          return;
+        }
 
-      const nextStroke: DrawStroke = {
-        id: strokePayload.strokeId,
-        tool: strokePayload.tool,
-        color: strokePayload.color,
-        size: strokePayload.size,
-        points: strokePayload.points,
-      };
+        sendGameResponse(callback, { success: true, data: { ok: true } });
+        return;
+      }
 
-      const nextStrokes =
-        existingIndex >= 0
-          ? match.round.strokes.map((stroke, index) =>
-              index === existingIndex ? nextStroke : stroke,
-            )
-          : [...match.round.strokes, nextStroke];
-
-      const nextMatch = withRound(match, {
-        ...match.round,
-        strokes: nextStrokes,
+      const started = startAuthoritativeStroke(match.round.strokes, {
+        id: strokePayload.value.strokeId,
+        tool: strokePayload.value.tool,
+        color: strokePayload.value.color,
+        size: strokePayload.value.size,
+        points: strokePayload.value.points,
       });
 
-      setDrawGuessState(roomId!, nextMatch);
-      broadcastCanvasUpdated(io, roomId!, match.round.turnId, nextStrokes);
+      if (started.created) {
+        const nextMatch = withRound(match, {
+          ...match.round,
+          strokes: started.strokes,
+        });
 
-      sendGameResponse(callback, {
-        success: true,
-        data: { view: buildDrawGuessPlayerView(nextMatch, playerId!, shell) },
-      });
+        setDrawGuessState(roomId!, nextMatch);
+        broadcastCanvasUpdated(io, roomId!, match.round.turnId, started.strokes);
+      }
+
+      sendGameResponse(callback, { success: true, data: { ok: true } });
     } catch {
       sendGameResponse(callback, {
         success: false,
@@ -394,20 +414,16 @@ export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): voi
         return;
       }
 
-      const strokeIndex = match.round.strokes.findIndex(
-        (stroke) => stroke.id === pointsPayload.strokeId,
+      const nextStrokes = appendAuthoritativeStrokePoints(
+        match.round.strokes,
+        pointsPayload.strokeId,
+        pointsPayload.points,
       );
 
-      if (strokeIndex < 0) {
+      if (!nextStrokes) {
         sendGameResponse(callback, invalidActionError('لم يتم العثور على خط الرسم.'));
         return;
       }
-
-      const nextStrokes = match.round.strokes.map((stroke, index) =>
-        index === strokeIndex
-          ? { ...stroke, points: [...stroke.points, ...pointsPayload.points] }
-          : stroke,
-      );
 
       const nextMatch = withRound(match, {
         ...match.round,
@@ -415,12 +431,8 @@ export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): voi
       });
 
       setDrawGuessState(roomId!, nextMatch);
-      io.to(getRoomChannel(roomId!)).emit(DRAW_GUESS_STROKE_POINTS_EVENT, pointsPayload);
-
-      sendGameResponse(callback, {
-        success: true,
-        data: { view: buildDrawGuessPlayerView(nextMatch, playerId!, shell) },
-      });
+      socket.to(getRoomChannel(roomId!)).emit(DRAW_GUESS_STROKE_POINTS_EVENT, pointsPayload);
+      sendGameResponse(callback, { success: true, data: { ok: true } });
     } catch {
       sendGameResponse(callback, {
         success: false,

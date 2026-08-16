@@ -1,7 +1,7 @@
 'use client';
 
 import type { WebClientGamePlugin } from '@/lib/game-plugins/types';
-import { GuessingChallengeGameScreen } from './game-screen';
+import { lazyGameScreen } from '@/lib/game-plugins/lazy-game-screen';
 
 export const guessingChallengeClientPlugin: WebClientGamePlugin = {
   metadata: {
@@ -18,5 +18,7 @@ export const guessingChallengeClientPlugin: WebClientGamePlugin = {
       defaultMode: '1v1',
     },
   },
-  GameScreen: GuessingChallengeGameScreen,
+  GameScreen: lazyGameScreen(() =>
+    import('./game-screen').then((mod) => mod.GuessingChallengeGameScreen),
+  ),
 };

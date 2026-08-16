@@ -1,7 +1,7 @@
 'use client';
 
 import { GameScreen } from '@/components/game/game-card';
-import { GameHeader } from '@/components/game/game-header';
+import { GameHeader, resolveHeaderTimer } from '@/components/game/game-header';
 import { BARA_AL_SALAFA_GAME_ICON } from '@/lib/game/bara-al-salafa-brand';
 import type { LobbyPlayer } from '@/lib/lobby/types';
 import { QuestionTurnPanel } from './question-turn-panel';
@@ -16,6 +16,7 @@ export type DirectedQuestionsScreenProps = {
   currentTurn: number;
   totalTurns: number;
   remainingSeconds?: number;
+  deadlineAtMs?: number | null;
   showTimer?: boolean;
   roundNumber: number;
   totalRounds: number;
@@ -46,6 +47,7 @@ export function DirectedQuestionsScreen({
   currentTurn,
   totalTurns,
   remainingSeconds = 0,
+  deadlineAtMs,
   showTimer = false,
   roundNumber,
   totalRounds,
@@ -66,7 +68,12 @@ export function DirectedQuestionsScreen({
         phaseLabel="الأسئلة الموجّهة"
         timer={
           showTimer
-            ? { remainingSeconds: remainingSeconds ?? 0, format: 'seconds', lowTimeThreshold: 10 }
+            ? resolveHeaderTimer({
+                deadlineAtMs,
+                remainingSeconds,
+                format: 'seconds',
+                lowTimeThreshold: 10,
+              })
             : undefined
         }
       />

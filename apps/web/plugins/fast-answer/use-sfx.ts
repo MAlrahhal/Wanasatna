@@ -6,16 +6,16 @@ import {
   decideFinalCue,
   decidePublicCorrect,
   decideRoundResult,
-  decideTimeUp,
   localWonMatch,
 } from '@/lib/game/sfx-policy';
+import { useDeadlineTimeUpSfx } from '@/lib/game/use-deadline-time-up-sfx';
 import { useViewTransitionSfx } from '@/lib/game/use-view-sfx';
+import { resolveFastAnswerDeadlineAtMs } from './use-player-view';
 
 const TIMED = new Set(['question']);
 
 type Snap = {
   phase: FastAnswerPlayerView['gamePhase'];
-  remaining: number;
   roundId: string;
   spectator: boolean;
   hasWinner: boolean;
@@ -31,15 +31,6 @@ function decide(prev: Snap, next: Snap) {
       wasCorrect: prev.hasWinner,
       isCorrect: next.hasWinner,
       eventKey: `correct:fast-answer:${next.roundId}`,
-    }),
-    decideTimeUp({
-      prevReady: true,
-      prevRemaining: prev.remaining,
-      remaining: next.remaining,
-      phase: next.phase,
-      timedPhases: TIMED,
-      eventKey: `timeup:fast-answer:${next.roundId}`,
-      suppress: next.hasWinner,
     }),
     next.timedOut && !prev.timedOut && next.phase === 'round-results' && !next.hasWinner
       ? { id: 'time-up' as const, eventKey: `timeup:fast-answer:${next.roundId}` }
@@ -64,15 +55,21 @@ function decide(prev: Snap, next: Snap) {
 export function useFastAnswerSfx(
   view: FastAnswerPlayerView | null,
   playerId: string | undefined,
-  remaining: number,
 ): void {
+  const roundId = view?.roundId ?? `r${view?.currentRound ?? 0}`;
+  useDeadlineTimeUpSfx({
+    deadlineAtMs: resolveFastAnswerDeadlineAtMs(view),
+    enabled: Boolean(view && playerId && TIMED.has(view.gamePhase)),
+    eventKey: `timeup:fast-answer:${roundId}`,
+    suppress: Boolean(view?.winnerPlayerId),
+  });
+
   const snapshot = useMemo<Snap | null>(() => {
     if (!view || !playerId) {
       return null;
     }
     return {
       phase: view.gamePhase,
-      remaining,
       roundId: view.roundId ?? `r${view.currentRound}`,
       spectator: view.isMatchSpectator,
       hasWinner: Boolean(view.winnerPlayerId),
@@ -80,7 +77,7 @@ export function useFastAnswerSfx(
       localWon: localWonMatch(view.resultsLeaderboard, playerId),
       round: view.currentRound,
     };
-  }, [view, playerId, remaining]);
+  }, [view, playerId]);
 
   useViewTransitionSfx(snapshot, decide);
 }

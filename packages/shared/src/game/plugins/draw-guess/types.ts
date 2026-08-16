@@ -34,6 +34,7 @@ export type DrawGuessRoundState = {
   drawerPlayerId: string;
   gamePhase: DrawGuessGamePhase;
   phaseRemainingSeconds: number;
+  deadlineAtMs: number | null;
   drawingDurationSeconds: number;
   strokes: DrawStroke[];
   correctGuesserPlayerId: string | null;
@@ -72,6 +73,7 @@ export type DrawGuessPlayerView = {
   gamePhase: DrawGuessGamePhase;
   phaseLabel: string;
   phaseRemainingSeconds: number;
+  deadlineAtMs: number | null;
   role: 'drawer' | 'guesser';
   secretWord: string | null;
   turnId: string;
@@ -134,10 +136,11 @@ export const DRAW_GUESS_STATE_EVENT = pluginStateEvent(DRAW_GUESS_GAME_ID);
 export type DrawGuessStrokePayload = {
   turnId: string;
   strokeId: string;
-  tool: DrawGuessTool;
-  color: string;
-  size: number;
-  points: DrawStrokePoint[];
+  tool?: DrawGuessTool;
+  color?: string;
+  size?: number;
+  /** Present on stroke start. Omitted/empty on stroke end so history is not resent. */
+  points?: DrawStrokePoint[];
 };
 
 export type DrawGuessStrokePointsPayload = {

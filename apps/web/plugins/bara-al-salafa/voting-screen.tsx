@@ -1,7 +1,7 @@
 'use client';
 
 import { GameCard, GameScreen } from '@/components/game/game-card';
-import { GameHeader } from '@/components/game/game-header';
+import { GameHeader, resolveHeaderTimer } from '@/components/game/game-header';
 import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
 import { Button } from '@/components/ui/button';
 import { BARA_AL_SALAFA_GAME_ICON } from '@/lib/game/bara-al-salafa-brand';
@@ -15,6 +15,7 @@ export type VotingScreenProps = {
   confirmedPlayerId?: string | null;
   hasVoted: boolean;
   remainingSeconds?: number;
+  deadlineAtMs?: number | null;
   showTimer?: boolean;
   submittedVotesCount: number;
   eligibleVotersCount: number;
@@ -286,6 +287,7 @@ export function VotingScreen({
   confirmedPlayerId = null,
   hasVoted,
   remainingSeconds = 0,
+  deadlineAtMs,
   showTimer = false,
   submittedVotesCount,
   eligibleVotersCount,
@@ -313,7 +315,11 @@ export function VotingScreen({
         phaseLabel="التصويت"
         timer={
           showTimer
-            ? { remainingSeconds: remainingSeconds ?? 0, format: 'seconds' }
+            ? resolveHeaderTimer({
+                deadlineAtMs,
+                remainingSeconds,
+                format: 'seconds',
+              })
             : undefined
         }
       />

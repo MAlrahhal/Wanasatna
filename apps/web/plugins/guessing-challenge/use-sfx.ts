@@ -6,17 +6,16 @@ import {
   decideFinalCue,
   decidePublicCorrect,
   decideRoundResult,
-  decideTimeUp,
   decideYourTurn,
   localTeamWonMatch,
 } from '@/lib/game/sfx-policy';
+import { useDeadlineTimeUpSfx } from '@/lib/game/use-deadline-time-up-sfx';
 import { useViewTransitionSfx } from '@/lib/game/use-view-sfx';
 
 const TIMED = new Set(['playing']);
 
 type Snap = {
   phase: GuessingChallengePlayerView['gamePhase'];
-  remaining: number;
   turnId: string;
   roundId: string;
   acting: boolean;
@@ -45,15 +44,6 @@ function decide(prev: Snap, next: Snap) {
       isCorrect: next.hasWinner,
       eventKey: `correct:gc:${next.roundId}`,
     }),
-    decideTimeUp({
-      prevReady: true,
-      prevRemaining: prev.remaining,
-      remaining: next.remaining,
-      phase: next.phase,
-      timedPhases: TIMED,
-      eventKey: `timeup:gc:${next.turnId}`,
-      suppress: next.hasWinner,
-    }),
     decideRoundResult({
       prevReady: true,
       prevPhase: prev.phase,
@@ -74,16 +64,21 @@ function decide(prev: Snap, next: Snap) {
 export function useGuessingChallengeSfx(
   view: GuessingChallengePlayerView | null,
   playerId: string | undefined,
-  remaining: number,
   guessFeedback: string | null,
 ): void {
+  useDeadlineTimeUpSfx({
+    deadlineAtMs: view?.deadlineAtMs,
+    enabled: Boolean(view && playerId && TIMED.has(view.gamePhase)),
+    eventKey: `timeup:gc:${view?.turnId ?? 'none'}`,
+    suppress: Boolean(view?.winningTeamId || view?.winningGuess),
+  });
+
   const snapshot = useMemo<Snap | null>(() => {
     if (!view || !playerId) {
       return null;
     }
     return {
       phase: view.gamePhase,
-      remaining,
       turnId: view.turnId,
       roundId: view.roundId,
       acting: view.isMyTurn && !view.isMatchSpectator,
@@ -96,7 +91,7 @@ export function useGuessingChallengeSfx(
       ]),
       round: view.currentRound,
     };
-  }, [view, playerId, remaining, guessFeedback]);
+  }, [view, playerId, guessFeedback]);
 
   useViewTransitionSfx(snapshot, decide);
 }
