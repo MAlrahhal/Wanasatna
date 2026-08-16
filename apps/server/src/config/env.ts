@@ -7,4 +7,5 @@ export const env = {
   databaseUrl: process.env.DATABASE_URL,
   /** When true, phase timers use 1s durations for automated tests only. */
   testMode: process.env.WANASATNA_TEST_MODE === "1",
+  authSessionTtlMs: Number(process.env.AUTH_SESSION_TTL_MS ?? 30 * 24 * 60 * 60 * 1000),
 };

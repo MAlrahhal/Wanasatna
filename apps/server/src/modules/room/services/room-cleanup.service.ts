@@ -1,18 +1,43 @@
+import { MatchStatus, Prisma } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
-import { Prisma } from '@prisma/client';
 import { countActivePlayers } from './shared-room.service.js';
 
-export async function deleteRoomWithRelations(roomId: string): Promise<void> {
-  await prisma.$transaction(async (tx) => {
-    await tx.room.updateMany({
-      where: { id: roomId },
-      data: { activeSessionId: null },
+type RoomDeleteDb = {
+  room: {
+    delete: Prisma.TransactionClient['room']['delete'];
+  };
+  match: {
+    updateMany: Prisma.TransactionClient['match']['updateMany'];
+  };
+};
+
+export async function deleteRoomWithRelations(
+  roomId: string,
+  db: RoomDeleteDb = prisma,
+): Promise<void> {
+  const run = async (client: RoomDeleteDb) => {
+    await client.match.updateMany({
+      where: {
+        roomId,
+        status: MatchStatus.ACTIVE,
+      },
+      data: {
+        status: MatchStatus.ABORTED,
+        endedAt: new Date(),
+      },
     });
 
-    await tx.room.delete({
+    await client.room.delete({
       where: { id: roomId },
     });
-  });
+  };
+
+  if (db === prisma) {
+    await prisma.$transaction(async (tx) => run(tx));
+    return;
+  }
+
+  await run(db);
 }
 
 export async function cleanupRoomIfEmpty(roomId: string): Promise<boolean> {

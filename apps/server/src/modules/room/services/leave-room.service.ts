@@ -2,8 +2,7 @@ import { PlayerStatus } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
 import type { HostChangedPayload, RoomActionResponse } from '@wanasatna/shared';
 import { validateKickPlayerPayload } from '../room.validators.js';
-import { transferHost } from './host.service.js';
-import { cleanupRoomIfEmpty } from './room-cleanup.service.js';
+import { permanentlyDepartPlayer } from './permanent-departure.service.js';
 import {
   assertHost,
   findPlayerInRoom,
@@ -24,50 +23,39 @@ export async function leaveRoom(
   const playerResult = await findPlayerInRoom(playerId, roomId);
 
   if (isServiceError(playerResult)) {
+    const room = await prisma.room.findUnique({
+      where: { id: roomId },
+      select: { id: true },
+    });
+
+    if (!room) {
+      return {
+        success: true,
+        data: {
+          roomDeleted: true,
+          hostChanged: null,
+        },
+      };
+    }
+
     return playerResult;
   }
 
-  if (playerResult.status === PlayerStatus.LEFT) {
-    const roomDeleted = await cleanupRoomIfEmpty(roomId);
-
-    return {
-      success: true,
-      data: {
-        roomDeleted,
-        hostChanged: null,
-      },
-    };
-  }
-
-  const roomResult = await findRoomById(roomId);
-
-  if (isServiceError(roomResult)) {
-    return roomResult;
-  }
-
-  const isHost = roomResult.hostPlayerId === playerId;
-  let hostChanged: HostChangedPayload | null = null;
-
-  if (isHost) {
-    hostChanged = await transferHost(roomId, playerId);
-  }
-
-  await prisma.player.update({
-    where: { id: playerId },
-    data: {
-      status: PlayerStatus.LEFT,
-      reconnectTokenHash: null,
-      lastSeenAt: new Date(),
-    },
+  const departed = await permanentlyDepartPlayer({
+    playerId,
+    roomId,
+    kind: 'leave',
   });
 
-  const roomDeleted = await cleanupRoomIfEmpty(roomId);
+  if (!departed) {
+    return serviceError('PLAYER_NOT_FOUND', 'Player not found in this room.');
+  }
 
   return {
     success: true,
     data: {
-      roomDeleted,
-      hostChanged,
+      roomDeleted: departed.roomDeleted,
+      hostChanged: departed.hostChanged,
     },
   };
 }
@@ -116,22 +104,21 @@ export async function kickPlayer(
     return serviceError('PLAYER_NOT_FOUND', 'Player not found in this room.');
   }
 
-  await prisma.player.update({
-    where: { id: targetPlayerId },
-    data: {
-      status: PlayerStatus.LEFT,
-      reconnectTokenHash: null,
-      lastSeenAt: new Date(),
-    },
+  const departed = await permanentlyDepartPlayer({
+    playerId: targetPlayerId,
+    roomId,
+    kind: 'kick',
   });
 
-  const roomDeleted = await cleanupRoomIfEmpty(roomId);
+  if (!departed || departed.alreadyLeft) {
+    return serviceError('PLAYER_NOT_FOUND', 'Player not found in this room.');
+  }
 
   return {
     success: true,
     data: {
       kickedPlayerId: targetPlayerId,
-      roomDeleted,
+      roomDeleted: departed.roomDeleted,
     },
   };
 }

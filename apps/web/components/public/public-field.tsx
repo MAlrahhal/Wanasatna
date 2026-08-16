@@ -13,6 +13,8 @@ type PublicFieldProps = {
   inputMode?: 'text' | 'numeric' | 'email';
   type?: 'text' | 'email' | 'password';
   inputClassName?: string;
+  autoComplete?: string;
+  name?: string;
 };
 
 export function PublicField({
@@ -27,6 +29,8 @@ export function PublicField({
   inputMode = 'text',
   type = 'text',
   inputClassName,
+  autoComplete,
+  name,
 }: PublicFieldProps) {
   return (
     <label htmlFor={id} className="block space-y-2">
@@ -51,6 +55,8 @@ export function PublicField({
           disabled={disabled}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
+          autoComplete={autoComplete}
+          name={name}
           aria-invalid={hasError}
           className={cn(
             'h-12 w-full rounded-2xl border bg-wanas-surface-soft pe-4 text-sm text-wanas-text-primary outline-none transition-all',

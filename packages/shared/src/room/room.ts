@@ -1,4 +1,4 @@
-import type { RoomStatus, SessionType } from './enums.js';
+import type { RoomStatus } from './enums.js';
 import type { RoomPlayerData } from './player.js';
 
 export type RoomData = {
@@ -6,8 +6,6 @@ export type RoomData = {
   code: string;
   status: RoomStatus;
   isLocked: boolean;
-  sessionType: SessionType;
-  activeSessionId: string | null;
   hostPlayerId: string;
   createdAt: string | Date;
 };

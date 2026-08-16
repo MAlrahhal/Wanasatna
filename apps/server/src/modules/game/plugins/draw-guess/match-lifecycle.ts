@@ -6,6 +6,7 @@ import { timedPhaseClock } from '../../runtime/phase-deadline.js';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
+import { persistCompletedMatchThen } from '../../runtime/persist-completed-match.js';
 import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
 import {
   clearDrawGuessPhaseTimerRuntime,
@@ -167,17 +168,19 @@ export function continueFromRoundResults(
 }
 
 export function completeMatch(io: Server, roomId: string): void {
-  clearDrawGuessPhaseTimerRuntime(roomId);
-  deleteDrawGuessState(roomId);
-  clearDrawGuessRoomDrawerSettings(roomId);
+  persistCompletedMatchThen(roomId, () => {
+    clearDrawGuessPhaseTimerRuntime(roomId);
+    deleteDrawGuessState(roomId);
+    clearDrawGuessRoomDrawerSettings(roomId);
 
-  // Same invariant as bara: lobby return must delete the shell, not leave FINISHED.
-  const shell = getGameShellByRoomId(roomId);
-  if (!shell) {
-    return;
-  }
+    // Same invariant as bara: lobby return must delete the shell, not leave FINISHED.
+    const shell = getGameShellByRoomId(roomId);
+    if (!shell) {
+      return;
+    }
 
-  cleanupGameShellRuntime(roomId);
-  deleteGameShell(roomId);
-  navigateRoomToLobby(io, roomId);
+    cleanupGameShellRuntime(roomId);
+    deleteGameShell(roomId);
+    navigateRoomToLobby(io, roomId);
+  });
 }

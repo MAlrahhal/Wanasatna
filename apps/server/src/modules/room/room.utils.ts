@@ -53,8 +53,6 @@ export function mapRoomData(room: Room): RoomData {
     code: room.code,
     status: room.status,
     isLocked: room.isLocked,
-    sessionType: room.sessionType,
-    activeSessionId: room.activeSessionId,
     hostPlayerId: room.hostPlayerId,
     createdAt: room.createdAt,
   };

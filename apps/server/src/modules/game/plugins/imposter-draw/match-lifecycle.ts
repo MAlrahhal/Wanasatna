@@ -6,6 +6,7 @@ import { timedPhaseDurations } from '../../../../config/test-timers.js';
 import { timedPhaseClock } from '../../runtime/phase-deadline.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
+import { persistCompletedMatchThen } from '../../runtime/persist-completed-match.js';
 import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
 import { buildImageGuessOptions } from './images.js';
 import {
@@ -397,15 +398,17 @@ export function continueFromRoundResults(
 }
 
 export function completeMatch(io: Server, roomId: string): void {
-  clearImposterDrawPhaseTimerRuntime(roomId);
-  deleteImposterDrawState(roomId);
+  persistCompletedMatchThen(roomId, () => {
+    clearImposterDrawPhaseTimerRuntime(roomId);
+    deleteImposterDrawState(roomId);
 
-  const shell = getGameShellByRoomId(roomId);
-  if (!shell) {
-    return;
-  }
+    const shell = getGameShellByRoomId(roomId);
+    if (!shell) {
+      return;
+    }
 
-  cleanupGameShellRuntime(roomId);
-  deleteGameShell(roomId);
-  navigateRoomToLobby(io, roomId);
+    cleanupGameShellRuntime(roomId);
+    deleteGameShell(roomId);
+    navigateRoomToLobby(io, roomId);
+  });
 }

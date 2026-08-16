@@ -88,7 +88,7 @@ test('join still requires name and existing session helpers are unchanged', () =
   const header = read('components/lobby/lobby-header.tsx');
 
   assert.match(hook, /يرجى إدخال اسمك للانضمام/);
-  assert.match(hook, /manager\.join\(trimmedCode, trimmedName\)/);
+  assert.match(hook, /manager\.enterFromJoinForm\(trimmedCode, trimmedName\)/);
   assert.match(session, /buildRoomInvitePath/);
   assert.match(session, /`\/\?code=\$\{encodeURIComponent\(roomCode\)\}`/);
   assert.match(header, /buildRoomInviteUrl/);

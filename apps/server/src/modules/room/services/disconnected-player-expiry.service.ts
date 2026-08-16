@@ -9,8 +9,7 @@ import {
   onRoomPlayerRemoved,
 } from '../../game/runtime/pregame-teams-room-hooks.js';
 import { broadcastRoomPlayersSnapshot, getRoomChannel, RECONNECT_WINDOW_MS } from '../room.utils.js';
-import { transferHost } from './host.service.js';
-import { cleanupRoomIfEmpty } from './room-cleanup.service.js';
+import { permanentlyDepartPlayer } from './permanent-departure.service.js';
 
 function expiryIntervalMs(): number {
   return env.testMode ? 200 : 15_000;
@@ -42,65 +41,22 @@ export async function expireDisconnectedPlayer(
   playerId: string,
   roomId: string,
 ): Promise<ExpiredDisconnectedPlayer | null> {
-  const cutoff = reconnectCutoff();
-
-  const updated = await prisma.player.updateMany({
-    where: {
-      id: playerId,
-      roomId,
-      status: PlayerStatus.DISCONNECTED,
-      lastSeenAt: { lt: cutoff },
-    },
-    data: {
-      status: PlayerStatus.LEFT,
-      reconnectTokenHash: null,
-      lastSeenAt: new Date(),
-    },
+  const departed = await permanentlyDepartPlayer({
+    playerId,
+    roomId,
+    kind: 'expiry',
+    lastSeenAtBefore: reconnectCutoff(),
   });
 
-  if (updated.count !== 1) {
+  if (!departed || departed.alreadyLeft) {
     return null;
-  }
-
-  const room = await prisma.room.findUnique({
-    where: { id: roomId },
-    select: { hostPlayerId: true },
-  });
-
-  if (!room) {
-    return {
-      playerId,
-      roomId,
-      roomDeleted: true,
-      hostChanged: null,
-    };
-  }
-
-  let hostChanged: HostChangedPayload | null = null;
-  let roomDeleted = false;
-
-  try {
-    if (room.hostPlayerId === playerId) {
-      hostChanged = await transferHost(roomId, playerId);
-    }
-
-    roomDeleted = await cleanupRoomIfEmpty(roomId);
-  } catch (error) {
-    const prismaCode =
-      error instanceof Prisma.PrismaClientKnownRequestError ? error.code : undefined;
-    console.error('[disconnected-expiry]', {
-      stage: 'post-left-failed',
-      roomId,
-      prismaCode,
-      errorName: error instanceof Error ? error.name : typeof error,
-    });
   }
 
   return {
     playerId,
     roomId,
-    roomDeleted,
-    hostChanged,
+    roomDeleted: departed.roomDeleted,
+    hostChanged: departed.hostChanged,
   };
 }
 

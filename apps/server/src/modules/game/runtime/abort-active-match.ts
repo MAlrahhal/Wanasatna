@@ -1,5 +1,6 @@
 import type { Server } from 'socket.io';
 import type { GameShellAbortReason } from '@wanasatna/shared';
+import { abortPersistedMatch } from '../../match/match-history.service.js';
 import { prisma } from '../../../lib/prisma.js';
 import { broadcastRoomPlayersSnapshot, loadActiveRoomPlayers } from '../../room/room.utils.js';
 import { deleteGameShell, getGameShellByRoomId } from '../game.service.js';
@@ -30,6 +31,8 @@ export async function abortActiveMatch(
 
   const abortedShellId = shell.shellId;
   const abortedGameId = shell.gameId;
+
+  await abortPersistedMatch(roomId);
 
   // Clear recovery without resuming phase timers (resume would race teardown).
   clearPlayerRecoveryForTeardown(io, roomId);

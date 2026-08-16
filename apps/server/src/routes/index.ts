@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { SERVER_BUILD_META } from "../config/build-meta.js";
+import { authRouter } from "../modules/auth/auth.routes.js";
 
 /**
  * Root API router. Feature routes will be mounted here as they are built.
@@ -20,3 +21,5 @@ apiRouter.get("/version", (_req, res) => {
     instanceId: SERVER_BUILD_META.instanceId,
   });
 });
+
+apiRouter.use("/auth", authRouter);

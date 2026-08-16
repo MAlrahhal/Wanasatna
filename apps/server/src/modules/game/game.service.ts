@@ -11,6 +11,7 @@ import {
   type InitGameShellPayload,
 } from '@wanasatna/shared';
 import { prisma } from '../../lib/prisma.js';
+import { abortPersistedMatch, beginPersistedMatch } from '../match/match-history.service.js';
 import { validateGameStart } from './runtime/validate-game-start.js';
 
 export type GameShellRecord = GameShellState;
@@ -99,6 +100,21 @@ function saveShell(shell: GameShellRecord): GameShellRecord {
 
 function lockMatchParticipantIds(players: GameShellPlayer[]): string[] {
   return players.filter((player) => player.isConnected).map((player) => player.id);
+}
+
+async function persistLockedMatch(shell: GameShellRecord): Promise<void> {
+  if (!shell.gameId || !shell.matchParticipantIds?.length) {
+    return;
+  }
+
+  await beginPersistedMatch({
+    roomId: shell.roomId,
+    gameId: shell.gameId,
+    participantPlayerIds: shell.matchParticipantIds,
+    displayNameByPlayerId: Object.fromEntries(
+      shell.players.map((player) => [player.id, player.name]),
+    ),
+  });
 }
 
 async function assertHost(
@@ -325,6 +341,8 @@ export async function startGameShellCountdown(
     updatedAt: nowIso(),
   });
 
+  await persistLockedMatch(nextShell);
+
   return {
     success: true,
     data: { state: nextShell },
@@ -407,6 +425,8 @@ export async function advanceShellToCountdownFromLobby(
     updatedAt: nowIso(),
   });
 
+  await persistLockedMatch(nextShell);
+
   return {
     success: true,
     data: { state: nextShell },
@@ -440,6 +460,8 @@ export async function cancelGameShellCountdown(
     countdownRemainingSeconds: null,
     updatedAt: nowIso(),
   });
+
+  await abortPersistedMatch(roomId);
 
   return {
     success: true,

@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { PublicBrandLogo } from '@/components/public/public-brand-logo';
 import { MobileNavigation } from '@/components/public/mobile-navigation';
+import { PublicAuthNavControl } from '@/components/public/public-account-menu';
 import { GuardedPublicLink, useGuardedPublicNavigation } from '@/components/public/guarded-public-link';
 import { getHomeRoomActionsHref, scrollToHomeRoomActions } from '@/lib/public/scroll-to-room-actions';
 import { PUBLIC_NAV_LINKS, PUBLIC_ROUTES } from '@/lib/public/routes';
@@ -78,17 +79,10 @@ export function PublicNavbar() {
         </nav>
 
         <div className="hidden items-center gap-2 lg:flex">
-          <GuardedPublicLink
-            href={PUBLIC_ROUTES.login}
-            className={cn(
-              'inline-flex h-10 items-center justify-center rounded-2xl px-4 text-sm font-semibold text-white/85 transition-colors',
-              'hover:bg-white/10 hover:text-white',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-wanas-navbar',
-              pathname === PUBLIC_ROUTES.login && 'bg-white/15 text-white',
-            )}
-          >
-            تسجيل الدخول
-          </GuardedPublicLink>
+          <PublicAuthNavControl
+            variant="desktop"
+            loginActive={pathname === PUBLIC_ROUTES.login}
+          />
           {!hideCreateRoom ? (
             isHome ? (
               <button type="button" onClick={handleCreateRoomOnHome} className={navPlayClassName}>

@@ -1,4 +1,5 @@
 import { isIP } from 'node:net';
+import type { Request } from 'express';
 import type { Socket } from 'socket.io';
 
 function normalizeIp(value: string): string {
@@ -47,4 +48,15 @@ export function getClientIp(socket: Socket): string {
     '';
 
   return asSingleValidIp(remote) ?? '0.0.0.0';
+}
+
+export function getHttpClientIp(req: Request): string {
+  const header = req.headers['x-real-ip'];
+  const fromHeader = asSingleValidIp(Array.isArray(header) ? header[0] : header);
+
+  if (fromHeader) {
+    return fromHeader;
+  }
+
+  return asSingleValidIp(req.socket.remoteAddress) ?? '0.0.0.0';
 }

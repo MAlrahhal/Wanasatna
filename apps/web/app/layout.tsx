@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AppProviders } from "@/components/app-providers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -41,7 +42,9 @@ export default function RootLayout({
     >
       <body className="relative flex min-h-full flex-col overflow-x-hidden">
         <div aria-hidden className="wanas-site-bg-pattern" />
-        <div className="relative z-10 flex min-h-full flex-1 flex-col">{children}</div>
+        <div className="relative z-10 flex min-h-full flex-1 flex-col">
+          <AppProviders>{children}</AppProviders>
+        </div>
       </body>
     </html>
   );

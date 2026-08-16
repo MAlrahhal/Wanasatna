@@ -1,13 +1,21 @@
-import { PlayerStatus } from '@prisma/client';
+import { PlayerStatus, type Prisma } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
 import type { HostChangedPayload } from '@wanasatna/shared';
 
-async function findNextHostPlayer(roomId: string, excludePlayerId?: string) {
+type HostLookupDb = {
+  player: Prisma.TransactionClient['player'];
+};
+
+async function findNextHostPlayer(
+  db: HostLookupDb,
+  roomId: string,
+  excludePlayerId?: string,
+) {
   for (const statuses of [
     [PlayerStatus.CONNECTED],
     [PlayerStatus.DISCONNECTED],
   ] as const) {
-    const players = await prisma.player.findMany({
+    const players = await db.player.findMany({
       where: {
         roomId,
         status: { in: [...statuses] },
@@ -26,11 +34,19 @@ async function findNextHostPlayer(roomId: string, excludePlayerId?: string) {
   return null;
 }
 
+export async function selectNextHostPlayer(
+  db: HostLookupDb,
+  roomId: string,
+  excludePlayerId?: string,
+) {
+  return findNextHostPlayer(db, roomId, excludePlayerId);
+}
+
 export async function transferHost(
   roomId: string,
   excludePlayerId?: string,
 ): Promise<HostChangedPayload | null> {
-  const nextHost = await findNextHostPlayer(roomId, excludePlayerId);
+  const nextHost = await findNextHostPlayer(prisma, roomId, excludePlayerId);
 
   if (!nextHost) {
     return null;

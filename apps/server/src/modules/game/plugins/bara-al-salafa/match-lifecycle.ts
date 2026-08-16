@@ -14,6 +14,7 @@ import { timedPhaseClock } from '../../runtime/phase-deadline.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
+import { persistCompletedMatchThen } from '../../runtime/persist-completed-match.js';
 import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
 import { resolveEnabledCategoryFilter } from '../../runtime/round-category-store.js';
 import { applyRoundScores } from './scoring.js';
@@ -137,19 +138,21 @@ export function startMatchCompletedPhase(
 }
 
 export function completeMatchCompletedPhase(io: Server, roomId: string): void {
-  clearPhaseTimerRuntime(roomId);
-  deleteBaraAlSalafaState(roomId);
+  persistCompletedMatchThen(roomId, () => {
+    clearPhaseTimerRuntime(roomId);
+    deleteBaraAlSalafaState(roomId);
 
-  // Must delete the shell (not leave FINISHED). navigateRoomToLobby alone leaves a
-  // stale shell Map entry → next start-from-lobby fails with SHELL_ALREADY_EXISTS.
-  const shell = getGameShellByRoomId(roomId);
-  if (!shell) {
-    return;
-  }
+    // Must delete the shell (not leave FINISHED). navigateRoomToLobby alone leaves a
+    // stale shell Map entry → next start-from-lobby fails with SHELL_ALREADY_EXISTS.
+    const shell = getGameShellByRoomId(roomId);
+    if (!shell) {
+      return;
+    }
 
-  cleanupGameShellRuntime(roomId);
-  deleteGameShell(roomId);
-  navigateRoomToLobby(io, roomId);
+    cleanupGameShellRuntime(roomId);
+    deleteGameShell(roomId);
+    navigateRoomToLobby(io, roomId);
+  });
 }
 
 export function cleanupBaraAlSalafaRuntime(roomId: string): void {

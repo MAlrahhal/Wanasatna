@@ -19,6 +19,7 @@ export function getRoomSocket(): Socket {
       autoConnect: false,
       // True transport drops while in-room should recover; Leave disables this first.
       reconnection: true,
+      withCredentials: true,
     });
   }
 

@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { PlayerStatus, Prisma, RoomStatus, SessionType } from '@prisma/client';
+import { PlayerStatus, Prisma, RoomStatus } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
 import type { RoomActionResponse, RoomSessionData } from '@wanasatna/shared';
 import { validateCreateRoomPayload } from '../room.validators.js';
@@ -15,7 +15,10 @@ function logCreateRoomDiagnostic(
   console.info('[create-room]', { stage, ...details });
 }
 
-export async function createRoom(payload: unknown): Promise<RoomActionResponse<RoomSessionData>> {
+export async function createRoom(
+  payload: unknown,
+  accountUserId: string | null = null,
+): Promise<RoomActionResponse<RoomSessionData>> {
   logCreateRoomDiagnostic('request-received');
 
   const validation = validateCreateRoomPayload(payload);
@@ -53,6 +56,7 @@ export async function createRoom(payload: unknown): Promise<RoomActionResponse<R
           status: PlayerStatus.CONNECTED,
           isSpectator: false,
           reconnectTokenHash,
+          userId: accountUserId || null,
         },
       });
 
@@ -64,7 +68,6 @@ export async function createRoom(payload: unknown): Promise<RoomActionResponse<R
           hostPlayerId: playerId,
           status: RoomStatus.LOBBY,
           isLocked: false,
-          sessionType: SessionType.SINGLE_GAME,
         },
         include: { hostPlayer: true },
       });

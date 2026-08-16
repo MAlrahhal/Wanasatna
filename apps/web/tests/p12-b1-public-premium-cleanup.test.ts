@@ -98,9 +98,12 @@ test('FAQ has no Premium category', () => {
 
 test('Login has no Premium benefit', () => {
   const login = read('app/(public)/login/login-page-client.tsx');
+  const copy = read('lib/auth/copy.ts');
   assert.doesNotMatch(login, /بريميوم|premium/);
-  assert.match(login, /حفظ الاسم المفضّل/);
-  assert.match(login, /تسجيل الدخول قيد التطوير/);
+  assert.doesNotMatch(copy, /بريميوم|premium/);
+  assert.match(copy, /حفظ الاسم المفضّل/);
+  assert.match(copy, /الحساب اختياري/);
+  assert.doesNotMatch(login, /تسجيل الدخول قيد التطوير/);
 });
 
 test('no production UI renders بريميوم or a Premium upgrade CTA', () => {

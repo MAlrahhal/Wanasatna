@@ -1,5 +1,5 @@
 import type { RoomErrorCode } from '@wanasatna/shared';
-import { SYSTEM_COPY, toSafeUserErrorMessage } from '@/lib/ui/system-copy';
+import { SYSTEM_COPY, toSafeUserErrorMessage } from '../ui/system-copy';
 
 const ERROR_MESSAGES: Record<RoomErrorCode, string> = {
   VALIDATION_ERROR: 'يرجى التحقق من البيانات المدخلة.',

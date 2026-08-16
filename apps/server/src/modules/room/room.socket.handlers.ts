@@ -17,6 +17,7 @@ import {
   type ReconnectResponse,
   type RoomActionResponse,
 } from '@wanasatna/shared';
+import { resolveSocketAccountUser } from '../auth/socket-auth.js';
 import { getGameShellByRoomId } from '../game/game.service.js';
 import { ensureGameShellLifecycleProgress } from '../game/game.lifecycle.js';
 import { evaluatePlayerRecovery } from '../game/runtime/player-recovery.js';
@@ -104,7 +105,10 @@ export function registerCreateRoomHandler(io: Server, socket: Socket): void {
           await roomMutationRuntime.clearSocketSession(socket);
         }
 
-        const response = await roomMutationRuntime.createRoom(payload);
+        const response = await roomMutationRuntime.createRoom(
+          payload,
+          (await resolveSocketAccountUser(socket))?.id ?? null,
+        );
 
         if (response.success) {
           const bindResult = await bindNewIdentityOrAbandon(
@@ -194,7 +198,10 @@ export function registerJoinRoomHandler(io: Server, socket: Socket): void {
           await roomMutationRuntime.clearSocketSession(socket);
         }
 
-        const response = await roomMutationRuntime.joinRoom(payload);
+        const response = await roomMutationRuntime.joinRoom(
+          payload,
+          (await resolveSocketAccountUser(socket))?.id ?? null,
+        );
 
         if (response.success) {
           const bindResult = await bindNewIdentityOrAbandon(

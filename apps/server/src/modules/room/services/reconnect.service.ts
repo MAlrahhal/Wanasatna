@@ -67,11 +67,29 @@ export async function reconnectPlayer(payload: unknown): Promise<ReconnectRespon
     });
 
     if (!latest || latest.status === PlayerStatus.LEFT) {
-      return serviceError('PLAYER_NOT_FOUND', 'Player session has ended.');
+      return {
+        success: false,
+        error: {
+          code: 'RECONNECT_EXPIRED',
+          message: 'Reconnect window has expired.',
+        },
+        hostChanged: null,
+        expiredRoomId: player.roomId,
+        roomDeleted: !latest,
+      } as ReconnectResponse;
     }
 
     if (latest.status === PlayerStatus.DISCONNECTED && isReconnectExpired(latest.lastSeenAt)) {
-      return serviceError('PLAYER_NOT_FOUND', 'Player session has ended.');
+      return {
+        success: false,
+        error: {
+          code: 'RECONNECT_EXPIRED',
+          message: 'Reconnect window has expired.',
+        },
+        hostChanged: null,
+        expiredRoomId: player.roomId,
+        roomDeleted: false,
+      } as ReconnectResponse;
     }
 
     const closedError = assertRoomNotClosed(latest.room);
@@ -85,6 +103,7 @@ export async function reconnectPlayer(payload: unknown): Promise<ReconnectRespon
       data: {
         status: PlayerStatus.CONNECTED,
         lastSeenAt: new Date(),
+        // Seat resume only — do not attach or change account linkage.
       },
     });
 
@@ -107,6 +126,7 @@ export async function reconnectPlayer(payload: unknown): Promise<ReconnectRespon
     data: {
       status: PlayerStatus.CONNECTED,
       lastSeenAt: new Date(),
+      // Seat resume only — do not attach or change account linkage.
     },
   });
 

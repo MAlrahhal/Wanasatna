@@ -48,6 +48,9 @@ cp apps/server/.env.example apps/server/.env
 
 # Generate Prisma client (required before running the server)
 pnpm --filter @wanasatna/server prisma:generate
+
+# Apply database migrations
+pnpm --filter @wanasatna/server prisma:migrate:deploy
 ```
 
 ## Development Commands
