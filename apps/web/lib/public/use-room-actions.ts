@@ -220,7 +220,7 @@ export function useRoomActions() {
         // Form code is invite data only — clear Leave suppress so Lobby won't bounce Home.
         manager.clearExplicitLeaveHome();
 
-        const result = await manager.join(trimmedCode, trimmedName);
+        const result = await manager.enterFromJoinForm(trimmedCode, trimmedName);
         if (!result.success) {
           setErrorMessage(result.error.message);
           return;

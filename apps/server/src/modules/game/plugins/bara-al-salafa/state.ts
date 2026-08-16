@@ -381,6 +381,7 @@ export function buildBaraAlSalafaPlayerView(
     totalRounds: match.totalRounds,
     matchStatus: match.matchStatus,
     ...EMPTY_INTERACTION_VIEW,
+    leaderboard: buildLeaderboardEntries(match),
   };
 
   if (round.gamePhase === 'description') {

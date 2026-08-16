@@ -92,13 +92,24 @@ function baseView(overrides: Partial<BaraAlSalafaPlayerView> = {}): BaraAlSalafa
 }
 
 test('leaderboard mapping: all participants with zero scores at game start', () => {
-  const entries = mapBaraAlSalafaLeaderboard(baseView(), 'p1', roomPlayers);
+  const entries = mapBaraAlSalafaLeaderboard(
+    baseView({
+      leaderboard: [
+        { playerId: 'p1', name: 'محمد', score: 0, isFirstPlace: true },
+        { playerId: 'p2', name: 'خالد', score: 0, isFirstPlace: true },
+        { playerId: 'p3', name: 'سارة', score: 0, isFirstPlace: true },
+      ],
+    }),
+    'p1',
+    roomPlayers,
+  );
   assert.equal(entries.length, 3);
   assert.deepEqual(
     entries.map((entry) => entry.name),
     ['خالد', 'سارة', 'محمد'],
   );
   assert.ok(entries.every((entry) => entry.score === 0));
+  assert.equal(entries.find((entry) => entry.playerId === 'p1')?.isCurrentPlayer, true);
 });
 
 test('leaderboard mapping: higher total score sorts first', () => {
@@ -174,11 +185,112 @@ test('H round-results phase uses resultsLeaderboard totals immediately', () => {
 });
 
 test('leaderboard mapping: excludes spectators', () => {
-  const entries = mapBaraAlSalafaLeaderboard(baseView(), 'p1', [
-    ...roomPlayers,
-    { id: 'p4', name: 'متفرج', isHost: false, isSpectator: true, isConnected: true },
-  ]);
+  const entries = mapBaraAlSalafaLeaderboard(
+    baseView({
+      leaderboard: [
+        { playerId: 'p1', name: 'محمد', score: 0, isFirstPlace: true },
+        { playerId: 'p2', name: 'خالد', score: 0, isFirstPlace: true },
+        { playerId: 'p3', name: 'سارة', score: 0, isFirstPlace: true },
+      ],
+    }),
+    'p1',
+    [
+      ...roomPlayers,
+      { id: 'p4', name: 'متفرج', isHost: false, isSpectator: true, isConnected: true },
+    ],
+  );
   assert.equal(entries.length, 3);
+  assert.equal(
+    entries.some((entry) => entry.playerId === 'p4'),
+    false,
+  );
+});
+
+test('A: pre-start disconnected non-participants are excluded', () => {
+  const entries = mapBaraAlSalafaLeaderboard(
+    baseView({
+      leaderboard: [
+        { playerId: 'p1', name: 'أ', score: 0, isFirstPlace: true },
+        { playerId: 'p2', name: 'ب', score: 0, isFirstPlace: true },
+      ],
+    }),
+    'p1',
+    [
+      { id: 'p1', name: 'أ', isHost: true, isSpectator: false, isConnected: true },
+      { id: 'p2', name: 'ب', isHost: false, isSpectator: false, isConnected: true },
+      { id: 'p3', name: 'ج', isHost: false, isSpectator: false, isConnected: false },
+      { id: 'p4', name: 'د', isHost: false, isSpectator: false, isConnected: false },
+    ],
+  );
+  assert.deepEqual(
+    entries.map((entry) => entry.playerId),
+    ['p1', 'p2'],
+  );
+});
+
+test('B: mid-match joining spectator is excluded', () => {
+  const entries = mapBaraAlSalafaLeaderboard(
+    baseView({
+      leaderboard: [
+        { playerId: 'p1', name: 'أ', score: 100, isFirstPlace: true },
+        { playerId: 'p2', name: 'ب', score: 50, isFirstPlace: false },
+      ],
+    }),
+    'p1',
+    [
+      { id: 'p1', name: 'أ', isHost: true, isSpectator: false, isConnected: true },
+      { id: 'p2', name: 'ب', isHost: false, isSpectator: false, isConnected: true },
+      { id: 'p3', name: 'ج', isHost: false, isSpectator: false, isConnected: true },
+    ],
+  );
+  assert.deepEqual(
+    entries.map((entry) => entry.playerId),
+    ['p1', 'p2'],
+  );
+});
+
+test('C: participant who disconnects after match start remains', () => {
+  const entries = mapBaraAlSalafaLeaderboard(
+    baseView({
+      leaderboard: [
+        { playerId: 'p1', name: 'أ', score: 100, isFirstPlace: true },
+        { playerId: 'p2', name: 'ب', score: 80, isFirstPlace: false },
+      ],
+    }),
+    'p1',
+    [{ id: 'p1', name: 'أ', isHost: true, isSpectator: false, isConnected: true }],
+  );
+  assert.deepEqual(
+    entries.map((entry) => [entry.playerId, entry.score]),
+    [
+      ['p1', 100],
+      ['p2', 80],
+    ],
+  );
+});
+
+test('null view does not guess the live room roster', () => {
+  const entries = mapBaraAlSalafaLeaderboard(null, 'p1', roomPlayers);
+  assert.deepEqual(entries, []);
+});
+
+test('shared locked-match mapper is used by every game leaderboard map', () => {
+  const mapperFiles = [
+    'lib/game/map-bara-leaderboard.ts',
+    'lib/game/map-draw-guess-leaderboard.ts',
+    'lib/game/map-imposter-draw-leaderboard.ts',
+    'lib/game/map-fast-answer-leaderboard.ts',
+    'lib/game/map-judge-leaderboard.ts',
+    'lib/game/map-who-wrote-it-leaderboard.ts',
+    'lib/game/map-timing-challenge-leaderboard.ts',
+    'lib/game/map-guessing-challenge-leaderboard.ts',
+  ];
+  const webRoot = join(testDir, '..');
+
+  for (const relativePath of mapperFiles) {
+    const source = readFileSync(join(webRoot, relativePath), 'utf8');
+    assert.match(source, /mapLockedMatchLeaderboard/);
+  }
 });
 
 test('I round results screen no longer renders cumulative leaderboard section', () => {

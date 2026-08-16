@@ -11,6 +11,7 @@ import {
   DRAWING_CANVAS_WIDTH,
   appendPointsToStroke,
   cloneDrawStrokes,
+  partitionStrokesForProtectedTurn,
   shouldReplaceStrokeSnapshot,
 } from '../plugins/draw-guess/drawing-render';
 
@@ -35,10 +36,14 @@ function read(relativePath: string): string {
   return readFileSync(join(root, relativePath), 'utf8');
 }
 
-function makeStroke(id: string, pointCount: number): DrawStroke {
+function makeStroke(
+  id: string,
+  pointCount: number,
+  tool: DrawStroke['tool'] = 'draw',
+): DrawStroke {
   return {
     id,
-    tool: 'draw',
+    tool,
     color: '#111827',
     size: 4,
     points: Array.from({ length: pointCount }, (_, index) => ({ x: index, y: index })),
@@ -98,9 +103,17 @@ test('canvas pointer movement draws incrementally, not a full historical redraw'
   const moveEnd = canvas.indexOf('function endStroke');
   assert.ok(moveStart >= 0 && moveEnd > moveStart);
   const move = canvas.slice(moveStart, moveEnd);
-  assert.match(move, /drawStrokeSegment/);
+  assert.match(move, /paintSegment/);
   assert.doesNotMatch(move, /renderAllStrokes/);
-  assert.match(canvas, /renderAllStrokes\(canvas, committedStrokesRef\.current, activeStrokeRef\.current\)/);
+  const paintStart = canvas.indexOf('function paintSegment');
+  assert.ok(paintStart >= 0 && paintStart < moveStart);
+  const paint = canvas.slice(paintStart, moveStart);
+  assert.match(paint, /drawStrokeSegment/);
+  assert.match(paint, /compositeProtectedDrawing/);
+  assert.match(
+    canvas,
+    /renderAllStrokes\(\s*canvas,\s*committedStrokesRef\.current,\s*activeStrokeRef\.current/,
+  );
   assert.match(canvas, /POINT_THROTTLE_MS = 40/);
   assert.match(canvas, /onStrokeEnd\?\.\(\{ strokeId: finished\.id \}\)/);
 });
@@ -140,6 +153,83 @@ test('drawing screens wire stroke end separately from start', () => {
   assert.doesNotMatch(drawGuessScreen, /onStrokeEnd=\{isDrawer \? onEmitStroke : undefined\}/);
   assert.match(imposterScreen, /onStrokeEnd=\{canDraw && onEmitStrokeEnd \? onEmitStrokeEnd : undefined\}/);
   assert.doesNotMatch(imposterScreen, /onStrokeEnd=\{canDraw && onEmitStroke \? onEmitStroke : undefined\}/);
+});
+
+test('Imposter Draw protects previous-turn strokes from current-turn erase', () => {
+  const turnAHouse = makeStroke('a-house', 8);
+  const turnBInk = makeStroke('b-ink', 5);
+  const turnBErase = makeStroke('b-erase', 6, 'erase');
+  const { frozen, live } = partitionStrokesForProtectedTurn(
+    [turnAHouse, turnBInk, turnBErase],
+    ['b-ink', 'b-erase'],
+    null,
+  );
+
+  assert.deepEqual(
+    frozen.map((stroke) => stroke.id),
+    ['a-house'],
+  );
+  assert.deepEqual(
+    live.map((stroke) => stroke.id),
+    ['b-ink', 'b-erase'],
+  );
+  assert.equal(
+    live.some((stroke) => stroke.tool === 'erase'),
+    true,
+  );
+  assert.equal(
+    frozen.some((stroke) => stroke.tool === 'erase'),
+    false,
+  );
+});
+
+test('Imposter Draw current-turn erase stays on the live layer', () => {
+  const turnBInk = makeStroke('b-ink', 4);
+  const turnBErase = makeStroke('b-erase', 3, 'erase');
+  const { frozen, live } = partitionStrokesForProtectedTurn(
+    [turnBInk, turnBErase],
+    ['b-ink', 'b-erase'],
+    null,
+  );
+  assert.equal(frozen.length, 0);
+  assert.deepEqual(
+    live.map((stroke) => stroke.id),
+    ['b-ink', 'b-erase'],
+  );
+});
+
+test('Imposter Draw undo only removes the latest current-turn stroke', () => {
+  const turnAHouse = makeStroke('a-house', 8);
+  const turnBInk = makeStroke('b-ink', 5);
+  const turnBErase = makeStroke('b-erase', 6, 'erase');
+  const remaining = [turnAHouse, turnBInk, turnBErase].filter((stroke) => stroke.id !== 'b-erase');
+  const { frozen, live } = partitionStrokesForProtectedTurn(remaining, ['b-ink'], null);
+  assert.deepEqual(
+    frozen.map((stroke) => stroke.id),
+    ['a-house'],
+  );
+  assert.deepEqual(
+    live.map((stroke) => stroke.id),
+    ['b-ink'],
+  );
+});
+
+test('reconnect/full-board snapshot keeps previous-turn ownership', () => {
+  const snapshot = [makeStroke('a-house', 12), makeStroke('b-ink', 7), makeStroke('b-erase', 4, 'erase')];
+  const rebuilt = cloneDrawStrokes(snapshot);
+  assert.equal(shouldReplaceStrokeSnapshot([], rebuilt), true);
+  const { frozen, live } = partitionStrokesForProtectedTurn(rebuilt, ['b-ink', 'b-erase'], null);
+  assert.equal(frozen[0]?.points.length, 12);
+  assert.deepEqual(
+    live.map((stroke) => stroke.id),
+    ['b-ink', 'b-erase'],
+  );
+});
+
+test('Imposter Draw wires turn ownership; Draw Guess does not', () => {
+  assert.match(imposterScreen, /currentTurnStrokeIds=\{currentTurnStrokeIds\}/);
+  assert.match(imposterScreen, /turnId=\{turnId\}/);
+  assert.doesNotMatch(drawGuessScreen, /currentTurnStrokeIds/);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

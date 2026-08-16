@@ -128,8 +128,13 @@ function broadcastCanvasUpdated(
   roomId: string,
   turnId: string,
   strokes: DrawStroke[],
+  currentTurnStrokeIds: string[],
 ): void {
-  io.to(getRoomChannel(roomId)).emit(IMPOSTER_DRAW_CANVAS_UPDATED_EVENT, { turnId, strokes });
+  io.to(getRoomChannel(roomId)).emit(IMPOSTER_DRAW_CANVAS_UPDATED_EVENT, {
+    turnId,
+    strokes,
+    currentTurnStrokeIds,
+  });
 }
 
 function isStrokePoint(value: unknown): value is { x: number; y: number } {
@@ -429,7 +434,13 @@ export function registerImposterDrawSocketHandlers(io: Server, socket: Socket): 
         });
 
         setImposterDrawState(roomId!, nextMatch);
-        broadcastCanvasUpdated(io, roomId!, match.round.turnId, started.strokes);
+        broadcastCanvasUpdated(
+          io,
+          roomId!,
+          match.round.turnId,
+          started.strokes,
+          nextTurnStrokeIds,
+        );
       }
 
       sendGameResponse(callback, { success: true, data: { ok: true } });
@@ -578,7 +589,13 @@ export function registerImposterDrawSocketHandlers(io: Server, socket: Socket): 
       });
 
       setImposterDrawState(roomId!, nextMatch);
-      broadcastCanvasUpdated(io, roomId!, match.round.turnId, nextStrokes);
+      broadcastCanvasUpdated(
+        io,
+        roomId!,
+        match.round.turnId,
+        nextStrokes,
+        nextTurnStrokeIds,
+      );
 
       sendGameResponse(callback, {
         success: true,

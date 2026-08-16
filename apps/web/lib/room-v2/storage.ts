@@ -2,6 +2,7 @@ import {
   ACTIVE_ROOM_SESSION_KEY,
   type ActiveRoomSession,
 } from '@/lib/room-v2/types';
+import { writeReconnectClaim } from '@/lib/room-v2/reconnect-claims';
 
 const LEGACY_SESSION_KEYS = [
   'wanasatna:playerId',
@@ -84,6 +85,7 @@ export function writePersistedActiveRoomSession(session: ActiveRoomSession): voi
 
   try {
     window.sessionStorage.setItem(ACTIVE_ROOM_SESSION_KEY, JSON.stringify(session));
+    writeReconnectClaim(session);
     purgeLegacyRoomStorage();
   } catch {
     /* storage unavailable */

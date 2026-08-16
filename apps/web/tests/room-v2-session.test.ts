@@ -5,11 +5,20 @@
 import assert from 'node:assert/strict';
 import {
   ACTIVE_ROOM_SESSION_KEY,
+  RECONNECT_CLAIMS_STORAGE_KEY,
+  canAutoResumeWithExplicitName,
   clearPersistedActiveRoomSession,
   getRoomSessionManager,
+  isTerminalResumeFailure,
   purgeLegacyRoomStorage,
   readPersistedActiveRoomSession,
+  readReconnectClaim,
+  removeReconnectClaim,
+  removeReconnectClaimForSession,
+  resolveExplicitJoinIntent,
+  selectExplicitJoinReconnectIdentity,
   writePersistedActiveRoomSession,
+  writeReconnectClaim,
   type ActiveRoomSession,
   __resetRoomSessionManagerForTests,
 } from '../lib/room-v2/index';
@@ -139,6 +148,190 @@ test('globalThis manager singleton is stable across getRoomSessionManager calls'
   const b = getRoomSessionManager();
   assert.equal(a, b);
   __resetRoomSessionManagerForTests();
+});
+
+test('same room + same name + token → reconnect, not join', () => {
+  assert.equal(resolveExplicitJoinIntent(sample, '123456', 'خلود'), 'reconnect');
+  assert.equal(resolveExplicitJoinIntent(sample, '123-456', '  خلود  '), 'reconnect');
+});
+
+test('same room + different name → join, old token unused', () => {
+  assert.equal(resolveExplicitJoinIntent(sample, '123456', 'عبدالله'), 'join');
+});
+
+test('different room → join even with same name', () => {
+  assert.equal(resolveExplicitJoinIntent(sample, '999999', 'خلود'), 'join');
+});
+
+test('missing token or playerId cannot reconnect via join form', () => {
+  assert.equal(
+    resolveExplicitJoinIntent({ ...sample, reconnectToken: '' }, '123456', 'خلود'),
+    'join',
+  );
+  assert.equal(resolveExplicitJoinIntent(null, '123456', 'خلود'), 'join');
+});
+
+test('code-only refresh may resume without retyping name', () => {
+  assert.equal(canAutoResumeWithExplicitName(sample, ''), true);
+  assert.equal(canAutoResumeWithExplicitName(sample, null), true);
+  assert.equal(canAutoResumeWithExplicitName(sample, 'خلود'), true);
+});
+
+test('explicit URL name=B must not silently resume stored name A', () => {
+  assert.equal(canAutoResumeWithExplicitName(sample, 'عبدالله'), false);
+  assert.equal(canAutoResumeWithExplicitName(null, 'عبدالله'), false);
+});
+
+test('terminal reconnect failures discard stale session; transport failures do not', () => {
+  assert.equal(isTerminalResumeFailure('PLAYER_NOT_FOUND'), true);
+  assert.equal(isTerminalResumeFailure('RECONNECT_EXPIRED'), true);
+  assert.equal(isTerminalResumeFailure('RECONNECT_INVALID_TOKEN'), true);
+  assert.equal(isTerminalResumeFailure('ROOM_NOT_FOUND'), true);
+  assert.equal(isTerminalResumeFailure('ROOM_CLOSED'), true);
+  assert.equal(isTerminalResumeFailure('CONNECTION_FAILED'), false);
+});
+
+const other: ActiveRoomSession = {
+  roomId: 'room-2',
+  roomCode: '654321',
+  playerId: 'player-2',
+  playerName: 'محمد',
+  reconnectToken: 'token-2',
+};
+
+test('successful session write creates persistent reconnect claim', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writePersistedActiveRoomSession(sample);
+  assert.deepEqual(readReconnectClaim('123456', 'خلود'), sample);
+});
+
+test('simulated tab close keeps local claim after sessionStorage is gone', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writePersistedActiveRoomSession(sample);
+  sessionStorage.removeItem(ACTIVE_ROOM_SESSION_KEY);
+  assert.equal(readPersistedActiveRoomSession(), null);
+  assert.deepEqual(readReconnectClaim('123456', 'خلود'), sample);
+});
+
+test('reopen same browser: same room + same name selects claim for reconnect', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writeReconnectClaim(sample);
+  const identity = selectExplicitJoinReconnectIdentity(null, readReconnectClaim('123456', 'خلود'), '123456', 'خلود');
+  assert.ok(identity);
+  assert.equal(identity?.playerId, 'player-1');
+  assert.equal(resolveExplicitJoinIntent(identity, '123456', 'خلود'), 'reconnect');
+});
+
+test('same room + different name ignores old claim and JOINs', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writeReconnectClaim(sample);
+  const identity = selectExplicitJoinReconnectIdentity(
+    null,
+    readReconnectClaim('123456', 'عبدالله'),
+    '123456',
+    'عبدالله',
+  );
+  assert.equal(identity, null);
+  assert.equal(resolveExplicitJoinIntent(sample, '123456', 'عبدالله'), 'join');
+});
+
+test('different room ignores old claim and JOINs', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writeReconnectClaim(sample);
+  const identity = selectExplicitJoinReconnectIdentity(
+    null,
+    readReconnectClaim('999999', 'خلود'),
+    '999999',
+    'خلود',
+  );
+  assert.equal(identity, null);
+  assert.equal(resolveExplicitJoinIntent(sample, '999999', 'خلود'), 'join');
+});
+
+test('no claim cannot reclaim a name — JOIN only', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  assert.equal(selectExplicitJoinReconnectIdentity(null, null, '123456', 'خلود'), null);
+  assert.equal(resolveExplicitJoinIntent(null, '123456', 'خلود'), 'join');
+});
+
+test('explicit leave removes matching claim only', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writeReconnectClaim(sample);
+  writeReconnectClaim(other);
+  removeReconnectClaimForSession(sample);
+  assert.equal(readReconnectClaim('123456', 'خلود'), null);
+  assert.deepEqual(readReconnectClaim('654321', 'محمد'), other);
+});
+
+test('kick removes matching claim', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writeReconnectClaim(sample);
+  removeReconnectClaimForSession(sample);
+  assert.equal(readReconnectClaim('123456', 'خلود'), null);
+});
+
+test('expired credential removes stale claim and cannot loop reconnect', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writePersistedActiveRoomSession(sample);
+  assert.equal(isTerminalResumeFailure('RECONNECT_EXPIRED'), true);
+  removeReconnectClaimForSession(sample);
+  clearPersistedActiveRoomSession();
+  assert.equal(readReconnectClaim('123456', 'خلود'), null);
+  assert.equal(readPersistedActiveRoomSession(), null);
+  assert.equal(selectExplicitJoinReconnectIdentity(null, readReconnectClaim('123456', 'خلود'), '123456', 'خلود'), null);
+});
+
+test('temporary reconnect timeout does not destroy claim', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writePersistedActiveRoomSession(sample);
+  assert.equal(isTerminalResumeFailure('CONNECTION_FAILED'), false);
+  assert.deepEqual(readReconnectClaim('123456', 'خلود'), sample);
+});
+
+test('multiple claims: clearing A does not remove B', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writeReconnectClaim(sample);
+  writeReconnectClaim(other);
+  removeReconnectClaim('123456', 'خلود');
+  assert.equal(readReconnectClaim('123456', 'خلود'), null);
+  assert.deepEqual(readReconnectClaim('654321', 'محمد'), other);
+});
+
+test('refresh sessionStorage resume is unchanged', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writePersistedActiveRoomSession(sample);
+  assert.deepEqual(readPersistedActiveRoomSession(), sample);
+  assert.equal(canAutoResumeWithExplicitName(readPersistedActiveRoomSession(), ''), true);
+});
+
+test('legacy purge does not delete v2 reconnect claims', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writeReconnectClaim(sample);
+  localStorage.setItem('wanasatna:reconnect:123456', '{}');
+  purgeLegacyRoomStorage();
+  assert.equal(localStorage.getItem('wanasatna:reconnect:123456'), null);
+  assert.ok(localStorage.getItem(RECONNECT_CLAIMS_STORAGE_KEY));
+  assert.deepEqual(readReconnectClaim('123456', 'خلود'), sample);
+});
+
+test('incomplete claim is not persisted', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writeReconnectClaim({ ...sample, reconnectToken: '' });
+  assert.equal(readReconnectClaim('123456', 'خلود'), null);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

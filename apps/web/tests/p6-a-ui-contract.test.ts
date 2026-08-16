@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { splitGameStartPlayerRequirementReason } from '../lib/game-shell/start-requirement-copy';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -163,6 +164,28 @@ test('category chips keep 10 options and larger mobile touch targets', () => {
   assert.match(panel, /bg-wanas-accent text-white/);
   assert.match(categories, /عشوائي/);
   assert.match(categories, /defaultCategoryId: 'random'/);
+});
+
+test('min-player error emphasizes the dynamic game name without changing copy', () => {
+  const start = read('components/lobby/lobby-start-game-panel.tsx');
+  const validation = read('lib/game-shell/start-validation.ts');
+  assert.match(start, /splitGameStartPlayerRequirementReason/);
+  assert.match(start, /font-semibold text-white/);
+  assert.match(validation, /تحتاج لعبة \$\{plugin!\.metadata\.title\} إلى \$\{minPlayers\} لاعبين على الأقل\./);
+  assert.match(validation, /تحتاج لعبة برا السالفة إلى 3 لاعبين على الأقل\./);
+
+  const whoWroteIt = splitGameStartPlayerRequirementReason(
+    'تحتاج لعبة من كتبها؟ إلى 3 لاعبين على الأقل.',
+  );
+  assert.deepEqual(whoWroteIt, {
+    before: 'تحتاج لعبة ',
+    gameName: 'من كتبها؟',
+    after: ' إلى 3 لاعبين على الأقل.',
+  });
+  assert.equal(
+    splitGameStartPlayerRequirementReason('تحدي التخمين (1 ضد 1) يلزم لاعبان.'),
+    null,
+  );
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

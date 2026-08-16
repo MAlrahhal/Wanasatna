@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from 'react';
 import { GUESSING_CHALLENGE_GAME_ID, TIMING_CHALLENGE_GAME_ID } from '@wanasatna/shared';
 import { useRoom } from '@/contexts/room-context';
 import { getGameStartPlayerRequirementReason } from '@/lib/game-shell/start-validation';
+import { splitGameStartPlayerRequirementReason } from '@/lib/game-shell/start-requirement-copy';
 import { getGameCatalogEntry } from '@/lib/public/game-catalog';
 import { mockLobbyGames } from '@/lib/lobby/mock-games';
 import { Button } from '@/components/ui/button';
@@ -104,6 +105,24 @@ export function LobbyStartGamePanel() {
 
   const startDisabled = Boolean(disabledReason) || isStarting;
 
+  function renderDisabledReason(reason: string) {
+    const parts = splitGameStartPlayerRequirementReason(reason);
+
+    return (
+      <p className="mt-1.5 text-center text-xs font-medium text-wanas-text-muted">
+        {parts ? (
+          <>
+            {parts.before}
+            <span className="font-semibold text-white">{parts.gameName}</span>
+            {parts.after}
+          </>
+        ) : (
+          reason
+        )}
+      </p>
+    );
+  }
+
   function renderStartButton() {
     return (
       <Button
@@ -131,9 +150,7 @@ export function LobbyStartGamePanel() {
           )}
         </div>
         {renderStartButton()}
-        {disabledReason ? (
-          <p className="mt-1.5 text-center text-xs font-medium text-wanas-text-muted">{disabledReason}</p>
-        ) : null}
+        {disabledReason ? renderDisabledReason(disabledReason) : null}
       </section>
 
       <div
@@ -151,9 +168,7 @@ export function LobbyStartGamePanel() {
         style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}
       >
         {renderStartButton()}
-        {disabledReason ? (
-          <p className="mt-1.5 text-center text-xs font-medium text-wanas-text-muted">{disabledReason}</p>
-        ) : null}
+        {disabledReason ? renderDisabledReason(disabledReason) : null}
       </div>
     </>
   );

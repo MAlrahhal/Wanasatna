@@ -118,7 +118,13 @@ export function useImposterDrawPlayerView(
           return current;
         }
 
-        return { ...current, strokes: payload.strokes };
+        return {
+          ...current,
+          strokes: payload.strokes,
+          currentTurnStrokeIds: Array.isArray(payload.currentTurnStrokeIds)
+            ? payload.currentTurnStrokeIds
+            : current.currentTurnStrokeIds,
+        };
       });
     };
 

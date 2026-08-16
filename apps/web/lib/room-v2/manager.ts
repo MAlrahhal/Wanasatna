@@ -31,6 +31,14 @@ import {
   readPersistedActiveRoomSession,
   writePersistedActiveRoomSession,
 } from '@/lib/room-v2/storage';
+import {
+  isTerminalResumeFailure,
+  selectExplicitJoinReconnectIdentity,
+} from '@/lib/room-v2/join-intent';
+import {
+  readReconnectClaim,
+  removeReconnectClaimForSession,
+} from '@/lib/room-v2/reconnect-claims';
 import type {
   ActiveRoomSession,
   RoomLifecycleStatus,
@@ -358,8 +366,10 @@ class RoomSessionManager {
         return;
       }
 
+      const discarded = this.session;
       const gen = this.bumpGeneration();
       void gen;
+      removeReconnectClaimForSession(discarded);
       this.clearLocalParticipation();
       this.status = 'idle';
       this.notify();
@@ -554,6 +564,38 @@ class RoomSessionManager {
   }
 
   /**
+   * Home Join submit. Same room + same name + token → resume without clearing.
+   * Any other name/room → fresh JOIN (clears the previous local session).
+   */
+  async enterFromJoinForm(
+    roomCode: string,
+    playerName: string,
+  ): Promise<RoomV2Result<{ roomCode: string }>> {
+    this.rehydrateFromStorageIfNeeded();
+    const active = this.session ?? readPersistedActiveRoomSession();
+    const persistentClaim = readReconnectClaim(roomCode, playerName);
+    const identity = selectExplicitJoinReconnectIdentity(
+      active,
+      persistentClaim,
+      roomCode,
+      playerName,
+    );
+
+    if (identity) {
+      this.session = identity;
+      writePersistedActiveRoomSession(identity);
+      const resumed = await this.resumeSameRoom(roomCode);
+      if (!resumed.success) {
+        return { success: false, error: resumed.error };
+      }
+
+      return { success: true, data: { roomCode: resumed.data.roomCode } };
+    }
+
+    return this.join(roomCode, playerName);
+  }
+
+  /**
    * Same-room resume after hard refresh or transport reconnect.
    * Does nothing if already active with matching bound snapshot (fresh soft-nav).
    * Concurrent callers share one in-flight resume (React Strict Mode / double mount).
@@ -583,6 +625,7 @@ class RoomSessionManager {
 
     if (this.leftRoomIds.has(stored.roomId)) {
       this.bumpGeneration();
+      removeReconnectClaimForSession(stored);
       this.clearLocalParticipation();
       this.status = 'idle';
       this.notify();
@@ -696,15 +739,33 @@ class RoomSessionManager {
     }
 
     if (!response.success) {
-      // Matching-code resume failure must NOT erase ActiveRoomSession — that caused
-      // Lobby bootstrap to redirect `/?code=` after a successful Create.
-      this.session = stored;
-      writePersistedActiveRoomSession(stored);
-      this.status = 'error';
-      this.errorMessage = getRoomErrorMessage(
+      const errorMessage = getRoomErrorMessage(
         response.error.code as Parameters<typeof getRoomErrorMessage>[0],
         response.error.message,
       );
+
+      if (isTerminalResumeFailure(response.error.code)) {
+        removeReconnectClaimForSession(stored);
+        this.clearLocalParticipation();
+        this.status = 'idle';
+        this.errorMessage = errorMessage;
+        this.notify();
+        recordContinuity('RESUME_FAILED', {
+          socketId: getRoomSocket().id ?? null,
+          managerId: this.__instanceId ?? null,
+          roomCode: stored.roomCode,
+          playerId: stored.playerId,
+          status: this.status,
+          detail: `${response.error.code};session-discarded`,
+        });
+        return { success: false, error: { code: response.error.code, message: errorMessage } };
+      }
+
+      // Transient transport failure: keep the credential so refresh/retry can resume.
+      this.session = stored;
+      writePersistedActiveRoomSession(stored);
+      this.status = 'error';
+      this.errorMessage = errorMessage;
       this.notify();
       recordContinuity('RESUME_FAILED', {
         socketId: getRoomSocket().id ?? null,
@@ -746,6 +807,7 @@ class RoomSessionManager {
     const old = this.session;
     if (old) {
       this.leftRoomIds.add(old.roomId);
+      removeReconnectClaimForSession(old);
     }
     const leaveGen = this.bumpGeneration();
     this.status = 'leaving';

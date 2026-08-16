@@ -265,6 +265,8 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
       return (
         <DrawingTurnsScreen
           strokes={view.strokes}
+          currentTurnStrokeIds={view.currentTurnStrokeIds}
+          turnId={view.turnId}
           canDraw={false}
           isSpectator
           currentDrawerName={view.currentDrawerName}
@@ -323,6 +325,8 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
     return (
       <DrawingTurnsScreen
         strokes={view.strokes}
+        currentTurnStrokeIds={view.currentTurnStrokeIds}
+        turnId={view.turnId}
         canDraw={view.canDraw}
         currentDrawerName={view.currentDrawerName}
         remainingSeconds={0}

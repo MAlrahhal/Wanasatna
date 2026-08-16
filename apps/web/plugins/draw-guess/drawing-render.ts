@@ -154,11 +154,115 @@ export function drawStrokeSegment(
   context.restore();
 }
 
+export type RenderAllStrokesOptions = {
+  /** When set (including `[]`), erase only affects these current-turn strokes. */
+  currentTurnStrokeIds?: readonly string[];
+  frozenCanvas?: HTMLCanvasElement;
+  liveCanvas?: HTMLCanvasElement;
+};
+
+export function partitionStrokesForProtectedTurn(
+  strokes: readonly DrawStroke[],
+  currentTurnStrokeIds: readonly string[],
+  activeStroke: DrawStroke | null,
+): { frozen: DrawStroke[]; live: DrawStroke[] } {
+  const liveIds = new Set(currentTurnStrokeIds);
+
+  if (activeStroke) {
+    liveIds.add(activeStroke.id);
+  }
+
+  const frozen: DrawStroke[] = [];
+  const live: DrawStroke[] = [];
+
+  for (const stroke of strokes) {
+    if (activeStroke && stroke.id === activeStroke.id) {
+      continue;
+    }
+
+    if (liveIds.has(stroke.id)) {
+      live.push(stroke);
+    } else {
+      frozen.push(stroke);
+    }
+  }
+
+  if (activeStroke) {
+    live.push(activeStroke);
+  }
+
+  return { frozen, live };
+}
+
+export function createDrawingLayerCanvas(): HTMLCanvasElement {
+  const layer = document.createElement('canvas');
+  layer.width = DRAWING_CANVAS_WIDTH;
+  layer.height = DRAWING_CANVAS_HEIGHT;
+  return layer;
+}
+
+export function renderStrokeLayer(
+  canvas: HTMLCanvasElement,
+  strokes: readonly DrawStroke[],
+  background: 'white' | 'clear',
+): void {
+  const context = canvas.getContext('2d');
+
+  if (!context) {
+    return;
+  }
+
+  context.clearRect(0, 0, DRAWING_CANVAS_WIDTH, DRAWING_CANVAS_HEIGHT);
+
+  if (background === 'white') {
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, DRAWING_CANVAS_WIDTH, DRAWING_CANVAS_HEIGHT);
+  }
+
+  for (const stroke of strokes) {
+    drawStroke(context, stroke);
+  }
+}
+
+export function compositeProtectedDrawing(
+  visible: HTMLCanvasElement,
+  frozen: HTMLCanvasElement,
+  live: HTMLCanvasElement,
+): void {
+  const context = visible.getContext('2d');
+
+  if (!context) {
+    return;
+  }
+
+  context.save();
+  context.globalCompositeOperation = 'source-over';
+  context.clearRect(0, 0, DRAWING_CANVAS_WIDTH, DRAWING_CANVAS_HEIGHT);
+  context.drawImage(frozen, 0, 0);
+  context.drawImage(live, 0, 0);
+  context.restore();
+}
+
 export function renderAllStrokes(
   canvas: HTMLCanvasElement,
   strokes: readonly DrawStroke[],
   activeStroke: DrawStroke | null,
+  options?: RenderAllStrokesOptions,
 ): void {
+  if (options?.currentTurnStrokeIds !== undefined) {
+    const frozenCanvas = options.frozenCanvas ?? createDrawingLayerCanvas();
+    const liveCanvas = options.liveCanvas ?? createDrawingLayerCanvas();
+    const { frozen, live } = partitionStrokesForProtectedTurn(
+      strokes,
+      options.currentTurnStrokeIds,
+      activeStroke,
+    );
+    renderStrokeLayer(frozenCanvas, frozen, 'white');
+    renderStrokeLayer(liveCanvas, live, 'clear');
+    compositeProtectedDrawing(canvas, frozenCanvas, liveCanvas);
+    return;
+  }
+
   const context = canvas.getContext('2d');
 
   if (!context) {

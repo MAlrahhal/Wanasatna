@@ -59,6 +59,7 @@ import {
 import { getRoomSocket } from '@/lib/room/socket';
 import { getRuntimeId, recordContinuity } from '@/lib/room-v2/continuity';
 import { emitRoomAck } from '@/lib/room-v2/emit';
+import { canAutoResumeWithExplicitName } from '@/lib/room-v2/join-intent';
 import {
   getRoomSessionManager,
   type RoomManagerState,
@@ -391,6 +392,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   const urlRoomCode = canonicalizeRoomCode(searchParams.get('code')?.trim() ?? '');
   const urlAction = searchParams.get('action')?.trim() ?? '';
   const urlHasName = searchParams.has('name');
+  const urlExplicitName = searchParams.get('name')?.trim() ?? '';
 
   // Bind lobby URL /game resume to manager — never create/join from effects.
   useEffect(() => {
@@ -419,6 +421,19 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       });
 
       if (legacyIntent) {
+        if (urlHasName && !canAutoResumeWithExplicitName(state.session, urlExplicitName)) {
+          if (urlRoomCode) {
+            if (manager.shouldSuppressInvitePrefill()) {
+              replaceHomeClean(router);
+            } else {
+              router.replace(`/?code=${encodeURIComponent(urlRoomCode)}`);
+            }
+          } else {
+            router.replace('/');
+          }
+          return;
+        }
+
         const sessionCode = state.session?.roomCode
           ? canonicalizeRoomCode(state.session.roomCode)
           : '';
@@ -645,6 +660,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     restoreSelectedGame,
     router,
     urlAction,
+    urlExplicitName,
     urlHasName,
     urlRoomCode,
   ]);

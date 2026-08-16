@@ -17,6 +17,19 @@ export {
   type RoomRuntimeSnapshot,
 } from '@/lib/room-v2/manager';
 export {
+  RECONNECT_CLAIMS_STORAGE_KEY,
+  readReconnectClaim,
+  removeReconnectClaim,
+  removeReconnectClaimForSession,
+  writeReconnectClaim,
+} from '@/lib/room-v2/reconnect-claims';
+export {
+  canAutoResumeWithExplicitName,
+  isTerminalResumeFailure,
+  resolveExplicitJoinIntent,
+  selectExplicitJoinReconnectIdentity,
+} from '@/lib/room-v2/join-intent';
+export {
   getContinuityLog,
   getReconnectEmitCount,
   getRuntimeId,

@@ -210,6 +210,7 @@ test('Imposter Draw SYNC/player view contains complete current drawing', () => {
   assert.equal(view.strokes.length, 1);
   assert.equal(view.strokes[0]?.points.length, 3);
   assert.equal(view.referenceImage, null);
+  assert.deepEqual(view.currentTurnStrokeIds, ['stroke-1']);
 
   const cleared = withImposterDrawRound(match, { ...match.round, strokes: [], currentTurnStrokeIds: [] });
   assert.equal(
@@ -280,6 +281,13 @@ for (const [label, source, pointsEvent, syncEvent, viewBuilder] of [
 test('Imposter Draw point batches require current-turn stroke ownership', () => {
   const points = handlerBlock(imposterHandlers, 'IMPOSTER_DRAW_STROKE_POINTS_EVENT');
   assert.match(points, /currentTurnStrokeIds\.includes\(pointsPayload\.strokeId\)/);
+});
+
+test('Imposter Draw canvas-updated broadcasts current-turn stroke ids', () => {
+  assert.match(
+    imposterHandlers,
+    /emit\(IMPOSTER_DRAW_CANVAS_UPDATED_EVENT, \{\s*turnId,\s*strokes,\s*currentTurnStrokeIds,\s*\}\)/,
+  );
 });
 
 test('Draw Guess clear empties authoritative strokes', () => {

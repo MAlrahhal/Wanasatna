@@ -99,6 +99,8 @@ export type ImposterDrawPlayerView = {
   currentDrawerName: string | null;
   canDraw: boolean;
   strokes: DrawStroke[];
+  /** Stroke ids created by the current drawer during the active turnId. */
+  currentTurnStrokeIds: string[];
   drawingOrder: string[];
   currentRound: number;
   totalRounds: number;
@@ -203,4 +205,5 @@ export type ImposterDrawSubmitImageGuessPayload = {
 export type ImposterDrawCanvasUpdatedPayload = {
   turnId: string;
   strokes: DrawStroke[];
+  currentTurnStrokeIds: string[];
 };

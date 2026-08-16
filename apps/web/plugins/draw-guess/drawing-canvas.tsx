@@ -14,10 +14,13 @@ import {
   DRAWING_CANVAS_WIDTH,
   appendPointsToStroke,
   cloneDrawStrokes,
+  compositeProtectedDrawing,
+  createDrawingLayerCanvas,
   drawStrokeSegment,
   renderAllStrokes,
   shouldReplaceStrokeSnapshot,
   upsertFinishedStroke,
+  type RenderAllStrokesOptions,
 } from './drawing-render';
 
 const CANVAS_WIDTH = DRAWING_CANVAS_WIDTH;
@@ -34,6 +37,9 @@ export type DrawingCanvasProps = {
   tool?: DrawGuessTool;
   color?: string;
   size?: number;
+  /** Imposter Draw: current-turn stroke ids. Omit for Draw Guess (full-board erase). */
+  currentTurnStrokeIds?: readonly string[];
+  turnId?: string;
   onStrokeStart?: (payload: {
     strokeId: string;
     tool: DrawGuessTool;
@@ -62,6 +68,8 @@ export const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>
       tool = 'draw',
       color = '#111827',
       size = 8,
+      currentTurnStrokeIds,
+      turnId,
       onStrokeStart,
       onStrokePoints,
       onStrokeEnd,
@@ -70,12 +78,83 @@ export const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>
     ref,
   ) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const frozenCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const liveCanvasRef = useRef<HTMLCanvasElement | null>(null);
     const activeStrokeRef = useRef<DrawStroke | null>(null);
     const lastEmitAtRef = useRef(0);
     const pendingPointsRef = useRef<DrawStrokePoint[]>([]);
     const committedStrokesRef = useRef<DrawStroke[]>(cloneDrawStrokes(strokes));
     const paintedRef = useRef(false);
     const pendingRemotePointsRef = useRef(new Map<string, DrawStrokePoint[]>());
+    const localLiveStrokeIdsRef = useRef(new Set<string>());
+    const lastProtectKeyRef = useRef<string | null>(null);
+
+    function ensureLayerCanvas(
+      layerRef: { current: HTMLCanvasElement | null },
+    ): HTMLCanvasElement {
+      if (!layerRef.current) {
+        layerRef.current = createDrawingLayerCanvas();
+      }
+
+      return layerRef.current;
+    }
+
+    function resolveProtectOptions(): RenderAllStrokesOptions | undefined {
+      if (currentTurnStrokeIds === undefined) {
+        return undefined;
+      }
+
+      const liveIds = new Set(currentTurnStrokeIds);
+
+      for (const strokeId of localLiveStrokeIdsRef.current) {
+        liveIds.add(strokeId);
+      }
+
+      if (activeStrokeRef.current) {
+        liveIds.add(activeStrokeRef.current.id);
+      }
+
+      return {
+        currentTurnStrokeIds: [...liveIds],
+        frozenCanvas: ensureLayerCanvas(frozenCanvasRef),
+        liveCanvas: ensureLayerCanvas(liveCanvasRef),
+      };
+    }
+
+    function paintSegment(
+      visibleContext: CanvasRenderingContext2D,
+      stroke: Pick<DrawStroke, 'tool' | 'color' | 'size'> & { id?: string },
+      fromPoint: DrawStrokePoint | null,
+      points: readonly DrawStrokePoint[],
+      strokeId?: string,
+    ): void {
+      const protect = resolveProtectOptions();
+      const canvas = canvasRef.current;
+
+      if (!protect || !canvas) {
+        drawStrokeSegment(visibleContext, stroke, fromPoint, points);
+        return;
+      }
+
+      const liveIds = new Set(protect.currentTurnStrokeIds);
+
+      if (strokeId && !liveIds.has(strokeId)) {
+        renderAllStrokes(canvas, committedStrokesRef.current, activeStrokeRef.current, protect);
+        return;
+      }
+
+      const liveCanvas = protect.liveCanvas;
+      const frozenCanvas = protect.frozenCanvas;
+      const liveContext = liveCanvas?.getContext('2d');
+
+      if (!liveCanvas || !frozenCanvas || !liveContext) {
+        drawStrokeSegment(visibleContext, stroke, fromPoint, points);
+        return;
+      }
+
+      drawStrokeSegment(liveContext, stroke, fromPoint, points);
+      compositeProtectedDrawing(canvas, frozenCanvas, liveCanvas);
+    }
 
     function flushPendingRemotePoints(context: CanvasRenderingContext2D | null): void {
       for (const [strokeId, points] of pendingRemotePointsRef.current) {
@@ -94,7 +173,7 @@ export const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>
         committedStrokesRef.current = appended.strokes;
 
         if (context) {
-          drawStrokeSegment(context, appended.stroke, appended.fromPoint, points);
+          paintSegment(context, appended.stroke, appended.fromPoint, points, strokeId);
         }
       }
 
@@ -126,10 +205,14 @@ export const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>
         committedStrokesRef.current = appended.strokes;
 
         if (context) {
-          drawStrokeSegment(context, appended.stroke, appended.fromPoint, points);
+          paintSegment(context, appended.stroke, appended.fromPoint, points, strokeId);
         }
       },
     }));
+
+    useEffect(() => {
+      localLiveStrokeIdsRef.current.clear();
+    }, [turnId]);
 
     useEffect(() => {
       const canvas = canvasRef.current;
@@ -139,18 +222,28 @@ export const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>
       }
 
       const incoming = strokes;
+      const protectKey =
+        currentTurnStrokeIds === undefined ? null : currentTurnStrokeIds.join('\0');
       const shouldReplace =
-        !paintedRef.current || shouldReplaceStrokeSnapshot(committedStrokesRef.current, incoming);
+        !paintedRef.current ||
+        shouldReplaceStrokeSnapshot(committedStrokesRef.current, incoming) ||
+        protectKey !== lastProtectKeyRef.current;
 
       if (!shouldReplace) {
         return;
       }
 
+      lastProtectKeyRef.current = protectKey;
       committedStrokesRef.current = cloneDrawStrokes(incoming);
-      renderAllStrokes(canvas, committedStrokesRef.current, activeStrokeRef.current);
+      renderAllStrokes(
+        canvas,
+        committedStrokesRef.current,
+        activeStrokeRef.current,
+        resolveProtectOptions(),
+      );
       paintedRef.current = true;
       flushPendingRemotePoints(canvas.getContext('2d'));
-    }, [strokes]);
+    }, [strokes, currentTurnStrokeIds]);
 
     useEffect(() => {
       const canvas = canvasRef.current;
@@ -160,14 +253,19 @@ export const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>
       }
 
       const redraw = () => {
-        renderAllStrokes(canvas, committedStrokesRef.current, activeStrokeRef.current);
+        renderAllStrokes(
+          canvas,
+          committedStrokesRef.current,
+          activeStrokeRef.current,
+          resolveProtectOptions(),
+        );
       };
 
       window.addEventListener('resize', redraw);
       return () => {
         window.removeEventListener('resize', redraw);
       };
-    }, []);
+    }, [currentTurnStrokeIds]);
 
     function pointerToCanvasPoint(event: ReactPointerEvent<HTMLCanvasElement>): DrawStrokePoint {
       const canvas = canvasRef.current!;
@@ -224,9 +322,10 @@ export const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>
       };
 
       activeStrokeRef.current = stroke;
+      localLiveStrokeIdsRef.current.add(stroke.id);
       pendingPointsRef.current = [];
       lastEmitAtRef.current = Date.now();
-      drawStrokeSegment(context, stroke, null, [point]);
+      paintSegment(context, stroke, null, [point], stroke.id);
       onStrokeStart?.({
         strokeId: stroke.id,
         tool: stroke.tool,
@@ -254,7 +353,7 @@ export const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>
       const fromPoint = activeStroke.points.at(-1) ?? null;
       activeStroke.points.push(point);
       pendingPointsRef.current.push(point);
-      drawStrokeSegment(context, activeStroke, fromPoint, [point]);
+      paintSegment(context, activeStroke, fromPoint, [point], activeStroke.id);
       flushPendingPoints();
     }
 
@@ -269,6 +368,7 @@ export const DrawingCanvas = forwardRef<DrawingCanvasHandle, DrawingCanvasProps>
       const finished = activeStrokeRef.current;
       activeStrokeRef.current = null;
       pendingPointsRef.current = [];
+      localLiveStrokeIdsRef.current.add(finished.id);
       committedStrokesRef.current = upsertFinishedStroke(committedStrokesRef.current, finished);
       onStrokeEnd?.({ strokeId: finished.id });
     }

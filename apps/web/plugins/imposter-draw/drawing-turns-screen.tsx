@@ -16,6 +16,8 @@ import { DrawingToolbar } from '@/plugins/draw-guess/drawing-toolbar';
 
 export type DrawingTurnsScreenProps = {
   strokes: readonly DrawStroke[];
+  currentTurnStrokeIds?: readonly string[];
+  turnId?: string;
   canDraw: boolean;
   isSpectator?: boolean;
   currentDrawerName: string | null;
@@ -35,6 +37,8 @@ export type DrawingTurnsScreenProps = {
 
 export function DrawingTurnsScreen({
   strokes,
+  currentTurnStrokeIds,
+  turnId,
   canDraw,
   isSpectator = false,
   currentDrawerName,
@@ -85,6 +89,8 @@ export function DrawingTurnsScreen({
           <DrawingCanvas
             ref={canvasRef}
             strokes={strokes}
+            currentTurnStrokeIds={currentTurnStrokeIds}
+            turnId={turnId}
             readOnly={!canDraw}
             tool={tool}
             color={color}

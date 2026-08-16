@@ -237,6 +237,7 @@ export function buildDrawGuessSpectatorView(match: DrawGuessMatchState): DrawGue
     guessedCorrectly: revealWord ? round.guessedCorrectly : false,
     ...EMPTY_RESULTS,
     isMatchSpectator: true,
+    leaderboard: buildLeaderboardEntries(match),
   };
 }
 
@@ -275,7 +276,7 @@ export function buildDrawGuessPlayerView(
         : null,
     guessedCorrectly: revealWord ? round.guessedCorrectly : false,
     roundResults: [],
-    leaderboard: [],
+    leaderboard: buildLeaderboardEntries(match),
     resultsLeaderboard: [],
     isHost: shell.hostPlayerId === playerId,
     canContinueFromRoundResults: false,

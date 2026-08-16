@@ -226,7 +226,7 @@ test('privacy: drawer gets word; guesser and spectator do not', () => {
   assert.equal(spectatorView.secretWord, null);
   assert.equal(spectatorView.isMatchSpectator, true);
   assert.equal(spectatorView.canGuess, false);
-  assert.equal(spectatorView.leaderboard.length, 0);
+  assert.equal(spectatorView.leaderboard.length, match.playerIds.length);
   assert.ok(Array.isArray(spectatorView.strokes));
 });
 
