@@ -157,21 +157,6 @@ export function HomePageClient() {
             ))}
           </ol>
         </section>
-
-        <section>
-          <Link
-            href={PUBLIC_ROUTES.games}
-            className="wanas-interactive-card group border-t-2 border-t-wanas-brand-navy p-5"
-          >
-            <h3 className="text-xl font-bold text-wanas-text-primary">استكشف كل الألعاب</h3>
-            <p className="mt-2 text-sm leading-7 text-wanas-text-muted">
-              تصفّح المكتبة الكاملة مع حالة التوفر وعدد اللاعبين.
-            </p>
-            <span className="mt-4 inline-flex text-sm font-bold text-wanas-primary-dark group-hover:underline">
-              الانتقال إلى الألعاب
-            </span>
-          </Link>
-        </section>
       </div>
     </main>
   );

@@ -85,8 +85,8 @@ test('footer has no Premium link', () => {
 
 test('Home has no Premium CTA/card', () => {
   const home = read('app/(public)/home-page-client.tsx');
-  assert.doesNotMatch(home, /بريميوم|premium|تعرّف على/);
-  assert.match(home, /استكشف كل الألعاب/);
+  assert.doesNotMatch(home, /بريميوم|premium|تعرّف على|استكشف كل الألعاب|الانتقال إلى الألعاب/);
+  assert.match(home, /ألعاب مميزة/);
 });
 
 test('FAQ has no Premium category', () => {
