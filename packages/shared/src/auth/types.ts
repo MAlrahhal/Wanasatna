@@ -13,6 +13,8 @@ export type AuthErrorCode =
   | 'VALIDATION_ERROR'
   | 'EMAIL_TAKEN'
   | 'INVALID_CREDENTIALS'
+  | 'UNAUTHORIZED'
+  | 'FORBIDDEN'
   | 'RATE_LIMITED'
   | 'INTERNAL_ERROR';
 
@@ -39,4 +41,8 @@ export type AuthSessionData = {
 
 export type AuthMeData = {
   user: PublicUser | null;
+};
+
+export type AdminMeData = {
+  user: PublicUser;
 };

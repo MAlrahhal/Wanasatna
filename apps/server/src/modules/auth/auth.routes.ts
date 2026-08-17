@@ -25,7 +25,10 @@ function statusForAuthError(code: AuthErrorCode): number {
     case 'VALIDATION_ERROR':
       return 400;
     case 'INVALID_CREDENTIALS':
+    case 'UNAUTHORIZED':
       return 401;
+    case 'FORBIDDEN':
+      return 403;
     case 'EMAIL_TAKEN':
       return 409;
     case 'RATE_LIMITED':

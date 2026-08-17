@@ -19,6 +19,9 @@ export function presentAuthError(error: AuthError | null | undefined): string {
       return error.message === AUTH_COPY.connectionFailed
         ? AUTH_COPY.connectionFailed
         : AUTH_COPY.genericError;
+    case 'UNAUTHORIZED':
+    case 'FORBIDDEN':
+      return AUTH_COPY.genericError;
     default:
       return AUTH_COPY.genericError;
   }

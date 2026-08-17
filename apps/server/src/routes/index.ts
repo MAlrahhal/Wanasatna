@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { SERVER_BUILD_META } from "../config/build-meta.js";
+import { adminRouter } from "../modules/admin/admin.routes.js";
 import { authRouter } from "../modules/auth/auth.routes.js";
 
 /**
@@ -23,3 +24,4 @@ apiRouter.get("/version", (_req, res) => {
 });
 
 apiRouter.use("/auth", authRouter);
+apiRouter.use("/admin", adminRouter);

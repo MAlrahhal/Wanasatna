@@ -16,6 +16,8 @@
     "test:room-chat": "tsx tests/room-chat.unit.test.ts",
     "test:p12-b2": "tsx tests/p12-b2-room-lifecycle.unit.test.ts",
     "test:p12-b3": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p12-b3-auth.unit.test.ts",
+    "test:p13-a": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p13-a-admin.unit.test.ts",
+    "promote-admin": "tsx scripts/promote-admin.ts",
     "test:p12-b5": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p12-b5-socket-account.unit.test.ts",
     "test:p12-b6": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p12-b6-match-history.unit.test.ts",
     "test:p12-b7": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p12-b7-db-hardening.unit.test.ts",

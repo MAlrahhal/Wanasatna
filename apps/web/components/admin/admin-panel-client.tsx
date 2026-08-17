@@ -1,0 +1,147 @@
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import type { PublicUser } from '@wanasatna/shared';
+import { useAuth } from '@/contexts/auth-context';
+import { fetchAdminMe } from '@/lib/admin/api';
+import { ADMIN_COPY } from '@/lib/admin/copy';
+import { ADMIN_NAV_ITEMS, ADMIN_ROUTES } from '@/lib/admin/routes';
+import { cn } from '@/lib/utils';
+
+export function AdminPanelClient() {
+  const router = useRouter();
+  const { status, user, logout } = useAuth();
+  const [gate, setGate] = useState<'loading' | 'unauthenticated' | 'forbidden' | 'ok'>('loading');
+  const [adminUser, setAdminUser] = useState<PublicUser | null>(null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  useEffect(() => {
+    if (status !== 'ready') {
+      return;
+    }
+
+    let cancelled = false;
+
+    void fetchAdminMe().then((result) => {
+      if (cancelled) {
+        return;
+      }
+
+      if (result.ok) {
+        setAdminUser(result.user);
+        setGate('ok');
+        return;
+      }
+
+      setAdminUser(null);
+      setGate(result.status === 403 ? 'forbidden' : 'unauthenticated');
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [status, user?.id, user?.role]);
+
+  useEffect(() => {
+    if (gate === 'unauthenticated') {
+      router.replace(ADMIN_ROUTES.login);
+    }
+  }, [gate, router]);
+
+  async function handleLogout() {
+    await logout();
+    router.replace(ADMIN_ROUTES.login);
+  }
+
+  if (status === 'loading' || gate === 'loading' || gate === 'unauthenticated') {
+    return (
+      <main className="flex flex-1 items-center justify-center px-4 py-10">
+        <p className="text-sm text-wanas-text-muted">{ADMIN_COPY.resolving}</p>
+      </main>
+    );
+  }
+
+  if (gate === 'forbidden') {
+    return (
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10">
+        <p role="alert" className="text-center text-sm font-semibold text-wanas-error">
+          {ADMIN_COPY.accessDenied}
+        </p>
+      </main>
+    );
+  }
+
+  return (
+    <div className="flex min-h-full flex-1 flex-col md:flex-row">
+      <header className="flex items-center justify-between border-b border-wanas-border bg-wanas-surface px-4 py-3 md:hidden">
+        <p className="text-sm font-bold text-wanas-text-primary">{ADMIN_COPY.panelTitle}</p>
+        <button
+          type="button"
+          className="rounded-xl border border-wanas-border px-3 py-2 text-sm font-semibold text-wanas-text-primary"
+          aria-expanded={mobileNavOpen}
+          aria-controls="admin-mobile-nav"
+          onClick={() => setMobileNavOpen((open) => !open)}
+        >
+          {mobileNavOpen ? ADMIN_COPY.closeNav : ADMIN_COPY.openNav}
+        </button>
+      </header>
+
+      <aside
+        id="admin-mobile-nav"
+        className={cn(
+          'border-wanas-border bg-wanas-surface md:flex md:w-64 md:shrink-0 md:flex-col md:border-e',
+          mobileNavOpen ? 'block border-b' : 'hidden md:flex',
+        )}
+      >
+        <div className="hidden border-b border-wanas-border px-4 py-5 md:block">
+          <p className="text-base font-bold text-wanas-text-primary">{ADMIN_COPY.panelTitle}</p>
+        </div>
+        <nav aria-label={ADMIN_COPY.navLabel} className="flex flex-col gap-1 p-3">
+          {ADMIN_NAV_ITEMS.map((item) =>
+            item.placeholder ? (
+              <span
+                key={item.id}
+                className="rounded-xl px-3 py-2 text-sm font-semibold text-wanas-text-muted"
+              >
+                {item.label}
+              </span>
+            ) : (
+              <Link
+                key={item.id}
+                href={item.href}
+                aria-current="page"
+                className="rounded-xl bg-wanas-surface-soft px-3 py-2 text-sm font-semibold text-wanas-text-primary"
+                onClick={() => setMobileNavOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ),
+          )}
+        </nav>
+        <div className="mt-auto p-3">
+          <button
+            type="button"
+            onClick={() => {
+              void handleLogout();
+            }}
+            className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-wanas-border text-sm font-semibold text-wanas-text-primary hover:bg-wanas-surface-soft"
+          >
+            {ADMIN_COPY.logout}
+          </button>
+        </div>
+      </aside>
+
+      <main className="flex-1 px-4 py-8 sm:px-8">
+        <h1 className="text-2xl font-bold text-wanas-text-primary">{ADMIN_COPY.panelTitle}</h1>
+        {adminUser ? (
+          <p className="mt-3 text-sm text-wanas-text-secondary">
+            {adminUser.preferredDisplayName}
+            <span className="mt-1 block text-wanas-text-muted">{adminUser.email}</span>
+          </p>
+        ) : null}
+      </main>
+    </div>
+  );
+}
