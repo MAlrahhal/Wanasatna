@@ -219,8 +219,8 @@ export function buildDrawGuessSpectatorView(match: DrawGuessMatchState): DrawGue
       ? remainingSecondsFromDeadline(round.deadlineAtMs)
       : round.phaseRemainingSeconds,
     deadlineAtMs: round.deadlineAtMs,
-    role: 'guesser',
-    secretWord: null,
+    role: 'drawer',
+    secretWord: round.gamePhase === 'drawing' ? round.word : null,
     turnId: round.turnId,
     drawerPlayerId: round.drawerPlayerId,
     drawerName: match.playerNames[round.drawerPlayerId] ?? 'لاعب',

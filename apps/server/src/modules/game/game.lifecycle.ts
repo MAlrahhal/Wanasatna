@@ -1,6 +1,6 @@
 import type { Server } from 'socket.io';
 import type { GameShellAbortReason } from '@wanasatna/shared';
-import { advanceShellToCountdownFromLobby, getGameShellByRoomId } from './game.service.js';
+import { advanceShellToCountdownFromLobby, deleteGameShell, getGameShellByRoomId } from './game.service.js';
 import { resolveLobbyWaitMs } from '../../config/test-timers.js';
 import { logGameShellDiagnostic } from './game.diagnostics.js';
 import {
@@ -11,6 +11,8 @@ import {
   stopGameShellTimer,
 } from './game.timer.js';
 import { initializePluginOnPlaying } from './runtime/initialize-plugin-on-playing.js';
+import { broadcastRoomPlayersSnapshot } from '../room/room.utils.js';
+import { clearRoomSpectatorFlags } from '../room/services/clear-spectators.service.js';
 
 type LobbyWaitSchedule = {
   timeoutId: ReturnType<typeof setTimeout>;
@@ -208,6 +210,53 @@ export function navigateRoomToLobby(
   },
 ): void {
   broadcastGameShellNavigate(io, roomId, '/lobby', options);
+}
+
+export async function returnRoomToLobbyAfterMatch(
+  io: Server,
+  roomId: string,
+  options?: {
+    roomCode?: string;
+    reason?: GameShellAbortReason;
+    message?: string;
+  },
+): Promise<void> {
+  try {
+    await clearRoomSpectatorFlags(roomId);
+  } catch (error) {
+    console.error('[room-lifecycle]', {
+      stage: 'clear-spectators-failed',
+      roomId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+
+  try {
+    await broadcastRoomPlayersSnapshot(io, roomId);
+  } catch (error) {
+    console.error('[room-lifecycle]', {
+      stage: 'lobby-roster-broadcast-failed',
+      roomId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+
+  navigateRoomToLobby(io, roomId, options);
+}
+
+/** Authoritative match teardown: drop the shell, clear spectators, then lobby. */
+export function teardownShellAndReturnToLobby(
+  io: Server,
+  roomId: string,
+  options?: {
+    roomCode?: string;
+    reason?: GameShellAbortReason;
+    message?: string;
+  },
+): void {
+  cleanupGameShellRuntime(roomId);
+  deleteGameShell(roomId);
+  void returnRoomToLobbyAfterMatch(io, roomId, options);
 }
 
 export function cleanupGameShellRuntime(roomId: string): void {

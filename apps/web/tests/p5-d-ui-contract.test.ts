@@ -139,8 +139,10 @@ test('leaderboard current-player badge is readable', () => {
 test('primary CTA remains white and chat stays honest', () => {
   const button = read('components/ui/button.tsx');
   const chat = read('components/game-experience/game-chat-mock-panel.tsx');
+  const panel = read('components/room/room-chat-panel.tsx');
   assert.match(button, /primary:\s*'[\s\S]*text-white/);
-  assert.match(chat, /غير متاحة حالياً/);
+  assert.match(chat, /RoomChatPanel/);
+  assert.doesNotMatch(panel, /dangerouslySetInnerHTML/);
   assert.doesNotMatch(chat, /MOCK_MESSAGES/);
 });
 

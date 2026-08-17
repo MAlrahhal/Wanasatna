@@ -383,11 +383,17 @@ test('duplicate applyRoundScores after results does not double', () => {
 
 test('reveal includes owner mappings after results; spectator hidden before', () => {
   let match = seedAnswers(makeMatch());
+  const answeringSpec = buildJudgePlayerView(match, 'spectator', makeShell());
+  assert.equal(answeringSpec.isMatchSpectator, true);
+  assert.equal(answeringSpec.canSubmitAnswer, false);
+  assert.equal(answeringSpec.anonymousAnswers.length, 0);
+  assert.ok(answeringSpec.prompt);
+
   match = beginJudgingPhase(match);
   const spectator = buildJudgePlayerView(match, 'spectator', makeShell());
   assert.equal(spectator.isMatchSpectator, true);
-  assert.equal(spectator.canSubmitAnswer, false);
   assert.equal(spectator.canSelectWinner, false);
+  assert.ok(spectator.anonymousAnswers.length > 0);
   assert.equal(JSON.stringify(spectator).includes('ownerPlayerId'), false);
 
   const ans = match.round.answers[0]!;

@@ -31,7 +31,7 @@ import {
   cleanupGameShellRuntime,
   ensureGameShellLifecycleProgress,
   navigateRoomToGame,
-  navigateRoomToLobby,
+  returnRoomToLobbyAfterMatch,
   scheduleGameShellLifecycle,
 } from './game.lifecycle.js';
 import { abortActiveMatch } from './runtime/abort-active-match.js';
@@ -47,7 +47,6 @@ import {
   clearTeamsIfGameChanged,
 } from './runtime/pregame-teams.service.js';
 import { logGameShellDiagnostic } from './game.diagnostics.js';
-import { broadcastRoomPlayersSnapshot } from '../room/room.utils.js';
 import {
   broadcastGameShellState,
   startGameShellTimer,
@@ -441,8 +440,7 @@ export function registerGameShellReturnToLobbyHandler(io: Server, socket: Socket
       if (response.success) {
         clearPlayerRecoveryForTeardown(io, roomId!);
         cleanupGameShellRuntime(roomId!);
-        await broadcastRoomPlayersSnapshot(io, roomId!);
-        navigateRoomToLobby(io, roomId!);
+        await returnRoomToLobbyAfterMatch(io, roomId!);
         console.info('[room-lifecycle]', {
           stage: 'return-to-lobby',
           roomId,

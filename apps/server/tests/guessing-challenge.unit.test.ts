@@ -1025,7 +1025,7 @@ test('identity picker consumes remaining fresh alternative before reuse', () => 
   assert.notEqual(picked[0].id, picked[1].id);
 });
 
-test('spectator receives no identities or controls', () => {
+test('spectator sees both identities and cannot act', () => {
   const match = makeMatch2v2();
   const view = buildGuessingChallengePlayerView(
     match,
@@ -1034,11 +1034,12 @@ test('spectator receives no identities or controls', () => {
   );
   assert.equal(view.isMatchSpectator, true);
   assert.equal(view.selfTeam, null);
-  assert.equal(view.opponents.length, 0);
-  assert.equal(view.opponent.visibleIdentity, null);
   assert.equal(view.canGuess, false);
   assert.equal(view.canEndQuestion, false);
   assert.equal(view.canUseYellow, false);
+  assert.equal(view.spectatorBlueIdentity?.value, match.round.identitiesByTeamId.blue.value);
+  assert.equal(view.spectatorRedIdentity?.value, match.round.identitiesByTeamId.red.value);
+  assert.notEqual(view.spectatorBlueIdentity?.value, view.spectatorRedIdentity?.value);
   assert.equal(JSON.stringify(view).includes('acceptedAnswers'), false);
 });
 

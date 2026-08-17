@@ -7,8 +7,6 @@ import {
   TIMING_CHALLENGE_GAME_ID,
   TIMING_CHALLENGE_ROUND_RESULTS_SECONDS,
 } from '@wanasatna/shared';
-import { GameScreen } from '@/components/game/game-card';
-import { GameHeader } from '@/components/game/game-header';
 import { GameSystemError, GameSystemLoading, SpectatorNotice } from '@/components/room/room-system-state';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
@@ -205,79 +203,80 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
     return null;
   }
 
-  if (view.isMatchSpectator) {
-    return (
-      <GameScreen ariaLabel="مشاهدة">
-        <GameHeader
-          gameName={TIMING_CHALLENGE_GAME_NAME}
-          gameIcon={TIMING_CHALLENGE_GAME_ICON}
-          roomCode={room.code}
-          currentRound={view.currentRound}
-          totalRounds={view.totalRounds}
-          phaseLabel="مشاهدة"
-        />
-        <SpectatorNotice />
-      </GameScreen>
-    );
-  }
+  const spectatorBanner = view.isMatchSpectator ? <SpectatorNotice /> : null;
 
   if (view.gamePhase === 'ready') {
     return (
-      <ReadyScreen
-        mode={view.mode}
-        targetMs={view.targetMs}
-        canReady={view.canReady}
-        selfReady={view.selfReady}
-        peers={view.peers}
-        currentPlayerId={player.id}
-        isSubmitting={isSubmittingAction}
-        onReady={() => void markReady()}
-      />
+      <div className="space-y-3">
+        {spectatorBanner}
+        <ReadyScreen
+          mode={view.mode}
+          targetMs={view.targetMs}
+          canReady={view.canReady}
+          selfReady={view.selfReady}
+          peers={view.peers}
+          currentPlayerId={player.id}
+          isSubmitting={isSubmittingAction}
+          onReady={() => void markReady()}
+        />
+      </div>
     );
   }
 
   if (view.gamePhase === 'hidden-timing') {
-    return <HiddenTimingScreen />;
+    return (
+      <div className="space-y-3">
+        {spectatorBanner}
+        <HiddenTimingScreen />
+      </div>
+    );
   }
 
   if (view.gamePhase === 'guessing') {
     return (
-      <GuessScreen
-        canGuess={view.canGuess}
-        selfSubmitted={view.selfSubmitted}
-        peers={view.peers}
-        currentPlayerId={player.id}
-        isSubmitting={isSubmittingAction}
-        actionError={actionError}
-        onSubmit={(guessSeconds) => void submitGuess(guessSeconds)}
-      />
+      <div className="space-y-3">
+        {spectatorBanner}
+        <GuessScreen
+          canGuess={view.canGuess}
+          selfSubmitted={view.selfSubmitted}
+          peers={view.peers}
+          currentPlayerId={player.id}
+          isSubmitting={isSubmittingAction}
+          actionError={actionError}
+          onSubmit={(guessSeconds) => void submitGuess(guessSeconds)}
+        />
+      </div>
     );
   }
 
   if (view.gamePhase === 'stop-timer' && view.targetMs !== null) {
     return (
-      <StopTimerScreen
-        targetMs={view.targetMs}
-        canStartTimer={view.canStartTimer}
-        canStopTimer={view.canStopTimer}
-        selfTimerRunning={view.selfTimerRunning}
-        selfSubmitted={view.selfSubmitted}
-        selfElapsedMs={view.selfElapsedMs}
-        selfSignedDeltaMs={view.selfSignedDeltaMs}
-        selfErrorMs={view.selfErrorMs}
-        peers={view.peers}
-        currentPlayerId={player.id}
-        isSubmitting={isSubmittingAction}
-        actionError={actionError}
-        onStart={() => void startTimer()}
-        onStop={() => void stopTimer()}
-      />
+      <div className="space-y-3">
+        {spectatorBanner}
+        <StopTimerScreen
+          targetMs={view.targetMs}
+          canStartTimer={view.canStartTimer}
+          canStopTimer={view.canStopTimer}
+          selfTimerRunning={view.selfTimerRunning}
+          selfSubmitted={view.selfSubmitted}
+          selfElapsedMs={view.selfElapsedMs}
+          selfSignedDeltaMs={view.selfSignedDeltaMs}
+          selfErrorMs={view.selfErrorMs}
+          peers={view.peers}
+          currentPlayerId={player.id}
+          isSubmitting={isSubmittingAction}
+          actionError={actionError}
+          onStart={() => void startTimer()}
+          onStop={() => void stopTimer()}
+        />
+      </div>
     );
   }
 
   if (view.gamePhase === 'round-results' && view.targetMs !== null) {
     return (
       <div className="space-y-3">
+        {spectatorBanner}
         <TimingChallengeRoundResultsScreen
           mode={view.mode}
           targetMs={view.targetMs}

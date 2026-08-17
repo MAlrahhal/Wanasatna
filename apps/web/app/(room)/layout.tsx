@@ -2,6 +2,7 @@
 
 import { Suspense, type ReactNode } from 'react';
 import { RoomProvider } from '@/contexts/room-context';
+import { RoomChatProvider } from '@/contexts/room-chat-context';
 import { SystemStatus } from '@/components/ui/system-status';
 import { GameAudioSession } from '@/components/game/game-audio-session';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
@@ -18,8 +19,10 @@ export default function RoomLayout({ children }: { children: ReactNode }) {
   return (
     <Suspense fallback={<RoomRouteFallback />}>
       <RoomProvider>
-        <GameAudioSession />
-        {children}
+        <RoomChatProvider>
+          <GameAudioSession />
+          {children}
+        </RoomChatProvider>
       </RoomProvider>
     </Suspense>
   );

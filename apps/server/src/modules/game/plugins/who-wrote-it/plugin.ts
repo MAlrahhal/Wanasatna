@@ -36,7 +36,7 @@ export function buildWhoWroteItPluginDefinition(
     defaultSettings: settings as GamePluginSettings,
     settingsSchema: [],
     validateStart: (_context, _pluginSettings) => {
-      const connectedCount = _context.players.filter((player) => player.isConnected).length;
+      const connectedCount = _context.players.filter((player) => player.isConnected && !player.isSpectator).length;
 
       if (connectedCount < settings.minPlayers) {
         return {

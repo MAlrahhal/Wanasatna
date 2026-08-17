@@ -69,7 +69,7 @@ export function GamePlayersPanel({ className }: GamePlayersPanelProps) {
                   ) : null}
                   {roomPlayer.isSpectator ? (
                     <span className="rounded-full border border-[color:var(--wanas-game-panel-border)] px-1.5 py-0.5 text-[10px] font-medium text-[color:var(--wanas-game-text-secondary)]">
-                      متفرّج
+                      متفرج
                     </span>
                   ) : null}
                   {isConnected === false ? (

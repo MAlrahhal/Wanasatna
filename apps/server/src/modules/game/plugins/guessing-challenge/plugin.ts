@@ -70,7 +70,9 @@ export function buildGuessingChallengePluginDefinition(
       const roomMode = getGuessingChallengeRoomMode(context.roomId);
       const mode = resolveGuessingChallengeMode(settings, roomMode ?? pluginSettings?.mode);
       const required = requiredPlayerCountForMode(mode);
-      const connectedCount = context.players.filter((player) => player.isConnected).length;
+      const connectedCount = context.players.filter(
+        (player) => player.isConnected && !player.isSpectator,
+      ).length;
 
       if (connectedCount !== required) {
         return {

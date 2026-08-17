@@ -21,7 +21,6 @@ import {
   LOCK_ROOM_EVENT,
   UNLOCK_ROOM_EVENT,
   GAME_SHELL_STATE_EVENT,
-  isActiveMatchParticipant,
   isWaitingForNextMatch,
   type GameShellNavigatePayload,
   type GameShellState,
@@ -273,9 +272,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       if (
         response.success &&
         response.data.state &&
-        response.data.state.phase !== 'FINISHED' &&
-        resolvedPlayerId &&
-        isActiveMatchParticipant(response.data.state, resolvedPlayerId)
+        resolvedPlayerId
       ) {
         router.push('/game');
       }
@@ -342,17 +339,6 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     removeSocketListenersRef.current?.();
 
     const onGameShellNavigate = (payload: GameShellNavigatePayload) => {
-      if (payload.path === '/game') {
-        const currentPlayerId = playerIdRef.current;
-
-        if (
-          currentPlayerId &&
-          isWaitingForNextMatch(activeGameShellRef.current, currentPlayerId)
-        ) {
-          return;
-        }
-      }
-
       if (payload.message) {
         try {
           sessionStorage.setItem(LOBBY_NOTICE_STORAGE_KEY, payload.message);

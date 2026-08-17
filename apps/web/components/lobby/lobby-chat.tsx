@@ -1,11 +1,8 @@
 'use client';
 
-/**
- * Chat UI placeholder for Sprint 2.5.
- * Replace with socket-backed messages in the Chat sprint.
- */
 import { cn } from '@/lib/utils';
-import { EmptyState } from './empty-state';
+import { SYSTEM_COPY } from '@/lib/ui/system-copy';
+import { RoomChatPanel } from '@/components/room/room-chat-panel';
 import { LobbyPanel } from './lobby-ui';
 
 type LobbyChatProps = {
@@ -15,12 +12,11 @@ type LobbyChatProps = {
 export function LobbyChat({ className }: LobbyChatProps) {
   return (
     <LobbyPanel
-      title="دردشة الغرفة"
-      description="غير متاحة حالياً."
-      className={cn('h-fit', className)}
-      bodyClassName="p-3"
+      title={SYSTEM_COPY.chatTitle}
+      className={cn('flex h-full min-h-[280px] flex-col', className)}
+      bodyClassName="flex min-h-0 flex-1 flex-col p-3"
     >
-      <EmptyState compact title="الدردشة غير متاحة حالياً. قادم لاحقاً." />
+      <RoomChatPanel />
     </LobbyPanel>
   );
 }

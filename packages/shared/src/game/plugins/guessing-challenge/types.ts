@@ -218,6 +218,10 @@ export type GuessingChallengePlayerView = {
   roundResultsContinueLabel: string | null;
   roundResultsWaitingMessage: string | null;
   isMatchSpectator: boolean;
+  /** Spectator-only: blue-side identity. Null for participants. */
+  spectatorBlueIdentity: GuessingChallengeVisibleIdentity | null;
+  /** Spectator-only: red-side identity. Null for participants. */
+  spectatorRedIdentity: GuessingChallengeVisibleIdentity | null;
 };
 
 export const GUESSING_CHALLENGE_SYNC_EVENT = pluginActionEvent(

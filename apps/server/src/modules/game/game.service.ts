@@ -74,6 +74,7 @@ async function loadRoomPlayers(roomId: string, hostPlayerId: string): Promise<Ga
     isHost: player.id === hostPlayerId,
     isConnected: player.status === PlayerStatus.CONNECTED,
     isReady: false,
+    isSpectator: player.isSpectator,
   }));
 }
 
@@ -99,7 +100,9 @@ function saveShell(shell: GameShellRecord): GameShellRecord {
 }
 
 function lockMatchParticipantIds(players: GameShellPlayer[]): string[] {
-  return players.filter((player) => player.isConnected).map((player) => player.id);
+  return players
+    .filter((player) => player.isConnected && !player.isSpectator)
+    .map((player) => player.id);
 }
 
 async function persistLockedMatch(shell: GameShellRecord): Promise<void> {

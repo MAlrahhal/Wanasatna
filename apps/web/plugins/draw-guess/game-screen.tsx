@@ -206,6 +206,7 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
         totalRounds={view.totalRounds}
         roomCode={room.code}
         canvasRef={canvasRef}
+        secretWord={view.secretWord}
       />
     );
   }

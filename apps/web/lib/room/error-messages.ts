@@ -51,6 +51,18 @@ function mapRoomValidationMessage(message?: string): string | null {
     return 'رمز الغرفة يجب أن يكون 6 أرقام.';
   }
 
+  if (message.includes('Message cannot be empty')) {
+    return 'يرجى كتابة رسالة.';
+  }
+
+  if (message.includes('at most 300 characters')) {
+    return 'الرسالة طويلة جداً.';
+  }
+
+  if (message.includes('Message contains invalid characters')) {
+    return 'الرسالة تحتوي على رموز غير مسموحة.';
+  }
+
   if (message.includes('invalid characters')) {
     return 'الاسم يحتوي على رموز غير مسموحة.';
   }

@@ -185,6 +185,10 @@ export type BaraAlSalafaPlayerView = {
   roundResultsWaitingMessage: string | null;
   /** Mid-match joiner: no secrets, no actions. */
   isMatchSpectator: boolean;
+  /** Spectator-only: civilian word after roles/words exist. Null for participants. */
+  spectatorCivilianWord: string | null;
+  /** Spectator-only: outsider concept after roles/words exist. Null for participants. */
+  spectatorOutsiderConcept: string | null;
 };
 
 export const BARA_AL_SALAFA_SYNC_EVENT = pluginActionEvent(BARA_AL_SALAFA_GAME_ID, 'sync');

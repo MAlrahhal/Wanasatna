@@ -130,11 +130,10 @@ test('settings empty state and start CTA are honest', () => {
   assert.doesNotMatch(start, /⏳/);
 });
 
-test('lobby chat stays unavailable and secondary', () => {
+test('lobby chat is live and secondary', () => {
   const chat = read('components/lobby/lobby-chat.tsx');
   const screen = read('components/lobby/lobby-screen.tsx');
-  assert.match(chat, /غير متاحة حالياً/);
-  assert.doesNotMatch(chat, /handleSendMessage/);
+  assert.match(chat, /RoomChatPanel/);
   assert.doesNotMatch(chat, /➤/);
   assert.match(screen, /minmax\(168px,200px\)/);
 });

@@ -68,10 +68,10 @@ export function PlayerCard({
           ) : null}
           {player.isSpectator ? (
             <span className="rounded-full bg-wanas-surface-muted px-2 py-0.5 text-[10px] font-medium text-wanas-text-muted">
-              متفرّج
+              متفرج
             </span>
           ) : null}
-          {isWaitingForNextMatch ? (
+          {!player.isSpectator && isWaitingForNextMatch ? (
             <span className="rounded-full bg-wanas-surface-muted px-2 py-0.5 text-[10px] font-medium text-wanas-text-muted">
               بانتظار الجولة القادمة
             </span>

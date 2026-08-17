@@ -1190,6 +1190,14 @@ export function buildGuessingChallengePlayerView(
     resultsLeaderboard: buildResultsLeaderboardEntries(match),
     ...buildRoundResultsInteractionView(match, shell, playerId),
     isMatchSpectator,
+    spectatorBlueIdentity:
+      isMatchSpectator && !match.playerIds.includes(playerId)
+        ? toVisibleIdentity(match.round.identitiesByTeamId.blue)
+        : null,
+    spectatorRedIdentity:
+      isMatchSpectator && !match.playerIds.includes(playerId)
+        ? toVisibleIdentity(match.round.identitiesByTeamId.red)
+        : null,
   };
 }
 

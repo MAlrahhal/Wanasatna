@@ -376,7 +376,8 @@ test('minimal spectator screen replaces participant controls', () => {
   assert.match(game, /SpectatorNotice/);
   assert.match(game, /GameplayScene/);
   assert.match(game, /showSpecialCards=\{false\}/);
-  assert.match(game, /opponentIdentity=\{null\}/);
+  assert.match(game, /spectatorBlueIdentity/);
+  assert.match(game, /هوية الأزرق/);
   assert.match(game, /conciseGuessingChallengePhaseLabel/);
   assert.doesNotMatch(game, /phaseLabel: activeView\.phaseLabel/);
   assert.doesNotMatch(game, /الجولة جارية/);

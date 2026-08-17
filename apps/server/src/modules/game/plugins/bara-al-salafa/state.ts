@@ -248,6 +248,8 @@ const EMPTY_INTERACTION_VIEW: Pick<
   | 'roundResultsContinueLabel'
   | 'roundResultsWaitingMessage'
   | 'isMatchSpectator'
+  | 'spectatorCivilianWord'
+  | 'spectatorOutsiderConcept'
 > = {
   directedQuestionAskerPlayerId: null,
   directedQuestionAskerName: null,
@@ -289,6 +291,8 @@ const EMPTY_INTERACTION_VIEW: Pick<
   roundResultsContinueLabel: null,
   roundResultsWaitingMessage: null,
   isMatchSpectator: false,
+  spectatorCivilianWord: null,
+  spectatorOutsiderConcept: null,
 };
 
 function buildVotingView(
@@ -349,13 +353,15 @@ export function buildBaraAlSalafaSpectatorView(
     phaseLabel: 'الجولة جارية',
     ...visiblePhaseClock(match.round),
     categoryName: match.round.categoryName,
-    instruction: 'أنت حالياً مشاهد، وبتقدر تلعب في المباراة القادمة.',
+    instruction: 'أنت تشاهد المباراة',
     currentSpeakerName: null,
     currentRound: match.currentRound,
     totalRounds: match.totalRounds,
     matchStatus: match.matchStatus,
     ...EMPTY_INTERACTION_VIEW,
     isMatchSpectator: true,
+    spectatorCivilianWord: match.round.word || null,
+    spectatorOutsiderConcept: match.round.word ? IMPOSTOR_MESSAGE : null,
     leaderboard: buildLeaderboardEntries(match),
   };
 }

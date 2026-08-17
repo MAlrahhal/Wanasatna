@@ -75,18 +75,18 @@ test('mobile lobby session chrome hides public navbar/footer below xl', () => {
   assert.ok(page.indexOf('hidden xl:block', navbarWrap + 1) < footer);
 });
 
-test('mobile primary tabs are games + players only; chat stays desktop', () => {
+test('mobile primary tabs are games + players only; chat is a drawer', () => {
   const screen = read('components/lobby/lobby-screen.tsx');
   const chat = read('components/lobby/lobby-chat.tsx');
   assert.match(screen, /\['games', 'الألعاب'\]/);
   assert.match(screen, /\['players', 'اللاعبون'\]/);
   assert.doesNotMatch(screen, /\['chat', 'الدردشة'\]/);
   assert.doesNotMatch(screen, /'games' \| 'players' \| 'chat'/);
-  assert.match(screen, /hidden min-w-0 xl:order-3 xl:block/);
+  assert.match(screen, /xl:order-3 xl:block/);
   assert.match(screen, /<LobbyChat/);
   assert.match(screen, /minmax\(168px,200px\)/);
-  assert.match(chat, /غير متاحة حالياً/);
-  assert.doesNotMatch(chat, /handleSendMessage/);
+  assert.match(screen, /aria-label="الدردشة"/);
+  assert.match(chat, /RoomChatPanel/);
 });
 
 test('mobile catalog is 1-col at 320 and 2-col from 360; desktop 3-col remains', () => {

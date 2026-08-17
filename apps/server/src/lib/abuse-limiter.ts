@@ -14,6 +14,7 @@ type AbuseAction =
   | 'room-sync'
   | 'game-sync'
   | 'gc-look'
+  | 'room-chat'
   | 'connect';
 
 type TokenPolicy = {
@@ -33,6 +34,8 @@ const SOCKET_POLICIES: Record<Exclude<AbuseAction, 'connect'>, TokenPolicy> = {
   'room-sync': { capacity: 4, refillPerSecond: 2 },
   'game-sync': { capacity: 4, refillPerSecond: 2 },
   'gc-look': { capacity: 30, refillPerSecond: 20 },
+  /** Burst 5, then about 1 message every 2 seconds. */
+  'room-chat': { capacity: 5, refillPerSecond: 0.5 },
 };
 
 const IP_POLICIES: Record<'create-room' | 'join-room' | 'reconnect' | 'connect', TokenPolicy> = {
@@ -244,4 +247,8 @@ export function consumeConnectLimit(socket: Socket): boolean {
 
 export function consumeLookLimit(socket: Socket): boolean {
   return tryConsumeSocket(socket.id, 'gc-look', nowFn());
+}
+
+export function consumeChatLimit(socket: Socket): boolean {
+  return tryConsumeSocket(socket.id, 'room-chat', nowFn());
 }

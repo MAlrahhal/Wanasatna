@@ -20,6 +20,7 @@ import { toExperienceTimer } from '@/lib/game/deadline-clock';
 import { mapGuessingChallengeLeaderboard } from '@/lib/game/map-guessing-challenge-leaderboard';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-screen';
+import { Button } from '@/components/ui/button';
 import { GameplayScene } from './gameplay-scene';
 import { GuessingChallengePlayingScreen } from './playing-screen';
 import { GuessingChallengeRoundResultsScreen } from './round-results-screen';
@@ -43,6 +44,52 @@ function conciseGuessingChallengePhaseLabel(view: GuessingChallengePlayerView): 
     return `دور ${view.currentTurnPlayerName}`;
   }
   return 'التخمين';
+}
+
+function GuessingChallengeSpectatorPlaying({ view }: { view: GuessingChallengePlayerView }) {
+  const [side, setSide] = useState<'blue' | 'red'>('blue');
+  const identity = side === 'blue' ? view.spectatorBlueIdentity : view.spectatorRedIdentity;
+  const sideLabel = side === 'blue' ? 'الفريق الأزرق' : 'الفريق الأحمر';
+
+  return (
+    <GameScreen ariaLabel="مشاهدة تحدي التخمين" maxWidth="4xl" className="min-w-0 gap-3 sm:gap-4">
+      <SpectatorNotice />
+      <div className="flex flex-wrap justify-center gap-2">
+        <Button
+          type="button"
+          variant={side === 'blue' ? 'primary' : 'outline'}
+          className="min-h-11"
+          onClick={() => setSide('blue')}
+        >
+          هوية الأزرق
+        </Button>
+        <Button
+          type="button"
+          variant={side === 'red' ? 'primary' : 'outline'}
+          className="min-h-11"
+          onClick={() => setSide('red')}
+        >
+          هوية الأحمر
+        </Button>
+      </div>
+      <p className="text-center text-sm font-semibold text-wanas-text-primary">
+        {sideLabel}: {identity?.value ?? '؟؟؟'}
+      </p>
+      <GameplayScene
+        mode="playing"
+        matchMode={view.mode}
+        opponentName={view.currentTurnPlayerName ?? 'لاعب'}
+        selfName="متفرج"
+        opponentIdentity={identity}
+        selfIdentity={null}
+        selfHidden
+        isMyTurn={false}
+        turnTitle={`دور ${view.currentTurnPlayerName ?? 'فريق'}`}
+        turnInstruction={`تشاهد هوية ${sideLabel}. لا يمكنك السؤال أو التخمين أو استخدام البطاقات.`}
+        showSpecialCards={false}
+      />
+    </GameScreen>
+  );
 }
 
 export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
@@ -215,24 +262,7 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
   }
 
   if (view.isMatchSpectator && view.gamePhase === 'playing') {
-    return (
-      <GameScreen ariaLabel="مشاهدة تحدي التخمين" maxWidth="4xl" className="min-w-0 gap-3 sm:gap-4">
-        <SpectatorNotice />
-        <GameplayScene
-          mode="playing"
-          matchMode={view.mode}
-          opponentName={view.currentTurnPlayerName ?? 'لاعب'}
-          selfName="مشاهد"
-          opponentIdentity={null}
-          selfIdentity={null}
-          selfHidden
-          isMyTurn={false}
-          turnTitle={`دور ${view.currentTurnPlayerName ?? 'فريق'}`}
-          turnInstruction="راقب الدور الحالي. لا يمكنك التخمين أو استخدام البطاقات."
-          showSpecialCards={false}
-        />
-      </GameScreen>
-    );
+    return <GuessingChallengeSpectatorPlaying view={view} />;
   }
 
   if (view.gamePhase === 'round-results') {

@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import type { RoomActionResponse, RoomErrorCode } from '@wanasatna/shared';
-import { playerNameContainsForbiddenChars } from '@wanasatna/shared';
+import {
+  MAX_ROOM_CHAT_CONTENT_LENGTH,
+  playerNameContainsForbiddenChars,
+  textContainsForbiddenChars,
+} from '@wanasatna/shared';
 
 const playerNameSchema = z
   .string()
@@ -40,10 +44,22 @@ export const reconnectSchema = z.object({
   roomId: z.string().trim().min(1, 'Room ID is required').optional(),
 });
 
+const sendRoomChatSchema = z.object({
+  content: z
+    .string()
+    .trim()
+    .min(1, 'Message cannot be empty')
+    .max(MAX_ROOM_CHAT_CONTENT_LENGTH, 'Message must be at most 300 characters')
+    .refine((content) => !textContainsForbiddenChars(content), {
+      message: 'Message contains invalid characters',
+    }),
+});
+
 export type CreateRoomInput = z.infer<typeof createRoomSchema>;
 export type JoinRoomInput = z.infer<typeof joinRoomSchema>;
 export type KickPlayerInput = z.infer<typeof kickPlayerSchema>;
 export type ReconnectInput = z.infer<typeof reconnectSchema>;
+export type SendRoomChatInput = z.infer<typeof sendRoomChatSchema>;
 
 type ValidationSuccess<T> = { success: true; data: T };
 type ValidationFailure = { success: false; error: { code: RoomErrorCode; message: string } };
@@ -89,6 +105,10 @@ export function validateKickPlayerPayload(payload: unknown) {
 
 export function validateReconnectPayload(payload: unknown) {
   return validatePayload(reconnectSchema, payload);
+}
+
+export function validateSendRoomChatPayload(payload: unknown) {
+  return validatePayload(sendRoomChatSchema, payload);
 }
 
 export function invalidContextError(message: string): RoomActionResponse<never> {

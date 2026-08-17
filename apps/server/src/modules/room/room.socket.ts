@@ -11,6 +11,7 @@ import {
   registerRoomSyncHandler,
   registerUnlockRoomHandler,
 } from './room.socket.handlers.js';
+import { registerRoomChatHandlers } from './room-chat.socket.handlers.js';
 
 export function registerRoomSockets(io: Server): void {
   io.on('connection', (socket) => {
@@ -22,6 +23,7 @@ export function registerRoomSockets(io: Server): void {
     registerUnlockRoomHandler(io, socket);
     registerReconnectHandler(io, socket);
     registerRoomSyncHandler(io, socket);
+    registerRoomChatHandlers(io, socket);
     registerDisconnectHandler(io, socket);
   });
 }

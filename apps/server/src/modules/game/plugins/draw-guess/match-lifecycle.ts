@@ -5,9 +5,9 @@ import { timedPhaseDurations } from '../../../../config/test-timers.js';
 import { timedPhaseClock } from '../../runtime/phase-deadline.js';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
-import { deleteGameShell, getGameShellByRoomId } from '../../game.service.js';
+import { getGameShellByRoomId } from '../../game.service.js';
 import { persistCompletedMatchThen } from '../../runtime/persist-completed-match.js';
-import { cleanupGameShellRuntime, navigateRoomToLobby } from '../../game.lifecycle.js';
+import { teardownShellAndReturnToLobby } from '../../game.lifecycle.js';
 import {
   clearDrawGuessPhaseTimerRuntime,
   restartDrawGuessPhaseTimer,
@@ -179,8 +179,6 @@ export function completeMatch(io: Server, roomId: string): void {
       return;
     }
 
-    cleanupGameShellRuntime(roomId);
-    deleteGameShell(roomId);
-    navigateRoomToLobby(io, roomId);
+    teardownShellAndReturnToLobby(io, roomId);
   });
 }

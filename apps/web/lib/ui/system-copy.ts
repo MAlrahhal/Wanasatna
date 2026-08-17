@@ -25,12 +25,18 @@ export const SYSTEM_COPY = {
   gameUnavailable: 'اللعبة غير متاحة حالياً.',
   returningToLobby: 'جاري العودة إلى اللوبي…',
   gameEndedReturnLobby: 'انتهت الجولة أو تمت إعادة تشغيل اللعبة، ورجعناك إلى اللوبي.',
-  spectator: 'أنت مشاهد حالياً.',
+  spectator: 'أنت تشاهد المباراة',
   copiedLink: 'تم نسخ الرابط',
   leaving: 'جاري المغادرة…',
-  spectatorTitle: 'مشاهدة',
+  spectatorTitle: 'متفرج',
   nextRoundAuto: 'الجولة التالية تبدأ تلقائياً…',
   finalResultsAuto: 'سيتم عرض النتائج النهائية تلقائياً…',
+  chatTitle: 'دردشة الغرفة',
+  chatSend: 'إرسال',
+  chatPlaceholder: 'اكتب رسالة…',
+  chatEmpty: 'لا توجد رسائل بعد.',
+  chatLoadFailed: 'تعذر تحميل الدردشة.',
+  chatSendFailed: 'تعذر إرسال الرسالة. حاول مرة ثانية.',
 } as const;
 
 export function presentSystemCopy(text: string | null | undefined, fallback = ''): string {

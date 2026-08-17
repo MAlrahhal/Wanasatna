@@ -18,6 +18,7 @@ export type WaitingSpectatorScreenProps = {
   totalRounds: number;
   roomCode: string;
   canvasRef?: RefObject<DrawingCanvasHandle | null>;
+  secretWord?: string | null;
 };
 
 export function WaitingSpectatorScreen({
@@ -29,6 +30,7 @@ export function WaitingSpectatorScreen({
   totalRounds,
   roomCode,
   canvasRef,
+  secretWord = null,
 }: WaitingSpectatorScreenProps) {
   return (
     <GameScreen ariaLabel="مشاهدة الجولة" maxWidth="6xl">
@@ -50,6 +52,14 @@ export function WaitingSpectatorScreen({
       <div className="flex flex-col gap-4 sm:gap-5">
         <GameCard className="px-5 py-5 text-center sm:px-8">
           <SpectatorNotice />
+          {secretWord ? (
+            <>
+              <p className="mt-3 text-xs font-medium text-wanas-text-muted">الكلمة المستهدفة</p>
+              <p className="mt-1 break-words text-xl font-bold text-wanas-text-primary sm:text-3xl">
+                {secretWord}
+              </p>
+            </>
+          ) : null}
           <p className="mt-3 text-xs text-wanas-text-muted">{drawerName} يرسم الآن</p>
         </GameCard>
 

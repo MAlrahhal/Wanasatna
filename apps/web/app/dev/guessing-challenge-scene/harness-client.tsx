@@ -140,6 +140,8 @@ function createMockView(
     roundResultsContinueLabel: 'التالي الآن',
     roundResultsWaitingMessage: null,
     isMatchSpectator: false,
+    spectatorBlueIdentity: null,
+    spectatorRedIdentity: null,
   };
 }
 

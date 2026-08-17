@@ -372,6 +372,26 @@ test('player view exposes roundId for stale-action binding', () => {
   assert.equal(view.roundId, 'gen-42');
 });
 
+test('privacy: spectator sees the prompt during answering and no submitted answers', () => {
+  const match = seedAnswers(makeMatch());
+  const specShell = makeShell();
+  specShell.players.push({
+    id: 'spec',
+    name: 'مشاهد',
+    isConnected: true,
+    isHost: false,
+    isReady: false,
+  });
+  const spec = buildWhoWroteItPlayerView(match, 'spec', specShell);
+  assert.equal(spec.isMatchSpectator, true);
+  assert.equal(spec.gamePhase, 'answering');
+  assert.ok(spec.question);
+  assert.equal(spec.canSubmitAnswer, false);
+  assert.equal(spec.currentAnonymousAnswer, null);
+  assert.equal(spec.revealEntries.length, 0);
+  assert.equal(JSON.stringify(spec).includes('"ownerPlayerId"'), false);
+});
+
 test('privacy: spectator and other guesses hidden before reveal', () => {
   let match = startGuessingWithOrder(makeMatch(), ['p2', 'p1', 'p3', 'p4']);
   const answerId = getCurrentAnswerId(match)!;

@@ -1,5 +1,5 @@
 const ROUND_SUFFIX = /\s*[—–-]\s*الجولة\s*\d+\s*\/\s*\d+\s*$/u;
-const SPECTATOR_PHASE_LABELS = new Set(['مشاهدة', 'الجولة جارية', 'الجولة جارية 👀']);
+const SPECTATOR_PHASE_LABELS = new Set(['مشاهدة', 'متفرج', 'الجولة جارية', 'الجولة جارية 👀']);
 
 /** Strip duplicated round metadata from experience-header phase labels. */
 export function stripRoundSuffixFromPhaseLabel(label: string): string {

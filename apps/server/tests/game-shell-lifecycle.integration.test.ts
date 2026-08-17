@@ -285,14 +285,16 @@ async function main(): Promise<void> {
     assert.ok(shell.data.state?.matchParticipantIds);
     assert.ok(!shell.data.state!.matchParticipantIds!.includes(waiter.id));
 
-    // Waiting player plugin sync is a spectator view — no secret word, no match mutation.
+    // Spectator gets a drawer-like observation view: target word + canvas, no actions.
     const waiterSync = await ack<{
       success: boolean;
-      data?: { view?: { isMatchSpectator?: boolean; secretWord?: string | null } };
+      data?: { view?: { isMatchSpectator?: boolean; secretWord?: string | null; canGuess?: boolean } };
     }>(waiter.socket, DRAW_GUESS_SYNC_EVENT, {});
     assert.equal(waiterSync.success, true);
     assert.equal(waiterSync.data?.view?.isMatchSpectator, true);
-    assert.equal(waiterSync.data?.view?.secretWord ?? null, null);
+    assert.equal(typeof waiterSync.data?.view?.secretWord, 'string');
+    assert.ok(waiterSync.data?.view?.secretWord);
+    assert.equal(waiterSync.data?.view?.canGuess, false);
 
     await hostEnd(host);
     waiter.socket.disconnect();

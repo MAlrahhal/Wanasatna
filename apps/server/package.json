@@ -13,6 +13,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prisma:generate": "prisma generate",
     "test:unit": "tsx tests/unit.test.ts && tsx tests/graceful-shutdown.unit.test.ts",
+    "test:room-chat": "tsx tests/room-chat.unit.test.ts",
     "test:p12-b2": "tsx tests/p12-b2-room-lifecycle.unit.test.ts",
     "test:p12-b3": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p12-b3-auth.unit.test.ts",
     "test:p12-b5": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p12-b5-socket-account.unit.test.ts",

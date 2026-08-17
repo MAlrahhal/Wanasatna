@@ -40,3 +40,24 @@ export type PlayerKickedPayload = {
   roomId: string;
   playerId: string;
 };
+
+export type RoomChatSendPayload = {
+  content: string;
+};
+
+export type RoomChatMessage = {
+  id: string;
+  senderName: string;
+  content: string;
+  createdAt: string;
+  /** Present for own-message styling only. Null after the sender row is deleted. */
+  playerId: string | null;
+};
+
+export type RoomChatHistoryData = {
+  messages: RoomChatMessage[];
+};
+
+export type RoomChatSendData = {
+  message: RoomChatMessage;
+};

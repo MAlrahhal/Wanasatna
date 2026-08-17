@@ -87,6 +87,8 @@ function baseView(overrides: Partial<BaraAlSalafaPlayerView> = {}): BaraAlSalafa
     roundResultsContinueLabel: null,
     roundResultsWaitingMessage: null,
     isMatchSpectator: false,
+    spectatorCivilianWord: null,
+    spectatorOutsiderConcept: null,
     ...overrides,
   };
 }

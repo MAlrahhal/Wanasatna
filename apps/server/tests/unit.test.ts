@@ -466,8 +466,11 @@ test('privacy before guess: normals know word; impostor and reveal do not leak i
   const description = makeMatch({ gamePhase: 'description' });
   assert.equal(buildBaraAlSalafaPlayerView(description, 'p1', shell).displayText, 'مكة');
   assert.equal(buildBaraAlSalafaPlayerView(description, 'p2', shell).displayText, 'أنت برا السالفة');
+  assert.equal(buildBaraAlSalafaPlayerView(description, 'p1', shell).spectatorCivilianWord, null);
   assert.equal(buildBaraAlSalafaSpectatorView(description).revealedWord, null);
   assert.equal(buildBaraAlSalafaSpectatorView(description).displayText, '');
+  assert.equal(buildBaraAlSalafaSpectatorView(description).spectatorCivilianWord, 'مكة');
+  assert.equal(buildBaraAlSalafaSpectatorView(description).spectatorOutsiderConcept, 'أنت برا السالفة');
 
   const reveal = makeMatch({ gamePhase: 'reveal-impostor' });
   assert.equal(buildBaraAlSalafaPlayerView(reveal, 'p2', shell).revealedWord, null);
@@ -517,13 +520,17 @@ test('round-results host continue: next vs final round copy', () => {
   assert.equal(finalHost.roundResultsWaitingMessage, 'سيتم عرض النتائج النهائية تلقائياً...');
 });
 
-test('spectator view hides word and impostor identity before reveal', () => {
+test('spectator view shows both concepts without a player role', () => {
   const match = makeMatch({ gamePhase: 'voting' });
   const view = buildBaraAlSalafaSpectatorView(match);
   assert.equal(view.isMatchSpectator, true);
   assert.equal(view.displayText, '');
+  assert.equal(view.spectatorCivilianWord, 'مكة');
+  assert.equal(view.spectatorOutsiderConcept, 'أنت برا السالفة');
   assert.equal(view.revealedImpostorPlayerId, null);
   assert.equal(view.revealedWord, null);
+  assert.equal(view.hasVoted, false);
+  assert.equal(view.isImpostorGuessActivePlayer, false);
   assert.equal(view.categoryName, 'أماكن');
 });
 

@@ -29,7 +29,7 @@ import { getGamePluginDefinition } from './plugin-registry.js';
 
 function countLockedShellParticipants(shell: GameShellRecord): number {
   if (!shell.matchParticipantIds) {
-    return shell.players.filter((player) => player.isConnected).length;
+    return shell.players.filter((player) => player.isConnected && !player.isSpectator).length;
   }
 
   const lockedIds = new Set(shell.matchParticipantIds);
@@ -126,5 +126,5 @@ export function countConnectedEligibleParticipants(shell: GameShellRecord): numb
     return getGuessingChallengeConnectedParticipantIds(match, shell).length;
   }
 
-  return shell.players.filter((player) => player.isConnected).length;
+  return shell.players.filter((player) => player.isConnected && !player.isSpectator).length;
 }

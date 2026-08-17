@@ -52,6 +52,7 @@ model Room {
   hostPlayer      Player        @relation("RoomHost", fields: [hostPlayerId], references: [id], onDelete: Restrict)
   players         Player[]      @relation("RoomPlayers")
   matches         Match[]
+  messages        RoomMessage[]
 
   @@index([status])
 }
@@ -71,6 +72,7 @@ model Player {
   hostedRoom         Room?              @relation("RoomHost")
   user               User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
   matchParticipations MatchParticipant[]
+  roomMessages        RoomMessage[]
 
   @@unique([roomId, name])
   @@index([roomId])
@@ -147,4 +149,18 @@ model MatchParticipant {
   @@index([matchId])
   @@index([userId])
   @@index([playerId])
+}
+
+model RoomMessage {
+  id                  String   @id @default(cuid())
+  roomId              String
+  playerId            String?
+  senderNameSnapshot  String
+  content             String
+  createdAt           DateTime @default(now())
+
+  room   Room    @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  player Player? @relation(fields: [playerId], references: [id], onDelete: SetNull)
+
+  @@index([roomId, createdAt])
 }

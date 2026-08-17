@@ -19,6 +19,7 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
   const meta = useGameExperienceMeta();
   const { playerRecovery } = useGameShell();
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -32,17 +33,36 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
   }
 
   const mobileControls = (
-    <Button
-      type="button"
-      size="sm"
-      variant={leaderboardOpen ? 'primary' : 'secondary'}
-      className="min-h-11 px-3 text-sm lg:hidden"
-      aria-pressed={leaderboardOpen}
-      aria-label="الترتيب"
-      onClick={() => setLeaderboardOpen((open) => !open)}
-    >
-      الترتيب
-    </Button>
+    <div className="flex items-center gap-1 lg:hidden">
+      <Button
+        type="button"
+        size="sm"
+        variant={chatOpen ? 'primary' : 'secondary'}
+        className="min-h-11 px-3 text-sm"
+        aria-pressed={chatOpen}
+        aria-label="الدردشة"
+        onClick={() => {
+          setChatOpen((open) => !open);
+          setLeaderboardOpen(false);
+        }}
+      >
+        دردشة
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant={leaderboardOpen ? 'primary' : 'secondary'}
+        className="min-h-11 px-3 text-sm"
+        aria-pressed={leaderboardOpen}
+        aria-label="الترتيب"
+        onClick={() => {
+          setLeaderboardOpen((open) => !open);
+          setChatOpen(false);
+        }}
+      >
+        الترتيب
+      </Button>
+    </div>
   );
 
   return (
@@ -65,6 +85,34 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
         {children}
         {playerRecovery ? <GamePlayerRecoveryOverlay recovery={playerRecovery} /> : null}
       </div>
+
+      {chatOpen ? (
+        <div
+          className="fixed inset-x-0 bottom-0 z-40 max-h-[45dvh] overflow-hidden rounded-t-2xl border-t border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-panel-bg)] p-4 shadow-[var(--wanas-game-shadow)] lg:hidden"
+          style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
+          role="dialog"
+          aria-label="الدردشة"
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-sm font-semibold text-[color:var(--wanas-game-text-primary)]">الدردشة</p>
+            <button
+              type="button"
+              className={cn(
+                'inline-flex size-11 min-h-11 min-w-11 items-center justify-center rounded-lg',
+                'text-[color:var(--wanas-game-text-secondary)] hover:bg-[color:var(--wanas-game-card)]',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--wanas-game-accent)]',
+              )}
+              aria-label="إغلاق"
+              onClick={() => setChatOpen(false)}
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex max-h-[calc(45dvh-4.5rem)] min-h-[12rem] flex-col overflow-hidden">
+            <GameChatMockPanel className="border-0 bg-transparent p-0 shadow-none" />
+          </div>
+        </div>
+      ) : null}
 
       {leaderboardOpen ? (
         <div

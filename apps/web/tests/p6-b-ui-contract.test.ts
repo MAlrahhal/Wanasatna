@@ -40,16 +40,18 @@ test('mobile header uses a deliberate compact two-row structure', () => {
   assert.match(header, /phaseLabelRaw !== meta\.gameName/);
 });
 
-test('mobile game chrome has leaderboard and no chat peer action', () => {
+test('mobile game chrome has leaderboard and collapsible chat', () => {
   const shell = read('components/game-experience/game-experience-shell.tsx');
   const chat = read('components/game-experience/game-chat-mock-panel.tsx');
+  const panel = read('components/room/room-chat-panel.tsx');
   assert.match(shell, /aria-label="الترتيب"/);
+  assert.match(shell, /aria-label="الدردشة"/);
   assert.match(shell, /<GameChatMockPanel/);
   assert.match(shell, /lg:grid lg:grid-cols-/);
-  assert.doesNotMatch(shell, /label="الدردشة"/);
   assert.doesNotMatch(shell, /panel="chat"/);
   assert.doesNotMatch(shell, /mobilePanel === 'chat'/);
-  assert.match(chat, /غير متاحة حالياً/);
+  assert.match(chat, /RoomChatPanel/);
+  assert.doesNotMatch(panel, /dangerouslySetInnerHTML/);
 });
 
 test('leaderboard sheet and room management keep safe-area and scroll limits', () => {

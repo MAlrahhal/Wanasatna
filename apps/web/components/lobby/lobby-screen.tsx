@@ -41,6 +41,7 @@ export function LobbyScreen() {
   } = useRoom();
 
   const [mobileSection, setMobileSection] = useState<'games' | 'players'>('games');
+  const [chatOpen, setChatOpen] = useState(false);
   const [lobbyNotice, setLobbyNotice] = useState<string | null>(null);
   const [recovered, setRecovered] = useState(false);
   const wasReconnecting = useRef(false);
@@ -143,11 +144,41 @@ export function LobbyScreen() {
             {label}
           </button>
         ))}
+        <button
+          type="button"
+          aria-pressed={chatOpen}
+          aria-label="الدردشة"
+          onClick={() => setChatOpen(true)}
+          className="inline-flex h-11 min-h-11 items-center justify-center rounded-xl border border-wanas-border bg-wanas-surface px-3 text-sm font-semibold text-wanas-text-muted"
+        >
+          دردشة
+        </button>
       </div>
 
       <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 lg:gap-4 xl:grid-cols-[minmax(220px,260px)_minmax(0,1fr)_minmax(168px,200px)]">
-        <div className="hidden min-w-0 xl:order-3 xl:block">
-          <LobbyChat />
+        <div
+          className={cn(
+            chatOpen
+              ? 'fixed inset-x-0 bottom-0 z-40 flex max-h-[55dvh] flex-col rounded-t-2xl border-t border-wanas-border bg-wanas-surface p-3 shadow-[var(--wanas-shadow-panel)]'
+              : 'hidden',
+            'xl:static xl:z-auto xl:order-3 xl:block xl:max-h-none xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none',
+          )}
+          style={chatOpen ? { paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' } : undefined}
+        >
+          {chatOpen ? (
+            <div className="mb-2 flex items-center justify-between xl:hidden">
+              <p className="text-sm font-semibold text-wanas-text-primary">{SYSTEM_COPY.chatTitle}</p>
+              <button
+                type="button"
+                className="inline-flex size-11 min-h-11 min-w-11 items-center justify-center rounded-lg text-wanas-text-muted"
+                aria-label="إغلاق"
+                onClick={() => setChatOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+          ) : null}
+          <LobbyChat className="min-h-0 flex-1" />
         </div>
 
         <div

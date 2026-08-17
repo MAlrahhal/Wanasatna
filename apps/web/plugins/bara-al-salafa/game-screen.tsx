@@ -155,9 +155,12 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
       gameName: 'برا السالفة',
       gameIcon: BARA_AL_SALAFA_GAME_ICON,
       phaseLabel: activeView.phaseLabel,
-      categoryLabel: activeView.categoryName
-        ? `الفئة: ${activeView.categoryName}`
-        : undefined,
+      categoryLabel:
+        activeView.isMatchSpectator && activeView.spectatorCivilianWord
+          ? `${activeView.spectatorCivilianWord} / ${activeView.spectatorOutsiderConcept ?? ''}`
+          : activeView.categoryName
+            ? `الفئة: ${activeView.categoryName}`
+            : undefined,
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
       timer: TIMED_BARA_PHASES.has(activeView.gamePhase)
@@ -273,8 +276,18 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     return null;
   }
 
-  if (treatAsSpectator) {
-    return <WaitingSpectatorScreen />;
+  if (treatAsSpectator && (!view || view.gamePhase === 'description')) {
+    return (
+      <WaitingSpectatorScreen
+        civilianWord={view?.spectatorCivilianWord}
+        outsiderConcept={view?.spectatorOutsiderConcept}
+        categoryName={view?.categoryName}
+        currentRound={view?.currentRound}
+        totalRounds={view?.totalRounds}
+        roomCode={room?.code}
+        deadlineAtMs={view?.deadlineAtMs}
+      />
+    );
   }
 
   if (isLoading) {
@@ -416,6 +429,20 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
   if (view.gamePhase === 'description') {
     if (!room || !player) {
       return null;
+    }
+
+    if (view.isMatchSpectator) {
+      return (
+        <WaitingSpectatorScreen
+          civilianWord={view.spectatorCivilianWord}
+          outsiderConcept={view.spectatorOutsiderConcept}
+          categoryName={view.categoryName}
+          currentRound={view.currentRound}
+          totalRounds={view.totalRounds}
+          roomCode={room.code}
+          deadlineAtMs={view.deadlineAtMs}
+        />
+      );
     }
 
     const role = view.role === 'impostor' ? 'impostor' : 'normal';

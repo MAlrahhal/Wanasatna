@@ -4,4 +4,6 @@ export type GameShellPlayer = {
   isHost: boolean;
   isConnected: boolean;
   isReady: boolean;
+  /** Room-seat spectator for the current live match. Omitted/false = participant-eligible. */
+  isSpectator?: boolean;
 };

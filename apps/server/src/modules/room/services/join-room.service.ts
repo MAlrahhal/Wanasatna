@@ -17,6 +17,7 @@ import {
   lockRoomRow,
   ROOM_TX_RETRY_LIMIT,
 } from './room-tx.js';
+import { getGameShellByRoomId } from '../../game/game.service.js';
 
 const ACTIVE_STATUSES = [PlayerStatus.CONNECTED, PlayerStatus.DISCONNECTED] as const;
 
@@ -95,7 +96,7 @@ async function joinRoomInLockedTx(
       roomId,
       name: playerName,
       status: PlayerStatus.CONNECTED,
-      isSpectator: false,
+      isSpectator: getGameShellByRoomId(roomId) !== null,
       reconnectTokenHash,
       userId: accountUserId || null,
     },

@@ -57,7 +57,7 @@ export function buildTimingChallengePluginDefinition(): GamePluginDefinition {
       },
     ],
     validateStart: (_context) => {
-      const connectedCount = _context.players.filter((player) => player.isConnected).length;
+      const connectedCount = _context.players.filter((player) => player.isConnected && !player.isSpectator).length;
 
       if (connectedCount < 2) {
         return {

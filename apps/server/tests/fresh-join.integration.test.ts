@@ -57,15 +57,19 @@ async function joinFreshPlayer(roomCode: string, playerName: string): Promise<Te
   };
   trackClientEvents(client);
 
-  const joinRes = await ack<{ success: boolean; data: { player: { id: string }; room: { id: string }; reconnectToken?: string } }>(
-    client.socket,
-    'join-room',
-    { roomCode, playerName },
-  );
+  const joinRes = await ack<{
+    success: boolean;
+    data: {
+      player: { id: string; isSpectator?: boolean };
+      room: { id: string };
+      reconnectToken?: string;
+    };
+  }>(client.socket, 'join-room', { roomCode, playerName });
   assert.ok(joinRes.success, 'fresh join succeeds');
   client.id = joinRes.data.player.id;
   client.roomId = joinRes.data.room.id;
   client.reconnectToken = joinRes.data.reconnectToken ?? '';
+  assert.equal(joinRes.data.player.isSpectator, true, 'mid-match join is a spectator');
   return client;
 }
 
@@ -100,11 +104,21 @@ async function main(): Promise<void> {
     const syncRes = await ack<{
       success: boolean;
       error?: { code: string };
-      data?: { view?: { isMatchSpectator?: boolean; displayText?: string; role?: string } };
+      data?: {
+        view?: {
+          isMatchSpectator?: boolean;
+          displayText?: string;
+          role?: string;
+          spectatorCivilianWord?: string | null;
+          spectatorOutsiderConcept?: string | null;
+        };
+      };
     }>(waiter.socket, BARA_AL_SALAFA_SYNC_EVENT);
     assert.equal(syncRes.success, true);
     assert.equal(syncRes.data?.view?.isMatchSpectator, true);
     assert.equal(syncRes.data?.view?.displayText, '');
+    assert.ok(syncRes.data?.view?.spectatorCivilianWord);
+    assert.equal(syncRes.data?.view?.spectatorOutsiderConcept, 'أنت برا السالفة');
 
     host.socket.disconnect();
     clients.forEach((c) => c.socket.disconnect());

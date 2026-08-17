@@ -2,9 +2,9 @@ import type { Server } from 'socket.io';
 import type { GameShellAbortReason } from '@wanasatna/shared';
 import { abortPersistedMatch } from '../../match/match-history.service.js';
 import { prisma } from '../../../lib/prisma.js';
-import { broadcastRoomPlayersSnapshot, loadActiveRoomPlayers } from '../../room/room.utils.js';
+import { loadActiveRoomPlayers } from '../../room/room.utils.js';
 import { deleteGameShell, getGameShellByRoomId } from '../game.service.js';
-import { cleanupGameShellRuntime, navigateRoomToLobby } from '../game.lifecycle.js';
+import { cleanupGameShellRuntime, returnRoomToLobbyAfterMatch } from '../game.lifecycle.js';
 import { clearPlayerRecoveryForTeardown } from './player-recovery.js';
 import { cleanupPluginMatchState } from './cleanup-plugin-match.js';
 
@@ -57,9 +57,7 @@ export async function abortActiveMatch(
   // converging on /lobby shares the same authoritative list.
   const roster = room ? await loadActiveRoomPlayers(roomId, room.hostPlayerId) : [];
 
-  await broadcastRoomPlayersSnapshot(io, roomId);
-
-  navigateRoomToLobby(io, roomId, {
+  await returnRoomToLobbyAfterMatch(io, roomId, {
     roomCode: room?.code,
     reason,
     message: ABORT_MESSAGES[reason],

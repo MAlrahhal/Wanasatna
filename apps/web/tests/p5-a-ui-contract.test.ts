@@ -49,6 +49,7 @@ test('spectator header label standardizes to مشاهدة', () => {
   assert.equal(normalizeExperiencePhaseLabel('الجولة جارية'), 'مشاهدة');
   assert.equal(normalizeExperiencePhaseLabel('الجولة جارية 👀'), 'مشاهدة');
   assert.equal(normalizeExperiencePhaseLabel('مشاهدة'), 'مشاهدة');
+  assert.equal(normalizeExperiencePhaseLabel('متفرج'), 'مشاهدة');
 });
 
 test('header uses one center slot and no absolute overlap', () => {
@@ -69,15 +70,18 @@ test('leaderboard indicates current player and avoids fake equal ranks', () => {
   assert.deepEqual(competitionDisplayRanks([100, 50]), [1, 2]);
 });
 
-test('chat placeholder is honest and has no LTR send affordance', () => {
+test('chat renders as plain text and has no LTR send affordance', () => {
   const gameChat = read('components/game-experience/game-chat-mock-panel.tsx');
   const lobbyChat = read('components/lobby/lobby-chat.tsx');
-  assert.match(gameChat, /غير متاحة حالياً/);
-  assert.match(lobbyChat, /غير متاحة حالياً/);
+  const panel = read('components/room/room-chat-panel.tsx');
+  assert.match(gameChat, /RoomChatPanel/);
+  assert.match(lobbyChat, /RoomChatPanel/);
+  assert.match(panel, /\{message\.content\}/);
+  assert.doesNotMatch(panel, /dangerouslySetInnerHTML/);
   assert.doesNotMatch(gameChat, /➤/);
   assert.doesNotMatch(lobbyChat, /➤/);
-  assert.doesNotMatch(gameChat, /MOCK_MESSAGES/);
-  assert.doesNotMatch(lobbyChat, /handleSendMessage/);
+  assert.doesNotMatch(panel, /➤/);
+  assert.match(panel, /SYSTEM_COPY\.chatSend/);
 });
 
 test('legacy English Game Shell copy is gone from user UI', () => {

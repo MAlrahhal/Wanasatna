@@ -116,79 +116,29 @@ test('H1: game-shell-context source uses handler-specific cleanup', () => {
 });
 
 // ---------------------------------------------------------------------------
-// M1 — navigation guard evaluates the latest shell, never a stale closure
+// M1 — spectators watch the live match; /game navigation is never suppressed
 // ---------------------------------------------------------------------------
 
-// Mirrors the navigate handler decision in room-context: suppress /game only
-// for players waiting out a currently active match, read through a live ref.
-function shouldSuppressGameNavigation(
-  shellRef: { current: GameShellState | null },
-  playerId: string,
-): boolean {
-  return isWaitingForNextMatch(shellRef.current, playerId);
-}
-
-test('M1: waiting player is suppressed during an active match', () => {
-  const shellRef = {
-    current: makeShell({ phase: 'PLAYING', matchParticipantIds: ['p1', 'p2'] }),
-  };
-
-  assert.equal(shouldSuppressGameNavigation(shellRef, 'ahmed'), true);
-  assert.equal(shouldSuppressGameNavigation(shellRef, 'p1'), false);
-});
-
-test('M1: stale previous shell cannot suppress navigation into the next match', () => {
-  const shellRef: { current: GameShellState | null } = {
-    current: makeShell({ shellId: 'match-1', phase: 'PLAYING', matchParticipantIds: ['p1', 'p2'] }),
-  };
-
-  // أحمد joins as waiting player during match 1: suppressed.
-  assert.equal(shouldSuppressGameNavigation(shellRef, 'ahmed'), true);
-
-  // Match 1 ends; ref is updated (this is what the old stale closure missed).
-  shellRef.current = makeShell({
-    shellId: 'match-1',
-    phase: 'FINISHED',
-    matchParticipantIds: ['p1', 'p2'],
-  });
-  assert.equal(shouldSuppressGameNavigation(shellRef, 'ahmed'), false);
-
-  // Match 2 starts as a new WAITING shell (participants not yet locked):
-  // navigation must not be suppressed for anyone.
-  shellRef.current = makeShell({
-    shellId: 'match-2',
-    phase: 'WAITING',
-    matchParticipantIds: null,
-  });
-  assert.equal(shouldSuppressGameNavigation(shellRef, 'ahmed'), false);
-
-  // Match 2 locks participants including أحمد: navigation allowed.
-  shellRef.current = makeShell({
-    shellId: 'match-2',
-    phase: 'COUNTDOWN',
-    matchParticipantIds: ['p1', 'p2', 'ahmed'],
-  });
-  assert.equal(shouldSuppressGameNavigation(shellRef, 'ahmed'), false);
-
-  // A fresh waiting player during match 2 is still suppressed.
-  assert.equal(shouldSuppressGameNavigation(shellRef, 'newcomer'), true);
-});
-
-test('M1: null shell never suppresses navigation', () => {
-  assert.equal(shouldSuppressGameNavigation({ current: null }, 'ahmed'), false);
-});
-
-test('M1: room-context navigate handler reads latest shell via ref', () => {
+test('M1: room-context does not suppress /game navigation for spectators', () => {
   const source = readFileSync(join(__dirname, '..', 'contexts', 'room-context.tsx'), 'utf8');
 
   assert.ok(
     source.includes('activeGameShellRef.current'),
-    'navigate handler must read activeGameShellRef.current',
+    'shell listeners still keep the live ref current',
   );
-  assert.ok(
-    /isWaitingForNextMatch\(\s*activeGameShellRef\.current/.test(source),
-    'navigate suppression must use isWaitingForNextMatch on the live ref',
+  assert.doesNotMatch(
+    source,
+    /isWaitingForNextMatch\(\s*activeGameShellRef\.current/,
+    'spectators must be allowed to open /game',
   );
+  assert.match(source, /router\.push\('\/game'\)/);
+});
+
+test('M1: waiting-for-next-match helper still identifies locked-out joiners', () => {
+  const playing = makeShell({ phase: 'PLAYING', matchParticipantIds: ['p1', 'p2'] });
+  assert.equal(isWaitingForNextMatch(playing, 'ahmed'), true);
+  assert.equal(isWaitingForNextMatch(playing, 'p1'), false);
+  assert.equal(isWaitingForNextMatch(null, 'ahmed'), false);
 });
 
 socket.close();

@@ -37,7 +37,9 @@ export function validateGameStart(
     return null;
   }
 
-  const connectedCount = players.filter((player) => player.isConnected).length;
+  const connectedCount = players.filter(
+    (player) => player.isConnected && !player.isSpectator,
+  ).length;
 
   if (plugin.minPlayers !== undefined && connectedCount < plugin.minPlayers) {
     return gameServiceError(

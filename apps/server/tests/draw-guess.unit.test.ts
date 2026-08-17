@@ -214,7 +214,7 @@ test('random drawer picks from connected pool', () => {
   assert.equal(drawer, 'p2');
 });
 
-test('privacy: drawer gets word; guesser and spectator do not', () => {
+test('privacy: drawer gets word; guesser does not; spectator sees target word', () => {
   const match = makeMatch();
   const shell = makeShell(match.round.drawerPlayerId);
   const drawerView = buildDrawGuessPlayerView(match, match.round.drawerPlayerId, shell);
@@ -224,7 +224,7 @@ test('privacy: drawer gets word; guesser and spectator do not', () => {
 
   assert.equal(drawerView.secretWord, match.round.word);
   assert.equal(guesserView.secretWord, null);
-  assert.equal(spectatorView.secretWord, null);
+  assert.equal(spectatorView.secretWord, match.round.word);
   assert.equal(spectatorView.isMatchSpectator, true);
   assert.equal(spectatorView.canGuess, false);
   assert.equal(spectatorView.leaderboard.length, match.playerIds.length);

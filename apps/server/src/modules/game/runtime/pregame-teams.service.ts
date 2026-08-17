@@ -111,12 +111,13 @@ export async function loadEligibleLobbyPlayerIds(roomId: string): Promise<string
   return players.map((player) => player.id);
 }
 
-/** Match-start eligibility follows connected-only participant lock. */
+/** Match-start eligibility follows connected-only participant lock. Spectators are outside the roster. */
 export async function loadConnectedLobbyPlayerIds(roomId: string): Promise<string[]> {
   const players = await prisma.player.findMany({
     where: {
       roomId,
       status: PlayerStatus.CONNECTED,
+      isSpectator: false,
     },
     orderBy: { joinedAt: 'asc' },
     select: { id: true },
