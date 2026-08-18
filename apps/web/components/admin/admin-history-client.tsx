@@ -117,34 +117,46 @@ export function AdminHistoryClient() {
             <table className="w-full min-w-[760px] text-right text-sm">
               <thead className="bg-wanas-surface-soft text-wanas-text-muted">
                 <tr>
-                  <th className="px-3 py-2 font-semibold">اللعبة</th>
-                  <th className="px-3 py-2 font-semibold">الرمز</th>
-                  <th className="px-3 py-2 font-semibold">الحالة</th>
-                  <th className="px-3 py-2 font-semibold">اللاعبون</th>
-                  <th className="px-3 py-2 font-semibold">بدأت</th>
-                  <th className="px-3 py-2 font-semibold">انتهت</th>
+                  <th className="px-3 py-3 font-semibold">اللعبة</th>
+                  <th className="px-3 py-3 font-semibold">الرمز</th>
+                  <th className="px-3 py-3 font-semibold">الحالة</th>
+                  <th className="px-3 py-3 font-semibold">اللاعبون</th>
+                  <th className="px-3 py-3 font-semibold">بدأت</th>
+                  <th className="px-3 py-3 font-semibold">انتهت</th>
                 </tr>
               </thead>
               <tbody>
                 {data.matches.map((match) => (
                   <tr key={match.id} className="border-t border-wanas-border">
-                    <td className="px-3 py-2 font-semibold">
+                    <td className="px-3 py-3 font-semibold">
                       <Link href={adminHistoryPath(match.id)} className="underline">
                         {adminGameTitle(match.gameId)}
                       </Link>
                     </td>
-                    <td className="px-3 py-2">{match.roomCode}</td>
-                    <td className="px-3 py-2">
-                      {ADMIN_MATCH_STATUS_LABEL[match.status] ?? match.status}
+                    <td className="px-3 py-3 font-mono tracking-wide">{match.roomCode}</td>
+                    <td className="px-3 py-3">
+                      <span
+                        className={
+                          match.status === 'ACTIVE'
+                            ? 'inline-flex rounded-full bg-wanas-success-surface px-2 py-0.5 text-xs font-semibold text-wanas-success-dark'
+                            : match.status === 'ABORTED'
+                              ? 'inline-flex rounded-full bg-wanas-error-surface px-2 py-0.5 text-xs font-semibold text-wanas-error'
+                              : 'inline-flex rounded-full bg-wanas-surface-muted px-2 py-0.5 text-xs font-semibold text-wanas-text-secondary'
+                        }
+                      >
+                        {ADMIN_MATCH_STATUS_LABEL[match.status] ?? match.status}
+                      </span>
                       {match.status === 'ACTIVE' ? (
                         <span className="mt-0.5 block text-xs text-wanas-text-muted">
                           {ADMIN_COPY.activeMatchNote}
                         </span>
                       ) : null}
                     </td>
-                    <td className="px-3 py-2">{match.participantCount}</td>
-                    <td className="px-3 py-2">{formatAdminDateTime(match.startedAt)}</td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-3 tabular-nums">{match.participantCount}</td>
+                    <td className="px-3 py-3 whitespace-nowrap text-wanas-text-secondary">
+                      {formatAdminDateTime(match.startedAt)}
+                    </td>
+                    <td className="px-3 py-3 whitespace-nowrap text-wanas-text-secondary">
                       {match.endedAt ? formatAdminDateTime(match.endedAt) : '—'}
                     </td>
                   </tr>
@@ -160,8 +172,19 @@ export function AdminHistoryClient() {
                 className="block rounded-2xl border border-wanas-border bg-wanas-surface p-4 text-sm"
               >
                 <p className="font-bold">{adminGameTitle(match.gameId)}</p>
-                <p className="mt-1">
-                  {match.roomCode} · {ADMIN_MATCH_STATUS_LABEL[match.status]}
+                <p className="mt-1 font-mono tracking-wide">{match.roomCode}</p>
+                <p className="mt-2">
+                  <span
+                    className={
+                      match.status === 'ACTIVE'
+                        ? 'inline-flex rounded-full bg-wanas-success-surface px-2 py-0.5 text-xs font-semibold text-wanas-success-dark'
+                        : match.status === 'ABORTED'
+                          ? 'inline-flex rounded-full bg-wanas-error-surface px-2 py-0.5 text-xs font-semibold text-wanas-error'
+                          : 'inline-flex rounded-full bg-wanas-surface-muted px-2 py-0.5 text-xs font-semibold text-wanas-text-secondary'
+                    }
+                  >
+                    {ADMIN_MATCH_STATUS_LABEL[match.status]}
+                  </span>
                 </p>
                 {match.status === 'ACTIVE' ? (
                   <p className="mt-1 text-xs text-wanas-text-muted">{ADMIN_COPY.activeMatchNote}</p>

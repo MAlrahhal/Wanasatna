@@ -352,6 +352,7 @@ export function MatchResultsScreen({
       />
 
       <div className="flex flex-col gap-6 sm:gap-7">
+        <p className="text-center text-sm font-bold text-wanas-accent">النتائج النهائية</p>
         {winners.length > 0 ? <WinnerHero winners={winners} /> : null}
 
         <CurrentPlayerSummary entry={currentPlayerEntry} />

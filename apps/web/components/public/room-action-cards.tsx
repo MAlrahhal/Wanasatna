@@ -35,7 +35,7 @@ export function RoomActionCards({
   return (
     <section id={HOME_ROOM_ACTIONS_ID} className="scroll-mt-20 lg:scroll-mt-24">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <article className="wanas-panel border-t-2 border-t-wanas-accent p-5 sm:p-6">
+        <article className="wanas-panel flex flex-col border-t-2 border-t-wanas-accent p-5 sm:p-6">
           <div className="mb-4 flex items-center gap-3">
             <span
               className="flex size-10 items-center justify-center rounded-[var(--wanas-radius-control)] bg-wanas-accent font-bold text-white shadow-[0_3px_0_var(--wanas-brand-navy)]"
@@ -48,7 +48,7 @@ export function RoomActionCards({
               <p className="text-sm text-wanas-text-muted">ابدأ غرفة جديدة وشارك الرمز</p>
             </div>
           </div>
-          <div className="space-y-4">
+          <div className="flex flex-1 flex-col space-y-4">
             <Field
               id="create-name"
               label="اسمك"
@@ -60,20 +60,22 @@ export function RoomActionCards({
               error={playerNameError}
               autoComplete="nickname"
             />
-            <Button
-              type="button"
-              size="lg"
-              className="w-full"
-              onClick={onCreateRoom}
-              disabled={busy}
-              loading={isCreating}
-            >
-              {isCreating ? 'جاري الإنشاء…' : 'إنشاء غرفة'}
-            </Button>
+            <div className="mt-auto">
+              <Button
+                type="button"
+                size="lg"
+                className="w-full"
+                onClick={onCreateRoom}
+                disabled={busy}
+                loading={isCreating}
+              >
+                {isCreating ? 'جاري الإنشاء…' : 'إنشاء غرفة'}
+              </Button>
+            </div>
           </div>
         </article>
 
-        <article className="wanas-panel border-t-2 border-t-wanas-border p-5 sm:p-6">
+        <article className="wanas-panel flex flex-col border-t-2 border-t-wanas-border p-5 sm:p-6">
           <div className="mb-4 flex items-center gap-3">
             <span
               className="flex size-10 items-center justify-center rounded-[var(--wanas-radius-control)] bg-wanas-surface-muted font-bold text-wanas-text-primary"

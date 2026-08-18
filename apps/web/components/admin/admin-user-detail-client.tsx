@@ -86,6 +86,7 @@ export function AdminUserDetailClient() {
         <p>
           {ADMIN_COPY.matchCount}: {user.matchCount}
         </p>
+        <p className="font-mono text-[11px] text-wanas-text-muted">{user.id}</p>
       </div>
 
       <h2 className="mt-8 text-lg font-bold">{ADMIN_COPY.recentMatches}</h2>

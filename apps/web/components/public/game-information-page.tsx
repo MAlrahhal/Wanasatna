@@ -22,7 +22,7 @@ export function GameInformationPage({ page }: GameInformationPageProps) {
         </Link>
       </p>
 
-      <header className="mb-8 border-y border-wanas-border bg-wanas-hero px-5 py-8 sm:px-8">
+      <header className="mb-8 rounded-[1.5rem] border border-wanas-border bg-wanas-hero px-5 py-8 sm:px-8">
         <div
           className="mb-4 flex size-14 items-center justify-center rounded-[18px] text-lg font-bold"
           style={{ backgroundColor: entry.iconBg, color: entry.iconText }}
@@ -68,7 +68,7 @@ export function GameInformationPage({ page }: GameInformationPageProps) {
         <section className="rounded-[20px] border border-wanas-border bg-wanas-surface p-5">
           <h2 className="mb-2 text-xl font-extrabold text-wanas-text-primary">ابدأ اللعب</h2>
           <p className="mb-4">
-            أنشئ روم أو انضم برمز من الصفحة الرئيسية، بعدين اختاروا اللعبة من اللوبي.
+            أنشئ غرفة أو انضم برمز من الصفحة الرئيسية، بعدين اختاروا اللعبة من اللوبي.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link

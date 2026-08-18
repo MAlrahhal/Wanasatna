@@ -201,6 +201,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   const activeGameShellRef = useRef<GameShellState | null>(null);
   const removeSocketListenersRef = useRef<(() => void) | null>(null);
   const playerIdRef = useRef<string | null>(null);
+  const selectedGameIdRef = useRef<string | null>(null);
 
   if (
     !(
@@ -213,8 +214,18 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   }
   pathnameRef.current = pathname;
   playerIdRef.current = player?.id ?? null;
+  selectedGameIdRef.current = selectedGameId;
 
   const isHost = player?.isHost ?? false;
+
+  useEffect(() => {
+    if (!teamSnapshot) {
+      return;
+    }
+    if (!selectedGameId || teamSnapshot.gameId !== selectedGameId) {
+      setTeamSnapshot(null);
+    }
+  }, [selectedGameId, teamSnapshot]);
 
   useEffect(() => {
     activeGameShellRef.current = activeGameShell;
@@ -355,15 +366,24 @@ export function RoomProvider({ children }: { children: ReactNode }) {
           ? buildLobbyUrl(payload.roomCode)
           : payload.path;
 
+      if (payload.path === '/lobby' || path.startsWith('/lobby')) {
+        activeGameShellRef.current = null;
+        setActiveGameShell(null);
+      }
+
       router.push(path);
     };
 
-    const onGameShellState = (payload: { state: GameShellState }) => {
+    const onGameShellState = (payload: { state: GameShellState | null }) => {
       activeGameShellRef.current = payload.state;
       setActiveGameShell(payload.state);
     };
 
     const onTeamSnapshot = (payload: PregameTeamSnapshot) => {
+      const selectedId = selectedGameIdRef.current;
+      if (!selectedId || payload.gameId !== selectedId) {
+        return;
+      }
       setTeamSnapshot(payload);
     };
 
@@ -783,6 +803,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       if (!gameId) {
         setSelectedGameId(null);
         writeSelectedGameId(null);
+        setTeamSnapshot(null);
         return;
       }
 

@@ -105,17 +105,18 @@ export function RoomChatPanel({ className, variant = 'lobby' }: RoomChatPanelPro
           return (
             <div
               key={message.id}
-              className={cn('rounded-lg px-2.5 py-1.5 text-sm leading-6', own && 'bg-wanas-surface-soft')}
+              className={cn('rounded-xl px-3 py-2 text-sm leading-6', own && 'bg-wanas-surface-soft')}
             >
               <p
                 className={cn(
-                  'text-[11px] font-semibold',
+                  'truncate text-[11px] font-semibold',
                   isGame ? 'text-[color:var(--wanas-game-text-secondary)]' : 'text-wanas-text-muted',
                 )}
+                title={message.senderName}
               >
                 {message.senderName}
               </p>
-              <p className="whitespace-pre-wrap break-words">{message.content}</p>
+              <p className="mt-0.5 whitespace-pre-wrap break-words">{message.content}</p>
             </div>
           );
         })}

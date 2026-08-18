@@ -146,8 +146,8 @@ export function LobbyStartGamePanel() {
 
   return (
     <>
-      <section className="hidden rounded-xl border border-wanas-border bg-wanas-surface px-3 py-2.5 xl:block">
-        <div className="mb-2 flex items-center justify-between gap-2">
+      <section className="hidden rounded-xl border-2 border-wanas-accent/45 bg-wanas-surface px-3 py-3 xl:block">
+        <div className="mb-2.5 flex items-center justify-between gap-2">
           <p className="text-sm font-bold text-wanas-text-primary">بدء اللعبة</p>
           {selectedGame ? (
             <p className="truncate text-[11px] text-wanas-text-muted">{selectedGame.title}</p>
@@ -170,7 +170,7 @@ export function LobbyStartGamePanel() {
       />
       <div
         data-lobby-sticky-start=""
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-wanas-border bg-wanas-surface/95 px-3 pt-2 backdrop-blur-sm xl:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-wanas-accent/40 bg-wanas-surface/95 px-3 pt-2.5 backdrop-blur-sm xl:hidden"
         style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}
       >
         {renderStartButton()}

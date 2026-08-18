@@ -5,8 +5,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { playerNameContainsForbiddenChars } from '@wanasatna/shared';
 import { replaceHomeClean } from '@/lib/public/home-url';
 import { HOME_ROOM_ACTIONS_ID } from '@/lib/public/routes';
-import { nextPrefillDisplayName } from '@/lib/auth/prefill-display-name';
-import { useOptionalAuth } from '@/contexts/auth-context';
 import { getRuntimeId, recordContinuity } from '@/lib/room-v2/continuity';
 import { getRoomSessionManager } from '@/lib/room-v2';
 import { getRoomSocket } from '@/lib/room/socket';
@@ -38,7 +36,6 @@ function readInviteCode(searchParams: Pick<URLSearchParams, 'get'>): string {
 export function useRoomActions() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const auth = useOptionalAuth();
   const [playerName, setPlayerName] = useState('');
   const [joinCode, setJoinCode] = useState(() => readInviteCode(searchParams));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -81,17 +78,6 @@ export function useRoomActions() {
       detail: `runtime=${getRuntimeId()}`,
     });
   }, []);
-
-  useEffect(() => {
-    const next = nextPrefillDisplayName({
-      currentName: playerName,
-      hasUserEditedName: nameEditedRef.current,
-      preferredDisplayName: auth?.user?.preferredDisplayName,
-    });
-    if (next !== null) {
-      setPlayerName(next);
-    }
-  }, [auth?.user?.preferredDisplayName, playerName]);
 
   useEffect(() => {
     function handleRestore() {

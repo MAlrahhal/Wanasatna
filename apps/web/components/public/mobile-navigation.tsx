@@ -1,6 +1,5 @@
 'use client';
 
-import { PublicAuthNavControl } from '@/components/public/public-account-menu';
 import { GuardedPublicLink } from '@/components/public/guarded-public-link';
 import { getHomeRoomActionsHref } from '@/lib/public/scroll-to-room-actions';
 import { PUBLIC_NAV_LINKS } from '@/lib/public/routes';
@@ -48,7 +47,6 @@ export function MobileNavigation({
           </GuardedPublicLink>
         ))}
         <div className="mt-2 grid gap-2 border-t border-white/10 pt-4">
-          <PublicAuthNavControl variant="mobile" onNavigate={onClose} />
           {!hideCreateRoom ? (
             isHome ? (
               <button

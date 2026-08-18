@@ -76,10 +76,22 @@ export function AdminMatchDetailClient() {
         {ADMIN_COPY.backToHistory}
       </Link>
       <h1 className="mt-4 text-2xl font-bold">{ADMIN_COPY.matchDetails}</h1>
-      <div className="mt-6 space-y-2 rounded-2xl border border-wanas-border bg-wanas-surface p-4 text-sm">
+      <div className="mt-6 space-y-3 rounded-2xl border border-wanas-border bg-wanas-surface p-4 text-sm">
         <p className="text-lg font-bold">{adminGameTitle(match.gameId)}</p>
-        <p>{match.roomCode}</p>
-        <p>{ADMIN_MATCH_STATUS_LABEL[match.status] ?? match.status}</p>
+        <p className="font-mono tracking-wide">{match.roomCode}</p>
+        <p>
+          <span
+            className={
+              match.status === 'ACTIVE'
+                ? 'inline-flex rounded-full bg-wanas-success-surface px-2 py-0.5 text-xs font-semibold text-wanas-success-dark'
+                : match.status === 'ABORTED'
+                  ? 'inline-flex rounded-full bg-wanas-error-surface px-2 py-0.5 text-xs font-semibold text-wanas-error'
+                  : 'inline-flex rounded-full bg-wanas-surface-muted px-2 py-0.5 text-xs font-semibold text-wanas-text-secondary'
+            }
+          >
+            {ADMIN_MATCH_STATUS_LABEL[match.status] ?? match.status}
+          </span>
+        </p>
         {match.status === 'ACTIVE' ? (
           <p className="text-wanas-text-muted">{ADMIN_COPY.activeMatchNote}</p>
         ) : null}
@@ -90,6 +102,7 @@ export function AdminMatchDetailClient() {
         <p>
           {ADMIN_COPY.players}: {match.participantCount}
         </p>
+        <p className="font-mono text-[11px] text-wanas-text-muted">{match.id}</p>
       </div>
 
       <h2 className="mt-8 text-lg font-bold">{ADMIN_COPY.players}</h2>

@@ -7,6 +7,7 @@ import { FeatureCard } from '@/components/public/feature-card';
 import { GamePreviewCard } from '@/components/public/game-cards';
 import { InviteJoinCard } from '@/components/public/invite-join-card';
 import { RoomActionCards } from '@/components/public/room-action-cards';
+import { PublicBrandLogo } from '@/components/public/public-brand-logo';
 import { SectionHeader } from '@/components/public/section-header';
 import { Button } from '@/components/ui/button';
 import { SystemStatus } from '@/components/ui/system-status';
@@ -15,13 +16,6 @@ import { HOME_ROOM_ACTIONS_ID, PUBLIC_ROUTES } from '@/lib/public/routes';
 import { scrollToHomeRoomActions } from '@/lib/public/scroll-to-room-actions';
 import { useRoomActions } from '@/lib/public/use-room-actions';
 import { presentRoomActionError } from '@/lib/ui/system-copy';
-import { cn } from '@/lib/utils';
-
-const primaryCtaClassName = cn(
-  'inline-flex h-12 min-h-12 items-center justify-center rounded-[var(--wanas-radius-control)] border border-wanas-accent bg-wanas-accent px-6 text-sm font-semibold text-white',
-  'shadow-[0_4px_0_var(--wanas-brand-navy)] hover:-translate-y-0.5 hover:border-wanas-accent-hover hover:bg-wanas-accent-hover hover:shadow-[0_5px_0_var(--wanas-brand-navy)]',
-  'active:translate-y-1 active:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/45 focus-visible:ring-offset-2',
-);
 
 const steps = [
   { n: '1', title: 'أنشئ غرفة', desc: 'اختر اسمك وابدأ غرفة جديدة.' },
@@ -64,20 +58,15 @@ export function HomePageClient() {
 
   return (
     <main className="overflow-x-hidden">
-      <section className="relative overflow-hidden border-b border-wanas-border">
-        <div aria-hidden className="pointer-events-none absolute start-2 top-8 text-white/15">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
-            <path d="M6 9h12v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9Z" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M8 9V7a4 4 0 1 1 8 0v2" stroke="currentColor" strokeWidth="1.5" />
-          </svg>
-        </div>
-        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-14 lg:py-16">
+      <section className="relative overflow-hidden">
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-14 lg:py-16">
           <div className="relative max-w-3xl">
+            <PublicBrandLogo size="lg" className="mb-6" />
             <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-wanas-text-primary sm:text-5xl lg:text-[3.25rem]">
               مكان واحد تلعب فيه مع أصحابك
             </h1>
             <p className="mt-3 max-w-xl text-base leading-8 text-wanas-text-secondary sm:mt-5">
-              أنشئ غرفة، شارك الرمز مع أصحابك، وابدؤوا اللعب خلال ثوانٍ — بدون تسجيل.
+              أنشئ غرفة، شارك الرمز، وابدؤوا اللعب خلال ثوانٍ — مباشرة من المتصفح وبدون تسجيل.
             </p>
             <div className="mt-5 flex flex-col gap-3 sm:mt-8 sm:flex-row">
               <Button
@@ -89,7 +78,10 @@ export function HomePageClient() {
               >
                 ابدأ اللعب
               </Button>
-              <Link href={PUBLIC_ROUTES.games} className={primaryCtaClassName}>
+              <Link
+                href={PUBLIC_ROUTES.games}
+                className="inline-flex h-12 min-h-12 items-center justify-center rounded-[var(--wanas-radius-control)] border border-wanas-border bg-wanas-surface px-6 text-sm font-semibold text-wanas-text-primary hover:border-wanas-accent hover:bg-wanas-surface-soft"
+              >
                 استعراض الألعاب
               </Link>
             </div>

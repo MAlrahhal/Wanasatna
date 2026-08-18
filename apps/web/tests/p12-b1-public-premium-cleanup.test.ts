@@ -80,7 +80,7 @@ test('mobile nav has no Premium item', () => {
 test('footer has no Premium link', () => {
   const footer = read('components/public/public-footer.tsx');
   assert.doesNotMatch(footer, /بريميوم|premium/);
-  assert.match(footer, /PUBLIC_ROUTES\.login/);
+  assert.match(footer, /PUBLIC_ROUTES\.faq/);
 });
 
 test('Home has no Premium CTA/card', () => {

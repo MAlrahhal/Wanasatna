@@ -44,11 +44,14 @@ const providers = read('components/app-providers.tsx');
 const faq = read('lib/public/faq-data.ts');
 const copy = read('lib/auth/copy.ts');
 
-test('1-4 Guest: login control, /login route, Home name starts empty, Create/Join unchanged', () => {
-  assert.match(accountMenu, /AUTH_COPY\.loginTitle/);
-  assert.match(navbar, /PublicAuthNavControl/);
-  assert.match(mobile, /PublicAuthNavControl/);
+test('1-4 Guest: no public login control, /login isolated, Home name starts empty, Create/Join unchanged', () => {
+  assert.doesNotMatch(navbar, /PublicAuthNavControl/);
+  assert.doesNotMatch(mobile, /PublicAuthNavControl/);
+  assert.doesNotMatch(navbar, /AUTH_COPY\.loginTitle/);
+  assert.doesNotMatch(mobile, /AUTH_COPY\.loginTitle/);
   assert.equal(existsSync(join(root, 'app/(public)/login/page.tsx')), true);
+  assert.match(read('app/(public)/login/page.tsx'), /redirect\('\/'\)/);
+  assert.match(read('app/(public)/login/page.tsx'), /index: false/);
   assert.match(home, /useRoomActions/);
   assert.match(hook, /useState\(''\)/);
   assert.match(hook, /manager\.create\(trimmedName\)/);
@@ -94,20 +97,16 @@ test('11-16 Register: fields, Arabic name, duplicate email, immediate auth, no c
   assert.equal(existsSync(join(root, 'app/(public)/register')), false);
 });
 
-test('17-21 Authenticated navbar/mobile: name, logout only, no Premium/Admin', () => {
-  assert.match(accountMenu, /preferredDisplayName=\{user\.preferredDisplayName\}/);
-  assert.match(accountMenu, /AUTH_COPY\.logout/);
-  assert.match(mobile, /variant="mobile"/);
-  assert.match(navbar, /variant="desktop"/);
-  const ui = `${navbar}\n${mobile}\n${accountMenu}\n${login}`;
+test('17-21 Public navbar/mobile: no account menu, no Premium/Admin', () => {
+  assert.doesNotMatch(navbar, /PublicAuthNavControl|preferredDisplayName|AUTH_COPY\.logout/);
+  assert.doesNotMatch(mobile, /PublicAuthNavControl|preferredDisplayName|AUTH_COPY\.logout/);
+  const ui = `${navbar}\n${mobile}\n${home}`;
   assert.doesNotMatch(ui, /بريميوم|premium|ADMIN|لوحة التحكم|الملف الشخصي|الإعدادات|الفوترة/i);
-  assert.doesNotMatch(accountMenu, /user\.role/);
+  assert.match(accountMenu, /AUTH_COPY\.logout/);
   assert.match(accountMenu, /truncate/);
-  assert.match(accountMenu, /onAfterLogout/);
-  assert.match(accountMenu, /end-0/);
 });
 
-test('22-28 Saved name: prefill, guest skip, editable nickname, no profile mutation, late /me, Create/Join use field', () => {
+test('22-28 Guest name field: no account prefill, editable nickname, Create/Join use field', () => {
   assert.equal(
     nextPrefillDisplayName({
       currentName: '',
@@ -140,9 +139,9 @@ test('22-28 Saved name: prefill, guest skip, editable nickname, no profile mutat
     }),
     null,
   );
-  assert.match(hook, /nextPrefillDisplayName/);
+  assert.doesNotMatch(hook, /nextPrefillDisplayName/);
   assert.match(hook, /nameEditedRef\.current = true/);
-  assert.match(hook, /useOptionalAuth/);
+  assert.doesNotMatch(hook, /useOptionalAuth/);
   assert.doesNotMatch(home, /fetchAuthMe|\/api\/auth/);
   assert.doesNotMatch(hook, /registerAccount|updateUser|PATCH/);
   assert.match(hook, /manager\.create\(trimmedName\)/);
@@ -172,7 +171,7 @@ test('34-37 Failure/reload: expired → Guest, /me failure does not blank Home, 
   assert.doesNotMatch(layout, /AuthProvider/);
   assert.match(login, /if \(status === 'ready' && user\)/);
   assert.match(login, /router\.replace\(PUBLIC_ROUTES\.home\)/);
-  assert.match(hook, /auth\?\.user\?\.preferredDisplayName/);
+  assert.doesNotMatch(hook, /auth\?\.user\?\.preferredDisplayName/);
 });
 
 test('auth HTTP uses cookie credentials and never stores tokens', () => {
@@ -201,7 +200,7 @@ test('auth error copy is Arabic and never raw codes', () => {
 });
 
 test('FAQ states play does not require an account', () => {
-  assert.match(faq, /ما تحتاج حساب عشان تلعب/);
+  assert.match(faq, /لا تحتاج حسابًا للعب/);
   assert.doesNotMatch(faq, /فائدة تسجيل الدخول|احفظ اسمك وخله جاهز/);
   assert.doesNotMatch(faq, /بريميوم|إحصائيات|سجل المباريات|ألعاب حصرية/i);
 });

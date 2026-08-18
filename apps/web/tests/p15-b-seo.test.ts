@@ -206,7 +206,7 @@ test('16 no Admin/20-player capability exposed', () => {
 test('17 FAQ says account not required', () => {
   const required = faqItems.find((item) => item.id === 'account-required');
   assert.ok(required);
-  assert.equal(required.answer.includes('ما تحتاج حساب عشان تلعب'), true);
+  assert.equal(required.answer.includes('لا تحتاج حسابًا للعب'), true);
   assert.equal(
     faqItems.some((item) => /سجّل دخولك|أنشئ حساب|فائدة تسجيل الدخول/.test(item.answer)),
     false,

@@ -9,7 +9,6 @@ const footerLinks = [
   { href: PUBLIC_ROUTES.games, label: 'الألعاب' },
   { href: PUBLIC_ROUTES.faq, label: 'الأسئلة الشائعة' },
   { href: PUBLIC_ROUTES.contact, label: 'تواصل معنا' },
-  { href: PUBLIC_ROUTES.login, label: 'تسجيل الدخول' },
 ] as const;
 
 export function PublicFooter() {
@@ -18,7 +17,7 @@ export function PublicFooter() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_auto]">
           <div className="space-y-4">
-            <PublicBrandLogo size="md" tone="on-dark" />
+            <PublicBrandLogo size="md" />
             <p className="max-w-sm text-sm leading-7 text-white/80">{BRAND_TAGLINE_AR}</p>
           </div>
 
@@ -35,12 +34,6 @@ export function PublicFooter() {
                 {link.label}
               </Link>
             ))}
-            <Link href="#" className="text-sm font-medium text-white/75 hover:text-white">
-              سياسة الخصوصية
-            </Link>
-            <Link href="#" className="text-sm font-medium text-white/75 hover:text-white">
-              الشروط والأحكام
-            </Link>
           </nav>
         </div>
 

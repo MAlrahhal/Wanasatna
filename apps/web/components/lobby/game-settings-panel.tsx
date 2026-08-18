@@ -39,8 +39,11 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
   const isTimingChallenge = selectedGame?.id === TIMING_CHALLENGE_GAME_ID;
   const isGuessingChallenge = selectedGame?.id === GUESSING_CHALLENGE_GAME_ID;
   const isDrawGuess = selectedGame?.id === DRAW_GUESS_GAME_ID;
-  const showsTeams =
-    Boolean(teamSnapshot) || Boolean(selectedGame && getGameTeamCapability(selectedGame.id));
+  const showsTeams = Boolean(
+    selectedGame &&
+      getGameTeamCapability(selectedGame.id) &&
+      teamSnapshot?.gameId === selectedGame.id,
+  );
 
   return (
     <section className="rounded-xl border border-wanas-border bg-wanas-surface px-2.5 py-2 xl:px-3 xl:py-2.5">

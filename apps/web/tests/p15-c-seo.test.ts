@@ -174,7 +174,7 @@ test('internal links, FAQ/contact truth, structured data, 404', () => {
 
   const account = faqItems.find((item) => item.id === 'account-required');
   assert.ok(account);
-  assert.match(account.answer, /ما تحتاج حساب عشان تلعب/);
+  assert.match(account.answer, /لا تحتاج حسابًا للعب/);
   assert.equal(
     faqItems.some((item) => /سجّل دخولك|فائدة تسجيل الدخول|بريميوم/.test(`${item.question}${item.answer}`)),
     false,

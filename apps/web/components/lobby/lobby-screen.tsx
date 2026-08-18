@@ -226,13 +226,19 @@ export function LobbyScreen() {
           />
           <LobbyMarathonBanner />
           <RoundCategoryPanel
+            key={selectedGameId ?? 'none'}
             gameId={selectedGameId}
             selectedCategoryId={selectedRoundCategoryId}
             isHost={isHost}
-            isActiveMatch={activeMatchParticipantIds !== null}
+            isActiveMatch={isWaitingForNextMatch}
             onSelectCategory={selectRoundCategory}
           />
-          <GameSettingsPanel selectedGame={selectedGame} settings={selectedGameSettings} isHost={isHost} />
+          <GameSettingsPanel
+            key={selectedGameId ?? 'none-settings'}
+            selectedGame={selectedGame}
+            settings={selectedGameSettings}
+            isHost={isHost}
+          />
           <LobbyStartGamePanel />
         </div>
 

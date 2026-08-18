@@ -41,7 +41,13 @@ export function GameSystemError({
 }
 
 export function SpectatorNotice() {
-  return <SystemStatus tone="info" title={SYSTEM_COPY.spectator} />;
+  return (
+    <SystemStatus
+      tone="info"
+      title={SYSTEM_COPY.spectator}
+      description={SYSTEM_COPY.spectatorHint}
+    />
+  );
 }
 
 export function RoomSystemState({ kind, message, onRetry }: RoomSystemStateProps) {

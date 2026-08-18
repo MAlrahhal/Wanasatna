@@ -38,7 +38,7 @@ export function GameExperienceHeader({
   mobilePanelControls,
   className,
 }: GameExperienceHeaderProps) {
-  const { isHost, room, leaveRoom } = useRoom();
+  const { isHost, room, leaveRoom, player } = useRoom();
   const [roomDialogOpen, setRoomDialogOpen] = useState(false);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);

@@ -18,12 +18,12 @@ export const faqItems: FaqItem[] = [
     id: 'account-required',
     category: 'account',
     question: 'هل أحتاج أسجل حساب؟',
-    answer: 'ما تحتاج حساب عشان تلعب. اكتب اسمك وادخل الروم.',
+    answer: 'لا تحتاج حسابًا للعب. اكتب اسمك وادخل الغرفة.',
   },
   {
     id: 'create-room',
     category: 'play',
-    question: 'كيف أنشئ روم؟',
+    question: 'كيف أنشئ غرفة؟',
     answer:
       'من الصفحة الرئيسية، اكتب اسمك في بطاقة إنشاء الغرفة واضغط إنشاء. يوصلك اللوبي، وهناك تشارك رمز الغرفة مع أصحابك.',
   },
@@ -37,7 +37,7 @@ export const faqItems: FaqItem[] = [
   {
     id: 'no-download',
     category: 'play',
-    question: 'هل لازم أحمل شيء؟',
+    question: 'هل أحتاج تحميل؟',
     answer: 'لا. اللعب من المتصفح على الجوال أو الكمبيوتر، بدون تطبيق.',
   },
   {
@@ -50,7 +50,7 @@ export const faqItems: FaqItem[] = [
   {
     id: 'mobile',
     category: 'play',
-    question: 'هل الألعاب تشتغل على الجوال؟',
+    question: 'هل يعمل على الجوال؟',
     answer: 'نعم. تشتغل من المتصفح على الجوال والكمبيوتر.',
   },
   {

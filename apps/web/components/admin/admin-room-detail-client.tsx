@@ -199,6 +199,7 @@ export function AdminRoomDetailClient() {
         </Link>
         <h1 className="mt-3 text-2xl font-bold text-wanas-text-primary">{ADMIN_COPY.roomDetails}</h1>
         <p className="mt-1 text-lg font-semibold tracking-wide">{room.code}</p>
+        <p className="mt-1 font-mono text-[11px] text-wanas-text-muted">{room.id}</p>
       </div>
 
       {actionError ? (

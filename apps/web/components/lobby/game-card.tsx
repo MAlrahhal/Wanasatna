@@ -39,7 +39,7 @@ export function GameCard({
   const cardClassName = cn(
     'group relative flex h-full flex-col rounded-xl border text-center transition-colors duration-200',
     isShowcaseCard ? 'min-h-[168px] p-3' : 'min-h-0 p-2.5 xl:min-h-[168px] xl:p-3',
-    selected ? 'border-wanas-accent bg-wanas-accent/10' : 'bg-wanas-surface-soft',
+    selected ? 'border-wanas-accent bg-wanas-accent/10 ring-2 ring-wanas-accent' : 'bg-wanas-surface-soft',
     isLobbyCard && !isDisabled && !selected && 'hover:border-wanas-accent/35 hover:bg-wanas-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/30',
     isLobbyCard && isDisabled && 'cursor-default',
     isShowcaseCard && !isComingSoon && !isUnavailable && ['cursor-default hover:-translate-y-1 hover:shadow-lg', hoverBorderClassName],
