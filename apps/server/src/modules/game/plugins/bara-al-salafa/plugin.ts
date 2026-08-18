@@ -51,7 +51,7 @@ export function buildBaraAlSalafaPluginDefinition(
       return { success: true };
     },
     createInitialState: (context, _pluginSettings) =>
-      createMatchState(context.players, bundle, settings),
+      createMatchState(context.players, bundle, settings, undefined, context.roomId),
     serializeState: (state) => state,
     deserializeState: (payload) => payload as BaraAlSalafaMatchState,
     lifecycle: {},

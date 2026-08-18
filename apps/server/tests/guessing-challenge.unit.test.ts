@@ -166,6 +166,7 @@ function makeMatch1v1(overrides?: Partial<GuessingChallengeMatchState>): Guessin
     usedRoundCategoryIds: ['football'],
     departedPlayerIds: [],
     recentIdentityIds: ['id-blue', 'id-red'],
+    turnSeconds: GUESSING_CHALLENGE_TURN_SECONDS,
     round: makeRound(),
     ...overrides,
   };
@@ -193,6 +194,7 @@ function makeMatch2v2(overrides?: Partial<GuessingChallengeMatchState>): Guessin
     usedRoundCategoryIds: ['football'],
     departedPlayerIds: [],
     recentIdentityIds: ['id-blue', 'id-red'],
+    turnSeconds: GUESSING_CHALLENGE_TURN_SECONDS,
     round: makeRound(),
     ...overrides,
   };

@@ -8,9 +8,16 @@ type GameGridProps = {
   selectedGameId: string | null;
   canSelect: boolean;
   onSelectGame: (gameId: string) => void;
+  isGameEnabled?: (gameId: string) => boolean;
 };
 
-export function GameGrid({ games, selectedGameId, canSelect, onSelectGame }: GameGridProps) {
+export function GameGrid({
+  games,
+  selectedGameId,
+  canSelect,
+  onSelectGame,
+  isGameEnabled,
+}: GameGridProps) {
   const gridGames = games.filter((game) => game.id !== 'marathon');
 
   return (
@@ -27,15 +34,22 @@ export function GameGrid({ games, selectedGameId, canSelect, onSelectGame }: Gam
       <div className="grid grid-cols-1 gap-2 min-[360px]:grid-cols-2 xl:grid-cols-3">
         {gridGames.map((game) => {
           const entry = getGameCatalogEntry(game.id);
+          const runtimeEnabled = isGameEnabled?.(game.id) ?? true;
+          const availability =
+            entry.availability === 'coming-soon'
+              ? 'coming-soon'
+              : runtimeEnabled
+                ? 'available'
+                : 'unavailable';
 
           return (
             <GameCard
               key={game.id}
               game={game}
               selected={selectedGameId === game.id}
-              disabled={!canSelect}
+              disabled={!canSelect || !runtimeEnabled}
               onSelect={onSelectGame}
-              availability={entry.availability}
+              availability={availability}
               iconBg={entry.iconBg}
               iconText={entry.iconText}
               playerRange={entry.playerRange}

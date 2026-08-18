@@ -7,12 +7,13 @@ import {
   KICK_PLAYER_EVENT,
   LEAVE_ROOM_EVENT,
   LOCK_ROOM_EVENT,
-  PLAYER_KICKED_EVENT,
   RECONNECT_EVENT,
   ROOM_PLAYERS_SNAPSHOT_EVENT,
   ROOM_SYNC_EVENT,
   ROOM_UPDATED_EVENT,
   UNLOCK_ROOM_EVENT,
+  UPDATE_ROOM_GAME_SETTINGS_EVENT,
+  ROOM_GAME_SETTINGS_UPDATED_EVENT,
   type CreateRoomResponse,
   type ReconnectResponse,
   type RoomActionResponse,
@@ -22,10 +23,6 @@ import { getGameShellByRoomId } from '../game/game.service.js';
 import { ensureGameShellLifecycleProgress } from '../game/game.lifecycle.js';
 import { evaluatePlayerRecovery } from '../game/runtime/player-recovery.js';
 import {
-  onRoomDeleted,
-  onRoomPlayerRemoved,
-} from '../game/runtime/pregame-teams-room-hooks.js';
-import {
   consumeCreateRoomLimit,
   consumeJoinRoomLimit,
   consumeReconnectLimit,
@@ -33,11 +30,13 @@ import {
   forgetSocketAbuseState,
 } from '../../lib/abuse-limiter.js';
 import { announcePermanentPlayerRemoval } from './services/disconnected-player-expiry.service.js';
+import { announceKickedPlayer } from './room-socket-announce.js';
 import {
   handlePlayerDisconnect,
   kickPlayer,
   lockRoom,
   unlockRoom,
+  updateRoomGameSettings,
 } from './room.service.js';
 import { roomMutationRuntime } from './room-mutation-runtime.js';
 import {
@@ -59,7 +58,7 @@ import {
   getPlayerChannel,
   getRoomChannel,
 } from './room.utils.js';
-import { validateCreateRoomPayload, validateJoinRoomPayload } from './room.validators.js';
+import { validateCreateRoomPayload, validateJoinRoomPayload, validateUpdateRoomGameSettingsPayload } from './room.validators.js';
 
 export function registerCreateRoomHandler(io: Server, socket: Socket): void {
   socket.on(
@@ -105,9 +104,11 @@ export function registerCreateRoomHandler(io: Server, socket: Socket): void {
           await roomMutationRuntime.clearSocketSession(socket);
         }
 
+        const accountUser = await resolveSocketAccountUser(socket);
         const response = await roomMutationRuntime.createRoom(
           payload,
-          (await resolveSocketAccountUser(socket))?.id ?? null,
+          accountUser?.id ?? null,
+          accountUser?.role ?? null,
         );
 
         if (response.success) {
@@ -300,30 +301,12 @@ export function registerKickPlayerHandler(io: Server, socket: Socket): void {
         const response = await kickPlayer(playerId!, roomId!, payload);
 
         if (response.success) {
-          const roomChannel = getRoomChannel(roomId!);
-          const kickedPlayerChannel = getPlayerChannel(response.data.kickedPlayerId);
-
-          io.to(kickedPlayerChannel).emit(PLAYER_KICKED_EVENT, {
-            roomId,
-            playerId: response.data.kickedPlayerId,
-          });
-
-          const kickedSockets = await io.in(kickedPlayerChannel).fetchSockets();
-
-          for (const kickedSocket of kickedSockets) {
-            await kickedSocket.leave(roomChannel);
-            await kickedSocket.leave(kickedPlayerChannel);
-            kickedSocket.data.playerId = undefined;
-            kickedSocket.data.roomId = undefined;
-          }
-
-          if (!response.data.roomDeleted) {
-            await broadcastRoomPlayersSnapshot(io, roomId!);
-            await onRoomPlayerRemoved(io, roomId!, response.data.kickedPlayerId, false);
-            await evaluatePlayerRecovery(io, roomId!);
-          } else {
-            onRoomDeleted(io, roomId!);
-          }
+          await announceKickedPlayer(
+            io,
+            roomId!,
+            response.data.kickedPlayerId,
+            response.data.roomDeleted,
+          );
         }
 
         sendResponse(callback, response);
@@ -380,6 +363,48 @@ export function registerUnlockRoomHandler(io: Server, socket: Socket): void {
 
         if (response.success) {
           io.to(getRoomChannel(roomId!)).emit(ROOM_UPDATED_EVENT, response.data);
+        }
+
+        sendResponse(callback, response);
+      } catch {
+        sendInternalError(callback);
+      }
+    },
+  );
+}
+
+export function registerUpdateRoomGameSettingsHandler(io: Server, socket: Socket): void {
+  socket.on(
+    UPDATE_ROOM_GAME_SETTINGS_EVENT,
+    async (payload: unknown, callback?: (response: RoomActionResponse<unknown>) => void) => {
+      const contextError = getSocketContext(socket);
+      if (contextError) {
+        sendResponse(callback, contextError);
+        return;
+      }
+
+      const validation = validateUpdateRoomGameSettingsPayload(payload);
+      if (!validation.success) {
+        sendResponse(callback, validation);
+        return;
+      }
+
+      const { playerId, roomId } = socket.data;
+
+      try {
+        const accountUser = await resolveSocketAccountUser(socket);
+        const response = await updateRoomGameSettings({
+          roomId: roomId!,
+          playerId: playerId!,
+          isAdminSession: accountUser?.role === 'ADMIN',
+          payload: {
+            gameId: validation.data.gameId,
+            settings: validation.data.settings as Record<string, number>,
+          },
+        });
+
+        if (response.success) {
+          io.to(getRoomChannel(roomId!)).emit(ROOM_GAME_SETTINGS_UPDATED_EVENT, response.data);
         }
 
         sendResponse(callback, response);

@@ -6,7 +6,7 @@ import { SystemStatus, type SystemStatusTone } from '@/components/ui/system-stat
 import { SYSTEM_COPY, presentRoomActionError } from '@/lib/ui/system-copy';
 
 type RoomSystemStateProps = {
-  kind: 'connecting' | 'reconnecting' | 'kicked' | 'error';
+  kind: 'connecting' | 'reconnecting' | 'kicked' | 'closed' | 'error';
   message?: string | null;
   onRetry?: () => void;
 };
@@ -56,17 +56,21 @@ export function RoomSystemState({ kind, message, onRetry }: RoomSystemStateProps
         ? SYSTEM_COPY.reconnecting
         : kind === 'kicked'
           ? SYSTEM_COPY.kickedTitle
-          : presented.title;
+          : kind === 'closed'
+            ? message?.trim() || SYSTEM_COPY.adminRoomClosed
+            : presented.title;
   const description =
     kind === 'kicked'
       ? SYSTEM_COPY.kickedHelper
-      : kind === 'connecting' || kind === 'reconnecting'
+      : kind === 'connecting' || kind === 'reconnecting' || kind === 'closed'
         ? undefined
         : presented.description;
   const terminalNoRetry =
     kind === 'kicked' ||
+    kind === 'closed' ||
     presented.title === SYSTEM_COPY.roomMissing ||
     presented.title === SYSTEM_COPY.roomClosed ||
+    presented.title === SYSTEM_COPY.adminRoomClosed ||
     presented.title === SYSTEM_COPY.reconnectExpired;
 
   return (

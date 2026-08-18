@@ -119,6 +119,8 @@ function startNextRound(
     match.lockedCategoryId,
     match.usedRoundCategoryIds,
     match.recentQuestionIds,
+    Date.now(),
+    match.answerSeconds,
   );
   const nextMatch: WhoWroteItMatchState = {
     ...match,

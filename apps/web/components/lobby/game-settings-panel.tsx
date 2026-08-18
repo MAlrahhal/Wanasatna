@@ -1,9 +1,11 @@
 'use client';
 
 import type { LobbyGame, LobbyGameSettingsPlaceholder } from '@/lib/lobby/types';
+import { useAuth } from '@/contexts/auth-context';
 import { useRoom } from '@/contexts/room-context';
 import { GUESSING_CHALLENGE_GAME_ID, TIMING_CHALLENGE_GAME_ID, DRAW_GUESS_GAME_ID } from '@wanasatna/shared';
 import { DrawGuessSettingsPanel } from './draw-guess-settings-panel';
+import { ExperimentalGameSettingsPanel } from './experimental-game-settings-panel';
 import { GuessingChallengeSettingsPanel } from './guessing-challenge-settings-panel';
 import { TimingChallengeSettingsPanel } from './timing-challenge-settings-panel';
 import { TeamAssignmentPanel } from './team-assignment-panel';
@@ -16,7 +18,9 @@ type GameSettingsPanelProps = {
 };
 
 export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettingsPanelProps) {
+  const { user } = useAuth();
   const {
+    room,
     timingChallengeSettings,
     setTimingChallengeSettings,
     guessingChallengeMode,
@@ -29,7 +33,9 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
     assignPlayerTeam,
     randomizeTeams,
     players,
+    updateRoomGameSettings,
   } = useRoom();
+  const isAdmin = user?.role === 'ADMIN';
   const isTimingChallenge = selectedGame?.id === TIMING_CHALLENGE_GAME_ID;
   const isGuessingChallenge = selectedGame?.id === GUESSING_CHALLENGE_GAME_ID;
   const isDrawGuess = selectedGame?.id === DRAW_GUESS_GAME_ID;
@@ -97,6 +103,18 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
       ) : (
         <p className="text-xs text-wanas-text-muted">لا توجد إعدادات إضافية لهذه اللعبة.</p>
       )}
+
+      {isAdmin && selectedGame ? (
+        <ExperimentalGameSettingsPanel
+          gameId={selectedGame.id}
+          roomSettings={room?.gameSettings ?? null}
+          timingHostSettings={isTimingChallenge ? timingChallengeSettings : undefined}
+          playerCount={players.filter((player) => !player.isSpectator).length}
+          onChange={(gameId, nextSettings) => {
+            void updateRoomGameSettings(gameId, nextSettings);
+          }}
+        />
+      ) : null}
 
       {showsTeams ? (
         <div className="mt-2">

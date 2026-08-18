@@ -15,7 +15,7 @@ import {
   stopImposterDrawPhaseTimer,
 } from './phase-timer.js';
 import { applyRoundScores } from './scoring.js';
-import { createRoundState, withRound } from './state.js';
+import { createRoundState, resolveVotingDurationSeconds, withRound } from './state.js';
 import { deleteImposterDrawState, setImposterDrawState } from './store.js';
 import {
   applyVote,
@@ -133,7 +133,7 @@ export function startVotingPhase(
   const nextMatch = withRound(match, {
     ...match.round,
     gamePhase: 'voting',
-    ...timedPhaseClock(timedPhaseDurations.imposterDrawVoting()),
+    ...timedPhaseClock(resolveVotingDurationSeconds(roomId)),
     currentDrawerIndex: match.round.drawingOrder.length,
     votes: {},
     submittedVoterIds: [],

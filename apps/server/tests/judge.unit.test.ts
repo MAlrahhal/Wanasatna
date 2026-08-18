@@ -117,6 +117,9 @@ function makeMatch(overrides?: Partial<JudgeMatchState>): JudgeMatchState {
     usedRoundCategoryIds: ['funny'],
     departedPlayerIds: [],
     recentPromptIds: ['funny-1'],
+    answerSeconds: JUDGE_ANSWERING_SECONDS,
+    judgeSeconds: JUDGE_JUDGING_SECONDS,
+    configuredTotalRounds: null,
     ...overrides,
     round: {
       ...makeRound(),

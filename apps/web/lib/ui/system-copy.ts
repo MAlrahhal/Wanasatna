@@ -1,3 +1,5 @@
+import { ADMIN_ROOM_CLOSED_MESSAGE } from '@wanasatna/shared';
+
 export const SYSTEM_COPY = {
   loading: 'جاري التحميل…',
   connecting: 'جاري الاتصال بالغرفة…',
@@ -16,6 +18,7 @@ export const SYSTEM_COPY = {
   cancel: 'إلغاء',
   kickedTitle: 'تم طردك من الغرفة',
   kickedHelper: 'لم يعد بإمكانك الانضمام إلى هذه الغرفة من الجلسة الحالية.',
+  adminRoomClosed: ADMIN_ROOM_CLOSED_MESSAGE,
   roomMissing: 'الغرفة غير موجودة.',
   roomClosed: 'هذه الغرفة مغلقة.',
   roomFull: 'الغرفة ممتلئة.',
@@ -74,6 +77,10 @@ export function presentRoomActionError(message: string | null | undefined): {
 
   if (safe === SYSTEM_COPY.roomLocked || safe.includes('الغرفة مقفلة')) {
     return { title: SYSTEM_COPY.roomLocked };
+  }
+
+  if (safe === SYSTEM_COPY.adminRoomClosed) {
+    return { title: SYSTEM_COPY.adminRoomClosed };
   }
 
   if (safe === SYSTEM_COPY.roomMissing) {

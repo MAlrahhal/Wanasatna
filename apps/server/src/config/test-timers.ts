@@ -51,6 +51,32 @@ function resolveInteractivePhaseSeconds(productionSeconds: number): number {
   return env.testMode ? TEST_INTERACTIVE_SECONDS : productionSeconds;
 }
 
+export function resolveConfigurableInteractiveSeconds(
+  seconds: number,
+  defaultSeconds: number,
+): number {
+  if (!env.testMode) {
+    return seconds;
+  }
+  if (seconds !== defaultSeconds) {
+    return seconds;
+  }
+  return TEST_INTERACTIVE_SECONDS;
+}
+
+export function resolveConfigurableTimedSeconds(
+  seconds: number,
+  defaultSeconds: number,
+): number {
+  if (!env.testMode) {
+    return seconds;
+  }
+  if (seconds !== defaultSeconds) {
+    return seconds;
+  }
+  return TEST_PHASE_SECONDS;
+}
+
 export function resolveLobbyWaitMs(): number {
   return env.testMode ? TEST_LOBBY_WAIT_MS : DEFAULT_GAME_SHELL_LOBBY_WAIT_MS;
 }

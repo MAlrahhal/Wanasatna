@@ -7,14 +7,18 @@ import {
   ROOM_SYNC_EVENT,
   HOST_CHANGED_EVENT,
   ROOM_UPDATED_EVENT,
+  ROOM_GAME_SETTINGS_UPDATED_EVENT,
   PLAYER_KICKED_EVENT,
+  ROOM_CLOSED_EVENT,
   type HostChangedPayload,
   type PlayerKickedPayload,
+  type RoomClosedPayload,
   type RoomData,
   type RoomPlayerData,
   type RoomPlayersSnapshotPayload,
   type RoomSessionData,
   type RoomUpdatedPayload,
+  type RoomGameSettingsUpdatedPayload,
 } from '@wanasatna/shared';
 import { getRoomErrorMessage } from '@/lib/room/error-messages';
 import { disconnectRoomSocket, getRoomSocket, waitForRoomSocketConnection } from '@/lib/room/socket';
@@ -90,6 +94,7 @@ function sessionFromAck(
 function normalizeRoom(room: RoomData): RoomData {
   return {
     ...room,
+    gameSettings: room.gameSettings ?? null,
     createdAt:
       typeof room.createdAt === 'string' || room.createdAt instanceof Date
         ? room.createdAt
@@ -352,6 +357,18 @@ class RoomSessionManager {
       this.notify();
     });
 
+    socket.on(ROOM_GAME_SETTINGS_UPDATED_EVENT, (payload: RoomGameSettingsUpdatedPayload) => {
+      if (!this.session || payload.roomId !== this.session.roomId || !this.snapshot.room) {
+        return;
+      }
+
+      this.snapshot = {
+        ...this.snapshot,
+        room: { ...this.snapshot.room, gameSettings: payload.gameSettings },
+      };
+      this.notify();
+    });
+
     socket.on(PLAYER_KICKED_EVENT, (payload: PlayerKickedPayload) => {
       if (!this.session || payload.roomId !== this.session.roomId) {
         return;
@@ -374,6 +391,25 @@ class RoomSessionManager {
       this.status = 'idle';
       this.notify();
       this.onTerminal?.('kick');
+    });
+
+    socket.on(ROOM_CLOSED_EVENT, (payload: RoomClosedPayload) => {
+      if (!this.session || payload.roomId !== this.session.roomId) {
+        return;
+      }
+
+      const discarded = this.session;
+      const gen = this.bumpGeneration();
+      void gen;
+      removeReconnectClaimForSession(discarded);
+      this.clearLocalParticipation();
+      this.status = 'idle';
+      this.errorMessage =
+        typeof payload.message === 'string' && payload.message.trim()
+          ? payload.message
+          : getRoomErrorMessage('ROOM_CLOSED');
+      this.notify();
+      this.onTerminal?.('closed');
     });
 
     this.onSocketManagerReconnect = () => {

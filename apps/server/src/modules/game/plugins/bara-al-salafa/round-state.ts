@@ -7,17 +7,29 @@ import type {
 } from '@wanasatna/shared';
 import {
   BARA_AL_SALAFA_DEFAULT_ROUNDS,
+  BARA_AL_SALAFA_GAME_ID,
+  BARA_AL_SALAFA_QUESTION_TURN_DURATION_SECONDS,
+  BARA_AL_SALAFA_VOTING_DURATION_SECONDS,
   pickRandomWordFromCategories,
 } from '@wanasatna/shared';
 import {
+  resolveConfigurableInteractiveSeconds,
   resolveDescriptionDurationSeconds,
   resolveMatchRounds,
-  resolveQuestionTurnDurationSeconds,
   timedPhaseDurations,
 } from '../../../../config/test-timers.js';
 import { timedPhaseClock } from '../../runtime/phase-deadline.js';
+import { effectiveGameSettings } from '../../effective-game-settings.js';
 
-export function resolveTotalRounds(_settings?: GameContentSettings): number {
+export function resolveTotalRounds(roomId?: string): number {
+  const rounds =
+    roomId != null
+      ? (effectiveGameSettings(BARA_AL_SALAFA_GAME_ID, roomId).rounds ??
+        BARA_AL_SALAFA_DEFAULT_ROUNDS)
+      : BARA_AL_SALAFA_DEFAULT_ROUNDS;
+  if (rounds !== BARA_AL_SALAFA_DEFAULT_ROUNDS) {
+    return rounds;
+  }
   return resolveMatchRounds(BARA_AL_SALAFA_DEFAULT_ROUNDS, BARA_AL_SALAFA_DEFAULT_ROUNDS);
 }
 
@@ -50,6 +62,7 @@ export function createRoundState(
   settings: GameContentSettings,
   enabledCategoryIds?: string[],
   usedWordTexts: readonly string[] = [],
+  roomId?: string,
 ): BaraAlSalafaRoundState {
   const eligiblePlayers = players.filter((player) => player.isConnected);
 
@@ -70,7 +83,15 @@ export function createRoundState(
   const impostorIndex = Math.floor(Math.random() * eligiblePlayers.length);
   const impostor = eligiblePlayers[impostorIndex]!;
   const descriptionDurationSeconds = resolveDescriptionDurationSeconds();
-  const questionTurnDurationSeconds = resolveQuestionTurnDurationSeconds();
+  const effective = roomId ? effectiveGameSettings(BARA_AL_SALAFA_GAME_ID, roomId) : {};
+  const questionTurnDurationSeconds = resolveConfigurableInteractiveSeconds(
+    effective.questionTurnSeconds ?? BARA_AL_SALAFA_QUESTION_TURN_DURATION_SECONDS,
+    BARA_AL_SALAFA_QUESTION_TURN_DURATION_SECONDS,
+  );
+  const votingDurationSeconds = resolveConfigurableInteractiveSeconds(
+    effective.voteSeconds ?? BARA_AL_SALAFA_VOTING_DURATION_SECONDS,
+    BARA_AL_SALAFA_VOTING_DURATION_SECONDS,
+  );
 
   return {
     word: wordEntry.text,
@@ -90,7 +111,7 @@ export function createRoundState(
     roleUnderstoodPlayerIds: [],
     votes: {},
     submittedVoterIds: [],
-    votingDurationSeconds: timedPhaseDurations.voting(),
+    votingDurationSeconds,
     revealDurationSeconds: timedPhaseDurations.reveal(),
     impostorGuessOptions: [],
     impostorGuessDurationSeconds: timedPhaseDurations.impostorGuess(),
@@ -106,10 +127,18 @@ export function createMatchState(
   bundle: GameContentBundle,
   settings: GameContentSettings,
   enabledCategoryIds?: string[],
+  roomId?: string,
 ): BaraAlSalafaMatchState {
   const eligiblePlayers = players.filter((player) => player.isConnected);
   const playerIds = eligiblePlayers.map((player) => player.id);
-  const round = createRoundState(eligiblePlayers, bundle, settings, enabledCategoryIds, []);
+  const round = createRoundState(
+    eligiblePlayers,
+    bundle,
+    settings,
+    enabledCategoryIds,
+    [],
+    roomId,
+  );
 
   return {
     playerIds,
@@ -117,7 +146,7 @@ export function createMatchState(
       eligiblePlayers.map((player) => [player.id, player.name]),
     ),
     currentRound: 1,
-    totalRounds: resolveTotalRounds(settings),
+    totalRounds: resolveTotalRounds(roomId),
     scores: createInitialScores(playerIds),
     matchStatus: 'in-progress',
     usedWordTexts: [round.word],

@@ -10,7 +10,7 @@ export const baraAlSalafaClientPlugin: WebClientGamePlugin = {
     description: 'اكتشف من برا السالفة قبل ما ينكشف!',
     iconLabel: 'ب',
     minPlayers: 3,
-    maxPlayers: 8,
+    maxPlayers: 20,
   },
   GameScreen: lazyGameScreen(() =>
     import('./game-screen').then((mod) => mod.BaraAlSalafaGameScreen),

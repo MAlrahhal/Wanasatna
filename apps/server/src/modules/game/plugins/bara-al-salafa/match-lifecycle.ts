@@ -50,6 +50,7 @@ export function startNextRound(
     settings,
     resolveEnabledCategoryFilter(roomId),
     syncedMatch.usedWordTexts,
+    roomId,
   );
 
   const nextMatch: BaraAlSalafaMatchState = {

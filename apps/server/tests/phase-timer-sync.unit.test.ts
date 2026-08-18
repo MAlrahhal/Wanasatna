@@ -295,6 +295,8 @@ function makeWwiMatch(deadlineAtMs: number): WhoWroteItMatchState {
     lockedCategoryLabel: 'عام',
     usedRoundCategoryIds: ['general'],
     recentQuestionIds: ['q1'],
+    answerSeconds: 60,
+    guessSeconds: 30,
     round: {
       roundId: 'round-1',
       gamePhase: 'answering',
@@ -326,6 +328,9 @@ function makeJudgeMatch(deadlineAtMs: number): JudgeMatchState {
     usedRoundCategoryIds: ['general'],
     departedPlayerIds: [],
     recentPromptIds: ['pr1'],
+    answerSeconds: 60,
+    judgeSeconds: 30,
+    configuredTotalRounds: null,
     round: {
       roundId: 'round-1',
       gamePhase: 'answering',
@@ -365,6 +370,7 @@ function makeGcMatch(deadlineAtMs: number): GuessingChallengeMatchState {
     usedRoundCategoryIds: ['food'],
     departedPlayerIds: [],
     recentIdentityIds: [],
+    turnSeconds: 45,
     round: {
       roundId: 'round-1',
       turnId: 'turn-1',

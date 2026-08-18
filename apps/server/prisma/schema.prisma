@@ -46,6 +46,8 @@ model Room {
   hostPlayerId    String        @unique
   status          RoomStatus    @default(LOBBY)
   isLocked        Boolean       @default(false)
+  playerCap       Int           @default(8)
+  gameSettings    Json?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -163,4 +165,10 @@ model RoomMessage {
   player Player? @relation(fields: [playerId], references: [id], onDelete: SetNull)
 
   @@index([roomId, createdAt])
+}
+
+model GameAdminConfig {
+  gameId    String   @id
+  isEnabled Boolean  @default(true)
+  updatedAt DateTime @updatedAt
 }

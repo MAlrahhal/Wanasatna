@@ -10,6 +10,7 @@ const ERROR_MESSAGES: Record<RoomErrorCode, string> = {
   PLAYER_ALREADY_EXISTS: 'اسم اللاعب مستخدم بالفعل في هذه الغرفة.',
   PLAYER_NOT_FOUND: 'تعذر العثور على اللاعب.',
   NOT_HOST: 'هذا الإجراء متاح للمضيف فقط.',
+  FORBIDDEN: 'غير مصرح لك بتعديل هذه الإعدادات.',
   CANNOT_KICK_SELF: 'لا يمكن للمضيف طرد نفسه.',
   RECONNECT_EXPIRED: SYSTEM_COPY.reconnectExpired,
   RECONNECT_INVALID_TOKEN: SYSTEM_COPY.reconnectExpired,

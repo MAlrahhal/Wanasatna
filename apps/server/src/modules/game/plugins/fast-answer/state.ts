@@ -9,11 +9,14 @@ import type {
 } from '@wanasatna/shared';
 import {
   FAST_ANSWER_DEFAULT_ROUNDS,
+  FAST_ANSWER_GAME_ID,
+  FAST_ANSWER_QUESTION_SECONDS,
   MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL,
   MATCH_COMPLETED_WAITING_MESSAGE,
   buildRoundResultsContinueCopy,
 } from '@wanasatna/shared';
-import { timedPhaseDurations } from '../../../../config/test-timers.js';
+import { resolveConfigurableInteractiveSeconds } from '../../../../config/test-timers.js';
+import { effectiveGameSettings } from '../../effective-game-settings.js';
 import { revealPrimaryAnswer } from './answers.js';
 import {
   FAST_ANSWER_RANDOM_CATEGORY_ID,
@@ -35,12 +38,19 @@ const PHASE_LABELS = {
 
 const MAX_RECENT_QUESTION_IDS = 24;
 
-export function resolveTotalRounds(_settings?: GameContentSettings): number {
-  return FAST_ANSWER_DEFAULT_ROUNDS;
+export function resolveTotalRounds(roomId?: string): number {
+  if (!roomId) {
+    return FAST_ANSWER_DEFAULT_ROUNDS;
+  }
+  return effectiveGameSettings(FAST_ANSWER_GAME_ID, roomId).rounds ?? FAST_ANSWER_DEFAULT_ROUNDS;
 }
 
-export function resolveRoundTimeSeconds(_settings?: GameContentSettings): number {
-  return timedPhaseDurations.fastAnswerQuestion();
+export function resolveRoundTimeSeconds(roomId?: string): number {
+  const seconds = roomId
+    ? (effectiveGameSettings(FAST_ANSWER_GAME_ID, roomId).answerSeconds ??
+      FAST_ANSWER_QUESTION_SECONDS)
+    : FAST_ANSWER_QUESTION_SECONDS;
+  return resolveConfigurableInteractiveSeconds(seconds, FAST_ANSWER_QUESTION_SECONDS);
 }
 
 export function createInitialScores(playerIds: string[]): Record<string, number> {
@@ -100,7 +110,7 @@ export function createRoundState(
 export function createMatchState(
   roomId: string,
   players: GameShellPlayer[],
-  settings: GameContentSettings,
+  _settings: GameContentSettings,
 ): FastAnswerMatchState {
   if (players.length === 0) {
     throw new Error('No players available for Fast Answer match.');
@@ -108,7 +118,7 @@ export function createMatchState(
 
   const selection = resolveMatchCategorySelection(roomId);
   const playerIds = players.map((player) => player.id);
-  const roundTimeSeconds = resolveRoundTimeSeconds(settings);
+  const roundTimeSeconds = resolveRoundTimeSeconds(roomId);
   const { round, usedRoundCategoryIds } = createRoundState(
     selection.matchCategoryId,
     [],
@@ -120,7 +130,7 @@ export function createMatchState(
     playerIds,
     playerNames: Object.fromEntries(players.map((player) => [player.id, player.name])),
     currentRound: 1,
-    totalRounds: resolveTotalRounds(settings),
+    totalRounds: resolveTotalRounds(roomId),
     scores: createInitialScores(playerIds),
     matchStatus: 'in-progress',
     lockedCategoryId: selection.matchCategoryId,

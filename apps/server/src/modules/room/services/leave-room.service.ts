@@ -123,6 +123,68 @@ export async function kickPlayer(
   };
 }
 
+/**
+ * Admin kick — reuses `permanentlyDepartPlayer`. Admin need not be in the Room
+ * and may kick the current host. Does not impersonate the Host.
+ */
+export async function kickPlayerAsAdmin(
+  roomId: string,
+  targetPlayerId: string,
+): Promise<
+  RoomActionResponse<{
+    kickedPlayerId: string;
+    roomDeleted: boolean;
+  }>
+> {
+  if (!targetPlayerId.trim()) {
+    return serviceError('VALIDATION_ERROR', 'Player id is required.');
+  }
+
+  const roomResult = await findRoomById(roomId);
+
+  if (isServiceError(roomResult)) {
+    return roomResult;
+  }
+
+  const targetPlayerResult = await findPlayerInRoom(targetPlayerId, roomId);
+
+  if (isServiceError(targetPlayerResult)) {
+    return targetPlayerResult;
+  }
+
+  if (targetPlayerResult.status === PlayerStatus.LEFT) {
+    return serviceError('PLAYER_NOT_FOUND', 'Player not found in this room.');
+  }
+
+  const departed = await permanentlyDepartPlayer({
+    playerId: targetPlayerId,
+    roomId,
+    kind: 'kick',
+  });
+
+  if (!departed || departed.alreadyLeft) {
+    if (departed?.roomDeleted) {
+      return {
+        success: true,
+        data: {
+          kickedPlayerId: targetPlayerId,
+          roomDeleted: true,
+        },
+      };
+    }
+
+    return serviceError('PLAYER_NOT_FOUND', 'Player not found in this room.');
+  }
+
+  return {
+    success: true,
+    data: {
+      kickedPlayerId: targetPlayerId,
+      roomDeleted: departed.roomDeleted,
+    },
+  };
+}
+
 export async function handlePlayerDisconnect(
   playerId: string,
   roomId: string,

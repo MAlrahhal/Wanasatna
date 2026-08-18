@@ -145,6 +145,7 @@ test('player count is LTR-safe and kick stays dialog-backed', () => {
   const panel = read('components/lobby/players-panel.tsx');
   assert.match(panel, /dir="ltr"/);
   assert.match(panel, /players\.length/);
+  assert.match(panel, /playerCap/);
   assert.match(panel, /MAX_ROOM_PLAYERS/);
   assert.match(panel, /UiDialog/);
   assert.match(panel, /confirmLabel="طرد"/);

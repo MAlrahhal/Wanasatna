@@ -9,13 +9,16 @@ import type {
 } from '@wanasatna/shared';
 import {
   DRAW_GUESS_DEFAULT_ROUNDS,
+  DRAW_GUESS_DRAW_DURATION_SECONDS,
+  DRAW_GUESS_GAME_ID,
   MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL,
   MATCH_COMPLETED_WAITING_MESSAGE,
   buildRoundResultsContinueCopy,
 } from '@wanasatna/shared';
 import { randomUUID } from 'node:crypto';
-import { timedPhaseDurations } from '../../../../config/test-timers.js';
+import { resolveConfigurableInteractiveSeconds } from '../../../../config/test-timers.js';
 import { remainingSecondsFromDeadline, timedPhaseClock } from '../../runtime/phase-deadline.js';
+import { effectiveGameSettings } from '../../effective-game-settings.js';
 import {
   buildLeaderboardEntries,
   buildResultsLeaderboardEntries,
@@ -29,13 +32,21 @@ const PHASE_LABELS = {
   'match-completed': 'انتهت المباراة',
 } as const;
 
-/** Product rule: exactly 3 rounds (not collapsed in test mode). */
-export function resolveTotalRounds(_settings?: GameContentSettings): number {
-  return DRAW_GUESS_DEFAULT_ROUNDS;
+/** Product rule: exactly 3 rounds unless an Admin override is stored. */
+export function resolveTotalRounds(roomId?: string): number {
+  if (!roomId) {
+    return DRAW_GUESS_DEFAULT_ROUNDS;
+  }
+  const rounds = effectiveGameSettings(DRAW_GUESS_GAME_ID, roomId).rounds;
+  return rounds ?? DRAW_GUESS_DEFAULT_ROUNDS;
 }
 
-export function resolveDrawingDurationSeconds(): number {
-  return timedPhaseDurations.drawGuessDrawing();
+export function resolveDrawingDurationSeconds(roomId?: string): number {
+  const seconds = roomId
+    ? (effectiveGameSettings(DRAW_GUESS_GAME_ID, roomId).drawSeconds ??
+      DRAW_GUESS_DRAW_DURATION_SECONDS)
+    : DRAW_GUESS_DRAW_DURATION_SECONDS;
+  return resolveConfigurableInteractiveSeconds(seconds, DRAW_GUESS_DRAW_DURATION_SECONDS);
 }
 
 export function createInitialScores(playerIds: string[]): Record<string, number> {
@@ -100,7 +111,7 @@ export function createRoundState(
   connectedPlayerIds: readonly string[],
 ): { round: DrawGuessRoundState; usedWordTexts: string[] } {
   const wordEntry = pickDrawGuessWord(roomId, match.usedWordTexts);
-  const drawingDurationSeconds = resolveDrawingDurationSeconds();
+  const drawingDurationSeconds = resolveDrawingDurationSeconds(roomId);
   const drawerPlayerId = resolveDrawerPlayerId({
     drawerMode: match.drawerMode,
     fixedDrawerPlayerId: match.fixedDrawerPlayerId,
@@ -128,7 +139,7 @@ export function createRoundState(
 export function createMatchState(
   roomId: string,
   players: GameShellPlayer[],
-  settings: GameContentSettings,
+  _settings: GameContentSettings,
   drawerMode: DrawGuessDrawerMode = 'random',
   fixedDrawerPlayerId: string | null = null,
 ): DrawGuessMatchState {
@@ -153,7 +164,7 @@ export function createMatchState(
     playerIds,
     playerNames: Object.fromEntries(players.map((player) => [player.id, player.name])),
     currentRound: 1,
-    totalRounds: resolveTotalRounds(settings),
+    totalRounds: resolveTotalRounds(roomId),
     scores: createInitialScores(playerIds),
     matchStatus: 'in-progress',
     drawerMode: base.drawerMode,

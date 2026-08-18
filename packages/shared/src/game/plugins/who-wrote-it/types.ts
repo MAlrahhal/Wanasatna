@@ -55,6 +55,8 @@ export type WhoWroteItMatchState = {
   /** Internal categories already used in this match (random mode only). */
   usedRoundCategoryIds: string[];
   recentQuestionIds: string[];
+  answerSeconds: number;
+  guessSeconds: number;
   round: WhoWroteItRoundState;
 };
 

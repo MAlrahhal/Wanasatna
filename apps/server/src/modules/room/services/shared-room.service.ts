@@ -1,7 +1,6 @@
-import { PlayerStatus, type Player, type Room, RoomStatus } from '@prisma/client';
+import { PlayerStatus, Prisma, type Player, type Room, RoomStatus } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
 import type { RoomActionResponse, RoomUpdatedPayload } from '@wanasatna/shared';
-import { MAX_ROOM_PLAYERS } from '../room.utils.js';
 
 export type ServiceError = Extract<RoomActionResponse<never>, { success: false }>;
 
@@ -104,8 +103,8 @@ export async function assertRoomJoinable(room: Room): Promise<ServiceError | nul
 
   const activePlayerCount = await countActivePlayers(room.id);
 
-  if (activePlayerCount >= MAX_ROOM_PLAYERS) {
-    return serviceError('ROOM_FULL', 'الغرفة ممتلئة (الحد الأقصى 8 لاعبين).');
+  if (activePlayerCount >= room.playerCap) {
+    return serviceError('ROOM_FULL', `الغرفة ممتلئة (الحد الأقصى ${room.playerCap} لاعبين).`);
   }
 
   return null;
@@ -164,4 +163,47 @@ export async function unlockRoom(
   roomId: string,
 ): Promise<RoomActionResponse<RoomUpdatedPayload>> {
   return setRoomLocked(hostPlayerId, roomId, false);
+}
+
+/** Admin lock/unlock — does not impersonate the Host. Host controls stay on `lockRoom`/`unlockRoom`. */
+export async function setRoomLockedAsAdmin(
+  roomId: string,
+  isLocked: boolean,
+): Promise<RoomActionResponse<RoomUpdatedPayload>> {
+  const roomResult = await findRoomById(roomId);
+
+  if (isServiceError(roomResult)) {
+    return roomResult;
+  }
+
+  if (roomResult.isLocked === isLocked) {
+    return {
+      success: true,
+      data: {
+        roomId: roomResult.id,
+        isLocked,
+      },
+    };
+  }
+
+  try {
+    const updatedRoom = await prisma.room.update({
+      where: { id: roomId },
+      data: { isLocked },
+    });
+
+    return {
+      success: true,
+      data: {
+        roomId: updatedRoom.id,
+        isLocked: updatedRoom.isLocked,
+      },
+    };
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      return serviceError('ROOM_NOT_FOUND', 'Room not found.');
+    }
+
+    throw error;
+  }
 }

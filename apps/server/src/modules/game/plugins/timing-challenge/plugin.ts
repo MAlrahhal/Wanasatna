@@ -26,7 +26,7 @@ export function buildTimingChallengePluginDefinition(): GamePluginDefinition {
   return {
     ...metadata,
     minPlayers: 2,
-    maxPlayers: 8,
+    maxPlayers: 20,
     defaultSettings: {
       mode: defaults.mode,
       minSeconds: String(defaults.minSeconds),
@@ -63,6 +63,13 @@ export function buildTimingChallengePluginDefinition(): GamePluginDefinition {
         return {
           success: false,
           error: 'تحتاج لعبة تحدي التوقيت إلى لاعبين على الأقل.',
+        };
+      }
+
+      if (connectedCount > 20) {
+        return {
+          success: false,
+          error: 'لا يمكن بدء تحدي التوقيت بأكثر من 20 لاعباً.',
         };
       }
 

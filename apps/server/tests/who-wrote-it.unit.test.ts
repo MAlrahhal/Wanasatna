@@ -114,6 +114,8 @@ function makeMatch(overrides?: Partial<WhoWroteItMatchState>): WhoWroteItMatchSt
     lockedCategoryLabel: 'أسئلة مضحكة',
     usedRoundCategoryIds: [],
     recentQuestionIds: ['funny-1'],
+    answerSeconds: WHO_WROTE_IT_ANSWERING_SECONDS,
+    guessSeconds: WHO_WROTE_IT_GUESS_SECONDS,
     round: makeRound(),
     ...overrides,
     round: {

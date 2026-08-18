@@ -11,6 +11,7 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   INVALID_PHASE: 'لا يمكن تنفيذ هذا الإجراء في المرحلة الحالية.',
   PLAYER_NOT_FOUND: 'تعذر العثور على اللاعب.',
   GAME_NOT_SELECTED: 'يرجى اختيار لعبة قبل البدء.',
+  GAME_DISABLED: 'هذه اللعبة غير متاحة حالياً.',
   INTERNAL_ERROR: 'حدث خطأ غير متوقع. حاول مرة أخرى.',
   ALREADY_SUBMITTED: 'لقد أرسلت وصفك بالفعل.',
   NOT_PARTICIPANT: 'أنت لست مشاركاً في هذه الجولة.',
@@ -33,7 +34,7 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
 
 export function getGameShellErrorMessage(code: GameErrorCode, fallback?: string): string {
   const mapped = ERROR_MESSAGES[code] ?? ERROR_MESSAGES.INTERNAL_ERROR;
-  if (code === 'VALIDATION_ERROR' && fallback) {
+  if ((code === 'VALIDATION_ERROR' || code === 'GAME_DISABLED') && fallback) {
     return toSafeUserErrorMessage(fallback, mapped);
   }
 

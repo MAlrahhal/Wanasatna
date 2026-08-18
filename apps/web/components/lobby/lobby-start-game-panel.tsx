@@ -5,6 +5,7 @@ import { GUESSING_CHALLENGE_GAME_ID, TIMING_CHALLENGE_GAME_ID } from '@wanasatna
 import { useRoom } from '@/contexts/room-context';
 import { getGameStartPlayerRequirementReason } from '@/lib/game-shell/start-validation';
 import { splitGameStartPlayerRequirementReason } from '@/lib/game-shell/start-requirement-copy';
+import { usePlayableGameAvailability } from '@/lib/games/use-game-availability';
 import { getGameCatalogEntry } from '@/lib/public/game-catalog';
 import { mockLobbyGames } from '@/lib/lobby/mock-games';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ export function LobbyStartGamePanel() {
     guessingChallengeMode,
     teamSnapshot,
   } = useRoom();
+  const { isGameEnabled } = usePlayableGameAvailability();
   const [isStarting, setIsStarting] = useState(false);
   const startingRef = useRef(false);
 
@@ -46,6 +48,9 @@ export function LobbyStartGamePanel() {
     }
     if (catalogEntry?.availability === 'coming-soon') {
       return 'اللعبة غير متاحة';
+    }
+    if (selectedGameId && !isGameEnabled(selectedGameId)) {
+      return 'غير متاحة حالياً';
     }
 
     const playerRequirementReason = getGameStartPlayerRequirementReason(
@@ -71,6 +76,7 @@ export function LobbyStartGamePanel() {
     activeParticipantCount,
     catalogEntry?.availability,
     guessingChallengeMode,
+    isGameEnabled,
     isWaitingForNextMatch,
     selectedGameId,
     status,

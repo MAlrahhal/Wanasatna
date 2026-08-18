@@ -12,6 +12,10 @@ export const HOST_CHANGED_EVENT = 'host-changed' as const;
 export const ROOM_UPDATED_EVENT = 'room-updated' as const;
 export const ROOM_PLAYERS_SNAPSHOT_EVENT = 'room-players-snapshot' as const;
 export const PLAYER_KICKED_EVENT = 'player-kicked' as const;
+export const ROOM_CLOSED_EVENT = 'room-closed' as const;
+
+export const UPDATE_ROOM_GAME_SETTINGS_EVENT = 'update-room-game-settings' as const;
+export const ROOM_GAME_SETTINGS_UPDATED_EVENT = 'room-game-settings-updated' as const;
 
 export const ROOM_CHAT_SEND_EVENT = 'room-chat-send' as const;
 export const ROOM_CHAT_MESSAGE_EVENT = 'room-chat-message' as const;

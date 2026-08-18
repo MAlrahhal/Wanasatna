@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { LobbyGame } from '@/lib/lobby/types';
+import { usePlayableGameAvailability } from '@/lib/games/use-game-availability';
 import { getGameCatalogEntry } from '@/lib/public/game-catalog';
 import { getHomeRoomActionsHref } from '@/lib/public/scroll-to-room-actions';
 import { StatusBadge } from '@/components/public/status-badge';
@@ -12,7 +13,11 @@ type GamePreviewCardProps = {
 
 export function GamePreviewCard({ game, className }: GamePreviewCardProps) {
   const entry = getGameCatalogEntry(game.id);
-  const isAvailable = entry.availability === 'available';
+  const { isGameEnabled } = usePlayableGameAvailability();
+  const runtimeEnabled = isGameEnabled(game.id);
+  const isComingSoon = entry.availability === 'coming-soon';
+  const isAvailable = !isComingSoon && runtimeEnabled;
+  const badgeVariant = isComingSoon ? 'coming-soon' : isAvailable ? 'available' : 'unavailable';
 
   return (
     <article
@@ -31,7 +36,7 @@ export function GamePreviewCard({ game, className }: GamePreviewCardProps) {
         >
           {game.iconLabel}
         </div>
-        <StatusBadge variant={isAvailable ? 'available' : 'coming-soon'} />
+        <StatusBadge variant={badgeVariant} />
       </div>
       <h3 className="text-base font-bold text-wanas-text-primary">{game.title}</h3>
       <p className="mt-1.5 line-clamp-2 flex-1 text-sm leading-6 text-wanas-text-muted">{game.description}</p>
@@ -46,7 +51,11 @@ type GameCatalogCardProps = {
 
 export function GameCatalogCard({ game }: GameCatalogCardProps) {
   const entry = getGameCatalogEntry(game.id);
-  const isAvailable = entry.availability === 'available';
+  const { isGameEnabled } = usePlayableGameAvailability();
+  const runtimeEnabled = isGameEnabled(game.id);
+  const isComingSoon = entry.availability === 'coming-soon';
+  const isAvailable = !isComingSoon && runtimeEnabled;
+  const badgeVariant = isComingSoon ? 'coming-soon' : isAvailable ? 'available' : 'unavailable';
 
   const content = (
     <>
@@ -57,7 +66,7 @@ export function GameCatalogCard({ game }: GameCatalogCardProps) {
         >
           {game.iconLabel}
         </div>
-        <StatusBadge variant={isAvailable ? 'available' : 'coming-soon'} />
+        <StatusBadge variant={badgeVariant} />
       </div>
       <h3 className="relative text-lg font-bold text-wanas-text-primary">{game.title}</h3>
       <p className="relative mt-2 text-sm leading-7 text-wanas-text-muted">{game.description}</p>
@@ -71,7 +80,9 @@ export function GameCatalogCard({ game }: GameCatalogCardProps) {
             العب الآن
           </Link>
         ) : (
-          <span className="text-xs font-semibold text-wanas-text-subtle">قريباً</span>
+          <span className="text-xs font-semibold text-wanas-text-subtle">
+            {isComingSoon ? 'قريباً' : 'غير متاحة حالياً'}
+          </span>
         )}
       </div>
     </>

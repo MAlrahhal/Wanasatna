@@ -18,14 +18,20 @@ import type {
 } from '@wanasatna/shared';
 import {
   GUESSING_CHALLENGE_DEFAULT_ROUNDS,
+  GUESSING_CHALLENGE_GAME_ID,
   GUESSING_CHALLENGE_LOOK_THROTTLE_MS,
   GUESSING_CHALLENGE_MAX_GUESS_LENGTH,
+  GUESSING_CHALLENGE_TURN_SECONDS,
   GUESSING_CHALLENGE_YELLOW_QUESTIONS,
   MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL,
   MATCH_COMPLETED_WAITING_MESSAGE,
   buildRoundResultsContinueCopy,
 } from '@wanasatna/shared';
-import { timedPhaseDurations } from '../../../../config/test-timers.js';
+import {
+  resolveConfigurableInteractiveSeconds,
+  timedPhaseDurations,
+} from '../../../../config/test-timers.js';
+import { effectiveGameSettings } from '../../effective-game-settings.js';
 import {
   getIdentitiesForCategory,
   identityMatchesGuess,
@@ -100,17 +106,27 @@ export function remainingSecondsFromDeadline(
   return Math.max(0, Math.ceil((deadlineAtMs - now) / 1000));
 }
 
-function createTurnTiming(now = Date.now()): {
+function createTurnTiming(
+  turnSeconds: number,
+  now = Date.now(),
+): {
   turnId: string;
   phaseRemainingSeconds: number;
   deadlineAtMs: number;
 } {
-  const seconds = timedPhaseDurations.guessingChallengeTurn();
   return {
     turnId: randomUUID(),
-    phaseRemainingSeconds: seconds,
-    deadlineAtMs: now + seconds * 1000,
+    phaseRemainingSeconds: turnSeconds,
+    deadlineAtMs: now + turnSeconds * 1000,
   };
+}
+
+export function resolveTurnSeconds(roomId?: string): number {
+  const seconds = roomId
+    ? (effectiveGameSettings(GUESSING_CHALLENGE_GAME_ID, roomId).turnSeconds ??
+      GUESSING_CHALLENGE_TURN_SECONDS)
+    : GUESSING_CHALLENGE_TURN_SECONDS;
+  return resolveConfigurableInteractiveSeconds(seconds, GUESSING_CHALLENGE_TURN_SECONDS);
 }
 
 export function createInitialScores(playerIds: string[]): Record<string, number> {
@@ -239,6 +255,7 @@ export function createRoundState(
   startingTeamId: GuessingChallengeTeamId,
   recentIdentityIds: readonly string[],
   now = Date.now(),
+  turnSeconds = timedPhaseDurations.guessingChallengeTurn(),
 ): { round: GuessingChallengeRoundState; usedRoundCategoryIds: string[] } {
   const categoryId = pickRoundCategoryId(matchCategoryId, usedRoundCategoryIds);
   const identities = getIdentitiesForCategory(categoryId);
@@ -251,7 +268,7 @@ export function createRoundState(
   return {
     round: {
       roundId: randomUUID(),
-      ...createTurnTiming(now),
+      ...createTurnTiming(turnSeconds, now),
       gamePhase: 'playing',
       resolvedCategoryId: categoryId,
       identitiesByTeamId: {
@@ -309,12 +326,15 @@ export function createMatchState(
 
   const startingTeamId: GuessingChallengeTeamId = 'blue';
   const category = resolveMatchCategorySelection(roomId);
+  const turnSeconds = resolveTurnSeconds(roomId);
   const { round, usedRoundCategoryIds } = createRoundState(
     category.matchCategoryId,
     [],
     teamByPlayerId,
     startingTeamId,
     [],
+    Date.now(),
+    turnSeconds,
   );
 
   return {
@@ -336,6 +356,7 @@ export function createMatchState(
     usedRoundCategoryIds,
     departedPlayerIds: [],
     recentIdentityIds: [...round.usedIdentityIds],
+    turnSeconds,
     round,
   };
 }
@@ -494,7 +515,7 @@ export function advanceAfterQuestionUnit(
   now = Date.now(),
 ): GuessingChallengeMatchState {
   const remaining = match.round.yellowQuestionsRemaining;
-  const turnTiming = createTurnTiming(now);
+  const turnTiming = createTurnTiming(match.turnSeconds, now);
 
   if (remaining !== null && remaining > 1) {
     return withRound(match, {
@@ -576,7 +597,7 @@ function activateYellowCard(
       },
       round: {
         ...clearCardConfirm(match.round),
-        ...createTurnTiming(),
+        ...createTurnTiming(match.turnSeconds),
         yellowQuestionsRemaining: GUESSING_CHALLENGE_YELLOW_QUESTIONS,
         identityChangedNoticeTeamId: null,
       },
@@ -912,7 +933,7 @@ export function applyFinalGuess(
     // Wrong guess always ends the turn (including any yellow sequence).
     const nextMatch = withRound(match, {
       ...clearCardConfirm(match.round),
-      ...createTurnTiming(),
+      ...createTurnTiming(match.turnSeconds),
       currentTurnTeamId: opponentTeamId,
       yellowQuestionsRemaining: null,
       identityChangedNoticeTeamId: null,

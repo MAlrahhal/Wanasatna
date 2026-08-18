@@ -2,7 +2,7 @@ import { PlayerStatus, Prisma, type Player, type Room } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
 import type { RoomActionResponse, RoomSessionData } from '@wanasatna/shared';
 import { validateJoinRoomPayload } from '../room.validators.js';
-import { loadActiveRoomPlayers, mapRoomSession, MAX_ROOM_PLAYERS } from '../room.utils.js';
+import { loadActiveRoomPlayers, mapRoomSession } from '../room.utils.js';
 import { generateReconnectToken, hashReconnectToken } from '../reconnect-token.js';
 import {
   assertRoomNotClosed,
@@ -65,8 +65,8 @@ async function joinRoomInLockedTx(
     },
   });
 
-  if (activePlayerCount >= MAX_ROOM_PLAYERS) {
-    return serviceError('ROOM_FULL', 'الغرفة ممتلئة (الحد الأقصى 8 لاعبين).');
+  if (activePlayerCount >= room.playerCap) {
+    return serviceError('ROOM_FULL', `الغرفة ممتلئة (الحد الأقصى ${room.playerCap} لاعبين).`);
   }
 
   const existingPlayer = await tx.player.findUnique({

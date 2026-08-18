@@ -18,9 +18,12 @@ export function defaultTimingChallengeSettings(): TimingChallengeSettings {
 
 export function normalizeTimingChallengeSettings(
   input: Partial<TimingChallengeSettings> | null | undefined,
+  options?: { absoluteMaxSeconds?: number },
 ): TimingChallengeSettings | { error: string } {
   const defaults = defaultTimingChallengeSettings();
   const mode = (input?.mode ?? defaults.mode) as TimingChallengeMode;
+  const absoluteMax =
+    options?.absoluteMaxSeconds ?? TIMING_CHALLENGE_ABSOLUTE_MAX_SECONDS;
 
   if (mode !== 'guess-time' && mode !== 'stop-timer') {
     return { error: 'وضع اللعب غير صالح.' };
@@ -33,11 +36,11 @@ export function normalizeTimingChallengeSettings(
     !Number.isFinite(minSeconds) ||
     !Number.isFinite(maxSeconds) ||
     minSeconds < TIMING_CHALLENGE_ABSOLUTE_MIN_SECONDS ||
-    maxSeconds > TIMING_CHALLENGE_ABSOLUTE_MAX_SECONDS ||
+    maxSeconds > absoluteMax ||
     minSeconds >= maxSeconds
   ) {
     return {
-      error: `نطاق الوقت يجب أن يكون بين ${TIMING_CHALLENGE_ABSOLUTE_MIN_SECONDS} و ${TIMING_CHALLENGE_ABSOLUTE_MAX_SECONDS} ثانية، والحد الأدنى أقل من الحد الأقصى.`,
+      error: `نطاق الوقت يجب أن يكون بين ${TIMING_CHALLENGE_ABSOLUTE_MIN_SECONDS} و ${absoluteMax} ثانية، والحد الأدنى أقل من الحد الأقصى.`,
     };
   }
 

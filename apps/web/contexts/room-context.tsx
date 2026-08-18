@@ -40,6 +40,7 @@ import {
   TEAM_RANDOMIZE_EVENT,
   TEAM_SNAPSHOT_EVENT,
   TEAM_SYNC_EVENT,
+  UPDATE_ROOM_GAME_SETTINGS_EVENT,
   getGameTeamCapability,
   type PregameTeamSnapshot,
   type TeamId,
@@ -77,7 +78,7 @@ const DEFAULT_TIMING_CHALLENGE_SETTINGS: TimingChallengeSettings = {
 };
 
 type ConnectionStatus = 'idle' | 'connecting' | 'reconnecting' | 'connected' | 'error';
-type SessionEndReason = 'kick' | null;
+type SessionEndReason = 'kick' | 'closed' | null;
 
 type RoomContextValue = {
   status: ConnectionStatus;
@@ -100,6 +101,7 @@ type RoomContextValue = {
   lockRoom: () => Promise<void>;
   unlockRoom: () => Promise<void>;
   kickPlayer: (playerId: string) => Promise<void>;
+  updateRoomGameSettings: (gameId: string, settings: Record<string, number>) => Promise<void>;
   selectGame: (gameId: string) => void;
   selectRoundCategory: (categoryId: string) => void;
   startGame: () => Promise<void>;
@@ -272,6 +274,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       if (
         response.success &&
         response.data.state &&
+        response.data.state.phase !== 'FINISHED' &&
         resolvedPlayerId
       ) {
         router.push('/game');
@@ -315,12 +318,12 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const manager = getRoomSessionManager();
     manager.setTerminalHandler((reason) => {
-      if (reason !== 'kick') {
+      if (reason !== 'kick' && reason !== 'closed') {
         return;
       }
 
       clearLocalGameUi();
-      setSessionEndReason('kick');
+      setSessionEndReason(reason);
       getRoomSessionManager().markExplicitLeaveHome();
     });
 
@@ -731,6 +734,17 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const updateRoomGameSettings = useCallback(async (gameId: string, settings: Record<string, number>) => {
+    const response = await emitRoomAck<{ roomId: string; gameSettings: RoomData['gameSettings'] }>(
+      UPDATE_ROOM_GAME_SETTINGS_EVENT,
+      { gameId, settings },
+    );
+
+    if (!response.success) {
+      setErrorMessage(getRoomErrorMessage(response.error.code, response.error.message));
+    }
+  }, []);
+
   const configureTeams = useCallback(
     async (gameId: string, mode: string) => {
       if (!getGameTeamCapability(gameId)) {
@@ -763,6 +777,12 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   const selectGame = useCallback(
     (gameId: string) => {
       if (!isHost) {
+        return;
+      }
+
+      if (!gameId) {
+        setSelectedGameId(null);
+        writeSelectedGameId(null);
         return;
       }
 
@@ -885,6 +905,10 @@ export function RoomProvider({ children }: { children: ReactNode }) {
 
     if (!response.success) {
       setErrorMessage(getGameShellErrorMessage(response.error.code, response.error.message));
+      if (response.error.code === 'GAME_DISABLED') {
+        setSelectedGameId(null);
+        writeSelectedGameId(null);
+      }
       return;
     }
 
@@ -956,6 +980,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       lockRoom,
       unlockRoom,
       kickPlayer,
+      updateRoomGameSettings,
       selectGame,
       selectRoundCategory,
       startGame,
@@ -995,6 +1020,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       teamSnapshot,
       timingChallengeSettings,
       guessingChallengeMode,
+      updateRoomGameSettings,
       unlockRoom,
     ],
   );

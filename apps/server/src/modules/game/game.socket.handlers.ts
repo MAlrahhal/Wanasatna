@@ -37,6 +37,7 @@ import {
 import { abortActiveMatch } from './runtime/abort-active-match.js';
 import { clearPlayerRecoveryForTeardown } from './runtime/player-recovery.js';
 import { setRoomRoundCategory } from './runtime/round-category-store.js';
+import { hydrateRoomGameSettings } from '../room/room-game-settings.store.js';
 import { applyGuessingChallengeLobbySettings } from './plugins/guessing-challenge/socket.handlers.js';
 import { applyTimingChallengeLobbySettings } from './plugins/timing-challenge/socket.handlers.js';
 import { applyDrawGuessLobbySettings } from './plugins/draw-guess/socket.handlers.js';
@@ -304,6 +305,7 @@ export function registerGameShellStartFromLobbyHandler(io: Server, socket: Socke
       const { playerId, roomId } = socket.data;
 
       try {
+        await hydrateRoomGameSettings(roomId!);
         setRoomRoundCategory(roomId!, validation.data.categoryId);
 
         if (validation.data.gameId === TIMING_CHALLENGE_GAME_ID) {

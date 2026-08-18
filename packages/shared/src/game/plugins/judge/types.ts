@@ -48,6 +48,10 @@ export type JudgeMatchState = {
   /** Permanent leave/kick — not temporary disconnect. */
   departedPlayerIds: string[];
   recentPromptIds: string[];
+  answerSeconds: number;
+  judgeSeconds: number;
+  /** Admin override; null keeps player-count default and departure recount. */
+  configuredTotalRounds: number | null;
   round: JudgeRoundState;
 };
 

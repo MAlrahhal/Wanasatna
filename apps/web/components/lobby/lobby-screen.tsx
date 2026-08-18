@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRoom } from '@/contexts/room-context';
 import { mockGameSettingsByGameId, mockLobbyGames } from '@/lib/lobby/mock-games';
+import { usePlayableGameAvailability } from '@/lib/games/use-game-availability';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import { LOBBY_NOTICE_STORAGE_KEY } from '@/lib/game-shell/null-shell-recovery';
 import { RoomSystemState } from '@/components/room/room-system-state';
@@ -39,12 +40,19 @@ export function LobbyScreen() {
     activeMatchParticipantIds,
     selectedRoundCategoryId,
   } = useRoom();
+  const { isGameEnabled } = usePlayableGameAvailability();
 
   const [mobileSection, setMobileSection] = useState<'games' | 'players'>('games');
   const [chatOpen, setChatOpen] = useState(false);
   const [lobbyNotice, setLobbyNotice] = useState<string | null>(null);
   const [recovered, setRecovered] = useState(false);
   const wasReconnecting = useRef(false);
+
+  useEffect(() => {
+    if (selectedGameId && !isGameEnabled(selectedGameId) && isHost) {
+      selectGame('');
+    }
+  }, [isGameEnabled, isHost, selectGame, selectedGameId]);
 
   useEffect(() => {
     try {
@@ -83,6 +91,10 @@ export function LobbyScreen() {
 
   if (sessionEndReason === 'kick') {
     return <RoomSystemState kind="kicked" />;
+  }
+
+  if (sessionEndReason === 'closed') {
+    return <RoomSystemState kind="closed" message={errorMessage} />;
   }
 
   if (status === 'reconnecting' && !room) {
@@ -192,6 +204,7 @@ export function LobbyScreen() {
             selectedGameId={selectedGameId}
             canSelect={isHost}
             onSelectGame={selectGame}
+            isGameEnabled={isGameEnabled}
           />
           <LobbyMarathonBanner />
           <RoundCategoryPanel
@@ -213,6 +226,7 @@ export function LobbyScreen() {
             onKickPlayer={(playerId) => void kickPlayer(playerId)}
             activeMatchParticipantIds={activeMatchParticipantIds}
             hasActiveMatch={isWaitingForNextMatch || activeMatchParticipantIds !== null}
+            playerCap={room?.playerCap}
           />
         </div>
       </div>

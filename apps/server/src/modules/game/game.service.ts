@@ -3,6 +3,7 @@ import { PlayerStatus } from '@prisma/client';
 import {
   DEFAULT_GAME_SHELL_COUNTDOWN_SECONDS,
   DEFAULT_GAME_SHELL_TIMER_SECONDS,
+  GAME_DISABLED_MESSAGE,
   type GameActionResponse,
   type GameErrorCode,
   type GamePhase,
@@ -12,6 +13,8 @@ import {
 } from '@wanasatna/shared';
 import { prisma } from '../../lib/prisma.js';
 import { abortPersistedMatch, beginPersistedMatch } from '../match/match-history.service.js';
+import { hydrateRoomGameSettings } from '../room/room-game-settings.store.js';
+import { resolveGameEnabledForStart } from './game-availability.service.js';
 import { validateGameStart } from './runtime/validate-game-start.js';
 
 export type GameShellRecord = GameShellState;
@@ -39,6 +42,25 @@ export function gameServiceError(
     success: false,
     error: { code, message },
   };
+}
+
+const GAME_AVAILABILITY_UNVERIFIED_MESSAGE = 'تعذر بدء اللعبة حالياً. حاول مرة أخرى.';
+
+async function rejectIfGameDisabled(
+  gameId: string | null | undefined,
+): Promise<Extract<GameActionResponse<never>, { success: false }> | null> {
+  if (!gameId) {
+    return null;
+  }
+
+  const availability = await resolveGameEnabledForStart(gameId);
+  if (!availability.ok) {
+    return gameServiceError('INTERNAL_ERROR', GAME_AVAILABILITY_UNVERIFIED_MESSAGE);
+  }
+  if (!availability.enabled) {
+    return gameServiceError('GAME_DISABLED', GAME_DISABLED_MESSAGE);
+  }
+  return null;
 }
 
 function nowIso(): string {
@@ -156,6 +178,11 @@ export async function initGameShell(
 
   if (shellsByRoomId.has(roomId)) {
     return gameServiceError('SHELL_ALREADY_EXISTS', 'A game shell already exists for this room.');
+  }
+
+  const disabled = await rejectIfGameDisabled(payload.gameId);
+  if (disabled) {
+    return disabled;
   }
 
   const players = await loadRoomPlayers(roomId, hostCheck.hostPlayerId);
@@ -629,6 +656,13 @@ export async function startGameShellFromLobby(
   if (startValidationError) {
     return startValidationError;
   }
+
+  const disabled = await rejectIfGameDisabled(gameId);
+  if (disabled) {
+    return disabled;
+  }
+
+  await hydrateRoomGameSettings(roomId);
 
   const initResponse = await initGameShell(roomId, playerId, { gameId });
 

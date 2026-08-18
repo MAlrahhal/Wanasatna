@@ -12,10 +12,17 @@ import type {
 import {
   MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL,
   MATCH_COMPLETED_WAITING_MESSAGE,
+  WHO_WROTE_IT_ANSWERING_SECONDS,
   WHO_WROTE_IT_DEFAULT_ROUNDS,
+  WHO_WROTE_IT_GAME_ID,
+  WHO_WROTE_IT_GUESS_SECONDS,
   buildRoundResultsContinueCopy,
 } from '@wanasatna/shared';
-import { timedPhaseDurations } from '../../../../config/test-timers.js';
+import {
+  resolveConfigurableInteractiveSeconds,
+  timedPhaseDurations,
+} from '../../../../config/test-timers.js';
+import { effectiveGameSettings } from '../../effective-game-settings.js';
 import { createOpaqueAnswerId, shuffleIds } from './answers.js';
 import {
   pickRoundCategoryId,
@@ -38,8 +45,28 @@ const PHASE_LABELS = {
 
 const MAX_RECENT_QUESTION_IDS = 24;
 
-export function resolveTotalRounds(_settings?: GameContentSettings): number {
-  return WHO_WROTE_IT_DEFAULT_ROUNDS;
+export function resolveTotalRounds(roomId?: string): number {
+  if (!roomId) {
+    return WHO_WROTE_IT_DEFAULT_ROUNDS;
+  }
+  return effectiveGameSettings(WHO_WROTE_IT_GAME_ID, roomId).rounds ?? WHO_WROTE_IT_DEFAULT_ROUNDS;
+}
+
+export function resolveWhoWroteItDurations(roomId?: string): {
+  answerSeconds: number;
+  guessSeconds: number;
+} {
+  const effective = roomId ? effectiveGameSettings(WHO_WROTE_IT_GAME_ID, roomId) : {};
+  return {
+    answerSeconds: resolveConfigurableInteractiveSeconds(
+      effective.answerSeconds ?? WHO_WROTE_IT_ANSWERING_SECONDS,
+      WHO_WROTE_IT_ANSWERING_SECONDS,
+    ),
+    guessSeconds: resolveConfigurableInteractiveSeconds(
+      effective.guessSeconds ?? WHO_WROTE_IT_GUESS_SECONDS,
+      WHO_WROTE_IT_GUESS_SECONDS,
+    ),
+  };
 }
 
 export function withRound(
@@ -65,7 +92,7 @@ export function applyGuessDeadline(
   match: WhoWroteItMatchState,
   now = Date.now(),
 ): WhoWroteItMatchState {
-  const seconds = timedPhaseDurations.whoWroteItGuess();
+  const seconds = match.guessSeconds ?? timedPhaseDurations.whoWroteItGuess();
   return withRound(match, {
     ...match.round,
     phaseRemainingSeconds: seconds,
@@ -78,10 +105,10 @@ export function createRoundState(
   usedRoundCategoryIds: readonly string[],
   recentQuestionIds: readonly string[],
   now = Date.now(),
+  answeringSeconds = timedPhaseDurations.whoWroteItAnswering(),
 ): { round: WhoWroteItRoundState; usedRoundCategoryIds: string[] } {
   const roundCategoryId = pickRoundCategoryId(matchCategoryId, usedRoundCategoryIds);
   const prompt = pickWhoWroteItPrompt(roundCategoryId, recentQuestionIds);
-  const answeringSeconds = timedPhaseDurations.whoWroteItAnswering();
 
   const nextUsed =
     matchCategoryId === WHO_WROTE_IT_RANDOM_CATEGORY_ID
@@ -111,7 +138,7 @@ export function createRoundState(
 export function createMatchState(
   roomId: string,
   players: GameShellPlayer[],
-  settings: GameContentSettings,
+  _settings: GameContentSettings,
 ): WhoWroteItMatchState {
   if (players.length === 0) {
     throw new Error('No players available for Who Wrote It match.');
@@ -119,23 +146,28 @@ export function createMatchState(
 
   const selection = resolveMatchCategorySelection(roomId);
   const playerIds = players.map((player) => player.id);
+  const durations = resolveWhoWroteItDurations(roomId);
   const { round, usedRoundCategoryIds } = createRoundState(
     selection.matchCategoryId,
     [],
     [],
+    Date.now(),
+    durations.answerSeconds,
   );
 
   return {
     playerIds,
     playerNames: Object.fromEntries(players.map((player) => [player.id, player.name])),
     currentRound: 1,
-    totalRounds: resolveTotalRounds(settings),
+    totalRounds: resolveTotalRounds(roomId),
     scores: createInitialScores(playerIds),
     matchStatus: 'in-progress',
     lockedCategoryId: selection.matchCategoryId,
     lockedCategoryLabel: selection.matchCategoryLabel,
     usedRoundCategoryIds,
     recentQuestionIds: [round.questionId],
+    answerSeconds: durations.answerSeconds,
+    guessSeconds: durations.guessSeconds,
     round,
   };
 }

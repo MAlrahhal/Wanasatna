@@ -1,4 +1,4 @@
-export type HomeGameAvailability = 'available' | 'coming-soon';
+export type HomeGameAvailability = 'available' | 'coming-soon' | 'unavailable';
 
 export type HomeGameShowcase = {
   availability: HomeGameAvailability;

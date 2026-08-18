@@ -362,12 +362,16 @@ async function main(): Promise<void> {
     await cleanupEmail(email);
   });
 
-  await test('12 no Admin management endpoints or secret leak', async () => {
+  await test('12 no user-promote HTTP; room admin is requireAdmin-gated', async () => {
     await withApp(async (baseUrl) => {
       const promote = await fetch(`${baseUrl}/api/admin/promote`, { method: 'POST' });
       assert.equal(promote.status, 404);
+      const users = await fetch(`${baseUrl}/api/admin/users`);
+      assert.equal(users.status, 401);
       const rooms = await fetch(`${baseUrl}/api/admin/rooms`);
-      assert.equal(rooms.status, 404);
+      assert.equal(rooms.status, 401);
+      const raw = await rooms.text();
+      assert.doesNotMatch(raw, /passwordHash|tokenHash|reconnectToken|P2025|Prisma/);
     });
   });
 

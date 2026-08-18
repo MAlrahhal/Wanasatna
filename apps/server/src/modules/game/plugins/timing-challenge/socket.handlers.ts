@@ -1,6 +1,8 @@
 import type { Server, Socket } from 'socket.io';
 import type { GameActionResponse, TimingChallengeSubmitGuessPayload } from '@wanasatna/shared';
 import {
+  TIMING_CHALLENGE_ABSOLUTE_MAX_SECONDS,
+  TIMING_CHALLENGE_ADMIN_MAX_SECONDS,
   TIMING_CHALLENGE_CONTINUE_ROUND_RESULTS_EVENT,
   TIMING_CHALLENGE_GAME_ID,
   TIMING_CHALLENGE_PHASE_CHANGED_EVENT,
@@ -9,9 +11,11 @@ import {
   TIMING_CHALLENGE_STOP_TIMER_EVENT,
   TIMING_CHALLENGE_SUBMIT_GUESS_EVENT,
   TIMING_CHALLENGE_SYNC_EVENT,
+  getStoredGameSettingsForGame,
   isActiveMatchParticipant,
 } from '@wanasatna/shared';
 import { getRoomChannel } from '../../../room/room.utils.js';
+import { getRoomGameSettings } from '../../../room/room-game-settings.store.js';
 import { getGameShellByRoomId } from '../../game.service.js';
 import {
   getGameSocketContext,
@@ -543,17 +547,40 @@ export function applyTimingChallengeLobbySettings(
   roomId: string,
   settingsInput: unknown,
 ): { success: true } | { success: false; error: string } {
-  const normalized = normalizeTimingChallengeSettings(
+  const hostNormalized = normalizeTimingChallengeSettings(
     settingsInput && typeof settingsInput === 'object'
       ? (settingsInput as Parameters<typeof normalizeTimingChallengeSettings>[0])
       : null,
+    { absoluteMaxSeconds: TIMING_CHALLENGE_ABSOLUTE_MAX_SECONDS },
   );
 
-  if ('error' in normalized) {
-    return { success: false, error: normalized.error };
+  if ('error' in hostNormalized) {
+    return { success: false, error: hostNormalized.error };
   }
 
-  setTimingChallengeSettings(roomId, normalized);
+  const stored = getStoredGameSettingsForGame(
+    TIMING_CHALLENGE_GAME_ID,
+    getRoomGameSettings(roomId),
+  );
+  const hasAdminRange = stored.minSeconds != null || stored.maxSeconds != null;
+  const merged = normalizeTimingChallengeSettings(
+    {
+      mode: hostNormalized.mode,
+      minSeconds: stored.minSeconds ?? hostNormalized.minSeconds,
+      maxSeconds: stored.maxSeconds ?? hostNormalized.maxSeconds,
+    },
+    {
+      absoluteMaxSeconds: hasAdminRange
+        ? TIMING_CHALLENGE_ADMIN_MAX_SECONDS
+        : TIMING_CHALLENGE_ABSOLUTE_MAX_SECONDS,
+    },
+  );
+
+  if ('error' in merged) {
+    return { success: false, error: merged.error };
+  }
+
+  setTimingChallengeSettings(roomId, merged);
   return { success: true };
 }
 

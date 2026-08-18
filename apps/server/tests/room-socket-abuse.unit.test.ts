@@ -117,7 +117,14 @@ function sessionOk(roomId = 'room-1', playerId = 'player-1', code = '123456') {
   return {
     success: true as const,
     data: {
-      room: { id: roomId, code, hostPlayerId: playerId, isLocked: false, status: 'LOBBY' },
+      room: {
+        id: roomId,
+        code,
+        hostPlayerId: playerId,
+        isLocked: false,
+        status: 'LOBBY',
+        playerCap: 8,
+      },
       player: { id: playerId, name: 'محمد', status: 'CONNECTED', isHost: true },
       players: [],
       reconnectToken: 'r'.repeat(32),

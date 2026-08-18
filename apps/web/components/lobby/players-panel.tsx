@@ -14,6 +14,7 @@ type PlayersPanelProps = {
   onKickPlayer?: (playerId: string) => void;
   activeMatchParticipantIds?: string[] | null;
   hasActiveMatch?: boolean;
+  playerCap?: number;
 };
 
 export function PlayersPanel({
@@ -23,6 +24,7 @@ export function PlayersPanel({
   onKickPlayer,
   activeMatchParticipantIds = null,
   hasActiveMatch = false,
+  playerCap = MAX_ROOM_PLAYERS,
 }: PlayersPanelProps) {
   const participantSet = new Set(activeMatchParticipantIds ?? []);
   const [kickTarget, setKickTarget] = useState<LobbyPlayer | null>(null);
@@ -43,13 +45,13 @@ export function PlayersPanel({
       title="اللاعبون"
       description={
         <span dir="ltr" className="inline-block tabular-nums tracking-wide">
-          {players.length} / {MAX_ROOM_PLAYERS}
+          {players.length} / {playerCap}
         </span>
       }
-      className="h-fit xl:max-h-[calc(100vh-220px)]"
-      bodyClassName="gap-2 p-2.5 sm:p-4"
+      className="h-fit max-h-[min(70vh,720px)] xl:max-h-[calc(100vh-220px)]"
+      bodyClassName="min-h-0 gap-2 p-2.5 sm:p-4"
     >
-      <div className="flex flex-col gap-2 xl:max-h-[min(70vh,560px)] xl:overflow-y-auto">
+      <div className="flex max-h-[min(58vh,600px)] flex-col gap-2 overflow-y-auto overscroll-contain xl:max-h-[min(70vh,640px)]">
         {players.map((player) => (
           <PlayerCard
             key={player.id}

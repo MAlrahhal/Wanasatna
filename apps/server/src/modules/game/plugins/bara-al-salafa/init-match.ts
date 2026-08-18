@@ -49,6 +49,7 @@ export function ensureBaraAlSalafaMatchState(roomId: string): BaraAlSalafaMatchS
     content.bundle,
     content.settings,
     resolveEnabledCategoryFilter(roomId),
+    roomId,
   );
   setBaraAlSalafaState(roomId, match);
   return match;

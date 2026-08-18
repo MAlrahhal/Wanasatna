@@ -12,9 +12,16 @@ import type {
 import {
   MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL,
   MATCH_COMPLETED_WAITING_MESSAGE,
+  JUDGE_ANSWERING_SECONDS,
+  JUDGE_GAME_ID,
+  JUDGE_JUDGING_SECONDS,
   buildRoundResultsContinueCopy,
 } from '@wanasatna/shared';
-import { timedPhaseDurations } from '../../../../config/test-timers.js';
+import {
+  resolveConfigurableInteractiveSeconds,
+  timedPhaseDurations,
+} from '../../../../config/test-timers.js';
+import { effectiveGameSettings } from '../../effective-game-settings.js';
 import { createOpaqueAnswerId, shuffleIds } from './answers.js';
 import {
   JUDGE_RANDOM_CATEGORY_ID,
@@ -63,10 +70,44 @@ export function isDeparted(match: JudgeMatchState, playerId: string): boolean {
 }
 
 export function recountTotalRounds(match: JudgeMatchState): number {
+  if (match.configuredTotalRounds != null) {
+    return match.configuredTotalRounds;
+  }
   const future = match.judgeOrder
     .slice(match.judgeOrderIndex + 1)
     .filter((playerId) => !isDeparted(match, playerId)).length;
   return match.currentRound + future;
+}
+
+export function resolveJudgeDurations(roomId?: string): {
+  answerSeconds: number;
+  judgeSeconds: number;
+  configuredTotalRounds: number | null;
+} {
+  const effective = roomId ? effectiveGameSettings(JUDGE_GAME_ID, roomId) : {};
+  return {
+    answerSeconds: resolveConfigurableInteractiveSeconds(
+      effective.answerSeconds ?? JUDGE_ANSWERING_SECONDS,
+      JUDGE_ANSWERING_SECONDS,
+    ),
+    judgeSeconds: resolveConfigurableInteractiveSeconds(
+      effective.judgeSeconds ?? JUDGE_JUDGING_SECONDS,
+      JUDGE_JUDGING_SECONDS,
+    ),
+    configuredTotalRounds: typeof effective.rounds === 'number' ? effective.rounds : null,
+  };
+}
+
+function expandJudgeOrder(playerIds: readonly string[], totalRounds: number): string[] {
+  const shuffled = createJudgeOrder(playerIds);
+  if (totalRounds <= shuffled.length) {
+    return shuffled.slice(0, Math.max(1, totalRounds));
+  }
+  const order: string[] = [];
+  for (let index = 0; index < totalRounds; index += 1) {
+    order.push(shuffled[index % shuffled.length]!);
+  }
+  return order;
 }
 
 export function createRoundState(
@@ -75,10 +116,10 @@ export function createRoundState(
   recentPromptIds: readonly string[],
   judgePlayerId: string,
   now = Date.now(),
+  answeringSeconds = timedPhaseDurations.judgeAnswering(),
 ): { round: JudgeRoundState; usedRoundCategoryIds: string[] } {
   const roundCategoryId = pickRoundCategoryId(matchCategoryId, usedRoundCategoryIds);
   const prompt = pickJudgePrompt(roundCategoryId, recentPromptIds);
-  const answeringSeconds = timedPhaseDurations.judgeAnswering();
 
   const nextUsed =
     matchCategoryId === JUDGE_RANDOM_CATEGORY_ID
@@ -116,13 +157,20 @@ export function createMatchState(
 
   const selection = resolveMatchCategorySelection(roomId);
   const playerIds = players.map((player) => player.id);
-  const judgeOrder = createJudgeOrder(playerIds);
+  const durations = resolveJudgeDurations(roomId);
+  const totalRounds = durations.configuredTotalRounds ?? playerIds.length;
+  const judgeOrder =
+    durations.configuredTotalRounds != null
+      ? expandJudgeOrder(playerIds, totalRounds)
+      : createJudgeOrder(playerIds);
   const judgePlayerId = judgeOrder[0]!;
   const { round, usedRoundCategoryIds } = createRoundState(
     selection.matchCategoryId,
     [],
     [],
     judgePlayerId,
+    Date.now(),
+    durations.answerSeconds,
   );
 
   return {
@@ -131,7 +179,7 @@ export function createMatchState(
     judgeOrder,
     judgeOrderIndex: 0,
     currentRound: 1,
-    totalRounds: playerIds.length,
+    totalRounds,
     scores: createInitialScores(playerIds),
     matchStatus: 'in-progress',
     lockedCategoryId: selection.matchCategoryId,
@@ -139,6 +187,9 @@ export function createMatchState(
     usedRoundCategoryIds,
     departedPlayerIds: [],
     recentPromptIds: [round.promptId],
+    answerSeconds: durations.answerSeconds,
+    judgeSeconds: durations.judgeSeconds,
+    configuredTotalRounds: durations.configuredTotalRounds,
     round,
   };
 }
@@ -228,7 +279,7 @@ export function applyJudgingDeadline(
   match: JudgeMatchState,
   now = Date.now(),
 ): JudgeMatchState {
-  const seconds = timedPhaseDurations.judgeJudging();
+  const seconds = match.judgeSeconds ?? timedPhaseDurations.judgeJudging();
   return withRound(match, {
     ...match.round,
     gamePhase: 'judging',

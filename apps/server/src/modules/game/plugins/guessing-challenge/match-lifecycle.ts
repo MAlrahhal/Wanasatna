@@ -75,6 +75,8 @@ function startNextRound(
     match.teamByPlayerId,
     startingTeamId,
     match.recentIdentityIds,
+    Date.now(),
+    match.turnSeconds,
   );
 
   const nextMatch: GuessingChallengeMatchState = {

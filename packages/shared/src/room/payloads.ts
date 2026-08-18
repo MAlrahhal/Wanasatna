@@ -1,3 +1,4 @@
+import type { RoomGameSettings } from '../game/admin-settings.js';
 import type { RoomPlayerData } from './player.js';
 
 export type CreateRoomPayload = {
@@ -31,6 +32,16 @@ export type RoomUpdatedPayload = {
   isLocked: boolean;
 };
 
+export type UpdateRoomGameSettingsPayload = {
+  gameId: string;
+  settings: Record<string, number>;
+};
+
+export type RoomGameSettingsUpdatedPayload = {
+  roomId: string;
+  gameSettings: RoomGameSettings | null;
+};
+
 export type RoomPlayersSnapshotPayload = {
   roomId: string;
   players: RoomPlayerData[];
@@ -39,6 +50,11 @@ export type RoomPlayersSnapshotPayload = {
 export type PlayerKickedPayload = {
   roomId: string;
   playerId: string;
+};
+
+export type RoomClosedPayload = {
+  roomId: string;
+  message: string;
 };
 
 export type RoomChatSendPayload = {

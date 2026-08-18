@@ -31,7 +31,8 @@ export function GameCard({
   hoverBorderClassName,
 }: GameCardProps) {
   const isComingSoon = availability === 'coming-soon';
-  const isDisabled = disabled || isComingSoon;
+  const isUnavailable = availability === 'unavailable';
+  const isDisabled = disabled || isComingSoon || isUnavailable;
   const isShowcaseCard = showcase && availability !== undefined;
   const isLobbyCard = !showcase;
 
@@ -41,8 +42,9 @@ export function GameCard({
     selected ? 'border-wanas-accent bg-wanas-accent/10' : 'bg-wanas-surface-soft',
     isLobbyCard && !isDisabled && !selected && 'hover:border-wanas-accent/35 hover:bg-wanas-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/30',
     isLobbyCard && isDisabled && 'cursor-default',
-    isShowcaseCard && !isComingSoon && ['cursor-default hover:-translate-y-1 hover:shadow-lg', hoverBorderClassName],
+    isShowcaseCard && !isComingSoon && !isUnavailable && ['cursor-default hover:-translate-y-1 hover:shadow-lg', hoverBorderClassName],
     isShowcaseCard && isComingSoon && 'cursor-default opacity-75',
+    isShowcaseCard && isUnavailable && 'cursor-default opacity-75',
     !selected && (isLobbyCard ? 'border-wanas-border' : 'border-wanas-border-muted'),
   );
 
@@ -56,7 +58,11 @@ export function GameCard({
 
       {availability && !selected ? (
         <span className="absolute start-2 top-2">
-          <StatusBadge variant={isComingSoon ? 'coming-soon' : 'available'} />
+          <StatusBadge
+            variant={
+              isComingSoon ? 'coming-soon' : isUnavailable ? 'unavailable' : 'available'
+            }
+          />
         </span>
       ) : null}
 

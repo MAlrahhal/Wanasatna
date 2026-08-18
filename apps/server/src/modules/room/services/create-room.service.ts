@@ -1,7 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { PlayerStatus, Prisma, RoomStatus } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
-import type { RoomActionResponse, RoomSessionData } from '@wanasatna/shared';
+import {
+  ADMIN_ROOM_PLAYER_CAP,
+  MAX_ROOM_PLAYERS,
+  type RoomActionResponse,
+  type RoomSessionData,
+  type UserRole,
+} from '@wanasatna/shared';
 import { validateCreateRoomPayload } from '../room.validators.js';
 import { generateUniqueRoomCode, loadActiveRoomPlayers, mapRoomSession } from '../room.utils.js';
 import { generateReconnectToken, hashReconnectToken } from '../reconnect-token.js';
@@ -15,9 +21,14 @@ function logCreateRoomDiagnostic(
   console.info('[create-room]', { stage, ...details });
 }
 
+function playerCapForCreatorRole(role: UserRole | null | undefined): number {
+  return role === 'ADMIN' ? ADMIN_ROOM_PLAYER_CAP : MAX_ROOM_PLAYERS;
+}
+
 export async function createRoom(
   payload: unknown,
   accountUserId: string | null = null,
+  accountRole: UserRole | null = null,
 ): Promise<RoomActionResponse<RoomSessionData>> {
   logCreateRoomDiagnostic('request-received');
 
@@ -42,6 +53,7 @@ export async function createRoom(
     const playerId = randomUUID();
     const reconnectToken = generateReconnectToken();
     const reconnectTokenHash = hashReconnectToken(reconnectToken);
+    const playerCap = playerCapForCreatorRole(accountRole);
 
     logCreateRoomDiagnostic('db-transaction-start');
     // Room/Player FKs are DEFERRABLE INITIALLY DEFERRED (migration).
@@ -68,6 +80,7 @@ export async function createRoom(
           hostPlayerId: playerId,
           status: RoomStatus.LOBBY,
           isLocked: false,
+          playerCap,
         },
         include: { hostPlayer: true },
       });

@@ -75,7 +75,7 @@ test('admin login reuses account auth and denies USER after /api/admin/me', () =
 });
 
 test('admin panel gates on server /api/admin/me; logout returns to admin login', () => {
-  const panel = read('components/admin/admin-panel-client.tsx');
+  const panel = read('components/admin/admin-shell-client.tsx');
   const api = read('lib/admin/api.ts');
   const auth = read('contexts/auth-context.tsx');
   assert.match(panel, /fetchAdminMe/);
@@ -93,7 +93,7 @@ test('admin panel gates on server /api/admin/me; logout returns to admin login',
 });
 
 test('admin shell has desktop sidebar, mobile nav, placeholder sections', () => {
-  const panel = read('components/admin/admin-panel-client.tsx');
+  const panel = read('components/admin/admin-shell-client.tsx');
   assert.match(panel, /md:flex/);
   assert.match(panel, /md:hidden/);
   assert.match(panel, /admin-mobile-nav/);
@@ -106,6 +106,7 @@ test('admin shell has desktop sidebar, mobile nav, placeholder sections', () => 
 test('no Admin secrets in admin UI sources', () => {
   const files = [
     'components/admin/admin-panel-client.tsx',
+    'components/admin/admin-shell-client.tsx',
     'components/admin/admin-login-client.tsx',
     'lib/admin/api.ts',
     'app/admin/layout.tsx',

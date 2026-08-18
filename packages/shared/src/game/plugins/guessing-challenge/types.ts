@@ -101,6 +101,7 @@ export type GuessingChallengeMatchState = {
   /** Permanent Leave/Kick, distinct from temporary socket disconnect. */
   departedPlayerIds: string[];
   recentIdentityIds: string[];
+  turnSeconds: number;
   round: GuessingChallengeRoundState;
 };
 

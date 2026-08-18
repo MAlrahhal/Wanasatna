@@ -55,6 +55,13 @@ const sendRoomChatSchema = z.object({
     }),
 });
 
+const updateRoomGameSettingsSchema = z
+  .object({
+    gameId: z.string().trim().min(1, 'Game selection is required'),
+    settings: z.record(z.string(), z.unknown()).optional(),
+  })
+  .passthrough();
+
 export type CreateRoomInput = z.infer<typeof createRoomSchema>;
 export type JoinRoomInput = z.infer<typeof joinRoomSchema>;
 export type KickPlayerInput = z.infer<typeof kickPlayerSchema>;
@@ -109,6 +116,24 @@ export function validateReconnectPayload(payload: unknown) {
 
 export function validateSendRoomChatPayload(payload: unknown) {
   return validatePayload(sendRoomChatSchema, payload);
+}
+
+export function validateUpdateRoomGameSettingsPayload(payload: unknown):
+  | { success: true; data: { gameId: string; settings: Record<string, unknown> } }
+  | ValidationFailure {
+  const result = updateRoomGameSettingsSchema.safeParse(payload ?? {});
+  if (!result.success) {
+    return validationError(result.error.issues[0]?.message ?? 'Invalid request payload');
+  }
+
+  const { gameId, settings, ...rest } = result.data;
+  return {
+    success: true,
+    data: {
+      gameId,
+      settings: { ...rest, ...(settings ?? {}) },
+    },
+  };
 }
 
 export function invalidContextError(message: string): RoomActionResponse<never> {

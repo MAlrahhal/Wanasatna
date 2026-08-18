@@ -61,6 +61,10 @@ function GameShellConnectedScreen() {
     return <RoomSystemState kind="kicked" />;
   }
 
+  if (sessionEndReason === 'closed') {
+    return <RoomSystemState kind="closed" message={errorMessage} />;
+  }
+
   if (status === 'reconnecting' && room && player) {
     return (
       <GameShellProvider hostPlayerId={room.hostPlayerId} currentPlayerId={player.id}>

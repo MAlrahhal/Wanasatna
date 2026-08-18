@@ -8,13 +8,21 @@ import type {
 } from '@wanasatna/shared';
 import {
   IMPOSTER_DRAW_DEFAULT_ROUNDS,
+  IMPOSTER_DRAW_GAME_ID,
+  IMPOSTER_DRAW_TURN_SECONDS,
+  IMPOSTER_DRAW_VOTING_SECONDS,
   buildRoundResultsContinueCopy,
   MATCH_COMPLETED_RETURN_TO_LOBBY_LABEL,
   MATCH_COMPLETED_WAITING_MESSAGE,
 } from '@wanasatna/shared';
 import { randomUUID } from 'node:crypto';
-import { timedPhaseDurations } from '../../../../config/test-timers.js';
+import {
+  resolveConfigurableInteractiveSeconds,
+  resolveConfigurableTimedSeconds,
+  timedPhaseDurations,
+} from '../../../../config/test-timers.js';
 import { remainingSecondsFromDeadline, timedPhaseClock } from '../../runtime/phase-deadline.js';
+import { effectiveGameSettings } from '../../effective-game-settings.js';
 import { buildPlaceholderImageUrl, pickImposterDrawImage } from './images.js';
 import {
   buildLeaderboardEntries,
@@ -48,12 +56,27 @@ function shufflePlayerIds(playerIds: string[]): string[] {
   return copy;
 }
 
-export function resolveTotalRounds(_settings?: GameContentSettings): number {
-  return IMPOSTER_DRAW_DEFAULT_ROUNDS;
+export function resolveTotalRounds(roomId?: string): number {
+  if (!roomId) {
+    return IMPOSTER_DRAW_DEFAULT_ROUNDS;
+  }
+  return effectiveGameSettings(IMPOSTER_DRAW_GAME_ID, roomId).rounds ?? IMPOSTER_DRAW_DEFAULT_ROUNDS;
 }
 
-export function resolveTurnDurationSeconds(): number {
-  return timedPhaseDurations.imposterDrawTurn();
+export function resolveTurnDurationSeconds(roomId?: string): number {
+  const seconds = roomId
+    ? (effectiveGameSettings(IMPOSTER_DRAW_GAME_ID, roomId).drawTurnSeconds ??
+      IMPOSTER_DRAW_TURN_SECONDS)
+    : IMPOSTER_DRAW_TURN_SECONDS;
+  return resolveConfigurableTimedSeconds(seconds, IMPOSTER_DRAW_TURN_SECONDS);
+}
+
+export function resolveVotingDurationSeconds(roomId?: string): number {
+  const seconds = roomId
+    ? (effectiveGameSettings(IMPOSTER_DRAW_GAME_ID, roomId).voteSeconds ??
+      IMPOSTER_DRAW_VOTING_SECONDS)
+    : IMPOSTER_DRAW_VOTING_SECONDS;
+  return resolveConfigurableInteractiveSeconds(seconds, IMPOSTER_DRAW_VOTING_SECONDS);
 }
 
 export function createInitialScores(playerIds: string[]): Record<string, number> {
@@ -89,7 +112,7 @@ export function createRoundState(
   match: Pick<ImposterDrawMatchState, 'playerIds' | 'usedImageTexts' | 'previousImpostorPlayerId'>,
 ): { round: ImposterDrawRoundState; usedImageTexts: string[] } {
   const imageEntry = pickImposterDrawImage(roomId, match.usedImageTexts);
-  const turnDurationSeconds = resolveTurnDurationSeconds();
+  const turnDurationSeconds = resolveTurnDurationSeconds(roomId);
   const drawingOrder = shufflePlayerIds([...match.playerIds]);
   const impostorPlayerId = pickImpostorPlayerId(
     match.playerIds,
@@ -146,7 +169,7 @@ export function createMatchState(
     playerIds,
     playerNames: Object.fromEntries(players.map((player) => [player.id, player.name])),
     currentRound: 1,
-    totalRounds: resolveTotalRounds(),
+    totalRounds: resolveTotalRounds(roomId),
     scores: createInitialScores(playerIds),
     matchStatus: 'in-progress',
     usedImageTexts,

@@ -10,6 +10,7 @@ import {
   registerReconnectHandler,
   registerRoomSyncHandler,
   registerUnlockRoomHandler,
+  registerUpdateRoomGameSettingsHandler,
 } from './room.socket.handlers.js';
 import { registerRoomChatHandlers } from './room-chat.socket.handlers.js';
 
@@ -21,6 +22,7 @@ export function registerRoomSockets(io: Server): void {
     registerKickPlayerHandler(io, socket);
     registerLockRoomHandler(io, socket);
     registerUnlockRoomHandler(io, socket);
+    registerUpdateRoomGameSettingsHandler(io, socket);
     registerReconnectHandler(io, socket);
     registerRoomSyncHandler(io, socket);
     registerRoomChatHandlers(io, socket);

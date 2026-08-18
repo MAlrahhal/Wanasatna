@@ -3,15 +3,18 @@ import type { Server } from 'socket.io';
 import { prisma } from '../../lib/prisma.js';
 import {
   MAX_ROOM_PLAYERS,
+  ADMIN_ROOM_PLAYER_CAP,
   ROOM_PLAYERS_SNAPSHOT_EVENT,
+  sanitizeRoomGameSettings,
   type RoomData,
   type RoomPlayerData,
   type RoomSessionData,
 } from '@wanasatna/shared';
+import { setRoomGameSettingsCache } from './room-game-settings.store.js';
 
 export const ROOM_CODE_LENGTH = 6;
 export const MAX_CODE_GENERATION_ATTEMPTS = 10;
-export { MAX_ROOM_PLAYERS };
+export { MAX_ROOM_PLAYERS, ADMIN_ROOM_PLAYER_CAP };
 export const RECONNECT_WINDOW_MS = 3 * 60 * 1000;
 
 export function getRoomChannel(roomId: string): string {
@@ -48,6 +51,8 @@ export function isReconnectExpired(lastSeenAt: Date): boolean {
 }
 
 export function mapRoomData(room: Room): RoomData {
+  const gameSettings = sanitizeRoomGameSettings(room.gameSettings);
+  setRoomGameSettingsCache(room.id, gameSettings);
   return {
     id: room.id,
     code: room.code,
@@ -55,6 +60,8 @@ export function mapRoomData(room: Room): RoomData {
     isLocked: room.isLocked,
     hostPlayerId: room.hostPlayerId,
     createdAt: room.createdAt,
+    playerCap: room.playerCap,
+    gameSettings,
   };
 }
 

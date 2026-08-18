@@ -112,6 +112,8 @@ function startNextRound(
     match.usedRoundCategoryIds,
     match.recentPromptIds,
     resolved.judgePlayerId,
+    Date.now(),
+    match.answerSeconds,
   );
 
   const nextMatch: JudgeMatchState = {
