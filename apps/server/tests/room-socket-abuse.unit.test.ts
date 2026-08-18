@@ -409,6 +409,10 @@ test('JOIN+JOIN: second is busy while first is in flight', async () => {
   const socket = fakeSocket('race-join', '203.0.113.81');
   registerJoinRoomHandler(fakeIo, socket);
   const first = emitAck(socket, JOIN_ROOM_EVENT, { playerName: 'محمد', roomCode: '111111' });
+  for (let spins = 0; joinCalls === 0 && spins < 50; spins += 1) {
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+  assert.equal(joinCalls, 1);
   const second = emitAck(socket, JOIN_ROOM_EVENT, { playerName: 'خالد', roomCode: '222222' });
   const secondRes = (await second) as { error?: { code: string } };
   assert.equal(secondRes.error?.code, 'ROOM_ENTRY_IN_PROGRESS');
