@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppProviders } from "@/components/app-providers";
+import { BRAND_NAME_AR } from "@/lib/public/brand";
+import { HOME_DESCRIPTION, HOME_TITLE, SITE_ORIGIN, TITLE_TEMPLATE } from "@/lib/public/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,12 +16,26 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_ORIGIN),
+  applicationName: BRAND_NAME_AR,
   title: {
-    default: "Wanasatna",
-    template: "%s | Wanasatna",
+    default: HOME_TITLE,
+    template: TITLE_TEMPLATE,
   },
-  description: "Arabic-first browser-based multiplayer party games platform",
-  applicationName: "Wanasatna",
+  description: HOME_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    locale: "ar",
+    siteName: BRAND_NAME_AR,
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    url: "/",
+  },
+  twitter: {
+    card: "summary",
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+  },
 };
 
 export const viewport: Viewport = {

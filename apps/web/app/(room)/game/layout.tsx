@@ -1,4 +1,9 @@
 import { IBM_Plex_Sans_Arabic } from 'next/font/google';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
   subsets: ['arabic'],

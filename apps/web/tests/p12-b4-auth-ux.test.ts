@@ -200,10 +200,9 @@ test('auth error copy is Arabic and never raw codes', () => {
   assert.match(copy, /INVALID_CREDENTIALS|invalidCredentials/);
 });
 
-test('FAQ states optional account + saved name only', () => {
-  assert.match(faq, /الحساب اختياري/);
-  assert.match(faq, /احفظ اسمك وخله جاهز كل مرة ترجع فيها/);
-  assert.match(faq, /يمكنك دائماً اللعب بدون حساب/);
+test('FAQ states play does not require an account', () => {
+  assert.match(faq, /ما تحتاج حساب عشان تلعب/);
+  assert.doesNotMatch(faq, /فائدة تسجيل الدخول|احفظ اسمك وخله جاهز/);
   assert.doesNotMatch(faq, /بريميوم|إحصائيات|سجل المباريات|ألعاب حصرية/i);
 });
 

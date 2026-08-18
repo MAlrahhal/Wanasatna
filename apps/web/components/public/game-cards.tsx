@@ -1,7 +1,9 @@
 import Link from 'next/link';
+import { isPlayableGameId } from '@wanasatna/shared';
 import type { LobbyGame } from '@/lib/lobby/types';
 import { usePlayableGameAvailability } from '@/lib/games/use-game-availability';
 import { getGameCatalogEntry } from '@/lib/public/game-catalog';
+import { getGameInformationPath } from '@/lib/public/routes';
 import { getHomeRoomActionsHref } from '@/lib/public/scroll-to-room-actions';
 import { StatusBadge } from '@/components/public/status-badge';
 import { cn } from '@/lib/utils';
@@ -70,20 +72,30 @@ export function GameCatalogCard({ game }: GameCatalogCardProps) {
       </div>
       <h3 className="relative text-lg font-bold text-wanas-text-primary">{game.title}</h3>
       <p className="relative mt-2 text-sm leading-7 text-wanas-text-muted">{game.description}</p>
-      <div className="relative mt-4 flex items-center justify-between gap-3 border-t border-wanas-background pt-4">
+      <div className="relative mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-wanas-background pt-4">
         <span className="text-xs font-semibold text-wanas-text-muted">{entry.playerRange}</span>
-        {isAvailable ? (
-          <Link
-            href={getHomeRoomActionsHref()}
-            className="rounded-full bg-wanas-primary-surface px-3 py-1.5 text-xs font-bold text-wanas-primary-dark transition-colors hover:bg-wanas-primary-surface-strong"
-          >
-            العب الآن
-          </Link>
-        ) : (
-          <span className="text-xs font-semibold text-wanas-text-subtle">
-            {isComingSoon ? 'قريباً' : 'غير متاحة حالياً'}
-          </span>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {isPlayableGameId(game.id) ? (
+            <Link
+              href={getGameInformationPath(game.id)}
+              className="rounded-full px-3 py-1.5 text-xs font-bold text-wanas-primary-dark underline-offset-2 hover:underline"
+            >
+              اعرف أكثر
+            </Link>
+          ) : null}
+          {isAvailable ? (
+            <Link
+              href={getHomeRoomActionsHref()}
+              className="rounded-full bg-wanas-primary-surface px-3 py-1.5 text-xs font-bold text-wanas-primary-dark transition-colors hover:bg-wanas-primary-surface-strong"
+            >
+              العب الآن
+            </Link>
+          ) : (
+            <span className="text-xs font-semibold text-wanas-text-subtle">
+              {isComingSoon ? 'قريباً' : 'غير متاحة حالياً'}
+            </span>
+          )}
+        </div>
       </div>
     </>
   );

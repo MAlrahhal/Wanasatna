@@ -22,8 +22,8 @@ export function GamesPageClient() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12">
       <PageHero
-        title="مكتبة الألعاب"
-        description="ألعاب جماعية عربية للعب مع أصدقائك — اختر ما يناسب مجموعتك."
+        title="الألعاب الجماعية في وناستنا"
+        description="ثمان ألعاب جاهزة للعب مع أصحابك من المتصفح. اقرأ فكرة كل لعبة، كم لاعب تناسب، وبعدين أنشئ روم أو انضم برمز."
         variant="compact"
         className="mb-10"
       />

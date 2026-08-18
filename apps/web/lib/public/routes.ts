@@ -6,6 +6,10 @@ export const PUBLIC_ROUTES = {
   login: '/login',
 } as const;
 
+export function getGameInformationPath(gameId: string) {
+  return `${PUBLIC_ROUTES.games}/${gameId}`;
+}
+
 export type PublicRoute = (typeof PUBLIC_ROUTES)[keyof typeof PUBLIC_ROUTES];
 
 export const PUBLIC_NAV_LINKS = [

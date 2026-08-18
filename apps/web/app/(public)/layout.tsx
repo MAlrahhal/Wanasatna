@@ -1,14 +1,10 @@
 import type { Metadata } from 'next';
 import { Suspense, type ReactNode } from 'react';
 import { PublicLayoutClient } from '@/components/public/public-layout-client';
-import { BRAND_NAME_AR } from '@/lib/public/brand';
+import { HOME_DESCRIPTION } from '@/lib/public/seo';
 
 export const metadata: Metadata = {
-  title: {
-    default: BRAND_NAME_AR,
-    template: `%s | ${BRAND_NAME_AR}`,
-  },
-  description: 'منصة ألعاب جماعية عربية — العب مع أصدقائك مباشرة من المتصفح بدون تسجيل.',
+  description: HOME_DESCRIPTION,
 };
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
