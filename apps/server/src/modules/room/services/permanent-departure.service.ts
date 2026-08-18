@@ -1,6 +1,7 @@
 import { PlayerStatus, Prisma } from '@prisma/client';
 import type { HostChangedPayload } from '@wanasatna/shared';
 import { prisma } from '../../../lib/prisma.js';
+import { recordProductEvent } from '../../analytics/product-event.service.js';
 import { selectNextHostPlayer } from './host.service.js';
 import { deleteRoomWithRelations } from './room-cleanup.service.js';
 import {
@@ -212,7 +213,14 @@ export async function permanentlyDepartPlayer(
 
   for (let attempt = 0; attempt < ROOM_TX_RETRY_LIMIT; attempt += 1) {
     try {
-      return await prisma.$transaction((tx) => runPermanentDepartureTx(tx, input));
+      const result = await prisma.$transaction((tx) => runPermanentDepartureTx(tx, input));
+      if (result?.roomDeleted) {
+        await recordProductEvent({
+          type: 'ROOM_CLOSED',
+          roomId: result.roomId,
+        });
+      }
+      return result;
     } catch (error) {
       lastError = error;
       if (!isRetryableTransactionError(error) || attempt === ROOM_TX_RETRY_LIMIT - 1) {

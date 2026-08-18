@@ -98,7 +98,7 @@ test('admin shell has desktop sidebar, mobile nav, placeholder sections', () => 
   assert.match(panel, /md:hidden/);
   assert.match(panel, /admin-mobile-nav/);
   const labels = ADMIN_NAV_ITEMS.map((item) => item.label);
-  assert.deepEqual(labels, ['الرئيسية', 'الغرف', 'المستخدمون', 'الألعاب', 'السجل']);
+  assert.deepEqual(labels, ['الرئيسية', 'حالة النظام', 'التحليلات', 'الغرف', 'المستخدمون', 'الألعاب', 'السجل']);
   assert.equal(ADMIN_COPY.panelTitle, 'لوحة الإدارة');
   assert.doesNotMatch(panel, /إحصائيات|premium|20-player|playerCap/i);
 });

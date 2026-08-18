@@ -1,6 +1,8 @@
 export const ADMIN_ROUTES = {
   root: '/admin',
   login: '/admin/login',
+  system: '/admin/system',
+  analytics: '/admin/analytics',
   rooms: '/admin/rooms',
   users: '/admin/users',
   games: '/admin/games',
@@ -21,6 +23,8 @@ export function adminHistoryPath(matchId: string): string {
 
 export const ADMIN_NAV_ITEMS = [
   { id: 'home', label: 'الرئيسية', href: ADMIN_ROUTES.root, placeholder: false },
+  { id: 'system', label: 'حالة النظام', href: ADMIN_ROUTES.system, placeholder: false },
+  { id: 'analytics', label: 'التحليلات', href: ADMIN_ROUTES.analytics, placeholder: false },
   { id: 'rooms', label: 'الغرف', href: ADMIN_ROUTES.rooms, placeholder: false },
   { id: 'users', label: 'المستخدمون', href: ADMIN_ROUTES.users, placeholder: false },
   { id: 'games', label: 'الألعاب', href: ADMIN_ROUTES.games, placeholder: false },

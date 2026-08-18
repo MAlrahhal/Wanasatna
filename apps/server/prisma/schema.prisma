@@ -36,6 +36,14 @@ enum MatchStatus {
   ABORTED
 }
 
+enum ProductEventType {
+  ROOM_CREATED
+  ROOM_JOINED
+  SPECTATOR_JOINED
+  RECONNECT_SUCCEEDED
+  ROOM_CLOSED
+}
+
 // ---------------------------------------------------------------------------
 // Models
 // ---------------------------------------------------------------------------
@@ -171,4 +179,20 @@ model GameAdminConfig {
   gameId    String   @id
   isEnabled Boolean  @default(true)
   updatedAt DateTime @updatedAt
+}
+
+// Product usage events only. No people, Room codes, or Match duplicates.
+// roomId is a historical correlation string, not a foreign key.
+model ProductEvent {
+  id          String           @id @default(cuid())
+  type        ProductEventType
+  roomId      String?
+  gameId      String?
+  roomCap     Int?
+  playerCount Int?
+  createdAt   DateTime         @default(now())
+
+  @@index([type, createdAt])
+  @@index([createdAt])
+  @@index([roomId])
 }

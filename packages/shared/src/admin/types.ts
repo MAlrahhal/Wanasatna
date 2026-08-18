@@ -21,6 +21,12 @@ export const ADMIN_USERS_PAGE_SIZE = 25;
 export const ADMIN_USER_MATCH_HISTORY_LIMIT = 20;
 export const ADMIN_HISTORY_PAGE_SIZE = 25;
 export const ADMIN_SEARCH_QUERY_MAX_LENGTH = 80;
+export const ADMIN_SYSTEM_POLL_MS = 25_000;
+export const ADMIN_ANALYTICS_POLL_MS = 60_000;
+export const ADMIN_ANALYTICS_DEFAULT_RANGE = '7d';
+export const ADMIN_ANALYTICS_RANGES = ['24h', '7d', '30d', 'all'] as const;
+
+export type AdminAnalyticsRange = (typeof ADMIN_ANALYTICS_RANGES)[number];
 
 export type AdminRoomActivity = 'LOBBY' | 'IN_GAME';
 
@@ -103,7 +109,7 @@ export type AdminErrorCode =
 
 export type AdminActionResponse<T> =
   | { success: true; data: T }
-  | { success: false; error: { code: AdminErrorCode; message: string } };
+  | { success: false; error: { code: AdminErrorCode; message: string; requestId?: string } };
 
 export type AdminRoomPlayerStatus = 'CONNECTED' | 'DISCONNECTED';
 
@@ -214,4 +220,68 @@ export type AdminHistoryParticipant = {
 
 export type AdminMatchDetails = AdminHistoryMatchListItem & {
   participants: AdminHistoryParticipant[];
+};
+
+export type AdminSystemEnvironment = 'production' | 'development';
+
+export type AdminSystemMemory = {
+  rss: number;
+  heapUsed: number;
+  heapTotal: number;
+};
+
+export type AdminSystemData = {
+  serverTime: string;
+  uptimeSeconds: number;
+  environment: AdminSystemEnvironment;
+  databaseReachable: boolean;
+  connectedSockets: number;
+  rooms: number;
+  liveGameShells: number;
+  activeMatches: number;
+  memory: AdminSystemMemory;
+};
+
+export type AdminAnalyticsOverview = {
+  roomsCreated: number;
+  roomsJoined: number;
+  spectatorsJoined: number;
+  reconnectsSucceeded: number;
+  roomsClosed: number;
+  matchesStarted: number;
+  matchesCompleted: number;
+  matchesAborted: number;
+  matchesActive: number;
+  completionRate: number | null;
+};
+
+export type AdminAnalyticsGameUsage = {
+  gameId: string;
+  started: number;
+  completed: number;
+  aborted: number;
+  completionRate: number | null;
+};
+
+export type AdminAnalyticsParticipation = {
+  totalParticipations: number;
+  averageParticipants: number | null;
+};
+
+export type AdminAnalyticsDailyPoint = {
+  date: string;
+  roomsCreated: number;
+  matchesStarted: number;
+  matchesCompleted: number;
+  matchesAborted: number;
+};
+
+export type AdminAnalyticsData = {
+  range: AdminAnalyticsRange;
+  from: string | null;
+  to: string;
+  overview: AdminAnalyticsOverview;
+  participation: AdminAnalyticsParticipation;
+  games: AdminAnalyticsGameUsage[];
+  daily: AdminAnalyticsDailyPoint[];
 };

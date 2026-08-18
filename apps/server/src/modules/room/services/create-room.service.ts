@@ -11,6 +11,7 @@ import {
 import { validateCreateRoomPayload } from '../room.validators.js';
 import { generateUniqueRoomCode, loadActiveRoomPlayers, mapRoomSession } from '../room.utils.js';
 import { generateReconnectToken, hashReconnectToken } from '../reconnect-token.js';
+import { recordProductEvent } from '../../analytics/product-event.service.js';
 import { serviceError } from './shared-room.service.js';
 
 function logCreateRoomDiagnostic(
@@ -92,6 +93,14 @@ export async function createRoom(
       callbackErrorCode: 'none',
       playerCount: players.length,
     });
+
+    await recordProductEvent({
+      type: 'ROOM_CREATED',
+      roomId: room.id,
+      roomCap: room.playerCap,
+      playerCount: 1,
+    });
+
     return {
       success: true,
       data: mapRoomSession(room, room.hostPlayer, players, reconnectToken),

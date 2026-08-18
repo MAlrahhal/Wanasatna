@@ -1,5 +1,6 @@
 import type {
   AdminActionResponse,
+  AdminAnalyticsData,
   AdminDashboardData,
   AdminForceCloseRoomData,
   AdminGameAvailability,
@@ -14,6 +15,7 @@ import type {
   AdminRoomLockData,
   AdminRoomPlayer,
   AdminRoomsData,
+  AdminSystemData,
   AdminUserDetails,
   AdminUserListItem,
   AdminUserMatchRow,
@@ -634,4 +636,210 @@ export async function fetchAdminMatch(matchId: string): Promise<AdminMatchResult
     return { ok: false, status: 0 };
   }
 }
+
+export type AdminSystemResult =
+  | { ok: true; data: AdminSystemData }
+  | { ok: false; status: number };
+
+function pickSafeSystem(value: unknown): AdminSystemData | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+  const memory = record.memory && typeof record.memory === 'object' ? (record.memory as Record<string, unknown>) : null;
+  if (
+    typeof record.serverTime !== 'string' ||
+    typeof record.uptimeSeconds !== 'number' ||
+    (record.environment !== 'production' && record.environment !== 'development') ||
+    typeof record.databaseReachable !== 'boolean' ||
+    typeof record.connectedSockets !== 'number' ||
+    typeof record.rooms !== 'number' ||
+    typeof record.liveGameShells !== 'number' ||
+    typeof record.activeMatches !== 'number' ||
+    !memory ||
+    typeof memory.rss !== 'number' ||
+    typeof memory.heapUsed !== 'number' ||
+    typeof memory.heapTotal !== 'number'
+  ) {
+    return null;
+  }
+
+  return {
+    serverTime: record.serverTime,
+    uptimeSeconds: record.uptimeSeconds,
+    environment: record.environment,
+    databaseReachable: record.databaseReachable,
+    connectedSockets: record.connectedSockets,
+    rooms: record.rooms,
+    liveGameShells: record.liveGameShells,
+    activeMatches: record.activeMatches,
+    memory: {
+      rss: memory.rss,
+      heapUsed: memory.heapUsed,
+      heapTotal: memory.heapTotal,
+    },
+  };
+}
+
+export async function fetchAdminSystem(): Promise<AdminSystemResult> {
+  try {
+    const response = await fetch(adminUrl('/system'), {
+      method: 'GET',
+      credentials: 'include',
+    });
+    const body = (await response.json()) as AdminActionResponse<AdminSystemData>;
+    const data = body.success ? pickSafeSystem(body.data) : null;
+    if (!response.ok || !data) {
+      return { ok: false, status: response.status || 500 };
+    }
+    return { ok: true, data };
+  } catch {
+    return { ok: false, status: 0 };
+  }
+}
+
+export type AdminAnalyticsResult =
+  | { ok: true; data: AdminAnalyticsData }
+  | { ok: false; status: number };
+
+function asFiniteNumber(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function pickSafeAnalyticsGame(value: unknown): AdminAnalyticsData['games'][number] | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const record = value as Record<string, unknown>;
+  if (
+    typeof record.gameId !== 'string' ||
+    typeof record.started !== 'number' ||
+    typeof record.completed !== 'number' ||
+    typeof record.aborted !== 'number' ||
+    (record.completionRate !== null && typeof record.completionRate !== 'number')
+  ) {
+    return null;
+  }
+  return {
+    gameId: record.gameId,
+    started: record.started,
+    completed: record.completed,
+    aborted: record.aborted,
+    completionRate: asFiniteNumber(record.completionRate),
+  };
+}
+
+function pickSafeDailyPoint(value: unknown): AdminAnalyticsData['daily'][number] | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const record = value as Record<string, unknown>;
+  if (
+    typeof record.date !== 'string' ||
+    typeof record.roomsCreated !== 'number' ||
+    typeof record.matchesStarted !== 'number' ||
+    typeof record.matchesCompleted !== 'number' ||
+    typeof record.matchesAborted !== 'number'
+  ) {
+    return null;
+  }
+  return {
+    date: record.date,
+    roomsCreated: record.roomsCreated,
+    matchesStarted: record.matchesStarted,
+    matchesCompleted: record.matchesCompleted,
+    matchesAborted: record.matchesAborted,
+  };
+}
+
+function pickSafeAnalytics(value: unknown): AdminAnalyticsData | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const record = value as Record<string, unknown>;
+  const overview =
+    record.overview && typeof record.overview === 'object'
+      ? (record.overview as Record<string, unknown>)
+      : null;
+  const participation =
+    record.participation && typeof record.participation === 'object'
+      ? (record.participation as Record<string, unknown>)
+      : null;
+  if (
+    (record.range !== '24h' &&
+      record.range !== '7d' &&
+      record.range !== '30d' &&
+      record.range !== 'all') ||
+    (record.from !== null && typeof record.from !== 'string') ||
+    typeof record.to !== 'string' ||
+    !overview ||
+    !participation ||
+    !Array.isArray(record.games) ||
+    !Array.isArray(record.daily) ||
+    typeof overview.roomsCreated !== 'number' ||
+    typeof overview.roomsJoined !== 'number' ||
+    typeof overview.spectatorsJoined !== 'number' ||
+    typeof overview.reconnectsSucceeded !== 'number' ||
+    typeof overview.roomsClosed !== 'number' ||
+    typeof overview.matchesStarted !== 'number' ||
+    typeof overview.matchesCompleted !== 'number' ||
+    typeof overview.matchesAborted !== 'number' ||
+    typeof overview.matchesActive !== 'number' ||
+    (overview.completionRate !== null && typeof overview.completionRate !== 'number') ||
+    typeof participation.totalParticipations !== 'number' ||
+    (participation.averageParticipants !== null && typeof participation.averageParticipants !== 'number')
+  ) {
+    return null;
+  }
+
+  return {
+    range: record.range,
+    from: record.from,
+    to: record.to,
+    overview: {
+      roomsCreated: overview.roomsCreated,
+      roomsJoined: overview.roomsJoined,
+      spectatorsJoined: overview.spectatorsJoined,
+      reconnectsSucceeded: overview.reconnectsSucceeded,
+      roomsClosed: overview.roomsClosed,
+      matchesStarted: overview.matchesStarted,
+      matchesCompleted: overview.matchesCompleted,
+      matchesAborted: overview.matchesAborted,
+      matchesActive: overview.matchesActive,
+      completionRate: asFiniteNumber(overview.completionRate),
+    },
+    participation: {
+      totalParticipations: participation.totalParticipations,
+      averageParticipants: asFiniteNumber(participation.averageParticipants),
+    },
+    games: record.games
+      .map(pickSafeAnalyticsGame)
+      .filter((row): row is AdminAnalyticsData['games'][number] => row !== null),
+    daily: record.daily
+      .map(pickSafeDailyPoint)
+      .filter((row): row is AdminAnalyticsData['daily'][number] => row !== null),
+  };
+}
+
+export async function fetchAdminAnalytics(range = '7d'): Promise<AdminAnalyticsResult> {
+  try {
+    const params = new URLSearchParams();
+    params.set('range', range);
+    const response = await fetch(adminUrl(`/analytics?${params.toString()}`), {
+      method: 'GET',
+      credentials: 'include',
+    });
+    const body = (await response.json()) as AdminActionResponse<AdminAnalyticsData>;
+    const data = body.success ? pickSafeAnalytics(body.data) : null;
+    if (!response.ok || !data) {
+      return { ok: false, status: response.status || 500 };
+    }
+    return { ok: true, data };
+  } catch {
+    return { ok: false, status: 0 };
+  }
+}
+
+
 

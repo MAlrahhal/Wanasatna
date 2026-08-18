@@ -1,5 +1,6 @@
 import { MatchStatus, Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
+import { opsLogger } from '../../lib/ops-logger.js';
 import type {
   BeginPersistedMatchInput,
   MatchParticipantResult,
@@ -25,9 +26,11 @@ type MatchWriteDb = {
 };
 
 function logMatchHistoryFailure(stage: string, details: Record<string, unknown>): void {
-  console.error('[match-history]', {
+  opsLogger.error('match-history-write-failed', 'تعذر حفظ سجل المباراة.', {
     stage,
-    ...details,
+    roomId: typeof details.roomId === 'string' ? details.roomId : undefined,
+    gameId: typeof details.gameId === 'string' ? details.gameId : undefined,
+    errorName: typeof details.errorName === 'string' ? details.errorName : undefined,
   });
 }
 
@@ -103,7 +106,7 @@ export async function beginPersistedMatch(
     logMatchHistoryFailure('begin-failed', {
       roomId,
       gameId,
-      error: error instanceof Error ? error.message : String(error),
+      errorName: error instanceof Error ? error.name : typeof error,
     });
     return null;
   }
@@ -160,7 +163,7 @@ export async function completePersistedMatch(
   } catch (error) {
     logMatchHistoryFailure('complete-failed', {
       roomId,
-      error: error instanceof Error ? error.message : String(error),
+      errorName: error instanceof Error ? error.name : typeof error,
     });
     return false;
   }
@@ -196,7 +199,7 @@ export async function abortPersistedMatch(
   } catch (error) {
     logMatchHistoryFailure('abort-failed', {
       roomId,
-      error: error instanceof Error ? error.message : String(error),
+      errorName: error instanceof Error ? error.name : typeof error,
     });
     return false;
   }

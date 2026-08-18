@@ -23,6 +23,12 @@ function isNavActive(id: string, pathname: string): boolean {
   if (id === 'log') {
     return pathname === ADMIN_ROUTES.history || pathname.startsWith(`${ADMIN_ROUTES.history}/`);
   }
+  if (id === 'system') {
+    return pathname === ADMIN_ROUTES.system;
+  }
+  if (id === 'analytics') {
+    return pathname === ADMIN_ROUTES.analytics;
+  }
   if (id === 'home') {
     return pathname === ADMIN_ROUTES.root;
   }

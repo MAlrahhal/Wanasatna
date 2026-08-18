@@ -1,3 +1,5 @@
+import { opsLogger, sanitizeErrorName } from './ops-logger.js';
+
 export type ClosableServer = {
   close: (callback?: (err?: Error) => void) => void;
 };
@@ -37,21 +39,29 @@ export function createGracefulShutdown(deps: GracefulShutdownDeps) {
   const clearTimer = deps.clearTimer ?? clearTimeout;
 
   async function runShutdown(): Promise<void> {
+    opsLogger.info('server-shutdown', 'بدأ إغلاق الخادم.');
     let forced = false;
     const fallback = setTimer(() => {
       forced = true;
+      opsLogger.error('server-shutdown-forced', 'انتهت مهلة الإغلاق الآمن.');
       deps.exit(1);
     }, fallbackMs);
 
     try {
       await closeServer(deps.io);
+      opsLogger.info('socket-io-closed', 'أُغلق Socket.IO.');
       await closeServer(deps.httpServer);
+      opsLogger.info('http-closed', 'أُغلق خادم HTTP.');
       await deps.prisma.$disconnect();
+      opsLogger.info('prisma-disconnected', 'أُغلق اتصال قاعدة البيانات.');
       if (!forced) {
         clearTimer(fallback);
         deps.exit(0);
       }
-    } catch {
+    } catch (error) {
+      opsLogger.error('server-shutdown-failed', 'تعذر إكمال الإغلاق الآمن.', {
+        errorName: sanitizeErrorName(error),
+      });
       try {
         await deps.prisma.$disconnect();
       } catch {

@@ -328,7 +328,7 @@ async function main(): Promise<void> {
     await withApp(async (baseUrl) => {
       const health = await fetch(`${baseUrl}/api/health`);
       assert.equal(health.status, 200);
-      assert.deepEqual(await health.json(), { ok: true });
+      assert.deepEqual(await health.json(), { status: 'ok' });
 
       const guestMe = await fetch(`${baseUrl}/api/auth/me`);
       assert.equal(guestMe.status, 200);

@@ -4,6 +4,7 @@ import type { ReconnectResponse } from '@wanasatna/shared';
 import { verifyReconnectToken } from '../reconnect-token.js';
 import { validateReconnectPayload } from '../room.validators.js';
 import { isReconnectExpired, loadActiveRoomPlayers, mapRoomSession } from '../room.utils.js';
+import { recordProductEvent } from '../../analytics/product-event.service.js';
 import { expireDisconnectedPlayer } from './disconnected-player-expiry.service.js';
 import { assertRoomNotClosed, serviceError } from './shared-room.service.js';
 
@@ -109,6 +110,13 @@ export async function reconnectPlayer(payload: unknown): Promise<ReconnectRespon
 
     const players = await loadActiveRoomPlayers(latest.room.id, latest.room.hostPlayerId);
 
+    await recordProductEvent({
+      type: 'RECONNECT_SUCCEEDED',
+      roomId: latest.room.id,
+      roomCap: latest.room.playerCap,
+      playerCount: players.length,
+    });
+
     return {
       success: true,
       data: mapRoomSession(latest.room, updatedPlayer, players, reconnectToken),
@@ -131,6 +139,13 @@ export async function reconnectPlayer(payload: unknown): Promise<ReconnectRespon
   });
 
   const players = await loadActiveRoomPlayers(player.room.id, player.room.hostPlayerId);
+
+  await recordProductEvent({
+    type: 'RECONNECT_SUCCEEDED',
+    roomId: player.room.id,
+    roomCap: player.room.playerCap,
+    playerCount: players.length,
+  });
 
   return {
     success: true,

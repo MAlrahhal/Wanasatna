@@ -6,14 +6,17 @@ import type {
   AdminDashboardData,
   AdminErrorCode,
   AdminGamesData,
+  AdminAnalyticsData,
   AdminHistoryData,
   AdminMatchDetails,
   AdminMeData,
+  AdminSystemData,
   AdminUserDetails,
   AdminUsersData,
   AuthActionResponse,
 } from '@wanasatna/shared';
 import { isPlayableGameId } from '@wanasatna/shared';
+import { opsLogger, sanitizeErrorName } from '../../lib/ops-logger.js';
 import { getAdminDashboard } from './dashboard.service.js';
 import {
   ADMIN_ROOM_ACTION_FAILED,
@@ -24,6 +27,8 @@ import {
   listAdminRooms,
 } from './admin-rooms.service.js';
 import { getAdminMatchById, listAdminHistory } from './admin-history.service.js';
+import { getAdminAnalytics } from './admin-analytics.service.js';
+import { getAdminSystemSnapshot } from './admin-system.service.js';
 import { getAdminUserById, listAdminUsers } from './admin-users.service.js';
 import { requireAdmin } from './require-admin.js';
 import { toAdminPublicUser } from './to-admin-public-user.js';
@@ -37,15 +42,22 @@ export const adminRouter = Router();
 const ADMIN_LOAD_FAILED = 'تعذر تحميل لوحة الإدارة.';
 
 function sendAdminJsonError(
-  res: { status: (code: number) => { json: (body: unknown) => void } },
+  res: { status: (code: number) => { json: (body: unknown) => void }; locals?: { requestId?: string } },
   status: number,
   code: AdminErrorCode,
   message: string,
 ): void {
+  const requestId = typeof res.locals?.requestId === 'string' ? res.locals.requestId : undefined;
   const body: AdminActionResponse<never> = {
     success: false,
-    error: { code, message },
+    error: requestId && code === 'INTERNAL_ERROR' ? { code, message, requestId } : { code, message },
   };
+  if (code === 'INTERNAL_ERROR') {
+    opsLogger.error('admin-internal-error', 'تعذر تنفيذ عملية الإدارة.', {
+      requestId,
+      status,
+    });
+  }
   res.status(status).json(body);
 }
 
@@ -72,6 +84,32 @@ adminRouter.get('/me', requireAdmin, (req, res) => {
     data: { user: toAdminPublicUser(user) },
   };
   res.status(200).json(body);
+});
+
+adminRouter.get('/analytics', requireAdmin, async (req, res) => {
+  try {
+    const data = await getAdminAnalytics(req.query.range);
+    res.status(200).json({ success: true, data } satisfies AdminActionResponse<AdminAnalyticsData>);
+  } catch (error) {
+    if (isPrismaError(error)) {
+      sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_LOAD_FAILED);
+      return;
+    }
+    sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_LOAD_FAILED);
+  }
+});
+
+adminRouter.get('/system', requireAdmin, async (_req, res) => {
+  try {
+    const data = await getAdminSystemSnapshot();
+    res.status(200).json({ success: true, data } satisfies AdminActionResponse<AdminSystemData>);
+  } catch (error) {
+    if (isPrismaError(error)) {
+      sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_LOAD_FAILED);
+      return;
+    }
+    sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_LOAD_FAILED);
+  }
 });
 
 adminRouter.get('/dashboard', requireAdmin, async (_req, res) => {
@@ -232,6 +270,10 @@ adminRouter.delete('/rooms/:roomId', requireAdmin, async (req, res) => {
       sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_ROOM_ACTION_FAILED);
       return;
     }
+    opsLogger.error('room-force-close-failed', 'تعذر إغلاق الغرفة من الإدارة.', {
+      requestId: typeof res.locals.requestId === 'string' ? res.locals.requestId : undefined,
+      errorName: sanitizeErrorName(error),
+    });
     sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_ROOM_ACTION_FAILED);
   }
 });

@@ -18,6 +18,7 @@ import {
   ROOM_TX_RETRY_LIMIT,
 } from './room-tx.js';
 import { getGameShellByRoomId } from '../../game/game.service.js';
+import { recordProductEvent } from '../../analytics/product-event.service.js';
 
 const ACTIVE_STATUSES = [PlayerStatus.CONNECTED, PlayerStatus.DISCONNECTED] as const;
 
@@ -146,6 +147,22 @@ export async function joinRoom(
       }
 
       const players = await loadActiveRoomPlayers(result.room.id, result.room.hostPlayerId);
+
+      await recordProductEvent({
+        type: 'ROOM_JOINED',
+        roomId: result.room.id,
+        roomCap: result.room.playerCap,
+        playerCount: players.length,
+      });
+
+      if (result.player.isSpectator) {
+        await recordProductEvent({
+          type: 'SPECTATOR_JOINED',
+          roomId: result.room.id,
+          roomCap: result.room.playerCap,
+          playerCount: players.length,
+        });
+      }
 
       return {
         success: true,

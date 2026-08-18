@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { SERVER_BUILD_META } from "../config/build-meta.js";
+import { publicHealthHandler } from "../lib/public-health.js";
 import { adminRouter } from "../modules/admin/admin.routes.js";
 import { authRouter } from "../modules/auth/auth.routes.js";
 import { listGameAvailability } from "../modules/game/game-availability.service.js";
@@ -9,9 +10,7 @@ import { listGameAvailability } from "../modules/game/game-availability.service.
  */
 export const apiRouter = Router();
 
-apiRouter.get("/health", (_req, res) => {
-  res.json({ ok: true });
-});
+apiRouter.get("/health", publicHealthHandler);
 
 /** Safe deployment identity for production isolation audits. No secrets. */
 apiRouter.get("/version", (_req, res) => {

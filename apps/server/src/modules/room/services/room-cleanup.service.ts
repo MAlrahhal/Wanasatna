@@ -1,5 +1,6 @@
 import { MatchStatus, Prisma } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
+import { recordProductEvent } from '../../analytics/product-event.service.js';
 import { countActivePlayers } from './shared-room.service.js';
 
 type RoomDeleteDb = {
@@ -34,6 +35,10 @@ export async function deleteRoomWithRelations(
 
   if (db === prisma) {
     await prisma.$transaction(async (tx) => run(tx));
+    await recordProductEvent({
+      type: 'ROOM_CLOSED',
+      roomId,
+    });
     return;
   }
 

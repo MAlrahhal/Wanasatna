@@ -25,6 +25,10 @@ export function getGameShellByRoomId(roomId: string): GameShellRecord | null {
   return shellsByRoomId.get(roomId) ?? null;
 }
 
+export function countLiveGameShells(): number {
+  return shellsByRoomId.size;
+}
+
 export function deleteGameShell(roomId: string): void {
   shellsByRoomId.delete(roomId);
 }

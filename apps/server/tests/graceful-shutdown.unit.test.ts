@@ -190,7 +190,8 @@ async function main(): Promise<void> {
     assert.match(index, /SIGTERM|requestShutdown/);
     assert.doesNotMatch(source, /prisma\.(room|player|match)/);
     assert.doesNotMatch(source, /saveShell|abortActiveMatch|evaluatePlayerRecovery/);
-    assert.doesNotMatch(index, /uncaughtException|unhandledRejection/);
+    assert.match(index, /uncaughtException/);
+    assert.match(index, /unhandledRejection/);
   });
 
   for (const item of queue) {

@@ -20,6 +20,7 @@ import {
   announceKickedPlayer,
   emitRoomLockedState,
 } from '../room/room-socket-announce.js';
+import { recordProductEvent } from '../analytics/product-event.service.js';
 import { kickPlayerAsAdmin } from '../room/services/leave-room.service.js';
 import { deleteRoomWithRelations } from '../room/services/room-cleanup.service.js';
 import {
@@ -303,6 +304,13 @@ export async function adminForceCloseRoom(
         roomCode: outcome.roomCode,
         alreadyClosed: outcome.alreadyClosed,
       });
+
+      if (!outcome.alreadyClosed) {
+        await recordProductEvent({
+          type: 'ROOM_CLOSED',
+          roomId,
+        });
+      }
 
       return {
         success: true,

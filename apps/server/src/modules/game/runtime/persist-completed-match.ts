@@ -1,4 +1,5 @@
 import { completePersistedMatch } from '../../match/match-history.service.js';
+import { opsLogger } from '../../../lib/ops-logger.js';
 import { getGameShellByRoomId } from '../game.service.js';
 import { collectMatchHistoryResults } from './match-history-results.js';
 
@@ -12,10 +13,10 @@ export function persistCompletedMatchThen(roomId: string, teardown: () => void):
   const results = collectMatchHistoryResults(roomId, shell?.gameId ?? null);
   teardown();
   void completePersistedMatch(roomId, results).catch((error) => {
-    console.error('[match-history]', {
+    opsLogger.error('match-history-write-failed', 'تعذر حفظ سجل المباراة.', {
       stage: 'complete-failed',
       roomId,
-      error: error instanceof Error ? error.message : String(error),
+      errorName: error instanceof Error ? error.name : typeof error,
     });
   });
 }
