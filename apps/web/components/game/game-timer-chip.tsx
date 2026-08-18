@@ -38,6 +38,7 @@ export function GameTimerChip({
           : 'border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)]',
         className,
       )}
+      role="timer"
       aria-label={`الوقت المتبقي ${label}`}
     >
       <svg

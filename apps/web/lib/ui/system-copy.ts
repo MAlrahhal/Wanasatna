@@ -28,7 +28,7 @@ export const SYSTEM_COPY = {
   gameUnavailable: 'اللعبة غير متاحة حالياً.',
   returningToLobby: 'جاري العودة إلى اللوبي…',
   gameEndedReturnLobby: 'انتهت الجولة أو تمت إعادة تشغيل اللعبة، ورجعناك إلى اللوبي.',
-  spectator: 'أنت تشاهد المباراة',
+  spectator: 'أنت متفرج في هذه الجولة',
   copiedLink: 'تم نسخ الرابط',
   leaving: 'جاري المغادرة…',
   spectatorTitle: 'متفرج',

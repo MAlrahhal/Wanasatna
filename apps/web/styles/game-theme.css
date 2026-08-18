@@ -108,6 +108,14 @@
   .wanas-game-screen {
     animation: none;
   }
+
+  .wanas-game-card {
+    transition: none;
+  }
+
+  .wanas-game-card-interactive:hover {
+    transform: none;
+  }
 }
 
 .wanas-game-card {

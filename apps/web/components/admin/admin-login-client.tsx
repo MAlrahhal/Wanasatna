@@ -106,7 +106,7 @@ export function AdminLoginClient() {
   const showForm = status === 'ready' && !checking && !denied;
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10 sm:px-6">
+    <main id="main-content" tabIndex={-1} className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10 outline-none sm:px-6">
       <h1 className="mb-6 text-center text-2xl font-bold text-wanas-text-primary">{ADMIN_COPY.loginTitle}</h1>
 
       {status === 'loading' || checking ? (

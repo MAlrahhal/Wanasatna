@@ -83,12 +83,14 @@ export function UiDialog({
   const titleId = useId();
   const descriptionId = useId();
   const confirmRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
   const styles = variantStyles[variant];
   const confirmVariant =
     variant === 'error' || variant === 'warning' ? 'destructive' : variant === 'success' ? 'success' : 'primary';
 
   useEffect(() => {
     if (!open) return;
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     confirmRef.current?.focus();
     const onKey = (event: KeyboardEvent) => event.key === 'Escape' && onClose();
     document.addEventListener('keydown', onKey);
@@ -97,6 +99,7 @@ export function UiDialog({
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = previousOverflow;
+      previousFocusRef.current?.focus();
     };
   }, [open, onClose]);
 

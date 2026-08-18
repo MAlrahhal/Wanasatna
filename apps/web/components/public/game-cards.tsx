@@ -78,7 +78,8 @@ export function GameCatalogCard({ game }: GameCatalogCardProps) {
           {isPlayableGameId(game.id) ? (
             <Link
               href={getGameInformationPath(game.id)}
-              className="rounded-full px-3 py-1.5 text-xs font-bold text-wanas-primary-dark underline-offset-2 hover:underline"
+              aria-label={`اعرف أكثر عن ${game.title}`}
+              className="inline-flex min-h-11 items-center rounded-full px-3 py-1.5 text-xs font-bold text-wanas-primary-dark underline-offset-2 hover:underline"
             >
               اعرف أكثر
             </Link>
@@ -86,7 +87,8 @@ export function GameCatalogCard({ game }: GameCatalogCardProps) {
           {isAvailable ? (
             <Link
               href={getHomeRoomActionsHref()}
-              className="rounded-full bg-wanas-primary-surface px-3 py-1.5 text-xs font-bold text-wanas-primary-dark transition-colors hover:bg-wanas-primary-surface-strong"
+              aria-label={`العب ${game.title} الآن`}
+              className="inline-flex min-h-11 items-center rounded-full bg-wanas-primary-surface px-3 py-1.5 text-xs font-bold text-wanas-primary-dark transition-colors hover:bg-wanas-primary-surface-strong"
             >
               العب الآن
             </Link>

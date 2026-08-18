@@ -32,6 +32,23 @@ export function AdminRoomDetailClient() {
 
   confirmOpenRef.current = kickTarget !== null || closeOpen;
 
+  useEffect(() => {
+    if (!kickTarget && !closeOpen) {
+      return;
+    }
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || pending) {
+        return;
+      }
+      setKickTarget(null);
+      setCloseOpen(false);
+    };
+
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [kickTarget, closeOpen, pending]);
+
   const load = useCallback(async () => {
     if (!roomId || inFlightRef.current) {
       return;
@@ -293,12 +310,15 @@ export function AdminRoomDetailClient() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="admin-kick-title"
+          aria-describedby="admin-kick-desc"
         >
           <div className="w-full max-w-md rounded-2xl border border-wanas-border bg-wanas-surface p-5">
             <p id="admin-kick-title" className="text-base font-bold">
               {ADMIN_COPY.kickConfirm}
             </p>
-            <p className="mt-2 text-sm text-wanas-text-secondary">{kickTarget.name}</p>
+            <p id="admin-kick-desc" className="mt-2 text-sm text-wanas-text-secondary">
+              {kickTarget.name}
+            </p>
             <div className="mt-4 flex flex-col gap-2 sm:flex-row">
               <button
                 type="button"
@@ -308,7 +328,7 @@ export function AdminRoomDetailClient() {
                 }}
                 className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-wanas-error-border bg-wanas-error-surface text-sm font-semibold text-wanas-error"
               >
-                {ADMIN_COPY.confirm}
+                {ADMIN_COPY.kickConfirmCta}
               </button>
               <button
                 type="button"

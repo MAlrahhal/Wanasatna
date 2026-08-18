@@ -74,6 +74,7 @@ export function AdminGamesClient() {
                   <button
                     type="button"
                     disabled={pendingGameId === gameId}
+                    aria-pressed={isEnabled}
                     onClick={() => void toggleGame(gameId, true)}
                     className={cn(
                       'min-h-10 rounded-full px-3 text-xs font-bold',
@@ -87,6 +88,7 @@ export function AdminGamesClient() {
                   <button
                     type="button"
                     disabled={pendingGameId === gameId}
+                    aria-pressed={!isEnabled}
                     onClick={() => void toggleGame(gameId, false)}
                     className={cn(
                       'min-h-10 rounded-full px-3 text-xs font-bold',

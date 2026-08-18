@@ -74,6 +74,9 @@ export function RoomChatPanel({ className, variant = 'lobby' }: RoomChatPanelPro
       <div
         ref={listRef}
         onScroll={onScroll}
+        role="log"
+        aria-label={SYSTEM_COPY.chatTitle}
+        aria-live="off"
         className={cn(
           'min-h-0 flex-1 space-y-2 overflow-y-auto px-1',
           isGame ? 'text-[color:var(--wanas-game-text-primary)]' : 'text-wanas-text-primary',
@@ -141,7 +144,11 @@ export function RoomChatPanel({ className, variant = 'lobby' }: RoomChatPanelPro
           {SYSTEM_COPY.chatSend}
         </Button>
       </form>
-      {sendError ? <p className="mt-1 text-xs text-wanas-error">{sendError}</p> : null}
+      {sendError ? (
+        <p role="alert" className="mt-1 text-xs text-wanas-error">
+          {sendError}
+        </p>
+      ) : null}
     </div>
   );
 }

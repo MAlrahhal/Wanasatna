@@ -28,6 +28,22 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!chatOpen && !leaderboardOpen) {
+      return;
+    }
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setChatOpen(false);
+        setLeaderboardOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [chatOpen, leaderboardOpen]);
+
   if (!meta) {
     return <>{children}</>;
   }
@@ -71,10 +87,10 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
 
       <div className="hidden min-h-0 flex-1 gap-2 lg:grid lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)_minmax(220px,260px)]">
         <GameChatMockPanel className="max-h-[min(560px,calc(100vh-12rem))]" />
-        <main className="relative min-w-0">
+        <div className="relative min-w-0">
           {children}
           {playerRecovery ? <GamePlayerRecoveryOverlay recovery={playerRecovery} /> : null}
-        </main>
+        </div>
         <GameLeaderboardPanel
           entries={meta.leaderboardEntries}
           className="max-h-[min(560px,calc(100vh-12rem))]"
@@ -91,6 +107,7 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
           className="fixed inset-x-0 bottom-0 z-40 max-h-[45dvh] overflow-hidden rounded-t-2xl border-t border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-panel-bg)] p-4 shadow-[var(--wanas-game-shadow)] lg:hidden"
           style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
           role="dialog"
+          aria-modal="true"
           aria-label="الدردشة"
         >
           <div className="mb-3 flex items-center justify-between">
@@ -119,6 +136,7 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
           className="fixed inset-x-0 bottom-0 z-40 max-h-[55dvh] overflow-hidden rounded-t-2xl border-t border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-panel-bg)] p-4 shadow-[var(--wanas-game-shadow)] lg:hidden"
           style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
           role="dialog"
+          aria-modal="true"
           aria-label="الترتيب"
         >
           <div className="mb-3 flex items-center justify-between">

@@ -177,7 +177,7 @@ export function TeamAssignmentPanel({
                       className="rounded-md border border-sky-400/40 px-2 py-0.5 text-[10px] font-semibold"
                       onClick={() => onAssign(player.id, 'blue')}
                     >
-                      أزرق
+                      الفريق الأزرق
                     </button>
                     <button
                       type="button"
@@ -185,7 +185,7 @@ export function TeamAssignmentPanel({
                       className="rounded-md border border-rose-400/40 px-2 py-0.5 text-[10px] font-semibold"
                       onClick={() => onAssign(player.id, 'red')}
                     >
-                      أحمر
+                      الفريق الأحمر
                     </button>
                   </div>
                 ) : null}

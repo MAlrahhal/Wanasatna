@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { PublicUser } from '@wanasatna/shared';
 import { useAuth } from '@/contexts/auth-context';
 import { fetchAdminMe } from '@/lib/admin/api';
@@ -42,6 +42,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const [gate, setGate] = useState<'loading' | 'unauthenticated' | 'forbidden' | 'ok'>('loading');
   const [adminUser, setAdminUser] = useState<PublicUser | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const mobileNavToggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (status !== 'ready') {
@@ -76,6 +77,22 @@ export function AdminShell({ children }: { children: ReactNode }) {
     }
   }, [gate, router]);
 
+  useEffect(() => {
+    if (!mobileNavOpen) {
+      return;
+    }
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileNavOpen(false);
+        mobileNavToggleRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [mobileNavOpen]);
+
   async function handleLogout() {
     await logout();
     router.replace(ADMIN_ROUTES.login);
@@ -83,7 +100,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   if (status === 'loading' || gate === 'loading' || gate === 'unauthenticated') {
     return (
-      <main className="flex flex-1 items-center justify-center px-4 py-10">
+      <main id="main-content" tabIndex={-1} className="flex flex-1 items-center justify-center px-4 py-10 outline-none">
         <p className="text-sm text-wanas-text-muted">{ADMIN_COPY.resolving}</p>
       </main>
     );
@@ -91,7 +108,11 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   if (gate === 'forbidden') {
     return (
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10 outline-none"
+      >
         <p role="alert" className="text-center text-sm font-semibold text-wanas-error">
           {ADMIN_COPY.accessDenied}
         </p>
@@ -104,6 +125,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <header className="flex items-center justify-between border-b border-wanas-border bg-wanas-surface px-4 py-3 md:hidden">
         <p className="text-sm font-bold text-wanas-text-primary">{ADMIN_COPY.panelTitle}</p>
         <button
+          ref={mobileNavToggleRef}
           type="button"
           className="rounded-xl border border-wanas-border px-3 py-2 text-sm font-semibold text-wanas-text-primary"
           aria-expanded={mobileNavOpen}
@@ -167,7 +189,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <main className="flex-1 px-4 py-8 sm:px-8">{children}</main>
+      <main id="main-content" tabIndex={-1} className="flex-1 px-4 py-8 outline-none sm:px-8">{children}</main>
     </div>
   );
 }

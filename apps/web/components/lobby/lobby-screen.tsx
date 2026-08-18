@@ -80,6 +80,21 @@ export function LobbyScreen() {
     return undefined;
   }, [status]);
 
+  useEffect(() => {
+    if (!chatOpen) {
+      return;
+    }
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setChatOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [chatOpen]);
+
   const selectedGame = useMemo(
     () => mockLobbyGames.find((game) => game.id === selectedGameId) ?? null,
     [selectedGameId],
@@ -175,6 +190,9 @@ export function LobbyScreen() {
               : 'hidden',
             'xl:static xl:z-auto xl:order-3 xl:block xl:max-h-none xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none',
           )}
+          role={chatOpen ? 'dialog' : undefined}
+          aria-modal={chatOpen ? true : undefined}
+          aria-label={chatOpen ? SYSTEM_COPY.chatTitle : undefined}
           style={chatOpen ? { paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' } : undefined}
         >
           {chatOpen ? (

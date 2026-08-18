@@ -13,10 +13,12 @@ const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
 
 export default function GameLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div
-      className={`${ibmPlexSansArabic.variable} font-game wanas-game-play-bg flex min-h-dvh w-full flex-1 flex-col`}
+    <main
+      id="main-content"
+      tabIndex={-1}
+      className={`${ibmPlexSansArabic.variable} font-game wanas-game-play-bg flex min-h-dvh w-full flex-1 flex-col outline-none`}
     >
       {children}
-    </div>
+    </main>
   );
 }

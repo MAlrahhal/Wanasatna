@@ -39,7 +39,8 @@ test('chat identity is Player.name; no account fields', () => {
   const panel = read('components/room/room-chat-panel.tsx');
   const ctx = read('contexts/room-chat-context.tsx');
   assert.match(panel, /message\.senderName/);
-  assert.doesNotMatch(panel, /email|preferredDisplayName|userId|role/);
+  assert.doesNotMatch(panel, /email|preferredDisplayName|userId/);
+  assert.doesNotMatch(panel, /user\.role|authUser/);
   assert.doesNotMatch(ctx, /email|preferredDisplayName|authUser/);
   assert.match(ctx, /ROOM_CHAT_SEND_EVENT/);
   assert.match(ctx, /content/);

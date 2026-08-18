@@ -265,13 +265,41 @@
     background: var(--wanas-surface-soft);
   }
 
+  .wanas-skip-link {
+    position: absolute;
+    inset-inline-start: 1rem;
+    top: 0.75rem;
+    z-index: 200;
+    border-radius: 0.75rem;
+    background: var(--wanas-accent);
+    color: #fff;
+    padding: 0.65rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    transform: translateY(-8rem);
+  }
+
+  .wanas-skip-link:focus {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+    transform: translateY(0);
+  }
+
   @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
     .wanas-interactive-card {
       transition: none;
     }
 
     .wanas-interactive-card:hover {
       transform: none;
+    }
+
+    .wanas-skip-link {
+      transition: none;
     }
   }
 }

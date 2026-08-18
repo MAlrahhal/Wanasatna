@@ -59,6 +59,7 @@ function GuessingChallengeSpectatorPlaying({ view }: { view: GuessingChallengePl
           type="button"
           variant={side === 'blue' ? 'primary' : 'outline'}
           className="min-h-11"
+          aria-pressed={side === 'blue'}
           onClick={() => setSide('blue')}
         >
           هوية الأزرق
@@ -67,6 +68,7 @@ function GuessingChallengeSpectatorPlaying({ view }: { view: GuessingChallengePl
           type="button"
           variant={side === 'red' ? 'primary' : 'outline'}
           className="min-h-11"
+          aria-pressed={side === 'red'}
           onClick={() => setSide('red')}
         >
           هوية الأحمر

@@ -58,6 +58,7 @@ export function RoomActionCards({
               icon={<UserIcon />}
               disabled={busy}
               error={playerNameError}
+              autoComplete="nickname"
             />
             <Button
               type="button"
@@ -95,6 +96,7 @@ export function RoomActionCards({
               icon={<UserIcon />}
               disabled={busy}
               error={playerNameError}
+              autoComplete="nickname"
             />
             <Field
               id="join-code"
@@ -107,6 +109,7 @@ export function RoomActionCards({
               error={joinCodeError}
               inputMode="numeric"
               dir="ltr"
+              autoComplete="one-time-code"
               inputClassName="font-mono tracking-[0.35em] placeholder:tracking-normal"
             />
             <Button

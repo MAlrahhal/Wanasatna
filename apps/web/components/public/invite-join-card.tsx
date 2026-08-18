@@ -82,6 +82,7 @@ export function InviteJoinCard({
               icon={<UserIcon />}
               disabled={isJoining}
               error={playerNameError}
+              autoComplete="nickname"
             />
             <Field
               id="join-code"

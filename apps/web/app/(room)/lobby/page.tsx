@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 export default function LobbyPage() {
   return (
-    <main className="flex min-h-full flex-col text-wanas-text-primary">
+    <main id="main-content" tabIndex={-1} className="flex min-h-full flex-col text-wanas-text-primary outline-none">
       <LobbyPageClient />
     </main>
   );

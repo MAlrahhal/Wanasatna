@@ -20,7 +20,9 @@ export function PublicLayoutClient({ children }: { children: ReactNode }) {
       <div className="flex min-h-full flex-col text-wanas-text-primary">
         <PublicNavbar />
         <ActiveRoomBanner />
-        <div className="flex-1">{children}</div>
+        <div id="main-content" tabIndex={-1} className="flex-1 outline-none">
+          {children}
+        </div>
         {inviteEntry ? null : <PublicFooter />}
       </div>
     </RoomNavigationGuardProvider>

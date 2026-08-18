@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppProviders } from "@/components/app-providers";
+import { SkipToContent } from "@/components/public/skip-to-content";
 import { BRAND_NAME_AR } from "@/lib/public/brand";
 import { HOME_DESCRIPTION, HOME_TITLE, SITE_ORIGIN, TITLE_TEMPLATE } from "@/lib/public/seo";
 import "./globals.css";
@@ -59,6 +60,7 @@ export default function RootLayout({
       <body className="relative flex min-h-full flex-col overflow-x-hidden">
         <div aria-hidden className="wanas-site-bg-pattern" />
         <div className="relative z-10 flex min-h-full flex-1 flex-col">
+          <SkipToContent />
           <AppProviders>{children}</AppProviders>
         </div>
       </body>

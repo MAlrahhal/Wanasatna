@@ -66,6 +66,7 @@ export function DrawingToolbar({
           variant={tool === 'draw' ? 'primary' : 'outline'}
           className="min-h-11 lg:min-h-9"
           disabled={disabled}
+          aria-pressed={tool === 'draw'}
           onClick={() => onToolChange('draw')}
         >
           رسم
@@ -76,6 +77,7 @@ export function DrawingToolbar({
           variant={tool === 'erase' ? 'primary' : 'outline'}
           className="min-h-11 lg:min-h-9"
           disabled={disabled}
+          aria-pressed={tool === 'erase'}
           onClick={() => onToolChange('erase')}
         >
           ممحاة

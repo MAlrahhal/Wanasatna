@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PublicBrandLogo } from '@/components/public/public-brand-logo';
 import { MobileNavigation } from '@/components/public/mobile-navigation';
 import { PublicAuthNavControl } from '@/components/public/public-account-menu';
@@ -21,6 +21,7 @@ export function PublicNavbar() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const mobileToggleRef = useRef<HTMLButtonElement>(null);
   const { hasActiveRoomSession } = useGuardedPublicNavigation();
   const isHome = pathname === PUBLIC_ROUTES.home;
   const hideCreateRoom = shouldHideCreateRoomAction(hasActiveRoomSession);
@@ -35,6 +36,22 @@ export function PublicNavbar() {
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!mobileOpen) {
+      return;
+    }
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileOpen(false);
+        mobileToggleRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [mobileOpen]);
 
   function handleCreateRoomOnHome() {
     setMobileOpen(false);
@@ -97,6 +114,7 @@ export function PublicNavbar() {
         </div>
 
         <button
+          ref={mobileToggleRef}
           type="button"
           aria-expanded={mobileOpen}
           aria-controls="public-mobile-nav"

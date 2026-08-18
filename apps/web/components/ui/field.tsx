@@ -17,6 +17,7 @@ export type FieldProps = {
   readOnly?: boolean;
   className?: string;
   inputClassName?: string;
+  autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete'];
 };
 
 /** Shared dark-theme product field. Cyan focus. Not for game-specific guess inputs. */
@@ -36,6 +37,7 @@ export function Field({
   readOnly = false,
   className,
   inputClassName,
+  autoComplete,
 }: FieldProps) {
   const describedBy = error ? `${id}-error` : helpText ? `${id}-help` : undefined;
 
@@ -62,6 +64,7 @@ export function Field({
           disabled={disabled}
           readOnly={readOnly}
           dir={dir}
+          autoComplete={autoComplete}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
           aria-invalid={Boolean(error)}

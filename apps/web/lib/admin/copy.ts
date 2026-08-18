@@ -47,6 +47,7 @@ export const ADMIN_COPY = {
   unlockRoom: 'فتح الغرفة',
   kickPlayer: 'طرد',
   kickConfirm: 'طرد هذا اللاعب من الغرفة؟',
+  kickConfirmCta: 'طرد اللاعب',
   closeRoom: 'إغلاق الغرفة',
   closeConfirmTitle: 'إغلاق الغرفة؟',
   closeConfirmCta: 'نعم، أغلق الغرفة',
