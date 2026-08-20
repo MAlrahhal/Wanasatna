@@ -62,11 +62,15 @@ test('/login redirects home and stays noindex', () => {
 test('lobby settings bind to selected game only', () => {
   const settings = read('components/lobby/game-settings-panel.tsx');
   const lobby = read('components/lobby/lobby-screen.tsx');
+  const setup = read('components/lobby/lobby-selected-game-setup.tsx');
   const room = read('contexts/room-context.tsx');
   assert.match(settings, /teamSnapshot\?\.gameId === selectedGame\.id/);
-  assert.match(lobby, /isActiveMatch=\{isWaitingForNextMatch\}/);
+  assert.match(lobby, /isWaitingForNextMatch=\{isWaitingForNextMatch\}/);
+  assert.match(lobby, /<LobbySelectedGameSetup/);
   assert.match(lobby, /key=\{selectedGameId \?\? 'none'\}/);
-  assert.match(lobby, /key=\{selectedGameId \?\? 'none-settings'\}/);
+  assert.equal((lobby.match(/<LobbySelectedGameSetup/g) ?? []).length, 1);
+  assert.equal((setup.match(/<RoundCategoryPanel/g) ?? []).length, 1);
+  assert.equal((setup.match(/<GameSettingsPanel/g) ?? []).length, 1);
   assert.match(room, /payload\.gameId !== selectedId/);
   assert.doesNotMatch(lobby, /isActiveMatch=\{activeMatchParticipantIds !== null\}/);
 });

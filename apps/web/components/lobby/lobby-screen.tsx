@@ -9,14 +9,13 @@ import { LOBBY_NOTICE_STORAGE_KEY } from '@/lib/game-shell/null-shell-recovery';
 import { RoomSystemState } from '@/components/room/room-system-state';
 import { SystemStatus } from '@/components/ui/system-status';
 import { GameGrid } from './game-grid';
-import { GameSettingsPanel } from './game-settings-panel';
 import { ActiveMatchWaitingPanel } from './active-match-waiting-panel';
 import { LobbyChat } from './lobby-chat';
 import { LobbyErrorBanner } from './lobby-error-banner';
 import { LobbyHeader } from './lobby-header';
 import { LobbyMarathonBanner } from './lobby-marathon-banner';
 import { LobbyStartGamePanel } from './lobby-start-game-panel';
-import { RoundCategoryPanel } from './round-category-panel';
+import { LobbySelectedGameSetup } from './lobby-selected-game-setup';
 import { PlayersPanel } from './players-panel';
 import { cn } from '@/lib/utils';
 
@@ -225,19 +224,15 @@ export function LobbyScreen() {
             isGameEnabled={isGameEnabled}
           />
           <LobbyMarathonBanner />
-          <RoundCategoryPanel
+          <LobbySelectedGameSetup
             key={selectedGameId ?? 'none'}
-            gameId={selectedGameId}
-            selectedCategoryId={selectedRoundCategoryId}
-            isHost={isHost}
-            isActiveMatch={isWaitingForNextMatch}
-            onSelectCategory={selectRoundCategory}
-          />
-          <GameSettingsPanel
-            key={selectedGameId ?? 'none-settings'}
+            selectedGameId={selectedGameId}
             selectedGame={selectedGame}
-            settings={selectedGameSettings}
+            selectedGameSettings={selectedGameSettings}
+            selectedRoundCategoryId={selectedRoundCategoryId}
             isHost={isHost}
+            isWaitingForNextMatch={isWaitingForNextMatch}
+            onSelectCategory={selectRoundCategory}
           />
           <LobbyStartGamePanel />
         </div>

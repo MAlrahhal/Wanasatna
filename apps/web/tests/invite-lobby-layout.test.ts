@@ -98,17 +98,17 @@ test('join still requires name and existing session helpers are unchanged', () =
 
 test('lobby stack is Marathon → Category → Settings → Start', () => {
   const screen = read('components/lobby/lobby-screen.tsx');
+  const setup = read('components/lobby/lobby-selected-game-setup.tsx');
   const grid = read('components/lobby/game-grid.tsx');
   const marathon = firstIndex(screen, '<LobbyMarathonBanner');
-  const category = firstIndex(screen, '<RoundCategoryPanel');
-  const settings = firstIndex(screen, '<GameSettingsPanel');
+  const category = firstIndex(screen, '<LobbySelectedGameSetup');
   const start = firstIndex(screen, '<LobbyStartGamePanel');
   const catalog = firstIndex(screen, '<GameGrid');
 
   assert.ok(catalog < marathon);
   assert.ok(marathon < category);
-  assert.ok(category < settings);
-  assert.ok(settings < start);
+  assert.ok(category < start);
+  assert.ok(firstIndex(setup, '<RoundCategoryPanel') < firstIndex(setup, '<GameSettingsPanel'));
   assert.doesNotMatch(grid, /RoundCategoryPanel/);
   assert.doesNotMatch(grid, /LobbyMarathonBanner/);
 });

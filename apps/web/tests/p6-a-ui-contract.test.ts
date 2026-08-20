@@ -120,15 +120,15 @@ test('sticky Start is host/mobile-only and reuses startGame validation', () => {
 
 test('Marathon → Category → Settings → Start order is preserved', () => {
   const screen = read('components/lobby/lobby-screen.tsx');
+  const setup = read('components/lobby/lobby-selected-game-setup.tsx');
   const catalog = firstIndex(screen, '<GameGrid');
   const marathon = firstIndex(screen, '<LobbyMarathonBanner');
-  const category = firstIndex(screen, '<RoundCategoryPanel');
-  const settings = firstIndex(screen, '<GameSettingsPanel');
+  const category = firstIndex(screen, '<LobbySelectedGameSetup');
   const start = firstIndex(screen, '<LobbyStartGamePanel');
   assert.ok(catalog < marathon);
   assert.ok(marathon < category);
-  assert.ok(category < settings);
-  assert.ok(settings < start);
+  assert.ok(category < start);
+  assert.ok(firstIndex(setup, '<RoundCategoryPanel') < firstIndex(setup, '<GameSettingsPanel'));
 });
 
 test('room-link copy and single lobby hamburger are unchanged in intent', () => {

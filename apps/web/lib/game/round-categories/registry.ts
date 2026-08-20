@@ -33,6 +33,10 @@ export function getGameRoundCategories(
     return null;
   }
 
+  if (!Object.hasOwn(gameRoundCategoriesById, gameId)) {
+    return null;
+  }
+
   const config = gameRoundCategoriesById[gameId];
 
   if (!config || config.categories.length === 0) {

@@ -1,11 +1,23 @@
 'use client';
 
-import { FAST_ANSWER_GAME_ID, GUESSING_CHALLENGE_GAME_ID, JUDGE_GAME_ID, WHO_WROTE_IT_GAME_ID } from '@wanasatna/shared';
+import {
+  FAST_ANSWER_GAME_ID,
+  GUESSING_CHALLENGE_GAME_ID,
+  JUDGE_GAME_ID,
+  WHO_WROTE_IT_GAME_ID,
+} from '@wanasatna/shared';
 import {
   getGameRoundCategories,
   type RoundCategory,
 } from '@/lib/game/round-categories';
 import { cn } from '@/lib/utils';
+
+const MATCH_LOCKED_GAME_IDS = new Set<string>([
+  FAST_ANSWER_GAME_ID,
+  WHO_WROTE_IT_GAME_ID,
+  JUDGE_GAME_ID,
+  GUESSING_CHALLENGE_GAME_ID,
+]);
 
 type RoundCategoryPanelProps = {
   gameId: string | null;
@@ -58,17 +70,17 @@ export function RoundCategoryPanel({
   isActiveMatch,
   onSelectCategory,
 }: RoundCategoryPanelProps) {
+  if (!gameId) {
+    return null;
+  }
+
   const config = getGameRoundCategories(gameId);
 
   if (!config) {
     return null;
   }
 
-  const lockForMatch =
-    gameId === FAST_ANSWER_GAME_ID ||
-    gameId === WHO_WROTE_IT_GAME_ID ||
-    gameId === JUDGE_GAME_ID ||
-    gameId === GUESSING_CHALLENGE_GAME_ID;
+  const lockForMatch = MATCH_LOCKED_GAME_IDS.has(gameId);
 
   if (lockForMatch && isActiveMatch) {
     return null;
@@ -99,6 +111,7 @@ export function RoundCategoryPanel({
   return (
     <section
       aria-label="فئة الجولة"
+      data-category-game={gameId}
       className="rounded-xl border border-wanas-border bg-wanas-surface px-3 py-2.5"
     >
       <div className="flex items-start gap-2">
