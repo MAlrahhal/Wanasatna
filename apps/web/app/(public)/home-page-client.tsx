@@ -33,7 +33,9 @@ export function HomePageClient() {
   const room = useRoomActions();
   const featuredGames = getFeaturedGames();
   const hasFieldError = Boolean(room.fieldErrors.playerName || room.fieldErrors.joinCode);
-  const playerNameError = room.fieldErrors.playerName ? (room.errorMessage ?? undefined) : undefined;
+  const playerNameError = room.fieldErrors.playerName
+    ? (room.errorMessage ?? undefined)
+    : undefined;
   const joinCodeError = room.fieldErrors.joinCode ? (room.errorMessage ?? undefined) : undefined;
 
   useEffect(() => {
@@ -60,31 +62,33 @@ export function HomePageClient() {
     <main className="overflow-x-hidden">
       <section className="relative overflow-hidden">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-14 lg:py-16">
-          <div className="relative max-w-3xl">
-            <PublicBrandLogo size="lg" className="mb-6" />
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-wanas-text-primary sm:text-5xl lg:text-[3.25rem]">
-              مكان واحد تلعب فيه مع أصحابك
-            </h1>
-            <p className="mt-3 max-w-xl text-base leading-8 text-wanas-text-secondary sm:mt-5">
-              أنشئ غرفة، شارك الرمز، وابدؤوا اللعب خلال ثوانٍ — مباشرة من المتصفح وبدون تسجيل.
-            </p>
-            <div className="mt-5 flex flex-col gap-3 sm:mt-8 sm:flex-row">
-              <Button
-                type="button"
-                variant="primary"
-                size="lg"
-                onClick={scrollToHomeRoomActions}
-                disabled={room.isCreating || room.isJoining}
-              >
-                ابدأ اللعب
-              </Button>
-              <Link
-                href={PUBLIC_ROUTES.games}
-                className="inline-flex h-12 min-h-12 items-center justify-center rounded-[var(--wanas-radius-control)] border border-wanas-border bg-wanas-surface px-6 text-sm font-semibold text-wanas-text-primary hover:border-wanas-accent hover:bg-wanas-surface-soft"
-              >
-                استعراض الألعاب
-              </Link>
+          <div className="relative grid items-center gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-10">
+            <div className="max-w-3xl">
+              <h1 className="text-wanas-text-primary text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-[3.25rem]">
+                مكان واحد تلعب فيه مع أصحابك
+              </h1>
+              <p className="text-wanas-text-secondary mt-3 max-w-xl text-base leading-8 sm:mt-5">
+                أنشئ غرفة، شارك الرمز، وابدؤوا اللعب خلال ثوانٍ — مباشرة من المتصفح وبدون تسجيل.
+              </p>
+              <div className="mt-5 flex flex-col gap-3 sm:mt-8 sm:flex-row">
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="lg"
+                  onClick={scrollToHomeRoomActions}
+                  disabled={room.isCreating || room.isJoining}
+                >
+                  ابدأ اللعب
+                </Button>
+                <Link
+                  href={PUBLIC_ROUTES.games}
+                  className="border-wanas-border bg-wanas-surface text-wanas-text-primary hover:border-wanas-accent hover:bg-wanas-surface-soft inline-flex h-12 min-h-12 items-center justify-center rounded-[var(--wanas-radius-control)] border px-6 text-sm font-semibold"
+                >
+                  استعراض الألعاب
+                </Link>
+              </div>
             </div>
+            <PublicBrandLogo size="lg" className="mx-auto" />
           </div>
         </div>
       </section>
@@ -117,7 +121,7 @@ export function HomePageClient() {
             />
             <Link
               href={PUBLIC_ROUTES.games}
-              className="inline-flex h-11 items-center justify-center rounded-[var(--wanas-radius-control)] border border-wanas-border bg-wanas-surface px-5 text-sm font-bold text-wanas-text-primary transition-colors hover:border-wanas-accent hover:bg-wanas-surface-soft"
+              className="border-wanas-border bg-wanas-surface text-wanas-text-primary hover:border-wanas-accent hover:bg-wanas-surface-soft inline-flex h-11 items-center justify-center rounded-[var(--wanas-radius-control)] border px-5 text-sm font-bold transition-colors"
             >
               عرض كل الألعاب
             </Link>

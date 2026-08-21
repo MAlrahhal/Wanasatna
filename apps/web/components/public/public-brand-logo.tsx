@@ -12,7 +12,7 @@ type PublicBrandLogoProps = {
 const sizeClassName = {
   sm: 'h-11 w-auto max-h-11 lg:h-14 lg:max-h-14',
   md: 'h-16 w-auto max-h-16',
-  lg: 'h-28 w-auto max-h-28 sm:h-32 sm:max-h-32',
+  lg: 'h-auto w-full max-w-[30rem]',
 };
 
 export function PublicBrandLogo({ size = 'md', className }: PublicBrandLogoProps) {
@@ -20,8 +20,8 @@ export function PublicBrandLogo({ size = 'md', className }: PublicBrandLogoProps
     <Image
       src={WANASATNA_LOGO_SRC}
       alt={BRAND_NAME_AR}
-      width={1024}
-      height={1024}
+      width={1391}
+      height={1131}
       priority={size === 'sm' || size === 'lg'}
       className={cn('object-contain', sizeClassName[size], className)}
     />
