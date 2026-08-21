@@ -19,11 +19,20 @@ export const metadata: Metadata = {
       locale: 'ar',
       siteName: BRAND_NAME_AR,
       type: 'website',
+      images: [
+        {
+          url: '/brand/wanasatna-og.png',
+          width: 1200,
+          height: 630,
+          alt: BRAND_NAME_AR,
+        },
+      ],
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title: HOME_TITLE,
       description: HOME_DESCRIPTION,
+      images: [{ url: '/brand/wanasatna-og.png', alt: BRAND_NAME_AR }],
     },
 };
 
