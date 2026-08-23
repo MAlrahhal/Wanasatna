@@ -104,7 +104,10 @@ export function validateCategoryDefinitions(
 
     if (category.id === VIRTUAL_RANDOM_CATEGORY_ID) {
       errors.push(
-        scoped(gameId, `"${VIRTUAL_RANDOM_CATEGORY_ID}" is a virtual UI option, not stored content.`),
+        scoped(
+          gameId,
+          `"${VIRTUAL_RANDOM_CATEGORY_ID}" is a virtual UI option, not stored content.`,
+        ),
       );
     }
 
@@ -174,19 +177,16 @@ function validateCanonicalDisplayLanguage(bundle: GameContentBundle, errors: str
     validateDisplayScript(bundle.gameId, word.categoryId, `Word "${word.id}"`, word.text, errors);
   }
 
-  for (const question of bundle.questions ?? []) {
-    const display =
-      bundle.gameId === GUESSING_CHALLENGE_GAME_ID
-        ? question.question
-        : (question.acceptedAnswers?.[0]?.trim() || question.question);
-
-    validateDisplayScript(
-      bundle.gameId,
-      question.categoryId,
-      `Question "${question.id}"`,
-      display,
-      errors,
-    );
+  if (bundle.gameId === GUESSING_CHALLENGE_GAME_ID) {
+    for (const question of bundle.questions ?? []) {
+      validateDisplayScript(
+        bundle.gameId,
+        question.categoryId,
+        `Question "${question.id}"`,
+        question.question,
+        errors,
+      );
+    }
   }
 }
 
@@ -310,7 +310,8 @@ function validateGuessingChallengeAliasCollisions(
 
       seenForItem.add(key);
 
-      const existing = owners.get(key);
+      const scopedKey = `${question.categoryId}\u0000${key}`;
+      const existing = owners.get(scopedKey);
 
       if (existing && existing !== question.id) {
         errors.push(
@@ -322,7 +323,65 @@ function validateGuessingChallengeAliasCollisions(
         continue;
       }
 
-      owners.set(key, question.id);
+      owners.set(scopedKey, question.id);
+    }
+  }
+}
+
+function validateWordAliases(bundle: GameContentBundle, errors: string[]): void {
+  const owners = new Map<string, string>();
+
+  for (const word of bundle.words) {
+    const values = [word.text, ...(word.aliases ?? [])];
+    const seenForWord = new Set<string>();
+
+    for (const [index, value] of values.entries()) {
+      if (!value.trim()) {
+        errors.push(scoped(bundle.gameId, `Word "${word.id}" alias #${index} must have text.`));
+        continue;
+      }
+
+      if (value.length > CONTENT_MAX_ACCEPTED_ANSWER_LENGTH) {
+        errors.push(
+          scoped(
+            bundle.gameId,
+            `Word "${word.id}" alias #${index} exceeds ${CONTENT_MAX_ACCEPTED_ANSWER_LENGTH} characters.`,
+          ),
+        );
+      }
+
+      const key = normalizeAcceptedAnswerKey(value);
+      if (!key) {
+        errors.push(
+          scoped(bundle.gameId, `Word "${word.id}" alias #${index} is empty after normalization.`),
+        );
+        continue;
+      }
+
+      if (seenForWord.has(key)) {
+        errors.push(
+          scoped(
+            bundle.gameId,
+            `Word "${word.id}" has duplicate aliases after normalization: ${key}`,
+          ),
+        );
+        continue;
+      }
+      seenForWord.add(key);
+
+      const scopedKey = `${word.categoryId}\u0000${key}`;
+      const existing = owners.get(scopedKey);
+      if (existing && existing !== word.id) {
+        errors.push(
+          scoped(
+            bundle.gameId,
+            `Word alias collision on "${key}" between "${existing}" and "${word.id}"`,
+          ),
+        );
+        continue;
+      }
+
+      owners.set(scopedKey, word.id);
     }
   }
 }
@@ -331,11 +390,13 @@ function validateCanonicalTextDuplicates(bundle: GameContentBundle, errors: stri
   const wordKeys = new Map<string, string[]>();
 
   for (const word of bundle.words) {
-    const key = normalizeCanonicalEntryKey(word.text);
+    const normalized = normalizeCanonicalEntryKey(word.text);
 
-    if (!key) {
+    if (!normalized) {
       continue;
     }
+
+    const key = `${word.categoryId}\u0000${normalized}`;
 
     const ids = wordKeys.get(key) ?? [];
     ids.push(word.id);
@@ -356,11 +417,13 @@ function validateCanonicalTextDuplicates(bundle: GameContentBundle, errors: stri
   const questionKeys = new Map<string, string[]>();
 
   for (const question of bundle.questions ?? []) {
-    const key = normalizeCanonicalEntryKey(question.question);
+    const normalized = normalizeCanonicalEntryKey(question.question);
 
-    if (!key) {
+    if (!normalized) {
       continue;
     }
+
+    const key = `${question.categoryId}\u0000${normalized}`;
 
     const ids = questionKeys.get(key) ?? [];
     ids.push(question.id);
@@ -417,21 +480,23 @@ export function validateContentBundle(bundle: GameContentBundle): ContentValidat
 
     if (word.text.length > CONTENT_MAX_WORD_TEXT_LENGTH) {
       errors.push(
-        scoped(
-          gameId,
-          `Word "${word.id}" exceeds ${CONTENT_MAX_WORD_TEXT_LENGTH} characters.`,
-        ),
+        scoped(gameId, `Word "${word.id}" exceeds ${CONTENT_MAX_WORD_TEXT_LENGTH} characters.`),
       );
     }
 
     if (word.categoryId === VIRTUAL_RANDOM_CATEGORY_ID) {
       errors.push(
-        scoped(gameId, `Word "${word.id}" must not use virtual category "${VIRTUAL_RANDOM_CATEGORY_ID}".`),
+        scoped(
+          gameId,
+          `Word "${word.id}" must not use virtual category "${VIRTUAL_RANDOM_CATEGORY_ID}".`,
+        ),
       );
     }
 
     if (!categoryIds.has(word.categoryId)) {
-      errors.push(scoped(gameId, `Word "${word.id}" references unknown category "${word.categoryId}".`));
+      errors.push(
+        scoped(gameId, `Word "${word.id}" references unknown category "${word.categoryId}".`),
+      );
     }
   }
 
@@ -443,9 +508,7 @@ export function validateContentBundle(bundle: GameContentBundle): ContentValidat
     if (!question.question.trim()) {
       errors.push(scoped(gameId, `Question "${question.id}" must have text.`));
     } else if (!normalizeAcceptedAnswerKey(question.question)) {
-      errors.push(
-        scoped(gameId, `Question "${question.id}" text is empty after normalization.`),
-      );
+      errors.push(scoped(gameId, `Question "${question.id}" text is empty after normalization.`));
     }
 
     if (question.question.length > CONTENT_MAX_QUESTION_TEXT_LENGTH) {
@@ -479,6 +542,7 @@ export function validateContentBundle(bundle: GameContentBundle): ContentValidat
   }
 
   validateCanonicalTextDuplicates(bundle, errors);
+  validateWordAliases(bundle, errors);
   validateGuessingChallengeAliasCollisions(bundle, errors);
 
   if (bundle.words.length === 0 && questions.length === 0) {

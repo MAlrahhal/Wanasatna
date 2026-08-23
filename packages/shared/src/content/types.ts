@@ -8,6 +8,7 @@ export type GameContentWord = {
   id: string;
   text: string;
   categoryId: string;
+  aliases?: string[];
 };
 
 export type GameContentQuestion = {
@@ -24,6 +25,4 @@ export type GameContentBundle = {
   questions?: GameContentQuestion[];
 };
 
-export type ContentValidationResult =
-  | { valid: true }
-  | { valid: false; errors: string[] };
+export type ContentValidationResult = { valid: true } | { valid: false; errors: string[] };

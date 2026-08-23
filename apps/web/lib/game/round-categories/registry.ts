@@ -10,6 +10,7 @@ import {
 } from '@wanasatna/shared';
 import { baraAlSalafaRoundCategories } from './bara-al-salafa';
 import { drawableRoundCategories } from './drawable';
+import { fastAnswerRoundCategories } from './fast-answer';
 import { guessingChallengeRoundCategories } from './guessing-challenge';
 import { judgeRoundCategories } from './judge';
 import { whoWroteItRoundCategories } from './who-wrote-it';
@@ -17,7 +18,7 @@ import type { GameRoundCategoriesConfig, RoundCategory } from './types';
 
 const gameRoundCategoriesById: Record<string, GameRoundCategoriesConfig> = {
   [BARA_AL_SALAFA_GAME_ID]: baraAlSalafaRoundCategories,
-  [FAST_ANSWER_GAME_ID]: baraAlSalafaRoundCategories,
+  [FAST_ANSWER_GAME_ID]: fastAnswerRoundCategories,
   [DRAW_GUESS_GAME_ID]: drawableRoundCategories,
   [IMPOSTER_DRAW_GAME_ID]: drawableRoundCategories,
   [WHO_WROTE_IT_GAME_ID]: whoWroteItRoundCategories,

@@ -6,46 +6,52 @@ export type GameContentCategoryContract = {
   labels: Readonly<Record<string, string>>;
 };
 
-/** Trivia / conversation pack used by Bara and Fast Answer. */
-export const TRIVIA_CONTENT_CATEGORY_IDS = [
+export const BARA_AL_SALAFA_CONTENT_CATEGORY_IDS = [
   'animals',
   'food',
   'countries',
-  'cars',
   'football',
-  'movies',
   'series',
   'games',
-  'tech',
 ] as const;
 
-export const TRIVIA_CONTENT_CATEGORY_LABELS: Record<
-  (typeof TRIVIA_CONTENT_CATEGORY_IDS)[number],
+export const BARA_AL_SALAFA_CONTENT_CATEGORY_LABELS: Record<
+  (typeof BARA_AL_SALAFA_CONTENT_CATEGORY_IDS)[number],
   string
 > = {
   animals: 'حيوانات',
   food: 'أكلات',
   countries: 'بلدان',
-  cars: 'سيارات',
   football: 'كرة قدم',
-  movies: 'أفلام',
   series: 'مسلسلات',
   games: 'ألعاب',
-  tech: 'تقنيات',
 };
 
-/** Drawable pack used by Draw & Guess and Imposter Draw. */
+export const FAST_ANSWER_CONTENT_CATEGORY_IDS = [
+  'animals',
+  'food',
+  'countries',
+  'series',
+  'games',
+] as const;
+
+export const FAST_ANSWER_CONTENT_CATEGORY_LABELS: Record<
+  (typeof FAST_ANSWER_CONTENT_CATEGORY_IDS)[number],
+  string
+> = {
+  animals: 'حيوانات',
+  food: 'أكلات',
+  countries: 'بلدان',
+  series: 'مسلسلات',
+  games: 'ألعاب',
+};
+
 export const DRAWABLE_CONTENT_CATEGORY_IDS = [
   'animals',
   'food',
-  'household',
-  'tools',
-  'transport',
-  'professions',
   'nature',
-  'sports',
-  'clothing',
   'places',
+  'tech',
 ] as const;
 
 export const DRAWABLE_CONTENT_CATEGORY_LABELS: Record<
@@ -54,28 +60,19 @@ export const DRAWABLE_CONTENT_CATEGORY_LABELS: Record<
 > = {
   animals: 'حيوانات',
   food: 'أكلات',
-  household: 'أغراض منزلية',
-  tools: 'أدوات',
-  transport: 'مواصلات',
-  professions: 'مهن',
-  nature: 'طبيعة',
-  sports: 'رياضة',
-  clothing: 'ملابس وإكسسوارات',
-  places: 'أماكن',
+  nature: 'طبيعة وفضاء وطقس',
+  places: 'أماكن ومعالم واضحة',
+  tech: 'تقنيات',
 };
 
 export const GUESSING_CHALLENGE_CONTENT_CATEGORY_IDS = [
   'animals',
   'food',
   'countries',
-  'cars',
   'football',
-  'movies',
   'series',
   'games',
   'tech',
-  'household',
-  'tools',
 ] as const;
 
 export const GUESSING_CHALLENGE_CONTENT_CATEGORY_LABELS: Record<
@@ -85,53 +82,46 @@ export const GUESSING_CHALLENGE_CONTENT_CATEGORY_LABELS: Record<
   animals: 'حيوانات',
   food: 'أكلات',
   countries: 'بلدان',
-  cars: 'سيارات',
   football: 'كرة قدم',
-  movies: 'أفلام',
   series: 'مسلسلات',
   games: 'ألعاب',
   tech: 'تقنيات',
-  household: 'أغراض منزلية',
-  tools: 'أدوات',
 };
 
 export const WHO_WROTE_IT_CONTENT_CATEGORY_IDS = [
-  'funny',
-  'personal',
-  'situations',
-  'preferences',
+  'funny-situations',
+  'confessions',
+  'light-personal',
+  'what-would-you-do',
 ] as const;
 
 export const WHO_WROTE_IT_CONTENT_CATEGORY_LABELS: Record<
   (typeof WHO_WROTE_IT_CONTENT_CATEGORY_IDS)[number],
   string
 > = {
-  funny: 'أسئلة مضحكة',
-  personal: 'أسئلة شخصية',
-  situations: 'مواقف',
-  preferences: 'تفضيلات',
+  'funny-situations': 'مواقف مضحكة',
+  confessions: 'اعترافات',
+  'light-personal': 'أسئلة شخصية خفيفة',
+  'what-would-you-do': 'ماذا ستفعل؟',
 };
 
 export const JUDGE_CONTENT_CATEGORY_IDS = [
-  'funny',
-  'hypothetical',
-  'daily',
-  'weird',
+  'worst-answer',
+  'invent-something-silly',
+  'weird-scenarios',
+  'complete-the-sentence',
+  'rapid-response',
 ] as const;
 
 export const JUDGE_CONTENT_CATEGORY_LABELS: Record<
   (typeof JUDGE_CONTENT_CATEGORY_IDS)[number],
   string
 > = {
-  funny: 'مواقف مضحكة',
-  hypothetical: 'مواقف افتراضية',
-  daily: 'الحياة اليومية',
-  weird: 'مواقف غريبة',
-};
-
-const triviaContract: GameContentCategoryContract = {
-  ids: TRIVIA_CONTENT_CATEGORY_IDS,
-  labels: TRIVIA_CONTENT_CATEGORY_LABELS,
+  'worst-answer': 'أسوأ إجابة ممكنة',
+  'invent-something-silly': 'اخترع شيء غبي',
+  'weird-scenarios': 'سيناريوهات غريبة',
+  'complete-the-sentence': 'كمل الجملة',
+  'rapid-response': 'تحديات الرد السريع',
 };
 
 const drawableContract: GameContentCategoryContract = {
@@ -140,8 +130,14 @@ const drawableContract: GameContentCategoryContract = {
 };
 
 export const GAME_CONTENT_CATEGORY_CONTRACTS: Record<string, GameContentCategoryContract> = {
-  'bara-al-salafa': triviaContract,
-  'fast-answer': triviaContract,
+  'bara-al-salafa': {
+    ids: BARA_AL_SALAFA_CONTENT_CATEGORY_IDS,
+    labels: BARA_AL_SALAFA_CONTENT_CATEGORY_LABELS,
+  },
+  'fast-answer': {
+    ids: FAST_ANSWER_CONTENT_CATEGORY_IDS,
+    labels: FAST_ANSWER_CONTENT_CATEGORY_LABELS,
+  },
   'draw-guess': drawableContract,
   'imposter-draw': drawableContract,
   'guessing-challenge': {
@@ -172,14 +168,13 @@ export const ARABIC_CANONICAL_CATEGORY_IDS = [
   'sports',
   'clothing',
   'places',
+  'tech',
 ] as const;
 
 /** Title-style categories whose canonical display should be Latin-script. */
 export const LATIN_CANONICAL_CATEGORY_IDS = ['movies', 'series', 'games'] as const;
 
-export function getGameContentCategoryContract(
-  gameId: string,
-): GameContentCategoryContract | null {
+export function getGameContentCategoryContract(gameId: string): GameContentCategoryContract | null {
   return GAME_CONTENT_CATEGORY_CONTRACTS[gameId] ?? null;
 }
 

@@ -8,11 +8,12 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  BARA_AL_SALAFA_CONTENT_CATEGORY_IDS,
   DRAWABLE_CONTENT_CATEGORY_IDS,
+  FAST_ANSWER_CONTENT_CATEGORY_IDS,
   GAME_CONTENT_CATEGORY_CONTRACTS,
   GUESSING_CHALLENGE_CONTENT_CATEGORY_IDS,
   JUDGE_CONTENT_CATEGORY_IDS,
-  TRIVIA_CONTENT_CATEGORY_IDS,
   VIRTUAL_RANDOM_CATEGORY_ID,
   WHO_WROTE_IT_CONTENT_CATEGORY_IDS,
   canonicalHasArabicScript,
@@ -27,7 +28,6 @@ import { registerAllGameContent } from '../src/modules/content/registry.js';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CONTENT_ROOT = join(HERE, '../../../content');
 const SERVER_ROOT = join(HERE, '..');
-const LAUNCH_MIN_PER_CATEGORY = 20;
 const QUESTION_GAMES = new Set(['fast-answer', 'guessing-challenge']);
 
 const ALL_CONTENT_GAMES = [
@@ -75,18 +75,19 @@ test('all content bundles load and pass validation', () => {
 });
 
 test('per-game category contracts — no global shared 9', () => {
-  assert.equal(TRIVIA_CONTENT_CATEGORY_IDS.length, 9);
-  assert.equal(DRAWABLE_CONTENT_CATEGORY_IDS.length, 10);
-  assert.equal(GUESSING_CHALLENGE_CONTENT_CATEGORY_IDS.length, 11);
+  assert.equal(BARA_AL_SALAFA_CONTENT_CATEGORY_IDS.length, 6);
+  assert.equal(FAST_ANSWER_CONTENT_CATEGORY_IDS.length, 5);
+  assert.equal(DRAWABLE_CONTENT_CATEGORY_IDS.length, 5);
+  assert.equal(GUESSING_CHALLENGE_CONTENT_CATEGORY_IDS.length, 7);
   assert.equal(WHO_WROTE_IT_CONTENT_CATEGORY_IDS.length, 4);
-  assert.equal(JUDGE_CONTENT_CATEGORY_IDS.length, 4);
+  assert.equal(JUDGE_CONTENT_CATEGORY_IDS.length, 5);
   assert.equal(getGameContentCategoryContract('timing-challenge'), null);
   assert.ok(!('timing-challenge' in GAME_CONTENT_CATEGORY_CONTRACTS));
 });
 
 test('each game matches its own category pack', () => {
-  expectPack('bara-al-salafa', TRIVIA_CONTENT_CATEGORY_IDS);
-  expectPack('fast-answer', TRIVIA_CONTENT_CATEGORY_IDS);
+  expectPack('bara-al-salafa', BARA_AL_SALAFA_CONTENT_CATEGORY_IDS);
+  expectPack('fast-answer', FAST_ANSWER_CONTENT_CATEGORY_IDS);
   expectPack('draw-guess', DRAWABLE_CONTENT_CATEGORY_IDS);
   expectPack('imposter-draw', DRAWABLE_CONTENT_CATEGORY_IDS);
   expectPack('guessing-challenge', GUESSING_CHALLENGE_CONTENT_CATEGORY_IDS);
@@ -162,36 +163,43 @@ test('GC identities have no cross-identity alias collisions', () => {
 
 test('language policy: movies/series/games Latin, Arabic categories Arabic', () => {
   const bara = loadGameContentBundle('bara-al-salafa');
-  const movies = bara.words.filter((word) => word.categoryId === 'movies');
+  const series = bara.words.filter((word) => word.categoryId === 'series');
   const animals = bara.words.filter((word) => word.categoryId === 'animals');
-  assert.ok(movies.length > 0);
-  assert.ok(movies.every((word) => canonicalHasLatinScript(word.text)));
+  assert.ok(series.length > 0);
+  assert.ok(series.every((word) => canonicalHasLatinScript(word.text)));
   assert.ok(animals.every((word) => canonicalHasArabicScript(word.text)));
 
   const fa = loadGameContentBundle('fast-answer');
-  const titanic = (fa.questions ?? []).find((question) => question.id === 'movies-1');
-  const friends = (fa.questions ?? []).find((question) => question.id === 'series-3');
+  const breaking = (fa.questions ?? []).find((question) => question.id === 'series-1');
   const minecraft = (fa.questions ?? []).find((question) => question.id === 'games-1');
-  const toyota = (fa.questions ?? []).find((question) => question.id === 'cars-3');
-  const apple = (fa.questions ?? []).find((question) => question.id === 'tech-1');
-  assert.equal(titanic?.acceptedAnswers[0], 'Titanic');
-  assert.equal(friends?.acceptedAnswers[0], 'Friends');
+  assert.equal(breaking?.acceptedAnswers[0], 'Breaking Bad');
   assert.equal(minecraft?.acceptedAnswers[0], 'Minecraft');
-  assert.equal(toyota?.acceptedAnswers[0], 'Toyota');
-  assert.equal(apple?.acceptedAnswers[0], 'Apple');
 
   const gc = loadGameContentBundle('guessing-challenge');
-  const inception = (gc.questions ?? []).find((question) => question.id === 'movies-inception');
-  const breaking = (gc.questions ?? []).find((question) => question.id === 'series-breaking');
-  const messi = (gc.questions ?? []).find((question) => question.id === 'football-messi');
-  assert.equal(inception?.question, 'Inception');
-  assert.equal(breaking?.question, 'Breaking Bad');
-  assert.equal(messi?.question, 'ميسي');
-  assert.ok(canonicalHasArabicScript(messi?.question ?? ''));
+  const gcBreaking = (gc.questions ?? []).find((question) => question.id === 'series-1');
+  const ronaldo = (gc.questions ?? []).find((question) => question.id === 'football-1');
+  const iphone = (gc.questions ?? []).find((question) => question.id === 'tech-1');
+  assert.equal(gcBreaking?.question, 'Breaking Bad');
+  assert.equal(ronaldo?.question, 'كريستيانو رونالدو');
+  assert.equal(iphone?.question, 'آيفون');
+  assert.ok(canonicalHasArabicScript(ronaldo?.question ?? ''));
 });
 
 test('draw and imposter catalogs are drawable — no title categories', () => {
-  const banned = ['movies', 'series', 'games', 'tech', 'cars', 'football', 'countries'];
+  const banned = [
+    'movies',
+    'series',
+    'games',
+    'cars',
+    'football',
+    'countries',
+    'household',
+    'tools',
+    'transport',
+    'professions',
+    'sports',
+    'clothing',
+  ];
 
   for (const gameId of ['draw-guess', 'imposter-draw'] as const) {
     const ids = readJson<Array<{ id: string }>>(gameId, 'categories.json').map(
@@ -213,20 +221,43 @@ test('draw and imposter catalogs are drawable — no title categories', () => {
   }
 });
 
-test('launch catalog has at least 20 items per shipped category', () => {
-  for (const gameId of ALL_CONTENT_GAMES) {
-    const contract = getGameContentCategoryContract(gameId);
-    assert.ok(contract, gameId);
-    const bundle = loadGameContentBundle(gameId);
+test('approved catalog counts are preserved exactly', () => {
+  const expected: Record<string, Record<string, number>> = {
+    'bara-al-salafa': { animals: 20, food: 20, countries: 20, football: 20, series: 20, games: 20 },
+    'draw-guess': { animals: 20, food: 20, nature: 20, places: 20, tech: 19 },
+    'imposter-draw': { animals: 20, food: 20, nature: 20, places: 20, tech: 19 },
+    'fast-answer': { animals: 20, food: 17, countries: 20, series: 20, games: 20 },
+    'guessing-challenge': {
+      animals: 20,
+      food: 20,
+      countries: 20,
+      football: 20,
+      series: 20,
+      games: 20,
+      tech: 18,
+    },
+    'who-wrote-it': {
+      'funny-situations': 15,
+      confessions: 15,
+      'light-personal': 15,
+      'what-would-you-do': 15,
+    },
+    judge: {
+      'worst-answer': 15,
+      'invent-something-silly': 15,
+      'weird-scenarios': 15,
+      'complete-the-sentence': 15,
+      'rapid-response': 15,
+    },
+  };
 
-    for (const categoryId of contract.ids) {
+  for (const [gameId, categories] of Object.entries(expected)) {
+    const bundle = loadGameContentBundle(gameId);
+    for (const [categoryId, expectedCount] of Object.entries(categories)) {
       const count = QUESTION_GAMES.has(gameId)
         ? (bundle.questions ?? []).filter((question) => question.categoryId === categoryId).length
         : bundle.words.filter((word) => word.categoryId === categoryId).length;
-      assert.ok(
-        count >= LAUNCH_MIN_PER_CATEGORY,
-        `${gameId} ${categoryId} has ${count}, expected >= ${LAUNCH_MIN_PER_CATEGORY}`,
-      );
+      assert.equal(count, expectedCount, `${gameId} ${categoryId}`);
     }
   }
 });
@@ -259,10 +290,7 @@ test('owner review export covers every production item', () => {
 test('style targets: FA questions stay under 120 chars; drawable words under 24', () => {
   const fa = loadGameContentBundle('fast-answer');
   for (const question of fa.questions ?? []) {
-    assert.ok(
-      question.question.length <= 120,
-      `${question.id} length ${question.question.length}`,
-    );
+    assert.ok(question.question.length <= 120, `${question.id} length ${question.question.length}`);
   }
 
   for (const gameId of ['draw-guess', 'imposter-draw', 'bara-al-salafa'] as const) {

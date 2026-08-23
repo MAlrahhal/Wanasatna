@@ -145,7 +145,9 @@ function makeRound(overrides?: Partial<GuessingChallengeRoundState>): GuessingCh
   };
 }
 
-function makeMatch1v1(overrides?: Partial<GuessingChallengeMatchState>): GuessingChallengeMatchState {
+function makeMatch1v1(
+  overrides?: Partial<GuessingChallengeMatchState>,
+): GuessingChallengeMatchState {
   const { teamByPlayerId, seatByPlayerId } = assignTeams(['p1', 'p2'], '1v1');
   return {
     mode: '1v1',
@@ -172,7 +174,9 @@ function makeMatch1v1(overrides?: Partial<GuessingChallengeMatchState>): Guessin
   };
 }
 
-function makeMatch2v2(overrides?: Partial<GuessingChallengeMatchState>): GuessingChallengeMatchState {
+function makeMatch2v2(
+  overrides?: Partial<GuessingChallengeMatchState>,
+): GuessingChallengeMatchState {
   const playerIds = ['p1', 'p2', 'p3', 'p4'];
   const { teamByPlayerId, seatByPlayerId } = assignTeams(playerIds, '2v2');
   return {
@@ -413,6 +417,9 @@ test('Q/R/S/T/U final guess correct/wrong/turn/non-turn', () => {
 
 test('V/W/X answer normalization and aliases', () => {
   assert.equal(isCorrectAnswer('  رونالدو ', ['كريستيانو رونالدو', 'رونالدو']), true);
+  assert.equal(isCorrectAnswer('الزرافة', ['زرافة']), true);
+  assert.equal(isCorrectAnswer('٣', ['3']), true);
+  assert.equal(isCorrectAnswer('pubg', ['PUBG']), true);
   assert.equal(isCorrectAnswer('xyz', ['ميسي']), false);
 });
 
@@ -803,11 +810,7 @@ test('normal completion creates a fresh turn generation and rejects stale repeat
 
 test('turn timeout auto-passes and stale timeout cannot mutate new turn', () => {
   const match = makeMatch1v1();
-  const advanced = expireGuessingChallengeTurn(
-    match,
-    match.round.roundId,
-    match.round.turnId,
-  );
+  const advanced = expireGuessingChallengeTurn(match, match.round.roundId, match.round.turnId);
   assert.ok(advanced);
   assert.equal(advanced.round.currentTurnTeamId, 'red');
   assert.notEqual(advanced.round.turnId, match.round.turnId);
@@ -863,11 +866,7 @@ test('yellow activation and every unit receive fresh 45-second generations', () 
 
   const ids = [match.round.turnId];
   for (let index = 0; index < 3; index += 1) {
-    const next = expireGuessingChallengeTurn(
-      match,
-      match.round.roundId,
-      match.round.turnId,
-    );
+    const next = expireGuessingChallengeTurn(match, match.round.roundId, match.round.turnId);
     assert.ok(next);
     match = next;
     ids.push(match.round.turnId);
@@ -894,10 +893,7 @@ test('pending 2v2 card auto-activates when unconfirmed teammate disconnects', ()
   assert.equal(first.ok, true);
   assert.equal(match.round.yellowQuestionsRemaining, null);
 
-  const disconnectedShell = makeShell(
-    ['p1', 'p2', 'p3', 'p4'],
-    ['p1', 'p2', 'p4'],
-  );
+  const disconnectedShell = makeShell(['p1', 'p2', 'p3', 'p4'], ['p1', 'p2', 'p4']);
   const reconciled = reconcilePendingCardConfirm(match, disconnectedShell);
   assert.equal(reconciled.changed, true);
   assert.equal(reconciled.activated, true);
@@ -921,11 +917,7 @@ test('turn transition cancels pending card and stale approval rejects', () => {
   );
   assert.equal(first.ok, true);
   const pending = match.round.cardConfirm!;
-  const advanced = expireGuessingChallengeTurn(
-    match,
-    match.round.roundId,
-    match.round.turnId,
-  )!;
+  const advanced = expireGuessingChallengeTurn(match, match.round.roundId, match.round.turnId)!;
   assert.equal(advanced.round.cardConfirm, null);
 
   let current = advanced;
@@ -951,12 +943,7 @@ test('random category prefers unused; fixed category remains fixed', () => {
     'food',
   );
   assert.equal(
-    chooseRoundCategoryId(
-      GUESSING_CHALLENGE_RANDOM_CATEGORY_ID,
-      ['animals'],
-      pool,
-      () => 0,
-    ),
+    chooseRoundCategoryId(GUESSING_CHALLENGE_RANDOM_CATEGORY_ID, ['animals'], pool, () => 0),
     'food',
   );
 });
@@ -1017,11 +1004,7 @@ test('specific match category remains internal category for all four rounds', ()
 });
 
 test('identity picker consumes remaining fresh alternative before reuse', () => {
-  const pool = [
-    makeIdentity('a', 'أ'),
-    makeIdentity('b', 'ب'),
-    makeIdentity('c', 'ج'),
-  ];
+  const pool = [makeIdentity('a', 'أ'), makeIdentity('b', 'ب'), makeIdentity('c', 'ج')];
   const picked = pickTwoIdentities(pool, ['a', 'b']);
   assert.ok(picked.some((identity) => identity.id === 'c'));
   assert.notEqual(picked[0].id, picked[1].id);
@@ -1047,10 +1030,7 @@ test('spectator sees both identities and cannot act', () => {
 
 test('departed teammate receives no future mirrored score', () => {
   let match = markGuessingChallengePlayerDeparted(makeMatch2v2(), 'p3');
-  assert.equal(
-    endQuestionTurn(match, 'p3', match.round.roundId, match.round.turnId).ok,
-    false,
-  );
+  assert.equal(endQuestionTurn(match, 'p3', match.round.roundId, match.round.turnId).ok, false);
   match = withRound(match, {
     ...match.round,
     winningTeamId: 'blue',
@@ -1135,11 +1115,7 @@ test('omitted requestId still joins the current 2v2 pending card', () => {
 
 test('departed player playing view hides secrets and cannot act', () => {
   const match = markGuessingChallengePlayerDeparted(makeMatch2v2(), 'p3');
-  const view = buildGuessingChallengePlayerView(
-    match,
-    'p3',
-    makeShell(['p1', 'p2', 'p3', 'p4']),
-  );
+  const view = buildGuessingChallengePlayerView(match, 'p3', makeShell(['p1', 'p2', 'p3', 'p4']));
   assert.equal(view.isMatchSpectator, true);
   assert.equal(view.opponent.visibleIdentity, null);
   assert.equal(view.canGuess, false);
@@ -1184,9 +1160,7 @@ test('entire team permanent leave leaves no eligible actors', () => {
   let match = markGuessingChallengePlayerDeparted(makeMatch2v2(), 'p2');
   match = markGuessingChallengePlayerDeparted(match, 'p4');
   assert.equal(match.departedPlayerIds.length, 2);
-  const scored = applyRoundScores(
-    withRound(match, { ...match.round, winningTeamId: null }),
-  );
+  const scored = applyRoundScores(withRound(match, { ...match.round, winningTeamId: null }));
   assert.equal(scored.teamScores.red, 0);
   assert.equal(scored.teamScores.blue, 0);
 });

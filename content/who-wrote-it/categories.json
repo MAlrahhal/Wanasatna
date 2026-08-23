@@ -1,6 +1,22 @@
 [
-  { "id": "funny", "name": "أسئلة مضحكة", "enabled": true },
-  { "id": "personal", "name": "أسئلة شخصية", "enabled": true },
-  { "id": "situations", "name": "مواقف", "enabled": true },
-  { "id": "preferences", "name": "تفضيلات", "enabled": true }
+  {
+    "id": "funny-situations",
+    "name": "مواقف مضحكة",
+    "enabled": true
+  },
+  {
+    "id": "confessions",
+    "name": "اعترافات",
+    "enabled": true
+  },
+  {
+    "id": "light-personal",
+    "name": "أسئلة شخصية خفيفة",
+    "enabled": true
+  },
+  {
+    "id": "what-would-you-do",
+    "name": "ماذا ستفعل؟",
+    "enabled": true
+  }
 ]

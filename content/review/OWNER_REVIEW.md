@@ -11,67 +11,61 @@
 `animals-1 — أسد`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-2 — قطة`
+`animals-2 — نمر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-3 — حصان`
+`animals-3 — فيل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-4 — كلب`
+`animals-4 — زرافة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-5 — جمل`
+`animals-5 — قرد`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-6 — ذئب`
+`animals-6 — دب`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-7 — نمر`
+`animals-7 — ذئب`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-8 — فيل`
+`animals-8 — ثعلب`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-9 — زرافة`
+`animals-9 — أرنب`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-10 — أرنب`
+`animals-10 — جمل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-11 — دب`
+`animals-11 — حصان`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-12 — ثعلب`
+`animals-12 — بقرة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-penguin — بطريق`
+`animals-13 — خروف`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-dolphin — دلفين`
+`animals-14 — ماعز`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-bee — نحلة`
+`animals-15 — كلب`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-crocodile — تمساح`
+`animals-16 — قطة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-monkey — قرد`
+`animals-17 — تمساح`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-owl — بومة`
+`animals-18 — ثعبان`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-butterfly — فراشة`
+`animals-19 — بطريق`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-kangaroo — كنغر`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`animals-turtle — سلحفاة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`animals-whale — حوت`
+`animals-20 — دلفين`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## أكلات
@@ -79,67 +73,61 @@
 `food-1 — بيتزا`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-2 — برجر`
+`food-2 — برغر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-3 — كبسة`
+`food-3 — شاورما`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-4 — قهوة`
+`food-4 — كبسة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 `food-5 — مندي`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-6 — شاورما`
+`food-6 — فلافل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-7 — فلافل`
+`food-7 — حمص`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-8 — هريس`
+`food-8 — كنافة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-9 — تمر`
+`food-9 — بقلاوة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-10 — كنافة`
+`food-10 — سوشي`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-11 — سوشي`
+`food-11 — باستا`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-12 — معصوب`
+`food-12 — بشاميل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-donut — دونات`
+`food-13 — آيس كريم`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-icecream — آيس كريم`
+`food-14 — فشار`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-pasta — معكرونة`
+`food-15 — دونات`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-hummus — حمص`
+`food-16 — بان كيك`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-mutabbaq — مطبق`
+`food-17 — وافل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-watermelon — بطيخ`
+`food-18 — كب كيك`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-chocolate — شوكولاتة`
+`food-19 — سمبوسة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-apple — تفاح`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`food-soup — شوربة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`food-salad — سلطة`
+`food-20 — تشيز كيك`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## بلدان
@@ -147,475 +135,247 @@
 `countries-1 — السعودية`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-2 — مصر`
+`countries-2 — الأردن`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-3 — اليابان`
+`countries-3 — مصر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 `countries-4 — الإمارات`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-5 — تركيا`
+`countries-5 — الكويت`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-6 — فرنسا`
+`countries-6 — قطر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-7 — البرازيل`
+`countries-7 — البحرين`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-8 — المغرب`
+`countries-8 — عُمان`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-9 — الكويت`
+`countries-9 — المغرب`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-10 — إيطاليا`
+`countries-10 — تركيا`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-11 — كوريا الجنوبية`
+`countries-11 — اليابان`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-12 — قطر`
+`countries-12 — الصين`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-usa — أمريكا`
+`countries-13 — الهند`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-china — الصين`
+`countries-14 — فرنسا`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-india — الهند`
+`countries-15 — إيطاليا`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-germany — ألمانيا`
+`countries-16 — إسبانيا`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-spain — إسبانيا`
+`countries-17 — ألمانيا`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-england — إنجلترا`
+`countries-18 — بريطانيا`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-canada — كندا`
+`countries-19 — أمريكا`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`countries-australia — أستراليا`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`countries-jordan — الأردن`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`countries-oman — عمان`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## سيارات
-
-`cars-1 — سيارة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-2 — شاحنة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-3 — دراجة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-4 — Toyota`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-5 — Lexus`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-6 — Mercedes`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-7 — Hyundai`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-8 — Nissan`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-9 — BMW`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-10 — Jeep`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-11 — Land Cruiser`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-12 — Porsche`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-honda — Honda`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-ford — Ford`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-audi — Audi`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-volkswagen — Volkswagen`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-ferrari — Ferrari`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-tesla — Tesla`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-lambo — Lamborghini`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-mustang — Mustang`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-kia — Kia`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`cars-chevrolet — Chevrolet`
+`countries-20 — البرازيل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## كرة قدم
 
-`football-1 — ميسي`
+`football-1 — كريستيانو رونالدو`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-2 — مرمى`
+`football-2 — ليونيل ميسي`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-3 — حكم`
+`football-3 — نيمار`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-4 — رونالدو`
+`football-4 — كيليان مبابي`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-5 — الهلال`
+`football-5 — محمد صلاح`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-6 — النصر`
+`football-6 — كريم بنزيما`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-7 — برشلونة`
+`football-7 — لوكا مودريتش`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-8 — ريال مدريد`
+`football-8 — روبرت ليفاندوفسكي`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-9 — حذاء كرة قدم`
+`football-9 — إيرلينغ هالاند`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-10 — ركلة جزاء`
+`football-10 — فينيسيوس جونيور`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-11 — كأس العالم`
+`football-11 — رونالدينيو`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-12 — الاتحاد`
+`football-12 — زين الدين زيدان`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-salah — محمد صلاح`
+`football-13 — ديفيد بيكهام`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-neymar — نيمار`
+`football-14 — تييري هنري`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-mbappe — مبابي`
+`football-15 — أندريس إنييستا`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-zidane — زيدان`
+`football-16 — تشافي`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-pele — بيليه`
+`football-17 — سيرجيو راموس`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-liverpool — ليفربول`
+`football-18 — بوفون`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-united — مانشستر يونايتد`
+`football-19 — رونالدو نازاريو`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`football-ahly — الأهلي`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`football-juventus — يوفنتوس`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`football-bayern — بايرن ميونخ`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## أفلام
-
-`movies-1 — Avatar`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-2 — Titanic`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-3 — Interstellar`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-4 — Harry Potter`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-5 — Joker`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-6 — Avengers`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-7 — Finding Nemo`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-8 — Frozen`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-9 — Spider-Man`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-10 — Batman`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-11 — Fast & Furious`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-12 — The Lion King`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-inception — Inception`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-toystory — Toy Story`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-shrek — Shrek`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-matrix — The Matrix`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-jurassic — Jurassic Park`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-homealone — Home Alone`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-coco — Coco`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-up — Up`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-jaws — Jaws`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`movies-aladdin — Aladdin`
+`football-20 — بيليه`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## مسلسلات
 
-`series-1 — Friends`
+`series-1 — Breaking Bad`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-2 — Scrubs`
+`series-2 — Game of Thrones`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-3 — Game of Thrones`
+`series-3 — Prison Break`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-4 — Stranger Things`
+`series-4 — The Walking Dead`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-5 — The Office`
+`series-5 — Peaky Blinders`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-6 — Breaking Bad`
+`series-6 — Stranger Things`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-7 — Squid Game`
+`series-7 — Money Heist`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-8 — The Crown`
+`series-8 — The Boys`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-9 — House of Cards`
+`series-9 — Dexter`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 `series-10 — Sherlock`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-11 — Peaky Blinders`
+`series-11 — The Last of Us`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-12 — The Witcher`
+`series-12 — Squid Game`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-dark — Dark`
+`series-13 — Better Call Saul`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-lost — Lost`
+`series-14 — Vikings`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-prisonbreak — Prison Break`
+`series-15 — Lost`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-himym — How I Met Your Mother`
+`series-16 — The Witcher`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-simpsons — The Simpsons`
+`series-17 — House of the Dragon`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-wednesday — Wednesday`
+`series-18 — The Sopranos`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-seinfeld — Seinfeld`
+`series-19 — Narcos`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`series-blackmirror — Black Mirror`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`series-b99 — Brooklyn Nine-Nine`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`series-greys — Grey's Anatomy`
+`series-20 — Suits`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## ألعاب
 
-`games-1 — FIFA`
+`games-1 — Minecraft`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-2 — Minecraft`
+`games-2 — Fortnite`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-3 — Fortnite`
+`games-3 — PUBG`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-4 — Call of Duty`
+`games-4 — GTA V`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-5 — Grand Theft Auto`
+`games-5 — Call of Duty`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-6 — PUBG`
+`games-6 — FIFA`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-7 — League of Legends`
+`games-7 — Rocket League`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 `games-8 — Valorant`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-9 — Roblox`
+`games-9 — League of Legends`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-10 — Zuma`
+`games-10 — Counter-Strike`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-11 — Asphalt`
+`games-11 — Overwatch`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-12 — Candy Crush`
+`games-12 — Marvel Rivals`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-mario — Super Mario`
+`games-13 — Among Us`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-tetris — Tetris`
+`games-14 — The Last of Us`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-amongus — Among Us`
+`games-15 — Red Dead Redemption 2`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-angrybirds — Angry Birds`
+`games-16 — Resident Evil`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-pacman — Pac-Man`
+`games-17 — Assassin’s Creed`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-sims — The Sims`
+`games-18 — God of War`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-clash — Clash of Clans`
+`games-19 — Elden Ring`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`games-pokemon — Pokemon`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`games-cs — Counter-Strike`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`games-sf — Street Fighter`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## تقنيات
-
-`tech-1 — iPhone`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-2 — Laptop`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-3 — Samsung`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-4 — iPad`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-5 — PlayStation`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-6 — Xbox`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-7 — WhatsApp`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-8 — TikTok`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-9 — Snapchat`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-10 — Google`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-11 — Wi-Fi`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-12 — AirPods`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-chatgpt — ChatGPT`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-youtube — YouTube`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-instagram — Instagram`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-facebook — Facebook`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-bluetooth — Bluetooth`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-windows — Windows`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-android — Android`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-netflix — Netflix`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-usb — USB`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tech-zoom — Zoom`
+`games-20 — Spider-Man`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 # ارسم وخمّن
@@ -625,67 +385,61 @@
 `animals-1 — أسد`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-2 — فيل`
+`animals-2 — نمر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-cat — قطة`
+`animals-3 — فيل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-dog — كلب`
+`animals-4 — زرافة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-giraffe — زرافة`
+`animals-5 — قرد`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-penguin — بطريق`
+`animals-6 — دب`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-dolphin — دلفين`
+`animals-7 — أرنب`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-octopus — أخطبوط`
+`animals-8 — جمل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-bee — نحلة`
+`animals-9 — حصان`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-butterfly — فراشة`
+`animals-10 — قطة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-crocodile — تمساح`
+`animals-11 — كلب`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-turtle — سلحفاة`
+`animals-12 — بطريق`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-horse — حصان`
+`animals-13 — تمساح`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-camel — جمل`
+`animals-14 — ثعبان`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-rabbit — أرنب`
+`animals-15 — دلفين`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-bear — دب`
+`animals-16 — أخطبوط`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-fox — ثعلب`
+`animals-17 — سلحفاة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-monkey — قرد`
+`animals-18 — ضفدع`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-owl — بومة`
+`animals-19 — نحلة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-kangaroo — كنغر`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`animals-fish — سمكة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`animals-snail — حلزون`
+`animals-20 — فراشة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## أكلات
@@ -693,684 +447,308 @@
 `food-1 — بيتزا`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-2 — آيس كريم`
+`food-2 — برغر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-burger — برجر`
+`food-3 — شاورما`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-donut — دونات`
+`food-4 — كبسة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-apple — تفاحة`
+`food-5 — مندي`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-banana — موزة`
+`food-6 — فلافل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-watermelon — بطيخ`
+`food-7 — كنافة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-cake — كعكة`
+`food-8 — سوشي`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-fries — بطاطس مقلية`
+`food-9 — آيس كريم`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-shawarma — شاورما`
+`food-10 — دونات`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-falafel — فلافل`
+`food-11 — بان كيك`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-grapes — عنب`
+`food-12 — وافل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-bread — خبز`
+`food-13 — كب كيك`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-egg — بيضة`
+`food-14 — سمبوسة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-strawberry — فراولة`
+`food-15 — تشيز كيك`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-carrot — جزر`
+`food-16 — بطيخ`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-corn — ذرة`
+`food-17 — أناناس`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-hotdog — هوت دوغ`
+`food-18 — فراولة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-coffee — قهوة`
+`food-19 — بيضة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-pear — كمثرى`
+`food-20 — فشار`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-croissant — كرواسون`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`food-pancake — بان كيك`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## أغراض منزلية
-
-`household-1 — ثلاجة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-2 — كرسي`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-bed — سرير`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-sofa — كنبة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-tv — تلفزيون`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-washer — غسالة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-lamp — مصباح`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-table — طاولة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-mirror — مرآة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-broom — مكنسة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-iron — مكواة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-microwave — ميكروويف`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-clock — ساعة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-door — باب`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-window — نافذة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-closet — خزانة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-fan — مروحة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-rug — سجادة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-pillow — وسادة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-oven — فرن`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-sink — حوض`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-toilet — مرحاض`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## أدوات
-
-`tools-1 — مطرقة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-2 — مفك براغي`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-saw — منشار`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-flashlight — كشاف`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-stapler — دباسة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-adhesive-tape — شريط لاصق`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-scissors — مقص`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-ruler — مسطرة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-axe — فأس`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-toolbox — صندوق أدوات`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-nail — مسمار`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-screw — برغي`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-tape — شريط قياس`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-ladder — سلم`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-bucket — دلو`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-blower — منفاخ`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-wheelbarrow — عربة يد`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-pencil — قلم رصاص`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-shovel — مجرفة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-extinguisher — طفاية حريق`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-glue-gun — مسدس غراء`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-paint-roller — بكرة دهان`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-nail-clipper — مقص أظافر`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## مواصلات
-
-`transport-1 — سيارة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-2 — طائرة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-train — قطار`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-bike — دراجة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-ship — سفينة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-bus — حافلة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-boat — قارب`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-metro — مترو`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-motorcycle — دراجة نارية`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-truck — شاحنة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-helicopter — هليكوبتر`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-taxi — تاكسي`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-scooter — سكوتر`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-submarine — غواصة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-balloon — منطاد`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-ambulance — إسعاف`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-firetruck — سيارة إطفاء`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-cable-car — تلفريك`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-van — فان`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-canoe — زورق`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-rocket — صاروخ`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-skateboard — لوح تزلج`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## مهن
-
-`professions-1 — طبيب`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-chef — طباخ`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-police — شرطي`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-firefighter — رجل إطفاء`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-pilot — طيار`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-teacher — معلم`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-carpenter — نجار`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-baker — خباز`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-painter — رسام`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-photographer — مصور`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-nurse — ممرض`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-barber — حلاق`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-farmer — مزارع`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-mail-carrier — ساعي بريد`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-builder — بنّاء`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-driver — سائق`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-soldier — جندي`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-musician — موسيقي`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-janitor — عامل نظافة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-dentist — طبيب أسنان`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-waiter — نادل`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-mechanic — ميكانيكي`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## طبيعة
+## طبيعة وفضاء وطقس
 
 `nature-1 — بركان`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-mountain — جبل`
+`nature-2 — شلال`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-tree — شجرة`
+`nature-3 — قمر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-rainbow — قوس قزح`
+`nature-4 — شمس`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-desert — صحراء`
+`nature-5 — نيزك`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-sun — شمس`
+`nature-6 — صاروخ`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-moon — قمر`
+`nature-7 — كوكب`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-star — نجمة`
+`nature-8 — نجمة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-cloud — سحابة`
+`nature-9 — صحراء`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-sea — بحر`
+`nature-10 — غيمة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-river — نهر`
+`nature-11 — مطر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-waterfall — شلال`
+`nature-12 — برق`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-flower — زهرة`
+`nature-13 — إعصار`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-rock — صخرة`
+`nature-14 — قوس قزح`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-island — جزيرة`
+`nature-15 — شاطئ`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-forest — غابة`
+`nature-16 — كهف`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-snow — ثلج`
+`nature-17 — جبل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-rain — مطر`
+`nature-18 — نهر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-lightning — برق`
+`nature-19 — جزيرة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-cave — كهف`
+`nature-20 — ثلج`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-palm — نخلة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`nature-wave — موج`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## رياضة
-
-`sports-1 — كرة سلة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-2 — مرمى`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-football — كرة قدم`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-tennis — تنس`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-swim — سباحة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-boxing — ملاكمة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-volleyball — كرة طائرة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-running — جري`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-handball — كرة يد`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-golf — جولف`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-ski — تزلج`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-archery — رماية بالقوس`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-karate — كاراتيه`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-cycling — سباق دراجات`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-weights — رفع أثقال`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-pingpong — كرة طاولة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-jump — حبل قفز`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-bowling — بولينغ`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-hockey — هوكي`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-surf — ركوب أمواج`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
+## أماكن ومعالم واضحة
 
-`sports-skate — تزلج لوح`
+`places-1 — مستشفى`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`sports-horse-riding — ركوب خيل`
+`places-2 — مطار`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-## ملابس وإكسسوارات
-
-`clothing-1 — قبعة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`clothing-shoe — حذاء`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`clothing-glasses — نظارة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`clothing-dress — فستان`
+`places-3 — مدرسة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-glove — قفاز`
+`places-4 — ملعب كرة قدم`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-shirt — قميص`
+`places-5 — حديقة حيوان`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-pants — بنطلون`
+`places-6 — مدينة ملاهي`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-sock — جورب`
+`places-7 — قلعة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-coat — معطف`
+`places-8 — أهرامات`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-tie — ربطة عنق`
+`places-9 — برج إيفل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-belt — حزام`
+`places-10 — برج خليفة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-scarf — وشاح`
+`places-11 — خيمة سيرك`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-helmet — خوذة`
+`places-12 — محطة قطار`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-crown — تاج`
+`places-13 — مطعم`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-boots — جزمة`
+`places-14 — فندق`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-skirt — تنورة`
+`places-15 — مكتبة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-pajamas — بيجامة`
+`places-16 — مسجد`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-cap — كاب`
+`places-17 — متحف`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-abaya — عباءة`
+`places-18 — جسر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-watch — ساعة يد`
+`places-19 — منارة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-ring — خاتم`
+`places-20 — محطة وقود`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-umbrella — مظلة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## أماكن
-
-`places-1 — مدرسة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`places-2 — مسجد`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`places-hospital — مستشفى`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
+## تقنيات
 
-`places-airport — مطار`
+`tech-1 — هاتف`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-restaurant — مطعم`
+`tech-2 — لابتوب`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-beach — شاطئ`
+`tech-3 — كمبيوتر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-house — بيت`
+`tech-4 — روبوت`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-stadium — ملعب`
+`tech-5 — كاميرا`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-library — مكتبة`
+`tech-6 — سماعات`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-park — حديقة`
+`tech-7 — لوحة مفاتيح`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-market — سوق`
+`tech-8 — فأرة كمبيوتر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-bank — بنك`
+`tech-9 — شاشة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-palace — قصر`
+`tech-10 — طابعة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-tent — خيمة`
+`tech-11 — ساعة ذكية`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-bridge — جسر`
+`tech-12 — شاحن`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-farm — مزرعة`
+`tech-13 — باور بانك`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-station — محطة قطار`
+`tech-14 — درون`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-zoo — حديقة حيوان`
+`tech-15 — بلايستيشن`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-museum — متحف`
+`tech-16 — يد تحكم`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-pool — مسبح`
+`tech-17 — نظارة واقع افتراضي`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-castle — قلعة`
+`tech-18 — ميكروفون`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-lighthouse — منارة`
+`tech-19 — فلاش ميموري`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 # الإمبوستر بالرسم
 
 ## حيوانات
 
-`animals-1 — كلب`
+`animals-1 — أسد`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-2 — قطة`
+`animals-2 — نمر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-3 — أسد`
+`animals-3 — فيل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-4 — فيل`
+`animals-4 — زرافة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-giraffe — زرافة`
+`animals-5 — قرد`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-penguin — بطريق`
+`animals-6 — دب`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-fish — سمكة`
+`animals-7 — أرنب`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-bird — عصفور`
+`animals-8 — جمل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-snake — ثعبان`
+`animals-9 — حصان`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-duck — بطة`
+`animals-10 — قطة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-chicken — دجاجة`
+`animals-11 — كلب`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-cow — بقرة`
+`animals-12 — بطريق`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-sheep — خروف`
+`animals-13 — تمساح`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-horse — حصان`
+`animals-14 — ثعبان`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-camel — جمل`
+`animals-15 — دلفين`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-mouse — فأر`
+`animals-16 — أخطبوط`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-frog — ضفدع`
+`animals-17 — سلحفاة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-crab — سلطعون`
+`animals-18 — ضفدع`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-spider — عنكبوت`
+`animals-19 — نحلة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`animals-bee — نحلة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`animals-owl — بومة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`animals-whale — حوت`
+`animals-20 — فراشة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## أكلات
@@ -1378,608 +756,244 @@
 `food-1 — بيتزا`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-2 — برجر`
+`food-2 — برغر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-3 — تفاحة`
+`food-3 — شاورما`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-4 — آيس كريم`
+`food-4 — كبسة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-banana — موزة`
+`food-5 — مندي`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-donut — دونات`
+`food-6 — فلافل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-cake — كعكة`
+`food-7 — كنافة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-bread — خبز`
+`food-8 — سوشي`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-egg — بيضة`
+`food-9 — آيس كريم`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-watermelon — بطيخ`
+`food-10 — دونات`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-grapes — عنب`
+`food-11 — بان كيك`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-orange — برتقالة`
+`food-12 — وافل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-corn — ذرة`
+`food-13 — كب كيك`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-carrot — جزر`
+`food-14 — سمبوسة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-tomato — طماطم`
+`food-15 — تشيز كيك`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-cheese — جبنة`
+`food-16 — بطيخ`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-hotdog — هوت دوغ`
+`food-17 — أناناس`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-fries — بطاطس مقلية`
+`food-18 — فراولة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-cupcake — كب كيك`
+`food-19 — بيضة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-lollipop — مصاصة`
+`food-20 — فشار`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`food-popcorn — فشار`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`food-coffee — فنجان قهوة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## أغراض منزلية
-
-`household-1 — ثلاجة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-2 — كرسي`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-3 — سرير`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-sofa — كنبة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-tv — تلفزيون`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-lamp — مصباح`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-table — طاولة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-door — باب`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-window — نافذة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-clock — ساعة حائط`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-mirror — مرآة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-broom — مكنسة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-fan — مروحة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-pillow — وسادة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-cup — كوب`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-plate — صحن`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-spoon — ملعقة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-fork — شوكة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-knife — سكين`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-key — مفتاح`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-phone — هاتف`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`household-book — كتاب`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## أدوات
-
-`tools-1 — مطرقة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-2 — مفك براغي`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-saw — منشار`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-scissors — مقص`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-axe — فأس`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-shovel — مجرفة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-ladder — سلم`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-bucket — دلو`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-extinguisher — طفاية حريق`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-blower — منفاخ`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-wrench — مفتاح ربط`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-pliers — كماشة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-drill — مثقاب`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-ruler — مسطرة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-toolbox — صندوق أدوات`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-paintbrush — فرشاة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-tape — شريط لاصق`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-flashlight — كشاف`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-hose — خرطوم`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-glue-gun — مسدس غراء`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-wheelbarrow — عربة يد`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`tools-stapler — دباسة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## مواصلات
-
-`transport-1 — سيارة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-2 — دراجة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-3 — حافلة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-plane — طائرة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-train — قطار`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-boat — قارب`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-ship — سفينة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-truck — شاحنة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-helicopter — هليكوبتر`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-motorcycle — دراجة نارية`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-taxi — تاكسي`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-ambulance — إسعاف`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`transport-firetruck — سيارة إطفاء`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
+## طبيعة وفضاء وطقس
 
-`transport-rocket — صاروخ`
+`nature-1 — بركان`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`transport-submarine — غواصة`
+`nature-2 — شلال`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`transport-scooter — سكوتر`
+`nature-3 — قمر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`transport-tractor — جرار`
+`nature-4 — شمس`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`transport-balloon — منطاد`
+`nature-5 — نيزك`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`transport-cable-car — تلفريك`
+`nature-6 — صاروخ`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`transport-race-car — سيارة سباق`
+`nature-7 — كوكب`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`transport-garbage-truck — شاحنة قمامة`
+`nature-8 — نجمة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`transport-metro — مترو`
+`nature-9 — صحراء`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-## مهن
-
-`professions-1 — طبيب`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-2 — شرطي`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-chef — طباخ`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-firefighter — رجل إطفاء`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-pilot — طيار`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-teacher — معلم`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-nurse — ممرض`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-barber — حلاق`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-farmer — مزارع`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-builder — بنّاء`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-soldier — جندي`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-waiter — نادل`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-painter — رسام`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-singer — مغني`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-dancer — راقص`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-clown — مهرج`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-mail-carrier — ساعي بريد`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-astronaut — رائد فضاء`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-diver — غواص`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-referee — حكم`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-driver — سائق`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`professions-baker — خباز`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## طبيعة
-
-`nature-1 — شجرة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`nature-2 — شمس`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`nature-moon — قمر`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`nature-star — نجمة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`nature-cloud — سحابة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`nature-rain — مطر`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`nature-mountain — جبل`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`nature-volcano — بركان`
+`nature-10 — غيمة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-flower — زهرة`
+`nature-11 — مطر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-palm — نخلة`
+`nature-12 — برق`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-sea — بحر`
+`nature-13 — إعصار`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-wave — موج`
+`nature-14 — قوس قزح`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-rainbow — قوس قزح`
+`nature-15 — شاطئ`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-snowman — رجل ثلج`
+`nature-16 — كهف`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-cactus — صبار`
+`nature-17 — جبل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-leaf — ورقة شجر`
+`nature-18 — نهر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-fire — نار`
+`nature-19 — جزيرة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-meteor — شهاب`
+`nature-20 — ثلج`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`nature-island — جزيرة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`nature-cave — كهف`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`nature-waterfall — شلال`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`nature-lightning — برق`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## رياضة
-
-`sports-football — كرة قدم`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-2 — مرمى`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-basket — كرة سلة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-tennis — مضرب تنس`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-swim — سباحة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-boxing — ملاكمة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-trophy — كأس`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-medal — ميدالية`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-whistle — صافرة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-bike — دراجة سباق`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`sports-ski — تزلج`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
+## أماكن ومعالم واضحة
 
-`sports-surf — لوح أمواج`
+`places-1 — مستشفى`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`sports-golf — جولف`
+`places-2 — مطار`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`sports-bowling — بولينغ`
+`places-3 — مدرسة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`sports-pingpong — كرة طاولة`
+`places-4 — ملعب كرة قدم`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`sports-volleyball — كرة طائرة`
+`places-5 — حديقة حيوان`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`sports-goalie — قفاز حارس`
+`places-6 — مدينة ملاهي`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`sports-archery — رماية بالقوس`
+`places-7 — قلعة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`sports-horse-riding — ركوب خيل`
+`places-8 — أهرامات`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`sports-hoop — حلقة سلة`
+`places-9 — برج إيفل`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`sports-finish — خط نهاية`
+`places-10 — برج خليفة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-## ملابس وإكسسوارات
-
-`clothing-1 — قبعة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`clothing-2 — حذاء`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`clothing-glasses — نظارة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`clothing-dress — فستان`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`clothing-shirt — قميص`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`clothing-pants — بنطلون`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`clothing-sock — جورب`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`clothing-coat — معطف`
+`places-11 — خيمة سيرك`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-tie — ربطة عنق`
+`places-12 — محطة قطار`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-hat — طاقية`
+`places-13 — مطعم`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-boot — جزمة`
+`places-14 — فندق`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-glove — قفاز`
+`places-15 — مكتبة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-scarf — وشاح`
+`places-16 — مسجد`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-belt — حزام`
+`places-17 — متحف`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-crown — تاج`
+`places-18 — جسر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-helmet — خوذة`
+`places-19 — منارة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-umbrella — مظلة`
+`places-20 — محطة وقود`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`clothing-backpack — حقيبة ظهر`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`clothing-watch — ساعة يد`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`clothing-ring — خاتم`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`clothing-necklace — قلادة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`clothing-sandal — صندل`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## أماكن
-
-`places-1 — مدرسة`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`places-2 — مسجد`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`places-house — بيت`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
+## تقنيات
 
-`places-hospital — مستشفى`
+`tech-1 — هاتف`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-airport — مطار`
+`tech-2 — لابتوب`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-beach — شاطئ`
+`tech-3 — كمبيوتر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-tent — خيمة`
+`tech-4 — روبوت`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-bridge — جسر`
+`tech-5 — كاميرا`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-castle — قلعة`
+`tech-6 — سماعات`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-lighthouse — منارة`
+`tech-7 — لوحة مفاتيح`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-igloo — كوخ ثلج`
+`tech-8 — فأرة كمبيوتر`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-pyramid — هرم`
+`tech-9 — شاشة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-treehouse — بيت شجرة`
+`tech-10 — طابعة`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-well — بئر`
+`tech-11 — ساعة ذكية`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-fountain — نافورة`
+`tech-12 — شاحن`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-pool — مسبح`
+`tech-13 — باور بانك`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-farm — مزرعة`
+`tech-14 — درون`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-shop — دكان`
+`tech-15 — بلايستيشن`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-tower — برج`
+`tech-16 — يد تحكم`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-minaret — مئذنة`
+`tech-17 — نظارة واقع افتراضي`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-park — حديقة`
+`tech-18 — ميكروفون`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`places-stadium — ملعب`
+`tech-19 — فلاش ميموري`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 # أسرع إجابة
@@ -1987,2974 +1001,1724 @@
 ## حيوانات
 
 ### animals-1
-- السؤال: ما اسم أكبر حيوان على اليابسة؟
-- الجواب: فيل
-- الأجوبة المقبولة: فيل، الفيل، فيل افريقي، الفيل الافريقي
+- السؤال: ما أسرع حيوان بري؟
+- الجواب: الفهد الصياد
+- الأجوبة المقبولة: الفهد الصياد، الفهد، الشيتا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### animals-2
-- السؤال: أي حيوان يُلقّب بملك الغابة؟
-- الجواب: أسد
-- الأجوبة المقبولة: أسد، الأسد
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-3
-- السؤال: ما الحيوان المعروف برقبة طويلة جداً؟
-- الجواب: زرافة
-- الأجوبة المقبولة: زرافة، الزرافة، زرافه، الزرافه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-cow
-- السؤال: ما اسم الحيوان الذي يُربى للحليب في المزارع؟
-- الجواب: بقرة
-- الأجوبة المقبولة: بقرة، البقرة، بقره
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-bee
-- السؤال: ما اسم الحشرة التي تصنع العسل؟
-- الجواب: نحلة
-- الأجوبة المقبولة: نحلة، النحلة، نحله
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-rabbit
-- السؤال: أي حيوان أليف معروف بأذنين طويلتين؟
-- الجواب: أرنب
-- الأجوبة المقبولة: أرنب، الأرنب
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-penguin
-- السؤال: ما اسم الطائر الأبيض والأسود في المناطق الباردة؟
-- الجواب: بطريق
-- الأجوبة المقبولة: بطريق، البطريق
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-kangaroo
-- السؤال: أي حيوان يحمل صغاره في كيس على بطنه؟
-- الجواب: كنغر
-- الأجوبة المقبولة: كنغر، الكنغر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-whale
-- السؤال: ما اسم أكبر حيوان معروف على الأرض؟
+- السؤال: ما أكبر حيوان في العالم؟
 - الجواب: الحوت الأزرق
 - الأجوبة المقبولة: الحوت الأزرق، حوت أزرق
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### animals-chameleon
-- السؤال: ما الحيوان الذي يشتهر بتغيير لونه؟
-- الجواب: حرباء
-- الأجوبة المقبولة: حرباء، الحرباء
+### animals-3
+- السؤال: كم قلبًا للأخطبوط؟
+- الجواب: 3
+- الأجوبة المقبولة: 3، ثلاثة، ثلاث
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### animals-butterfly
-- السؤال: ما اسم الحشرة التي تخرج من شرنقة ولها أجنحة ملونة؟
-- الجواب: فراشة
-- الأجوبة المقبولة: فراشة، الفراشة، فراشه
+### animals-4
+- السؤال: ما الحيوان المعروف بسفينة الصحراء؟
+- الجواب: الجمل
+- الأجوبة المقبولة: الجمل
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### animals-spider
-- السؤال: كم رجلاً للعنكبوت؟
-- الجواب: ٨
-- الأجوبة المقبولة: ٨، 8، ثمانية، ثمانيه
+### animals-5
+- السؤال: ما الحيوان الذي يغيّر لون جلده للتمويه؟
+- الجواب: الحرباء
+- الأجوبة المقبولة: الحرباء
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### animals-cat
-- السؤال: أي حيوان أليف يُعرف بصوت المواء؟
-- الجواب: قطة
-- الأجوبة المقبولة: قطة، القطة، قطه
+### animals-6
+- السؤال: ما أكبر طائر في العالم؟
+- الجواب: النعامة
+- الأجوبة المقبولة: النعامة
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### animals-dog
-- السؤال: أي حيوان أليف يُعرف بالنباح؟
-- الجواب: كلب
-- الأجوبة المقبولة: كلب، الكلب
+### animals-7
+- السؤال: ما الحيوان الذي يتميز برقبة طويلة جدًا؟
+- الجواب: الزرافة
+- الأجوبة المقبولة: الزرافة
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### animals-camel
-- السؤال: ما اسم الحيوان الذي له سنام؟
-- الجواب: جمل
-- الأجوبة المقبولة: جمل، الجمل
+### animals-8
+- السؤال: ما الحيوان الذي يُلقب بملك الغابة؟
+- الجواب: الأسد
+- الأجوبة المقبولة: الأسد
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### animals-cheetah
-- السؤال: ما أسرع حيوان بري على اليابسة؟
-- الجواب: الفهد الصياد
-- الأجوبة المقبولة: الفهد الصياد، فهد صياد، الفهد
+### animals-9
+- السؤال: كم رجلًا للنملة؟
+- الجواب: 6
+- الأجوبة المقبولة: 6، ستة، ست
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### animals-dove
-- السؤال: ما الطائر الذي يُرمز به للسلام؟
-- الجواب: حمامة
-- الأجوبة المقبولة: حمامة، الحمامة، حمامه
+### animals-10
+- السؤال: ما الحيوان الذي يعيش في القطب الجنوبي ويشتهر بلونه الأسود والأبيض؟
+- الجواب: البطريق
+- الأجوبة المقبولة: البطريق
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### animals-hedgehog
-- السؤال: ما اسم الحيوان الصغير المغطى بالشوك؟
-- الجواب: قنفذ
-- الأجوبة المقبولة: قنفذ، القنفذ
+### animals-11
+- السؤال: ما الحيوان البحري الذي له ثمانية أذرع؟
+- الجواب: الأخطبوط
+- الأجوبة المقبولة: الأخطبوط
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### animals-shark
-- السؤال: ما اسم السمكة المفترسة ذات الزعنفة المثلثة؟
-- الجواب: قرش
-- الأجوبة المقبولة: قرش، القرش
+### animals-12
+- السؤال: ما الحيوان الذي يحمل صغاره في كيس؟
+- الجواب: الكنغر
+- الأجوبة المقبولة: الكنغر
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### animals-horse
-- السؤال: ما اسم الحيوان الذي يُستخدم كثيراً في الركوب؟
-- الجواب: حصان
-- الأجوبة المقبولة: حصان، الحصان
+### animals-13
+- السؤال: ما الحيوان الذي يشتهر ببطئه ويحمل صدفة؟
+- الجواب: السلحفاة
+- الأجوبة المقبولة: السلحفاة
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### animals-owl
-- السؤال: أي طائر يُعرف بالصيد ليلاً وله عينان كبيرتان؟
-- الجواب: بومة
-- الأجوبة المقبولة: بومة، البومة، بومه
+### animals-14
+- السؤال: ما الحيوان المعروف بخطوطه السوداء والبيضاء؟
+- الجواب: الحمار الوحشي
+- الأجوبة المقبولة: الحمار الوحشي، حمار وحشي، الزيبرا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### animals-dolphin
-- السؤال: ما اسم الحيوان البحري الذكي المعروف بالقفز فوق الماء؟
-- الجواب: دلفين
-- الأجوبة المقبولة: دلفين، الدلفين
+### animals-15
+- السؤال: ما الحشرة التي تنتج العسل؟
+- الجواب: النحلة
+- الأجوبة المقبولة: النحلة، النحل
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-16
+- السؤال: ما الحيوان الذي يُعرف بقدرته الكبيرة على تقليد أصوات البشر؟
+- الجواب: الببغاء
+- الأجوبة المقبولة: الببغاء
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-17
+- السؤال: ما أكبر حيوان بري؟
+- الجواب: الفيل
+- الأجوبة المقبولة: الفيل
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-18
+- السؤال: ما الحيوان الذي يعيش في الماء واليابسة ويبدأ حياته كشرغوف؟
+- الجواب: الضفدع
+- الأجوبة المقبولة: الضفدع
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-19
+- السؤال: ما الحيوان الذي يشتهر ببناء السدود؟
+- الجواب: القندس
+- الأجوبة المقبولة: القندس، البيفر
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-20
+- السؤال: ما الحيوان الذي يستخدم خرطومه للشرب؟
+- الجواب: الفيل
+- الأجوبة المقبولة: الفيل
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## أكلات
 
 ### food-1
-- السؤال: ما اسم الطبق الإيطالي المستدير الذي يُخبز بالعجين والجبن وصلصة الطماطم؟
+- السؤال: ما الأكلة الإيطالية الدائرية المشهورة بالجبن والصلصة؟
 - الجواب: بيتزا
-- الأجوبة المقبولة: بيتزا، البيتزا، pizza
+- الأجوبة المقبولة: بيتزا، Pizza
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-2
-- السؤال: ما الفاكهة الصفراء الطويلة المنحنية؟
-- الجواب: موز
-- الأجوبة المقبولة: موز، الموز، موزه، موزة
+- السؤال: ما الأكلة التي تتكون غالبًا من خبز ولحم وطبقات إضافية؟
+- الجواب: برغر
+- الأجوبة المقبولة: برغر، برجر، Burger
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-3
-- السؤال: ما المشروب الساخن المصنوع من البن؟
-- الجواب: قهوة
-- الأجوبة المقبولة: قهوة، القهوة، قهوه، القهوه
+- السؤال: ما الأكلة الشامية التي تُلف غالبًا بالخبز وتحتوي لحمًا أو دجاجًا؟
+- الجواب: شاورما
+- الأجوبة المقبولة: شاورما، Shawarma
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### food-bread
-- السؤال: مما يُصنع الخبز أساساً؟
-- الجواب: دقيق
-- الأجوبة المقبولة: دقيق، الدقيق، طحين، الطحين
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-salt
-- السؤال: ما المادة البيضاء التي نملّح بها الطعام؟
-- الجواب: ملح
-- الأجوبة المقبولة: ملح، الملح
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-water
-- السؤال: ما السائل الضروري لحياة الإنسان؟
-- الجواب: ماء
-- الأجوبة المقبولة: ماء، الماء
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-egg
-- السؤال: ما الذي تضعه الدجاجة ويُطبخ للفطور غالباً؟
-- الجواب: بيضة
-- الأجوبة المقبولة: بيضة، البيضة، بيضه، بيض
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-rice
-- السؤال: ما نوع الحبوب الذي يُطبخ ويُقدّم مع كثير من الأكلات الخليجية؟
-- الجواب: رز
-- الأجوبة المقبولة: رز، أرز، الرز، الأرز
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-tea
-- السؤال: ما المشروب الساخن الذي يُحضّر عادةً بنقع أوراقه في الماء ويُشرب وحده أو مع الحليب؟
-- الجواب: شاي
-- الأجوبة المقبولة: شاي، الشاي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-honey
-- السؤال: ما المادة الحلوة التي تنتجها النحلة؟
-- الجواب: عسل
-- الأجوبة المقبولة: عسل، العسل
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-orange
-- السؤال: ما الفاكهة الحمضية المستديرة التي تتكون من فصوص وتشتهر بعصيرها؟
-- الجواب: برتقال
-- الأجوبة المقبولة: برتقال، البرتقال، برتقاله
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-tomato
-- السؤال: ما الخضار الحمراء المستخدمة في السلطة والصلصة؟
-- الجواب: طماطم
-- الأجوبة المقبولة: طماطم، الطماطم، بندورة، البندورة
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-milk
-- السؤال: ما السائل الأبيض الذي يُشرب من الأبقار غالباً؟
-- الجواب: حليب
-- الأجوبة المقبولة: حليب، الحليب
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-sugar
-- السؤال: ما المادة الحلوة البيضاء التي تُضاف للشاي؟
-- الجواب: سكر
-- الأجوبة المقبولة: سكر، السكر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-ice
-- السؤال: ما الحالة الصلبة للماء؟
-- الجواب: ثلج
-- الأجوبة المقبولة: ثلج، الثلج
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-pasta-wheat
-- السؤال: المعكرونة تُصنع أساساً من أي نوع من الحبوب؟
-- الجواب: قمح
-- الأجوبة المقبولة: قمح، القمح
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-kabsa
-- السؤال: ما اسم الطبق السعودي الشهير بالأرز المتبل واللومي ويُقدّم غالباً مع الدجاج أو اللحم؟
+### food-4
+- السؤال: ما الطبق السعودي الشهير الذي يُحضّر بالأرز واللحم أو الدجاج؟
 - الجواب: كبسة
-- الأجوبة المقبولة: كبسة، الكبسة، كبسه
+- الأجوبة المقبولة: كبسة، Kabsa
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### food-cocoa
-- السؤال: الشوكولاتة تُصنع أساساً من أي حبة؟
-- الجواب: كاكاو
-- الأجوبة المقبولة: كاكاو، الكاكاو، كاكاوه
+### food-5
+- السؤال: ما الأكلة المصنوعة غالبًا من الحمص أو الفول وتُقلى على شكل أقراص؟
+- الجواب: فلافل
+- الأجوبة المقبولة: فلافل، طعمية
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### food-lemon
-- السؤال: ما الفاكهة الحامضة الصفراء الصغيرة؟
-- الجواب: ليمون
-- الأجوبة المقبولة: ليمون، الليمون، ليمونه
+### food-6
+- السؤال: ما الأكلة اليابانية المشهورة التي قد تحتوي أرزًا وسمكًا؟
+- الجواب: سوشي
+- الأجوبة المقبولة: سوشي، Sushi
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### food-cheese
-- السؤال: ما المنتج المصنوع من الحليب والمستخدم على البيتزا؟
-- الجواب: جبن
-- الأجوبة المقبولة: جبن، جبنة، الجبن، الجبنة
+### food-7
+- السؤال: ما الحلوى الباردة المصنوعة من الحليب أو الكريمة والمنكهات؟
+- الجواب: آيس كريم
+- الأجوبة المقبولة: آيس كريم، مثلجات، Ice cream
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### food-olive
-- السؤال: ما الثمرة الصغيرة التي يُستخرج منها زيت يُستخدم كثيراً في الطبخ والسلطات؟
-- الجواب: زيتون
-- الأجوبة المقبولة: زيتون، الزيتون
+### food-8
+- السؤال: ما الحلوى المقلية الدائرية التي غالبًا يكون في وسطها ثقب؟
+- الجواب: دونات
+- الأجوبة المقبولة: دونات، دونت، Donut، Doughnut
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### food-dates
-- السؤال: ما اسم الثمرة الشهيرة في الخليج التي تُجفف وتُخزَّن؟
-- الجواب: تمر
-- الأجوبة المقبولة: تمر، التمر، تمرة
+### food-9
+- السؤال: ما الطعام الذي يُحضّر على شكل أقراص من عجينة سائلة ويؤكل غالبًا في الإفطار؟
+- الجواب: بان كيك
+- الأجوبة المقبولة: بان كيك، Pancake، Pancakes
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-10
+- السؤال: ما الحلوى الشبكية التي تُطهى في جهاز خاص وتؤكل مع الصوصات؟
+- الجواب: وافل
+- الأجوبة المقبولة: وافل، Waffle، Waffles
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-11
+- السؤال: ما الحلوى الصغيرة التي تشبه الكيك وتُخبز عادة في قالب ورقي؟
+- الجواب: كب كيك
+- الأجوبة المقبولة: كب كيك، Cupcake، Cup cake
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-12
+- السؤال: ما المعجنات المثلثة المحشوة غالبًا باللحم أو الجبن أو الخضار؟
+- الجواب: سمبوسة
+- الأجوبة المقبولة: سمبوسة، سمبوسك، Samosa
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-13
+- السؤال: ما الحلوى التي تعتمد بشكل أساسي على الجبن وتُقدم ككيكة؟
+- الجواب: تشيز كيك
+- الأجوبة المقبولة: تشيز كيك، Cheesecake، Cheese cake
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-14
+- السؤال: ما الفاكهة الكبيرة ذات القشرة الخضراء والداخل الأحمر غالبًا؟
+- الجواب: بطيخ
+- الأجوبة المقبولة: بطيخ، حبحب
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-15
+- السؤال: ما الفاكهة ذات القشرة الخشنة والتاج الورقي؟
+- الجواب: أناناس
+- الأجوبة المقبولة: أناناس، Pineapple
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-16
+- السؤال: ما الفاكهة الحمراء الصغيرة التي تحمل بذورها على سطحها؟
+- الجواب: فراولة
+- الأجوبة المقبولة: فراولة، Strawberry
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-17
+- السؤال: ما الطعام الذي يُصنع من حبوب الذرة عند تسخينها حتى تنفجر؟
+- الجواب: فشار
+- الأجوبة المقبولة: فشار، بوشار، Popcorn
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## بلدان
 
 ### countries-1
-- السؤال: ما عاصمة مصر؟
-- الجواب: القاهرة
-- الأجوبة المقبولة: القاهرة، قاهره، القاهره، cairo
+- السؤال: ما عاصمة السعودية؟
+- الجواب: الرياض
+- الأجوبة المقبولة: الرياض، Riyadh
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### countries-2
-- السؤال: أي دولة تشتهر ببرج إيفل؟
-- الجواب: فرنسا
-- الأجوبة المقبولة: فرنسا، france
+- السؤال: ما الدولة التي تقع فيها مدينة دبي؟
+- الجواب: الإمارات
+- الأجوبة المقبولة: الإمارات، الإمارات العربية المتحدة، UAE
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### countries-3
-- السؤال: ما أكبر دولة عربية من حيث المساحة؟
-- الجواب: الجزائر
-- الأجوبة المقبولة: الجزائر، جزائر
+- السؤال: ما الدولة التي تشتهر ببرج إيفل؟
+- الجواب: فرنسا
+- الأجوبة المقبولة: فرنسا، France
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### countries-tokyo
+### countries-4
+- السؤال: ما الدولة التي تقع فيها الأهرامات؟
+- الجواب: مصر
+- الأجوبة المقبولة: مصر، Egypt
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-5
 - السؤال: ما عاصمة اليابان؟
 - الجواب: طوكيو
-- الأجوبة المقبولة: طوكيو، tokyo
+- الأجوبة المقبولة: طوكيو، توكيو، Tokyo
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### countries-paris
-- السؤال: ما عاصمة فرنسا؟
-- الجواب: باريس
-- الأجوبة المقبولة: باريس، paris
+### countries-6
+- السؤال: ما الدولة التي تشتهر بتاج محل؟
+- الجواب: الهند
+- الأجوبة المقبولة: الهند، India
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### countries-riyadh
-- السؤال: ما عاصمة السعودية؟
-- الجواب: الرياض
-- الأجوبة المقبولة: الرياض، رياض
+### countries-7
+- السؤال: ما الدولة التي تقع فيها مدينة إسطنبول؟
+- الجواب: تركيا
+- الأجوبة المقبولة: تركيا، Turkey
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### countries-abudhabi
-- السؤال: ما عاصمة الإمارات؟
-- الجواب: أبوظبي
-- الأجوبة المقبولة: أبوظبي، أبو ظبي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-rome
-- السؤال: ما عاصمة إيطاليا؟
-- الجواب: روما
-- الأجوبة المقبولة: روما، rome
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-ankara
-- السؤال: ما عاصمة تركيا؟
-- الجواب: أنقرة
-- الأجوبة المقبولة: أنقرة، ankara
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-berlin
-- السؤال: ما عاصمة ألمانيا؟
-- الجواب: برلين
-- الأجوبة المقبولة: برلين، berlin
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-madrid
-- السؤال: ما عاصمة إسبانيا؟
-- الجواب: مدريد
-- الأجوبة المقبولة: مدريد، madrid
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-rabat
+### countries-8
 - السؤال: ما عاصمة المغرب؟
 - الجواب: الرباط
-- الأجوبة المقبولة: الرباط، رباط
+- الأجوبة المقبولة: الرباط، Rabat
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### countries-doha
+### countries-9
+- السؤال: ما أكبر دولة في العالم من حيث المساحة؟
+- الجواب: روسيا
+- الأجوبة المقبولة: روسيا، Russia
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-10
+- السؤال: ما الدولة التي تشتهر بالبيتزا والباستا؟
+- الجواب: إيطاليا
+- الأجوبة المقبولة: إيطاليا، Italy
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-11
+- السؤال: ما الدولة التي تقع فيها مدينة أمستردام؟
+- الجواب: هولندا
+- الأجوبة المقبولة: هولندا، Netherlands، Nederland
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-12
+- السؤال: ما عاصمة الأردن؟
+- الجواب: عمّان
+- الأجوبة المقبولة: عمّان، Amman
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-13
+- السؤال: ما الدولة التي تقع فيها مدينة برشلونة؟
+- الجواب: إسبانيا
+- الأجوبة المقبولة: إسبانيا، Spain
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-14
+- السؤال: ما عاصمة البرازيل؟
+- الجواب: برازيليا
+- الأجوبة المقبولة: برازيليا، Brasilia
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-15
+- السؤال: ما الدولة التي تقع فيها مدينة مكة؟
+- الجواب: السعودية
+- الأجوبة المقبولة: السعودية، المملكة العربية السعودية، Saudi Arabia
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-16
+- السؤال: ما الدولة التي تقع فيها مدينة لندن؟
+- الجواب: بريطانيا
+- الأجوبة المقبولة: بريطانيا، المملكة المتحدة، UK، United Kingdom
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-17
+- السؤال: ما عاصمة ألمانيا؟
+- الجواب: برلين
+- الأجوبة المقبولة: برلين، Berlin
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-18
+- السؤال: ما الدولة التي تشتهر بساعة بيغ بن؟
+- الجواب: بريطانيا
+- الأجوبة المقبولة: بريطانيا، المملكة المتحدة، UK
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-19
+- السؤال: ما الدولة التي تقع فيها مدينة نيويورك؟
+- الجواب: أمريكا
+- الأجوبة المقبولة: أمريكا، الولايات المتحدة، USA، United States
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-20
 - السؤال: ما عاصمة قطر؟
 - الجواب: الدوحة
-- الأجوبة المقبولة: الدوحة، دوحة، الدوحه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-nile
-- السؤال: ما اسم النهر الذي يمر بمصر؟
-- الجواب: النيل
-- الأجوبة المقبولة: النيل، نيل
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-riyal
-- السؤال: ما اسم عملة السعودية؟
-- الجواب: ريال
-- الأجوبة المقبولة: ريال، الريال، ريال سعودي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-yen
-- السؤال: ما اسم عملة اليابان؟
-- الجواب: ين
-- الأجوبة المقبولة: ين، الين، yen
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-asia
-- السؤال: الصين تقع في أي قارة؟
-- الجواب: آسيا
-- الأجوبة المقبولة: آسيا، asia
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-brazil-lang
-- السؤال: ما اللغة الرسمية في البرازيل؟
-- الجواب: البرتغالية
-- الأجوبة المقبولة: البرتغالية، برتغالية، برتغالي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-uk-capital
-- السؤال: ما عاصمة المملكة المتحدة؟
-- الجواب: لندن
-- الأجوبة المقبولة: لندن، London
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-kuwait-currency
-- السؤال: ما العملة الرسمية في الكويت؟
-- الجواب: دينار كويتي
-- الأجوبة المقبولة: دينار كويتي، الدينار الكويتي، دينار
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-newdelhi
-- السؤال: ما عاصمة الهند؟
-- الجواب: نيودلهي
-- الأجوبة المقبولة: نيودلهي، نيو دلهي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-ottawa
-- السؤال: ما عاصمة كندا؟
-- الجواب: أوتاوا
-- الأجوبة المقبولة: أوتاوا، ottawa
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## سيارات
-
-### cars-1
-- السؤال: ما الشركة الألمانية الشهيرة بشعار النجمة الثلاثية؟
-- الجواب: Mercedes
-- الأجوبة المقبولة: Mercedes، مرسيدس، بنز، مرسيدس بنز
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-2
-- السؤال: ما اسم المركبة ذات العجلتين التي تعمل بمحرك؟
-- الجواب: دراجة نارية
-- الأجوبة المقبولة: دراجة نارية، دراجه ناريه، موتوسيكل، دباب
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-3
-- السؤال: ما الشركة اليابانية التي يشتهر شعارها بثلاثة أشكال بيضاوية متداخلة؟
-- الجواب: Toyota
-- الأجوبة المقبولة: Toyota، تويوتا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-corolla
-- السؤال: ما الشركة التي تصنع سيارة Corolla؟
-- الجواب: Toyota
-- الأجوبة المقبولة: Toyota، تويوتا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-civic
-- السؤال: ما الشركة التي تصنع سيارة Civic؟
-- الجواب: Honda
-- الأجوبة المقبولة: Honda، هوندا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-golf
-- السؤال: ما الشركة الألمانية التي تصنع سيارة Golf؟
-- الجواب: Volkswagen
-- الأجوبة المقبولة: Volkswagen، فولكس واجن، فولكسفاغن
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-mustang
-- السؤال: سيارة Mustang الرياضية من أي شركة؟
-- الجواب: Ford
-- الأجوبة المقبولة: Ford، فورد
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-audi
-- السؤال: ما الشركة الألمانية التي شعارها أربع حلقات متداخلة؟
-- الجواب: Audi
-- الأجوبة المقبولة: Audi، أودي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-bmw
-- السؤال: ما الشركة الألمانية التي شعارها دائرة زرقاء وبيضاء؟
-- الجواب: BMW
-- الأجوبة المقبولة: BMW، بي ام دبليو
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-ferrari
-- السؤال: ما الشركة الإيطالية الشهيرة بحصان على الدرع؟
-- الجواب: Ferrari
-- الأجوبة المقبولة: Ferrari، فيراري
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-jeep
-- السؤال: ما علامة السيارات المعروفة بموديل Wrangler وسيارات الدفع الرباعي؟
-- الجواب: Jeep
-- الأجوبة المقبولة: Jeep، جيب
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-porsche
-- السؤال: ما الشركة الألمانية الرياضية الشهيرة بسيارة 911؟
-- الجواب: Porsche
-- الأجوبة المقبولة: Porsche، بورش
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-kia
-- السؤال: ما الشركة الكورية التي تصنع موديل Sportage؟
-- الجواب: Kia
-- الأجوبة المقبولة: Kia، كيا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-tesla
-- السؤال: ما الشركة التي تصنع السيارة الكهربائية Model 3؟
-- الجواب: Tesla
-- الأجوبة المقبولة: Tesla، تسلا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-hyundai
-- السؤال: ما الشركة الكورية التي تصنع موديل Elantra؟
-- الجواب: Hyundai
-- الأجوبة المقبولة: Hyundai، هيونداي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-nissan
-- السؤال: ما الشركة اليابانية التي تصنع موديل Patrol؟
-- الجواب: Nissan
-- الأجوبة المقبولة: Nissan، نيسان
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-wheels
-- السؤال: كم عجلة لسيارة الركاب العادية؟
-- الجواب: ٤
-- الأجوبة المقبولة: ٤، 4، أربع، اربعة
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-steering
-- السؤال: ما اسم القطعة التي يمسكها السائق لتوجيه السيارة؟
-- الجواب: مقود
-- الأجوبة المقبولة: مقود، المقود، دركسون
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-chevrolet
-- السؤال: ما الشركة التي تصنع سيارة Camaro؟
-- الجواب: Chevrolet
-- الأجوبة المقبولة: Chevrolet، شيفروليه، شفروليه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-lambo
-- السؤال: ما الشركة الإيطالية التي تصنع سيارة Aventador؟
-- الجواب: Lamborghini
-- الأجوبة المقبولة: Lamborghini، لامبورغيني، لامبورجيني
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-honda
-- السؤال: ما الشركة اليابانية التي تصنع سيارة Accord؟
-- الجواب: Honda
-- الأجوبة المقبولة: Honda، هوندا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-mazda
-- السؤال: ما الشركة اليابانية التي تصنع سيارة MX-5؟
-- الجواب: Mazda
-- الأجوبة المقبولة: Mazda، مازدا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## كرة قدم
-
-### football-1
-- السؤال: كم لاعباً في فريق كرة القدم على الملعب؟
-- الجواب: ١١
-- الأجوبة المقبولة: ١١، 11، أحد عشر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-2
-- السؤال: ما اسم البطولة العالمية لكرة القدم التي تقام كل أربع سنوات؟
-- الجواب: كأس العالم
-- الأجوبة المقبولة: كأس العالم، المونديال
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-3
-- السؤال: ما اسم الركلة التي تُحتسب عند ارتكاب مخالفة تستوجبها داخل منطقة الجزاء؟
-- الجواب: ركلة جزاء
-- الأجوبة المقبولة: ركلة جزاء، ضربة جزاء، بلنتي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-messi-country
-- السؤال: ميسي من أي دولة؟
-- الجواب: الأرجنتين
-- الأجوبة المقبولة: الأرجنتين، أرجنتين
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-ronaldo-country
-- السؤال: كريستيانو رونالدو من أي دولة؟
-- الجواب: البرتغال
-- الأجوبة المقبولة: البرتغال، برتغال
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-salah-country
-- السؤال: محمد صلاح من أي دولة؟
-- الجواب: مصر
-- الأجوبة المقبولة: مصر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-real-country
-- السؤال: نادي ريال مدريد من أي دولة؟
-- الجواب: إسبانيا
-- الأجوبة المقبولة: إسبانيا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-hilal-country
-- السؤال: نادي الهلال من أي دولة؟
-- الجواب: السعودية
-- الأجوبة المقبولة: السعودية، سعودية
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-halves
-- السؤال: من كم شوط تتكون مباراة كرة القدم؟
-- الجواب: ٢
-- الأجوبة المقبولة: ٢، 2، شوطين
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-half-minutes
-- السؤال: كم دقيقة يستمر الشوط في كرة القدم؟
-- الجواب: ٤٥
-- الأجوبة المقبولة: ٤٥، 45، خمس وأربعين
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-red-card
-- السؤال: ما لون البطاقة التي تعني الطرد؟
-- الجواب: أحمر
-- الأجوبة المقبولة: أحمر، حمراء، البطاقة الحمراء
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-yellow-card
-- السؤال: ما لون البطاقة التي تعني الإنذار؟
-- الجواب: أصفر
-- الأجوبة المقبولة: أصفر، صفراء، البطاقة الصفراء
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-keeper
-- السؤال: ما اسم اللاعب الوحيد المسموح له بمسك الكرة بيده داخل منطقته؟
-- الجواب: حارس
-- الأجوبة المقبولة: حارس، حارس مرمى، الحارس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-pele-country
-- السؤال: بيليه أسطورة كرة القدم من أي دولة؟
-- الجواب: البرازيل
-- الأجوبة المقبولة: البرازيل، برازيل
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-first-worldcup
-- السؤال: أين أقيم أول كأس عالم لكرة القدم سنة 1930؟
-- الجواب: الأوروغواي
-- الأجوبة المقبولة: الأوروغواي، أوروغواي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-barca-country
-- السؤال: نادي برشلونة من أي دولة؟
-- الجواب: إسبانيا
-- الأجوبة المقبولة: إسبانيا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-offside
-- السؤال: ما اسم المخالفة التي قد تُحتسب عندما يكون المهاجم في موقع غير قانوني لحظة تمرير الكرة إليه؟
-- الجواب: تسلل
-- الأجوبة المقبولة: تسلل، التسلل
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-corner
-- السؤال: ما اسم الركلة التي تُلعب من زاوية الملعب؟
-- الجواب: ركنية
-- الأجوبة المقبولة: ركنية، ركنيه، ضربة ركنية
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-throwin
-- السؤال: ما اسم إعادة الكرة باليدين بعد خروجها من خط التماس؟
-- الجواب: رمية تماس
-- الأجوبة المقبولة: رمية تماس، رمية التماس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-neymar-country
-- السؤال: نيمار من أي دولة؟
-- الجواب: البرازيل
-- الأجوبة المقبولة: البرازيل، برازيل
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-zidane-country
-- السؤال: زيدان من أي دولة؟
-- الجواب: فرنسا
-- الأجوبة المقبولة: فرنسا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-penalty-area
-- السؤال: ما اسم المنطقة الكبيرة أمام المرمى التي يمكن أن تُحتسب فيها ركلة جزاء عند مخالفة المدافع؟
-- الجواب: منطقة الجزاء
-- الأجوبة المقبولة: منطقة الجزاء، صندوق الجزاء
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## أفلام
-
-### movies-1
-- السؤال: ما اسم الفيلم الشهير عن سفينة غرقت في المحيط؟
-- الجواب: Titanic
-- الأجوبة المقبولة: Titanic، تايتانك، تايتنك، التيتانيك
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-2
-- السؤال: ما اسم البطل الخارق الذي حصل على قدراته بعد لدغة عنكبوت؟
-- الجواب: Spider-Man
-- الأجوبة المقبولة: Spider-Man، سبايدرمان، سبايدر مان، الرجل العنكبوت
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-3
-- السؤال: ما اسم المخرج الذي أخرج Interstellar وInception؟
-- الجواب: Christopher Nolan
-- الأجوبة المقبولة: Christopher Nolan، كريستوفر نولان، نولان
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-frozen
-- السؤال: ما اسم فيلم ديزني عن أختين ومملكة ثلج؟
-- الجواب: Frozen
-- الأجوبة المقبولة: Frozen، فروزن، ملكة الثلج
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-nemo
-- السؤال: ما اسم فيلم بيكسار عن سمكة ضائعة يبحث عنها والدها؟
-- الجواب: Finding Nemo
-- الأجوبة المقبولة: Finding Nemo، نيمو، البحث عن نيمو
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-lionking
-- السؤال: ما اسم فيلم ديزني عن الأسد سيمبا؟
-- الجواب: The Lion King
-- الأجوبة المقبولة: The Lion King، الأسد الملك، ليون كينج
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-harry
-- السؤال: ما اسم سلسلة أفلام الساحر الشاب ذي النظارة المستديرة؟
-- الجواب: Harry Potter
-- الأجوبة المقبولة: Harry Potter، هاري بوتر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-shrek
-- السؤال: ما اسم فيلم الغول الأخضر الذي يعيش في مستنقع؟
-- الجواب: Shrek
-- الأجوبة المقبولة: Shrek، شريك
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-toystory
-- السؤال: ما اسم فيلم بيكسار عن ألعاب تدب فيها الحياة؟
-- الجواب: Toy Story
-- الأجوبة المقبولة: Toy Story، توي ستوري
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-matrix
-- السؤال: ما اسم الفيلم عن عالم وهمي وحبة حمراء أو زرقاء؟
-- الجواب: The Matrix
-- الأجوبة المقبولة: The Matrix، الماتريكس، ماتريكس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-jurassic
-- السؤال: ما اسم الفيلم عن حديقة فيها ديناصورات؟
-- الجواب: Jurassic Park
-- الأجوبة المقبولة: Jurassic Park، حديقة الديناصورات
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-homealone
-- السؤال: ما اسم الفيلم عن طفل بقي وحده في البيت؟
-- الجواب: Home Alone
-- الأجوبة المقبولة: Home Alone، وحده في المنزل
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-coco
-- السؤال: ما اسم فيلم بيكسار عن الموسيقى ويوم الموتى؟
-- الجواب: Coco
-- الأجوبة المقبولة: Coco، كوكو
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-joker
-- السؤال: ما اسم فيلم 2019 الذي أدى فيه Joaquin Phoenix شخصية Arthur Fleck؟
-- الجواب: Joker
-- الأجوبة المقبولة: Joker، الجوكر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-aladdin
-- السؤال: ما اسم فيلم ديزني عن المصباح السحري؟
-- الجواب: Aladdin
-- الأجوبة المقبولة: Aladdin، علاء الدين
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-jaws
-- السؤال: ما اسم الفيلم الشهير عن قرش مهاجم؟
-- الجواب: Jaws
-- الأجوبة المقبولة: Jaws، الفك المفترس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-up
-- السؤال: ما اسم فيلم بيكسار عن بيت يطير بالبالونات؟
-- الجواب: Up
-- الأجوبة المقبولة: Up، آب
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-inception
-- السؤال: ما اسم فيلم نولان عن الدخول إلى الأحلام؟
-- الجواب: Inception
-- الأجوبة المقبولة: Inception، انسبشن، بداية
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-elsa
-- السؤال: ما اسم الأخت التي تصنع الثلج في فيلم Frozen؟
-- الجواب: Elsa
-- الأجوبة المقبولة: Elsa، إلسا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-avatar
-- السؤال: ما اسم فيلم كاميرون عن كوكب باندورا؟
-- الجواب: Avatar
-- الأجوبة المقبولة: Avatar، أفاتار
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-interstellar
-- السؤال: ما اسم فيلم نولان عن السفر عبر الفضاء والوقت؟
-- الجواب: Interstellar
-- الأجوبة المقبولة: Interstellar، إنترستيلار
+- الأجوبة المقبولة: الدوحة، Doha
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## مسلسلات
 
 ### series-1
-- السؤال: ما اسم المسلسل الشهير عن أطباء في مستشفى بسياتل؟
-- الجواب: Grey's Anatomy
-- الأجوبة المقبولة: Grey's Anatomy، غريز أناتومي، جريز اناتومي
+- السؤال: في أي مسلسل يظهر والتر وايت؟
+- الجواب: Breaking Bad
+- الأجوبة المقبولة: Breaking Bad، بريكنق باد، بريكنغ باد
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### series-2
-- السؤال: ما اسم المسلسل التركي الشهير عن عثمان؟
-- الجواب: Kurulus Osman
-- الأجوبة المقبولة: Kurulus Osman، قيامة عثمان، قيامه عثمان
+- السؤال: من الشخصية الرئيسية في مسلسل Dexter؟
+- الجواب: Dexter Morgan
+- الأجوبة المقبولة: Dexter Morgan، ديكستر مورغان، ديكستر
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### series-3
-- السؤال: ما اسم المسلسل الكوميدي الأمريكي عن ستة أصدقاء يلتقون غالباً في مقهى بنيويورك؟
-- الجواب: Friends
-- الأجوبة المقبولة: Friends، فريندز، الأصدقاء
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-simpsons
-- السؤال: ما اسم المسلسل الكرتوني عن عائلة صفراء في سبرينغفيلد؟
-- الجواب: The Simpsons
-- الأجوبة المقبولة: The Simpsons، سيمبسون، عائلة سيمبسون
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-office
-- السؤال: ما اسم المسلسل الكوميدي الذي يتابع موظفي شركة Dunder Mifflin؟
-- الجواب: The Office
-- الأجوبة المقبولة: The Office، ذي اوفيس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-stranger
-- السؤال: ما اسم المسلسل عن مجموعة أطفال يواجهون أحداثاً خارقة وعالماً مقلوباً في Hawkins؟
-- الجواب: Stranger Things
-- الأجوبة المقبولة: Stranger Things، سترنجر ثينجز
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-got
-- السؤال: ما اسم المسلسل عن العروش والتنانين في ويستروس؟
+- السؤال: في أي مسلسل توجد عائلة Stark؟
 - الجواب: Game of Thrones
-- الأجوبة المقبولة: Game of Thrones، صراع العروش
+- الأجوبة المقبولة: Game of Thrones، جيم أوف ثرونز
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### series-breaking
-- السؤال: ما اسم مسلسل معلم الكيمياء والتر وايت؟
-- الجواب: Breaking Bad
-- الأجوبة المقبولة: Breaking Bad، بريكنق باد، بريكينغ باد
+### series-4
+- السؤال: ما اسم السجن الشهير في بداية مسلسل Prison Break؟
+- الجواب: Fox River
+- الأجوبة المقبولة: Fox River، فوكس ريفر
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### series-squid
-- السؤال: ما اسم المسلسل الكوري عن ألعاب قاتلة وجائزة مالية؟
-- الجواب: Squid Game
-- الأجوبة المقبولة: Squid Game، لعبة الحبار، سكويد قيم
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-sherlock
-- السؤال: ما اسم مسلسل المحقق في لندن مع واتسون؟
-- الجواب: Sherlock
-- الأجوبة المقبولة: Sherlock، شيرلوك
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-wednesday
-- السؤال: ما اسم مسلسل ابنة عائلة آدامز في المدرسة؟
-- الجواب: Wednesday
-- الأجوبة المقبولة: Wednesday، وينزداي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-money
-- السؤال: ما اسم المسلسل الإسباني عن عملية سرقة يرتدي أبطالها بدلات حمراء وأقنعة دالي؟
-- الجواب: Money Heist
-- الأجوبة المقبولة: Money Heist، بيت الورق
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-dark
-- السؤال: ما اسم المسلسل الألماني عن السفر عبر الزمن في بلدة صغيرة؟
-- الجواب: Dark
-- الأجوبة المقبولة: Dark، دارك
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-lost
-- السؤال: ما اسم المسلسل عن ناجين من طائرة على جزيرة غامضة؟
-- الجواب: Lost
-- الأجوبة المقبولة: Lost، لوست
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-prison
-- السؤال: ما اسم المسلسل عن الهروب من السجن والوشم على الجسم؟
-- الجواب: Prison Break
-- الأجوبة المقبولة: Prison Break، بريزون بريك
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-himym
-- السؤال: ما اسم المسلسل عن كيف التقى الراوي بأم أولاده؟
-- الجواب: How I Met Your Mother
-- الأجوبة المقبولة: How I Met Your Mother، كيف قابلت أمكم
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-seinfeld
-- السؤال: ما اسم المسلسل الكوميدي عن جيري وأصدقائه في نيويورك؟
-- الجواب: Seinfeld
-- الأجوبة المقبولة: Seinfeld، ساينفلد
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-blackmirror
-- السؤال: ما اسم المسلسل البريطاني عن التقنية ومستقبل غامض؟
-- الجواب: Black Mirror
-- الأجوبة المقبولة: Black Mirror، بلاك ميرور
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-b99
-- السؤال: ما اسم المسلسل الكوميدي عن شرطة بروكلين؟
-- الجواب: Brooklyn Nine-Nine
-- الأجوبة المقبولة: Brooklyn Nine-Nine، بروكلين ناين ناين
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-witcher
-- السؤال: ما اسم مسلسل الصياد ذي الشعر الأبيض والوحوش؟
-- الجواب: The Witcher
-- الأجوبة المقبولة: The Witcher، ويتشر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-peaky
-- السؤال: ما اسم المسلسل البريطاني الذي يتابع عائلة Shelby وعصابتها في Birmingham؟
+### series-5
+- السؤال: في أي مسلسل يظهر Tommy Shelby؟
 - الجواب: Peaky Blinders
 - الأجوبة المقبولة: Peaky Blinders، بيكي بلايندرز
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### series-crown
-- السؤال: ما اسم المسلسل عن العائلة الملكية البريطانية؟
-- الجواب: The Crown
-- الأجوبة المقبولة: The Crown، ذا كراون
+### series-6
+- السؤال: ما اسم المجموعة الخارقة في مسلسل The Boys؟
+- الجواب: The Seven
+- الأجوبة المقبولة: The Seven، السبعة، ذا سفن
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-7
+- السؤال: في أي مسلسل يظهر Saul Goodman؟
+- الجواب: Better Call Saul
+- الأجوبة المقبولة: Better Call Saul، بيتر كول سول
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-8
+- السؤال: ما اسم المدينة التي تدور فيها أحداث Stranger Things؟
+- الجواب: Hawkins
+- الأجوبة المقبولة: Hawkins، هوكينز
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-9
+- السؤال: في أي مسلسل يظهر Ragnar Lothbrok؟
+- الجواب: Vikings
+- الأجوبة المقبولة: Vikings، فايكنغز، فايكنجز
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-10
+- السؤال: ما اسم اللعبة القاتلة الشهيرة في مسلسل Squid Game؟
+- الجواب: Red Light, Green Light
+- الأجوبة المقبولة: Red Light, Green Light، الضوء الأحمر والضوء الأخضر
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-11
+- السؤال: في أي مسلسل يظهر Rick Grimes؟
+- الجواب: The Walking Dead
+- الأجوبة المقبولة: The Walking Dead، ذا ووكينغ ديد
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-12
+- السؤال: ما اسم المحقق الشهير في مسلسل Sherlock؟
+- الجواب: Sherlock Holmes
+- الأجوبة المقبولة: Sherlock Holmes، شيرلوك هولمز، شيرلوك
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-13
+- السؤال: في أي مسلسل تظهر شخصية Geralt of Rivia؟
+- الجواب: The Witcher
+- الأجوبة المقبولة: The Witcher، ذا ويتشر
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-14
+- السؤال: ما اسم عائلة التنين الرئيسية في House of the Dragon؟
+- الجواب: Targaryen
+- الأجوبة المقبولة: Targaryen، تارغاريان، تارجيريان
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-15
+- السؤال: في أي مسلسل يظهر Pablo Escobar كشخصية رئيسية؟
+- الجواب: Narcos
+- الأجوبة المقبولة: Narcos، ناركوس
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-16
+- السؤال: ما اسم المحامي الرئيسي في مسلسل Suits؟
+- الجواب: Harvey Specter
+- الأجوبة المقبولة: Harvey Specter، هارفي سبكتر، هارفي
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-17
+- السؤال: في أي مسلسل يظهر Tony Soprano؟
+- الجواب: The Sopranos
+- الأجوبة المقبولة: The Sopranos، ذا سوبرانوز، سوبرانوز
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-18
+- السؤال: ما اسم الشخصية التي يلعبها Pedro Pascal في The Last of Us؟
+- الجواب: Joel
+- الأجوبة المقبولة: Joel، جويل
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-19
+- السؤال: في أي مسلسل تدور أحداث سرقة دار السك الإسبانية؟
+- الجواب: Money Heist
+- الأجوبة المقبولة: Money Heist، La Casa de Papel، لا كاسا دي بابيل
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-20
+- السؤال: ما اسم المدينة/الجزيرة الغامضة التي تدور حولها أحداث مسلسل Lost؟
+- الجواب: الجزيرة
+- الأجوبة المقبولة: الجزيرة، The Island
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## ألعاب
 
 ### games-1
-- السؤال: ما اسم لعبة العالم المفتوح المبنية من المكعبات والتي تعتمد على البناء والتعدين؟
+- السؤال: في أي لعبة يظهر شخصية Steve؟
 - الجواب: Minecraft
-- الأجوبة المقبولة: Minecraft، ماينكرافت، ماين كرافت
+- الأجوبة المقبولة: Minecraft، ماينكرافت
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-2
-- السؤال: ما اسم سلسلة الألعاب التي تضم Mario وLuigi وPrincess Peach؟
-- الجواب: Super Mario
-- الأجوبة المقبولة: Super Mario، سوبر ماريو، ماريو
+- السؤال: ما اسم اللعبة الشهيرة التي يتنافس فيها 100 لاعب تقريبًا حتى يبقى لاعب أو فريق واحد؟
+- الجواب: PUBG
+- الأجوبة المقبولة: PUBG، ببجي، PlayerUnknown's Battlegrounds
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-3
-- السؤال: ما الاسم السابق لسلسلة ألعاب كرة القدم من EA التي أصبحت تُعرف باسم EA Sports FC؟
-- الجواب: FIFA
-- الأجوبة المقبولة: FIFA، فيفا
+- السؤال: في أي لعبة توجد مدينة Los Santos؟
+- الجواب: GTA V
+- الأجوبة المقبولة: GTA V، GTA 5، قراند 5، Grand Theft Auto V
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### games-tetris
-- السؤال: ما اسم لعبة المكعبات المتساقطة الشهيرة؟
-- الجواب: Tetris
-- الأجوبة المقبولة: Tetris، تتريس
+### games-4
+- السؤال: ما اسم لعبة السيارات التي تلعب فيها كرة قدم بالسيارات؟
+- الجواب: Rocket League
+- الأجوبة المقبولة: Rocket League، روكيت ليق، روكيت ليغ
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### games-pacman
-- السؤال: ما اسم اللعبة الصفراء التي تأكل النقاط وتهرب من الأشباح؟
-- الجواب: Pac-Man
-- الأجوبة المقبولة: Pac-Man، باك مان، باكمان
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-pokemon
-- السؤال: ما اسم سلسلة الألعاب عن جمع مخلوقات قتالية مثل بيكاتشو؟
-- الجواب: Pokemon
-- الأجوبة المقبولة: Pokemon، بوكيمون
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-amongus
-- السؤال: ما اسم لعبة الطاقم والإمبوستر في مركبة فضاء؟
-- الجواب: Among Us
-- الأجوبة المقبولة: Among Us، امونج اس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-angrybirds
-- السؤال: ما اسم لعبة الجوال التي تُقذف فيها طيور بمقلاع نحو خنازير؟
-- الجواب: Angry Birds
-- الأجوبة المقبولة: Angry Birds، انجري بيردز
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-sims
-- السؤال: ما اسم لعبة محاكاة الحياة اليومية وبناء البيوت؟
-- الجواب: The Sims
-- الأجوبة المقبولة: The Sims، السيمز
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-clash
-- السؤال: ما اسم لعبة القرية والكلانات على الجوال؟
-- الجواب: Clash of Clans
-- الأجوبة المقبولة: Clash of Clans، كلاش اوف كلانس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-fortnite
-- السؤال: ما اسم لعبة البناء والباتل رويال الشهيرة؟
-- الجواب: Fortnite
-- الأجوبة المقبولة: Fortnite، فورتنايت
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-roblox
-- السؤال: ما اسم منصة الألعاب التي يصنع فيها اللاعبون عوالمهم؟
-- الجواب: Roblox
-- الأجوبة المقبولة: Roblox، روبلكس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-valorant
-- السؤال: ما اسم لعبة التصويب التكتيكية من رايت؟
+### games-5
+- السؤال: في أي لعبة يظهر العميل Jett؟
 - الجواب: Valorant
 - الأجوبة المقبولة: Valorant، فالورانت
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### games-lol
-- السؤال: ما اسم لعبة الأبطال الشهيرة باختصار LoL؟
-- الجواب: League of Legends
-- الأجوبة المقبولة: League of Legends، ليج اوف ليجندز
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-gta
-- السؤال: ما اسم سلسلة ألعاب المدن المفتوحة والسرقة الشهيرة؟
-- الجواب: Grand Theft Auto
-- الأجوبة المقبولة: Grand Theft Auto، جي تي اي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-pubg
-- السؤال: ما اسم لعبة الباتل رويال التي تبدأ فيها المباراة بهبوط اللاعبين إلى خريطة لجمع الأسلحة والبقاء حتى النهاية؟
-- الجواب: PUBG
-- الأجوبة المقبولة: PUBG، ببجي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-cod
-- السؤال: ما اسم سلسلة ألعاب التصويب التي تضم Modern Warfare وBlack Ops؟
-- الجواب: Call of Duty
-- الأجوبة المقبولة: Call of Duty، كول اوف ديوتي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-sf
-- السؤال: ما اسم لعبة القتال الشهيرة بشخصية ريو؟
-- الجواب: Street Fighter
-- الأجوبة المقبولة: Street Fighter، ستريت فايتر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-sonic
-- السؤال: ما اسم لعبة القنفذ الأزرق السريع؟
-- الجواب: Sonic
-- الأجوبة المقبولة: Sonic، سونيك
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-candy
-- السؤال: ما اسم لعبة الحلوى ومطابقة الألوان على الجوال؟
-- الجواب: Candy Crush
-- الأجوبة المقبولة: Candy Crush، كاندي كراش
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-cs
-- السؤال: ما اسم لعبة التصويب الشهيرة باختصار CS؟
+### games-6
+- السؤال: ما اسم لعبة التصويب الشهيرة التي تحتوي على خرائط مثل Dust II؟
 - الجواب: Counter-Strike
-- الأجوبة المقبولة: Counter-Strike، كاونتر سترايك
+- الأجوبة المقبولة: Counter-Strike، كاونتر سترايك، CS، CS2
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-## تقنيات
-
-### tech-1
-- السؤال: ما اسم الشركة التي تصنع آيفون؟
-- الجواب: Apple
-- الأجوبة المقبولة: Apple، آبل
+### games-7
+- السؤال: في أي لعبة يظهر البطل Tracer؟
+- الجواب: Overwatch
+- الأجوبة المقبولة: Overwatch، أوفرواتش
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-2
-- السؤال: ما الجهاز المحمول الذي نستخدمه للاتصال والتصفح؟
-- الجواب: هاتف
-- الأجوبة المقبولة: هاتف، جوال، موبايل، الهاتف، الجوال
+### games-8
+- السؤال: ما اسم اللعبة التي يكون فيها بعض اللاعبين Impostors؟
+- الجواب: Among Us
+- الأجوبة المقبولة: Among Us، امونغ اس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-3
-- السؤال: ما الشركة التي تطور متصفح Chrome ونظام Android؟
-- الجواب: Google
-- الأجوبة المقبولة: Google، جوجل، غوغل
+### games-9
+- السؤال: في أي لعبة يظهر Joel وEllie؟
+- الجواب: The Last of Us
+- الأجوبة المقبولة: The Last of Us، ذا لاست أوف أس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-windows
-- السؤال: ما نظام التشغيل الذي تطوره Microsoft لأجهزة الكمبيوتر؟
-- الجواب: Windows
-- الأجوبة المقبولة: Windows، ويندوز
+### games-10
+- السؤال: ما اسم لعبة العالم المفتوح التي بطلها Arthur Morgan؟
+- الجواب: Red Dead Redemption 2
+- الأجوبة المقبولة: Red Dead Redemption 2، ريد ديد 2، RDR2
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-android
-- السؤال: ما نظام التشغيل الذي تطوره Google للهواتف والأجهزة اللوحية؟
-- الجواب: Android
-- الأجوبة المقبولة: Android، أندرويد
+### games-11
+- السؤال: ما سلسلة ألعاب الرعب الشهيرة التي تحتوي على شخصيات مثل Leon Kennedy؟
+- الجواب: Resident Evil
+- الأجوبة المقبولة: Resident Evil، ريزدنت إيفل، رزدنت ايفل
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-youtube
-- السؤال: ما منصة الفيديو المملوكة لـ Google والتي تتيح رفع ومشاهدة المقاطع؟
-- الجواب: YouTube
-- الأجوبة المقبولة: YouTube، يوتيوب
+### games-12
+- السؤال: في أي سلسلة ألعاب يظهر Ezio Auditore؟
+- الجواب: Assassin’s Creed
+- الأجوبة المقبولة: Assassin’s Creed، اساسنز كريد
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-whatsapp
-- السؤال: ما تطبيق المراسلة المملوك لـ Meta والمعروف بالمحادثات والمكالمات؟
-- الجواب: WhatsApp
-- الأجوبة المقبولة: WhatsApp، واتساب
+### games-13
+- السؤال: ما اسم سلسلة الألعاب التي بطلها Kratos؟
+- الجواب: God of War
+- الأجوبة المقبولة: God of War، قاد أوف وور، جاد أوف وور
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-instagram
-- السؤال: ما تطبيق الصور والقصص الشهير من ميتا؟
-- الجواب: Instagram
-- الأجوبة المقبولة: Instagram، انستغرام، إنستقرام
+### games-14
+- السؤال: في أي لعبة يظهر عالم The Lands Between؟
+- الجواب: Elden Ring
+- الأجوبة المقبولة: Elden Ring، إلدن رينغ، الدن رينق
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-facebook
-- السؤال: ما شبكة التواصل التي أسسها مارك زوكربيرغ؟
-- الجواب: Facebook
-- الأجوبة المقبولة: Facebook، فيسبوك
+### games-15
+- السؤال: ما اسم اللعبة التي تحتوي على شخصيات مثل Iron Man وSpider-Man وDoctor Strange في مواجهات جماعية؟
+- الجواب: Marvel Rivals
+- الأجوبة المقبولة: Marvel Rivals، مارفل رايفلز، مارفل ريفالز
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-tiktok
-- السؤال: ما تطبيق ByteDance المعروف بمقاطع الفيديو القصيرة؟
-- الجواب: TikTok
-- الأجوبة المقبولة: TikTok، تيك توك
+### games-16
+- السؤال: ما اسم لعبة كرة القدم التي كانت تصدر سابقًا باسم FIFA وأصبحت EA Sports FC؟
+- الجواب: EA Sports FC
+- الأجوبة المقبولة: EA Sports FC، EA FC، فيفا، FIFA
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-sony
-- السؤال: ما الشركة التي تصنع جهاز PlayStation؟
-- الجواب: Sony
-- الأجوبة المقبولة: Sony، سوني
+### games-17
+- السؤال: في أي لعبة يظهر بطل اسمه Geralt؟
+- الجواب: The Witcher 3
+- الأجوبة المقبولة: The Witcher 3، ويتشر 3، The Witcher
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-chatgpt
-- السؤال: ما الشركة التي طورت ChatGPT؟
-- الجواب: OpenAI
-- الأجوبة المقبولة: OpenAI، اوبن اي اي
+### games-18
+- السؤال: ما اسم لعبة الباتل رويال الشهيرة من Epic Games؟
+- الجواب: Fortnite
+- الأجوبة المقبولة: Fortnite، فورتنايت
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-bluetooth
-- السؤال: ما اسم تقنية الاتصال اللاسلكي القصير بين الأجهزة؟
-- الجواب: Bluetooth
-- الأجوبة المقبولة: Bluetooth، بلوتوث
+### games-19
+- السؤال: ما اسم لعبة التصويب التي تحتوي على طور Warzone؟
+- الجواب: Call of Duty
+- الأجوبة المقبولة: Call of Duty، كول أوف ديوتي، COD
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-usb
-- السؤال: ما اسم المنفذ الشائع لنقل البيانات وشحن الأجهزة؟
-- الجواب: USB
-- الأجوبة المقبولة: USB، يو اس بي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tech-wifi
-- السؤال: ما اسم تقنية الاتصال اللاسلكي المستخدمة لربط الأجهزة بالشبكة المحلية والإنترنت؟
-- الجواب: Wi-Fi
-- الأجوبة المقبولة: Wi-Fi، واي فاي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tech-email
-- السؤال: ما اسم الرسائل الإلكترونية التي تُرسل عبر الإنترنت؟
-- الجواب: بريد إلكتروني
-- الأجوبة المقبولة: بريد إلكتروني، إيميل
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tech-cpu
-- السؤال: ما اسم القطعة التي تُعد عقل الكمبيوتر؟
-- الجواب: CPU
-- الأجوبة المقبولة: CPU، معالج، المعالج
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tech-keyboard
-- السؤال: ما اسم الجهاز الذي نكتب عليه الحروف في الكمبيوتر؟
-- الجواب: لوحة مفاتيح
-- الأجوبة المقبولة: لوحة مفاتيح، كيبورد
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tech-mouse
-- السؤال: ما اسم الجهاز الذي نحركه باليد للتحكم بالمؤشر؟
-- الجواب: فأرة
-- الأجوبة المقبولة: فأرة، ماوس، الفأرة
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tech-chrome
-- السؤال: ما متصفح الإنترنت الذي تطوره Google؟
-- الجواب: Chrome
-- الأجوبة المقبولة: Chrome، كروم
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tech-netflix
-- السؤال: ما منصة البث التي تعرض أعمالاً أصلية مثل Stranger Things؟
-- الجواب: Netflix
-- الأجوبة المقبولة: Netflix، نتفلكس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tech-zoom
-- السؤال: ما تطبيق الاجتماعات المرئية المعروف باستخدام Meeting ID وPasscode في المكالمات الجماعية؟
-- الجواب: Zoom
-- الأجوبة المقبولة: Zoom، زوم
+### games-20
+- السؤال: ما اسم لعبة Spider-Man الشهيرة من Insomniac؟
+- الجواب: Marvel’s Spider-Man
+- الأجوبة المقبولة: Marvel’s Spider-Man، Spider-Man، سبايدرمان
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 # من كتبها؟
 
-## أسئلة مضحكة
+## مواقف مضحكة
 
-`funny-1 — وش أغرب عذر ممكن تستخدمه عشان ما تروح الدوام؟`
+`funny-situations-1 — وش أغبى شيء سويته وأنت متأكد وقتها إنه فكرة ممتازة؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-2 — لو صحيت ولقيت نفسك مشهور، أول شيء بتسويه؟`
+`funny-situations-2 — وش أكثر موقف ضحكت فيه بوقت المفروض ما تضحك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-3 — وش أسوأ نصيحة ممكن تعطيها لشخص قبل مقابلة عمل؟`
+`funny-situations-3 — وش أغرب عذر قد استخدمته عشان تلغي طلعة؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-4 — لو صار عندك زر يوقف الزمن دقيقة واحدة، وش بتسوي فيها؟`
+`funny-situations-4 — وش أسوأ طبخة أو مشروب حاولت تسويه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-superpower — وش أسخف قدرة خارقة ممكن تتمناها؟`
+`funny-situations-5 — وش أكثر مرة انقفطت وأنت تسوي شيء ما تبغى أحد يشوفه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-pet-job — لو حيوانك الأليف صار مديرك، وش أول قرار ياخذه؟`
+`funny-situations-6 — وش أغرب شيء اشتريته وندمت عليه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-wrong-gift — وش أسوأ هدية ممكن تنحرج إذا فتحتها قدام الناس؟`
+`funny-situations-7 — وش أكثر موقف محرج صار لك قدام ناس كثير؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-voice-note — لو أصحابك سووا لك جائزة سنوية، وش تتوقع اسم الجائزة؟`
+`funny-situations-8 — وش أغبى إصابة صارت لك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-group-chat — وش الشيء اللي يخليك تطلع من قروب واتساب بدون ما تقول شيء؟`
+`funny-situations-9 — وش أكثر شيء ضيعته بطريقة غبية؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-mirror — لو جوالك يقدر يفضح عادة وحدة عندك، وش بيقول؟`
+`funny-situations-10 — وش أسوأ رسالة أرسلتها للشخص الغلط؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-alarm — وش أغرب طريقة تستخدمها عشان تقوم من النوم؟`
+`funny-situations-11 — وش موقف حاولت تتصرف فيه طبيعي وأنت من داخلك منهار؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-guest — وش أكذب جملة تقولها لما يجي ضيف والبيت مو جاهز؟`
+`funny-situations-12 — وش أغرب شيء صدقته وأنت صغير؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-food-lie — وش أكلة تدّعي إنك تحبها عشان ما تجرح أحد؟`
+`funny-situations-13 — وش أكثر مرة دخلت مكان غلط بدون ما تنتبه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-shortcut — وش أكثر كذبة بيضاء تستخدمها عشان تخلص مكالمة بسرعة؟`
+`funny-situations-14 — وش أغرب حلم تتذكره؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-talent — وش مهارة تافهة تتقنها وما لها فايدة؟`
+`funny-situations-15 — وش أكثر شيء سويته عشان تطلع من موقف محرج؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-autopilot — وش شيء تسويه وأنت مو منتبه وبعدين تستغرب نفسك؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`funny-caption — لو حياتك صارت فيلم، وش يكون عنوانه المضحك؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`funny-excuse-late — لو لازم تخترع عذر مستحيل للتأخير، وش بتقول؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`funny-sport — وش رياضة لو دخلتها بتكون أسوأ لاعب فيها؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`funny-robot — وش عادة فيك لو أحد قلدها بيعرفون فوراً إنه يقلدك؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`funny-wish — لو انطلب منك أمنية واحدة سخيفة، وش تطلب؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`funny-nickname — وش لقب مضحك يستاهله صاحبك بدون ما تذكر اسمه؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## أسئلة شخصية
-
-`personal-1 — وش عادة فيك تتمنى تغيرها؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`personal-2 — وش أكثر شيء يخليك تعصب بسرعة؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`personal-3 — وش شيء صغير يسعدك بدون سبب واضح؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`personal-4 — وش أكثر موقف تتذكره من طفولتك؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`personal-morning — وش أول شيء تسويه عادة بعد ما تصحى؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`personal-proud — وش شيء بسيط تفتخر إنك صرت تسويه؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`personal-hate-wait — وش نوع الانتظار اللي ما تتحمله أبد؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`personal-comfort — وش الشيء اللي يريحك بسرعة إذا كنت متوتر؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`personal-collection — وش شيء تحب تجمعه أو تحتفظ فيه بدون سبب قوي؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`personal-skill — وش مهارة ودك تتعلمها لو عندك وقت كل أسبوع؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`personal-room — وش الشيء اللي غرفتك ما تصير كاملة بدونه؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`personal-text — وش نوع الرسائل اللي ترد عليها بسرعة دائماً؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`personal-walk — وش أكثر شيء يشغل بالك إذا جلست لحالك بدون جوال؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`personal-snack — وش أكلك المفضل لما تجوع فجأة في البيت؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`personal-song — وش نوع الأغاني اللي تحطها وأنت ترتب؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`personal-friend — وش صفة تحبها في أصحابك أكثر شيء؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`personal-weekend — وش خطتك المثالية ليوم إجازة بدون التزامات؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`personal-fear-small — وش خوف صغير مضحك عندك وما تقوله كثير؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
+## اعترافات
 
-`personal-app — وش تطبيق تفتحه بدون ما تنتبه؟`
+`confessions-1 — وش عادة عندك تعرف إنها مزعجة بس ما وقفتها؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`personal-weather — أي جو يخليك مزاجك أحسن؟`
+`confessions-2 — وش شيء تدّعي إنك تعرفه وأنت فعليًا ما تعرف عنه شيء؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`personal-sleep — أنت من اللي ينام بدري ولا يسهر؟ وليه؟`
+`confessions-3 — وش أكثر شيء تسوّف فيه دائمًا؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`personal-laugh — وش نوع النكت اللي تضحكك بسرعة؟`
+`confessions-4 — وش شيء اشتريته بس عشان الناس تمدحه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`personal-focus — وش الشيء اللي يشتت تركيزك أكثر من غيره؟`
+`confessions-5 — وش آخر كذبة بيضاء قلتها؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-## مواقف
-
-`situations-1 — لو علقت في مدينة ما تعرفها ومعك ساعة فاضية، وين أول مكان ودك تروح له؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`situations-2 — لو انقطع النت عندك لأسبوع، وش بتشغل نفسك فيه؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`situations-3 — لو اكتشفت إن عندك يوم إجازة مفاجئ بكرة، وش خطتك؟`
+`confessions-6 — وش شيء تحكم على الناس عليه بسرعة؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-4 — لو طفشت وسط تجمع كبير، وش تسوي عادة؟`
+`confessions-7 — وش أكثر تطبيق تفتحه بدون سبب؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-wrong-name — لو اضطررت تستخدم اسم مستعار يوم كامل، وش تختار؟`
+`confessions-8 — وش شيء مستحيل تعترف فيه بسهولة قدام أهلك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-silence — وش موضوع تفتحه عادة إذا صار الصمت محرج بينكم؟`
+`confessions-9 — وش عادة طفولية للحين تسويها؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-rain — لو علقت تحت المطر مع أصحابك، وش الحركة اللي غالباً بتسويها؟`
+`confessions-10 — وش شيء تقول إنك ما تهتم فيه لكن فعليًا يفرق معك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-queue — وش الشيء اللي ممكن يخليك تصبر على طابور طويل؟`
+`confessions-11 — وش أكثر شيء تضيع وقتك فيه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-forgot — لو نسيت اسم شخص قدامك، وش حيلتك؟`
+`confessions-12 — وش شيء مرة بالغت فيه عشان تطلع بصورة أفضل؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-food-share — لو طلبك في المطعم طلع سيئ جداً، وش أول تعليق بيطلع منك؟`
+`confessions-13 — وش شيء تخاف أحد يفتح جوالك ويشوفه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-late-host — لو كل واحد في القروب له دور ثابت، وش الدور اللي غالباً يكون دورك؟`
+`confessions-14 — وش أكثر شيء تقول ببدأ بكرة عنه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-photo — وش شيء بسيط لو شفته في غرفة شخص يخليك تتوقع إنك بتتفاهم معه؟`
+`confessions-15 — وش رأي عندك غالبًا ما تقوله بصوت عالي؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-wrong-chat — لو أرسلت شيء بالغلط للقروب، وش أكثر نوع رسالة ممكن تورطك؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
+## أسئلة شخصية خفيفة
 
-`situations-power — لو انقطعت الكهرباء ليلة كاملة، وش الشيء اللي بتفتقده أول؟`
+`light-personal-1 — وش أكثر شيء يرفع مزاجك بسرعة؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-neighbor — لو جارك طلب منك خدمة غريبة، وش أكثر طلب ممكن توافق عليه؟`
+`light-personal-2 — وش مكان تقدر تجلس فيه ساعات بدون ما تمل؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-meeting — لو عطوك دقيقة تتكلم عن أي موضوع بدون تجهيز، وش الموضوع اللي تختاره؟`
+`light-personal-3 — وش أكثر صفة تحبها في أصحابك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-lost-item — لو اختفى جوالك 24 ساعة، وش أكثر شيء بتفتقده فيه؟`
+`light-personal-4 — وش شيء بسيط يزعجك بشكل مبالغ؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-surprise — لو انطلب منك ترتب مفاجأة لصديق، وش تكون فكرتك؟`
+`light-personal-5 — وش أكثر شيء تسويه إذا طفشت؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-new-city — لو انتقلت لحي جديد، وش أول مكان تزوره؟`
+`light-personal-6 — وش أفضل وقت في اليوم بالنسبة لك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-awkward — وش حركتك المعتادة إذا شفت شخص تعرفه من بعيد وما تدري تسلم أو لا؟`
+`light-personal-7 — وش شيء نفسك تتعلمه قريب؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-gift — وش نوع هدية لو وصلتك بتعرف فوراً مين اللي جابها؟`
+`light-personal-8 — وش أكثر أكلة ممكن تأكلها أكثر من مرة بالأسبوع؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`situations-plan-cancel — لو انلغت خطتكم في آخر لحظة، وش البديل؟`
+`light-personal-9 — وش نوع الطلعات اللي تفضلها؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-## تفضيلات
-
-`preferences-1 — وش الشيء اللي مستحيل تتنازل عنه في السفر؟`
+`light-personal-10 — وش شيء صغير ممكن يخرب يومك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-2 — قهوة ولا شاي؟ وليه؟`
+`light-personal-11 — وش أكثر شيء يحمسك للسفر؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-3 — وش نوع الأكل اللي تطلبه دائماً إذا ما قدرت تقرر؟`
+`light-personal-12 — وش شيء تتمنى الناس تفهمه عنك بدون ما تشرحه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-4 — تفضّل الصباح الهادئ ولا السهرة الطويلة؟`
+`light-personal-13 — وش أفضل هدية ممكن أحد يعطيك إياها؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-seat — في الطيارة تفضل نافذة ولا ممر؟ وليه؟`
+`light-personal-14 — وش شيء مستحيل تتنازل عنه في يومك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-movie — فيلم في البيت ولا سينما؟ وليه؟`
+`light-personal-15 — وش الشيء اللي لو اختفى من حياتك أسبوع بتتضايق جدًا؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-text-call — رسائل ولا اتصال؟ وليه؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
+## ماذا ستفعل؟
 
-`preferences-heat — حر ولا برد؟ وكيف تتعامل معه؟`
+`what-would-you-do-1 — لو صحيت ولقيت مليون ريال بحسابك، وش أول شيء تسويه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-team — تشتغل لحالك ولا مع مجموعة؟ وليه؟`
+`what-would-you-do-2 — لو قدرت تعيش سنة في أي دولة، وين تختار؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-trip — رحلة بحر ولا جبل؟ وليه؟`
+`what-would-you-do-3 — لو انحبست بمصعد مع شخص من الموجودين، مين تختار؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-sweet — حلو ولا مالح إذا بتختر واحد بس؟`
+`what-would-you-do-4 — لو تقدر ترجع يوم واحد من حياتك، أي يوم تختار؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-playlist — وش نوع الموسيقى اللي تحطها وأنت على الطريق؟`
+`what-would-you-do-5 — لو عطوك تذكرة سفر الآن بدون رجعة لمدة شهر، وين تروح؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-home — بيت هادي ولا بيت فيه حركة طول الوقت؟`
+`what-would-you-do-6 — لو اضطريت تحذف كل التطبيقات إلا ثلاثة، وش تخلي؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-game — تفضّل ألعاب جوال ولا ألعاب طاولة مع الناس؟`
+`what-would-you-do-7 — لو صرت مشهور بكرة، وش أول شيء تخاف يصير؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-photo — تصور كثير ولا تعيش اللحظة بدون صور؟`
+`what-would-you-do-8 — لو تقدر تبدل حياتك مع شخص لمدة يوم، مين تختار؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-plan — تخطط كل شيء ولا تمشي على المزاج؟`
+`what-would-you-do-9 — لو لازم تأكل أكلة وحدة أسبوع كامل، وش تختار؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-food-out — أكل بيت ولا مطعم إذا كان يومك تعبان؟`
+`what-would-you-do-10 — لو أعطوك قدرة خارقة لمدة 24 ساعة، وش تختار؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-clothes — راحة في اللبس ولا شكل مرتب حتى في البيت؟`
+`what-would-you-do-11 — لو تقدر توقف الزمن لمدة ساعة، وش بتسوي؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-news — تفضل تعيد فيلم تحبه أو تبدأ فيلم جديد؟ وليه؟`
+`what-would-you-do-12 — لو لازم تعيش بدون جوال أو بدون سيارة سنة، وش تختار؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-gift-give — تفضّل تهدي شيء عملي ولا شيء له ذكرى؟`
+`what-would-you-do-13 — لو تقدر تمسح موقف محرج من ذاكرتك، وش هو؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-weekend-people — ويكند مع ناس كثير ولا عدد صغير؟`
+`what-would-you-do-14 — لو أحد عطاك فرصة تبدأ مشروع الآن، وش بتسوي؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`preferences-learn — تتعلم أشياء جديدة من فيديو ولا من تجربة؟`
+`what-would-you-do-15 — لو لازم تختار شخص من القروب يكون مديرك سنة، مين تختار؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 # قاضي
 
-## مواقف مضحكة
+## أسوأ إجابة ممكنة
 
-`funny-1 — وش أسوأ عذر ممكن تقوله إذا تأخرت ساعتين؟`
+`worst-answer-1 — عطنا أسوأ عذر ممكن تقوله إذا تأخرت ساعتين.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-2 — لو انمسكت تكلم نفسك، وش بتقول عشان تبرر؟`
+`worst-answer-2 — وش أسوأ شيء ممكن تقوله في أول موعد؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-3 — وش أكثر موقف محرج ممكن يصير لك في مطعم؟`
+`worst-answer-3 — وش أسوأ رد ممكن ترسله لشخص قال لك اشتقت لك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-4 — لو نمت في الشغل، وش أول شيء بتسويه لما تصحى؟`
+`worst-answer-4 — وش أسوأ سبب ممكن يخليك تنطرد من وظيفة بأول يوم؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-autocorrect — لو التصحيح التلقائي خانك في رسالة مهمة، وش كتبت بالغلط؟`
+`worst-answer-5 — وش أسوأ شيء ممكن تسمعه من الدكتور قبل العملية؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-elevator — لو المصعد وقف دقيقتين مع شخص ما تعرفه، وش أول جملة تقولها؟`
+`worst-answer-6 — وش أسوأ نصيحة ممكن تعطيها لشخص داخل اختبار؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-zoom — لو نسيت المايك مفتوح في اجتماع، وش كانوا سمعوا؟`
+`worst-answer-7 — وش أسوأ جملة ممكن تقولها في مقابلة عمل؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-wallet — لو دفعت ببطاقة فاضية قدام الكاشير، وش تقول؟`
+`worst-answer-8 — وش أسوأ اسم ممكن تسمي فيه مطعم فاخر؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-sneeze — لو عطست بصوت أقوى من المتوقع في مكان هادي، وش تسوي بعدها؟`
+`worst-answer-9 — وش أسوأ شيء ممكن تقوله لشخص توه قص شعره؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-wave — لو لوحت لشخص وهو يلوح للي وراك، وش ردك؟`
+`worst-answer-10 — وش أسوأ رد ممكن تقوله إذا أحد قال لك عندي خبر مهم؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-password — لو انطلب منك تقول كلمة السر بصوت عالي، وش البديل المضحك؟`
+`worst-answer-11 — وش أسوأ هدية ممكن تعطيها لشخص في عيد ميلاده؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-pet-meet — لو قدمت حيوانك الأليف لضيف جديد، وش تقول عنه؟`
+`worst-answer-12 — وش أسوأ شيء ممكن تسويه في عزيمة رسمية؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-map — لو ضعت وأنت تدّعي إنك تعرف الطريق، وش كذبتك؟`
+`worst-answer-13 — وش أسوأ اسم ممكن تعطيه لطفلك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-karaoke — لو غصباً عليك تغني في عرس وما تعرف كلمات الأغنية، كيف تنقذ الموقف؟`
+`worst-answer-14 — وش أسوأ عذر ممكن تستخدمه عشان ما ترد على أحد أسبوع؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-photo-fail — لو صورتك الجماعية طلعت وأنت مغمض، وش التعليق اللي تحطه؟`
+`worst-answer-15 — وش أسوأ شيء ممكن تحطه في سيرتك الذاتية؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-rain-run — لو ركضت من المطر وزلّيت، وش أول جملة بعد ما تقوم؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`funny-wrong-order — وصل لك طلب أكل مو طلبك لكنه أفخم بكثير... وش خطتك قبل ما يكتشفون؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`funny-name-tag — لو انكتب اسمك غلط على الكوب، وش تصير شخصيتك الجديدة؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`funny-chair — لو الكرسي طاح وأنت عليه قدام الكل، وش تقول وأنت على الأرض؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`funny-alarm-public — لو منبهك رن في مكان عام بنغمة محرجة، وش هي؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`funny-spell — لو كل خطأ إملائي تسويه يتحول لشيء حقيقي، وش أسوأ كلمة ممكن تغلط فيها؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`funny-boss-text — لو أرسلت إيموجي بالغلط لمديرك، وش كان؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## مواقف افتراضية
+## اخترع شيء غبي
 
-`hypothetical-1 — لو صحيت ولقيت عندك مليون ريال ليوم واحد فقط، وش بتسوي؟`
+`invent-something-silly-1 — اخترع اسم تطبيق محد طلبه لكن تتوقع ينجح.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-2 — لو قدرت تبدّل حياتك مع أي شخص ليوم واحد، مين تختار؟`
+`invent-something-silly-2 — اخترع منتج غبي ممكن ينباع بمليون ريال.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-3 — لو اختفى النت من العالم لأسبوع، وش بتشغل نفسك فيه؟`
+`invent-something-silly-3 — اخترع رياضة جديدة محد يفهم قوانينها.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-4 — لو صار عندك قدرة تقرأ الأفكار دقيقة واحدة، وش أول شيء بتسويه؟`
+`invent-something-silly-4 — اخترع اسم مطعم سيئ جدًا.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-invisible — لو صرت شفاف ساعة واحدة، وش تستخدمها فيه بدون أذى؟`
+`invent-something-silly-5 — اخترع وظيفة ما لها أي فايدة.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-animal — لو تحولت لحيوان ليوم، أي حيوان تختار وليه؟`
+`invent-something-silly-6 — اخترع جهاز يحل مشكلة غير موجودة.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-pause — لو قدرت توقف العالم عشر ثواني، وش تستغلها فيه؟`
+`invent-something-silly-7 — اخترع مادة دراسية جديدة للجامعة.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-clone — لو صار عندك نسخة منك تسوي المهام المملة، وش أول مهمة تعطيها؟`
+`invent-something-silly-8 — اخترع اسم شركة تقنية فاشلة.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-map — لو كل مدينة تزورها تعطيك قدرة مرتبطة فيها، أي مدينة تختار وش القدرة؟`
+`invent-something-silly-9 — اخترع لعبة فيديو فكرتها سيئة جدًا.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-skill — لو تقدر تتقن مهارة مستحيلة وغير مفيدة تماماً، وش تختار؟`
+`invent-something-silly-10 — اخترع قانون جديد للمدرسة الكل بيكرهه.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-time — لو رجعت لعمر خمسة عشر ليوم واحد، وش تسوي مختلف؟`
+`invent-something-silly-11 — اخترع اسم عصير ما أحد بيطلبه.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-food — لو آخر أكلة تاكلها كل يوم تصير اسمك الجديد، وش تتمنى تكون؟`
+`invent-something-silly-12 — اخترع تطبيق مواعدة بطريقة كارثية.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-house — لو بيت أحلامك لازم يحتوي غرفة مالها أي فائدة منطقية، وش تكون؟`
+`invent-something-silly-13 — اخترع سوبرهيرو قوته ما لها فايدة.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-mute — لو الناس ما تقدر تسمع صوتك ليوم، كيف تتواصل؟`
+`invent-something-silly-14 — اخترع اسم فرقة موسيقية غريب جدًا.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-weather — لو تتحكم بالجو بزر واحد لكن له عطل غريب، وش العطل؟`
+`invent-something-silly-15 — اخترع خدمة اشتراك شهرية محد يحتاجها.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-guest — لو شخصية كرتونية بتسكن معك أسبوع، مين تختار وش أول مشكلة بتسويها؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`hypothetical-job — لو جربت مهنة غريبة أسبوع، وش المهنة؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`hypothetical-island — لو علقت في جزيرة وفيك ثلاثة أشياء بس، وش تاخذ؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`hypothetical-language — لو صحيت تتكلم لغة ما يعرفها إلا الحيوانات، وش أول حيوان تفاوضه؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
+## سيناريوهات غريبة
 
-`hypothetical-size — لو صرت بحجم كف اليد لساعة، وش تستكشف؟`
+`weird-scenarios-1 — صحيت ولقيت نفسك رئيس دولة لمدة يوم، وش أول قرار تسويه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-book — لو انكتبت قصتك في كتاب، وش الفصل اللي تحذف؟`
+`weird-scenarios-2 — فجأة كل الحيوانات صارت تتكلم، أي حيوان بيكون أكثر واحد مزعج؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-button — لو عندك زر يمسح نوع واحد من المواقف المحرجة من حياتك، وش تمسح؟`
+`weird-scenarios-3 — صحيت ولقيت نفسك مشهور عالميًا بدون سبب، وش أول شيء تسويه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`hypothetical-swap-pet — لو الحيوانات في الشارع تقدر تقيم البشر من خمس نجوم، وش تتوقع تقييمك وليه؟`
+`weird-scenarios-4 — لو صار ممنوع استخدام الجوال أسبوع كامل، وش أكثر شيء الناس بتسويه بدلًا منه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-## الحياة اليومية
-
-`daily-1 — وش أفضل حجة عشان تطلع من اجتماع ممل؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`daily-2 — أنت في طابور طويل وقالوا: اللي يضحك الناس يتقدم خمسة أماكن. وش تسوي؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`daily-3 — لو جاك ضيف فجأة والبيت مو مرتب، وش خطتك؟`
+`weird-scenarios-5 — لو تقدر تضيف زر واحد جديد في جسم الإنسان، وش يسوي؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-4 — وش أسهل طريقة تقنع فيها نفسك تقوم بدري؟`
+`weird-scenarios-6 — لو البشر صاروا ينامون ساعة وحدة فقط يوميًا، وش بيتغير؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-dishes — لو الصحون تقدر تختار مين يغسلها، كيف تقنعها تختارك آخر واحد؟`
+`weird-scenarios-7 — لو صار عندك ريموت يتحكم بالناس، وش أول زر تضيفه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-traffic — لو الزحمة واقفة وأنت متأخر، وش تسوي في السيارة؟`
+`weird-scenarios-8 — لو صرت شبح لمدة 24 ساعة، وش أول شيء تسويه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-lunch — وش قرار الغداء اللي ينتهي بندم دائماً؟`
+`weird-scenarios-9 — لو كل شخص لازم يلبس زي موحد حسب شخصيته، وش يكون زيك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-notif — وصلك إشعار مكتوب فيه: "لا تفتحه قدام الناس". وش تتوقع داخله؟`
+`weird-scenarios-10 — لو قدرت تغير صوتك لأي صوت بالعالم، وش تختار؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-laundry — طلعت من الغسالة جوربة مو لك. اخترع قصتها.`
+`weird-scenarios-11 — لو كل كذبة تقولها تطلع فوق رأسك كتابة، وش بيصير؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-meeting-cam — فتحت الكاميرا بالغلط ووراك شيء غريب. وش أسوأ شيء ممكن يكون؟`
+`weird-scenarios-12 — لو صار لازم تختار حيوان يكون مديرك، وش تختار؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-keys — ضيعت مفاتيحك للمرة العاشرة. اخترع مكاناً مستحيلاً تلقاها فيه.`
+`weird-scenarios-13 — لو الإنترنت اختفى للأبد، وش أول شيء بينهار؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-alarm-snooze — لو المنبه يقدر يهينك كل مرة تسوي Snooze، وش بيقول؟`
+`weird-scenarios-14 — لو كل شخص عنده موسيقى دخول مثل المصارعين، وش تكون موسيقاك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-grocery — دخلت البقالة تشتري غرض واحد وطلعت بعشرة. وش أغرب شيء شريته؟`
+`weird-scenarios-15 — لو قدرت تعيش داخل لعبة أسبوع، أي لعبة تختار؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-email — وصلك إيميل بعنوان "ضروري جداً" لكن محتواه شيء تافه. وش المحتوى؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
+## كمل الجملة
 
-`daily-walk — أنت مستعجل وواحد قدامك يمشي ببطء خيالي. وش تسوي بدون ما تزعلّه؟`
+`complete-the-sentence-1 — أكثر شيء يخوفني مو الموت، هو...`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-water — لو قنينة الماء ترسل لك إشعار كل ما نسيتها، وش الرسالة اللي بتكتبها؟`
+`complete-the-sentence-2 — لو انقفطت وأنا أسوي شيء غريب، غالبًا بيكون...`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-charger — شاحن جوالك اختفى قبل النوم والبطارية 1%. وين تتوقع تلقاه بطريقة عبثية؟`
+`complete-the-sentence-3 — لو صرت مشهور، أول فضيحة لي بتكون...`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-smalltalk — وش جملة المجاملة اللي تستخدمها وأنت مستعجل؟`
+`complete-the-sentence-4 — أكثر شيء ممكن يخليني أهرب من عزيمة هو...`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-fridge — تفتح الثلاجة ليه حتى لو تعرف إنك مو جوعان؟`
+`complete-the-sentence-5 — لو عندي مليون ريال وما أقدر أصرفها إلا على شيء غبي، بشتري...`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-playlist — لو لازم يكون لك موسيقى دخول كل مرة تدخل المطبخ، وش نوعها؟`
+`complete-the-sentence-6 — أسوأ شيء ممكن يصير في أول يوم دوام هو...`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-shoes — لو حذاؤك يكتب مراجعة عنك بعد يوم طويل، وش بيكتب؟`
+`complete-the-sentence-7 — لو فتحت مطعم، الشيء الممنوع فيه بيكون...`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-group — القروب ساكت من أسبوع. اكتب رسالة واحدة ترجع الفوضى.`
+`complete-the-sentence-8 — أكثر شيء يخليك تعرف إن الطلعة فاشلة من بدايتها هو...`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`daily-desk — لو مكتبك يقدر يرمي غرض واحد منك للأبد، وش تتوقع يرمي؟`
+`complete-the-sentence-9 — لو كنت شرير في فيلم، خطتي الغبية بتكون...`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-## مواقف غريبة
-
-`weird-1 — لو حيوانك الأليف قدر يتكلم خمس دقائق، وش أول شيء تتوقع يقوله؟`
+`complete-the-sentence-10 — لو حياتي مسلسل، اسم الحلقة الحالية بيكون...`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-2 — لو لقيت باب سري في بيتك، وش أول شيء تسويه؟`
+`complete-the-sentence-11 — الشيء اللي مستحيل أشارك أحد فيه هو...`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-3 — لو كل لون صار له صوت، أي لون بيكون أزعج واحد وش صوته؟`
+`complete-the-sentence-12 — لو انحطيت في برنامج واقع، أول مشكلة بسويها هي...`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-4 — لو اكتشفت إن ظلّك له رأي مختلف عنك، وش بيقول؟`
+`complete-the-sentence-13 — أغبى شيء ممكن أصير مشهور بسببه هو...`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-clouds — لو السحاب صار يكتب رسائل، وش أول جملة تشوفها فوق البيت؟`
+`complete-the-sentence-14 — لو عندي قانون خاص فيني، أول قانون بيكون...`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-furniture — لو الأثاث قدر يشتكي، أي قطعة بتشتكي أول وليه؟`
+`complete-the-sentence-15 — الشيء اللي لو صار اليوم بقول خلاص كفاية هو...`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-echo — لو صدى صوتك صار يرد بتعليق، وش نوع تعليقاته؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
+## تحديات الرد السريع
 
-`weird-food-talk — لو الأكل قدر يختار مصيره، أي أكلة ترفض تنأكل؟`
+`rapid-response-1 — عطنا سبب غبي يخليك تطرد شخص من القروب.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-gravity — لو الجاذبية ضعفت شوي في المطبخ، وش أول فوضى تصير؟`
+`rapid-response-2 — عطنا اسم Wi-Fi يخلي الجيران يشكون فيك.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-clock — لو ساعتك تعطيك وقتاً مزيفاً متعمداً كل يوم، وش أغرب سبب ممكن يكون؟`
+`rapid-response-3 — عطنا اسم فيلم عن حياتك.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-plants — لو النباتات قيّمت اهتمامك فيها، وش تقييمها؟`
+`rapid-response-4 — عطنا لقب سيئ جدًا لصاحبك.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-socks — لو الجوارب الضائعة كونت نادي، وش شعارهم؟`
+`rapid-response-5 — عطنا جملة تخرب أي موعد رومانسي.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-mirror-day — لو المرآة تعرض نسخة بديلة منك عاشت قراراً مختلفاً، وش أول فرق تلاحظه؟`
+`rapid-response-6 — عطنا شيء غريب تحطه في حقيبة سفر.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-rain-up — لو المطر نزل لفوق يوم، وش أول مشهد تتخيله؟`
+`rapid-response-7 — عطنا اسم كوفي مستحيل تدخله.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-buttons — لو زر الإنارة يطلب كلمة سر كل مرة، وش أغبى كلمة سر ممكن تحطها؟`
+`rapid-response-8 — عطنا شيء تشتريه لو كنت مليونيرًا بشكل غير مسؤول.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-dream-job — لو مكتبك يظهر كل يوم في مكان عشوائي، وش أسوأ مكان ممكن يطلع فيه؟`
+`rapid-response-9 — عطنا سبب غريب جدًا يمنعك من الزواج.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-map-house — لو بيتك يقرر يهرب منك ليلة كاملة، وين تتوقع تلقاه الصباح؟`
+`rapid-response-10 — عطنا شيء لو شفته في بيت شخص بتطلع فورًا.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-taste — لو الألوان لها طعم، الأحمر وش طعمه عندك؟`
+`rapid-response-11 — عطنا اسم وظيفة تتوقع ما تصمد فيها يوم.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-wifi — لو الواي فاي صار كائن حي، وش يطلب منك مقابل الخدمة؟`
+`rapid-response-12 — عطنا شيء محد المفروض يقوله في جنازة.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-shoes — لو حذاؤك اختار الطريق، وين يوديك اليوم؟`
+`rapid-response-13 — عطنا شيء ما ينفع أبدًا يكون اسم طفل.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-radio — لو الراديو يذيع أفكارك بالغلط دقيقة، وش الخبر العاجل؟`
+`rapid-response-14 — عطنا سبب يخليك تنسحب من طلعة بعد ما وصلت.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-moon-note — لو القمر ترك لك ورقة على الشباك، وش مكتوب فيها؟`
+`rapid-response-15 — عطنا شيء ممكن يخرب قروب أصدقاء كامل.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 # تحدي التخمين
 
 ## حيوانات
 
-### animals-lion
+### animals-1
 - العرض: أسد
-- الأجوبة المقبولة: أسد، الأسد
+- الأجوبة المقبولة: أسد
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### animals-elephant
-- العرض: فيل
-- الأجوبة المقبولة: فيل، الفيل
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-giraffe
-- العرض: زرافة
-- الأجوبة المقبولة: زرافة، الزرافة، زرافه، الزرافه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-penguin
-- العرض: بطريق
-- الأجوبة المقبولة: بطريق، البطريق
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-crocodile
-- العرض: تمساح
-- الأجوبة المقبولة: تمساح، التمساح
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-cat
-- العرض: قطة
-- الأجوبة المقبولة: قطة، القطة، قطه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-dog
-- العرض: كلب
-- الأجوبة المقبولة: كلب، الكلب
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-camel
-- العرض: جمل
-- الأجوبة المقبولة: جمل، الجمل
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-horse
-- العرض: حصان
-- الأجوبة المقبولة: حصان، الحصان
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-dolphin
-- العرض: دلفين
-- الأجوبة المقبولة: دلفين، الدلفين
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-bee
-- العرض: نحلة
-- الأجوبة المقبولة: نحلة، النحلة، نحله
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-kangaroo
-- العرض: كنغر
-- الأجوبة المقبولة: كنغر، الكنغر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-whale
-- العرض: حوت
-- الأجوبة المقبولة: حوت، الحوت
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-monkey
-- العرض: قرد
-- الأجوبة المقبولة: قرد، القرد
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-owl
-- العرض: بومة
-- الأجوبة المقبولة: بومة، البومة، بومه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-butterfly
-- العرض: فراشة
-- الأجوبة المقبولة: فراشة، الفراشة، فراشه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-rabbit
-- العرض: أرنب
-- الأجوبة المقبولة: أرنب، الأرنب
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-fox
-- العرض: ثعلب
-- الأجوبة المقبولة: ثعلب، الثعلب
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-bear
-- العرض: دب
-- الأجوبة المقبولة: دب، الدب
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-wolf
-- العرض: ذئب
-- الأجوبة المقبولة: ذئب، الذئب
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-tiger
+### animals-2
 - العرض: نمر
-- الأجوبة المقبولة: نمر، النمر
+- الأجوبة المقبولة: نمر
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### animals-turtle
+### animals-3
+- العرض: فيل
+- الأجوبة المقبولة: فيل
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-4
+- العرض: زرافة
+- الأجوبة المقبولة: زرافة
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-5
+- العرض: قرد
+- الأجوبة المقبولة: قرد
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-6
+- العرض: دب
+- الأجوبة المقبولة: دب
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-7
+- العرض: ذئب
+- الأجوبة المقبولة: ذئب
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-8
+- العرض: ثعلب
+- الأجوبة المقبولة: ثعلب
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-9
+- العرض: أرنب
+- الأجوبة المقبولة: أرنب
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-10
+- العرض: جمل
+- الأجوبة المقبولة: جمل
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-11
+- العرض: حصان
+- الأجوبة المقبولة: حصان
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-12
+- العرض: تمساح
+- الأجوبة المقبولة: تمساح
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-13
+- العرض: ثعبان
+- الأجوبة المقبولة: ثعبان
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-14
+- العرض: بطريق
+- الأجوبة المقبولة: بطريق
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-15
+- العرض: دلفين
+- الأجوبة المقبولة: دلفين
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-16
+- العرض: أخطبوط
+- الأجوبة المقبولة: أخطبوط
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-17
 - العرض: سلحفاة
-- الأجوبة المقبولة: سلحفاة، السلحفاة، سلحفه
+- الأجوبة المقبولة: سلحفاة
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-18
+- العرض: كنغر
+- الأجوبة المقبولة: كنغر
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-19
+- العرض: باندا
+- الأجوبة المقبولة: باندا
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-20
+- العرض: حوت أزرق
+- الأجوبة المقبولة: حوت أزرق، الحوت الأزرق
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## أكلات
 
-### food-pizza
+### food-1
 - العرض: بيتزا
-- الأجوبة المقبولة: بيتزا، البيتزا، pizza
+- الأجوبة المقبولة: بيتزا، Pizza
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### food-kabsa
-- العرض: كبسة
-- الأجوبة المقبولة: كبسة، الكبسة، كبسه، الكبسه
+### food-2
+- العرض: برغر
+- الأجوبة المقبولة: برغر، برجر، Burger
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### food-burger
-- العرض: برجر
-- الأجوبة المقبولة: برجر، البرجر، همبرجر، burger
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-sushi
-- العرض: سوشي
-- الأجوبة المقبولة: سوشي، السوشي، sushi
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-shawarma
+### food-3
 - العرض: شاورما
-- الأجوبة المقبولة: شاورما، الشاورما، شاورمة
+- الأجوبة المقبولة: شاورما، Shawarma
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### food-donut
-- العرض: دونات
-- الأجوبة المقبولة: دونات، الدونات
+### food-4
+- العرض: كبسة
+- الأجوبة المقبولة: كبسة، Kabsa
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### food-icecream
-- العرض: آيس كريم
-- الأجوبة المقبولة: آيس كريم، آيسكريم
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-pasta
-- العرض: معكرونة
-- الأجوبة المقبولة: معكرونة، المعكرونة، مكرونة
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-hummus
-- العرض: حمص
-- الأجوبة المقبولة: حمص، الحمص
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-watermelon
-- العرض: بطيخ
-- الأجوبة المقبولة: بطيخ، البطيخ
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-chocolate
-- العرض: شوكولاتة
-- الأجوبة المقبولة: شوكولاتة، شوكولاته، الشوكولاتة
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-apple
-- العرض: تفاح
-- الأجوبة المقبولة: تفاح، التفاح، تفاحة
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-soup
-- العرض: شوربة
-- الأجوبة المقبولة: شوربة، الشوربة، شوربه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-salad
-- العرض: سلطة
-- الأجوبة المقبولة: سلطة، السلطة، سلطه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-falafel
-- العرض: فلافل
-- الأجوبة المقبولة: فلافل، الفلافل
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-mandi
+### food-5
 - العرض: مندي
-- الأجوبة المقبولة: مندي، المندي
+- الأجوبة المقبولة: مندي
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### food-coffee
-- العرض: قهوة
-- الأجوبة المقبولة: قهوة، القهوة، قهوه
+### food-6
+- العرض: فلافل
+- الأجوبة المقبولة: فلافل، طعمية
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### food-dates
-- العرض: تمر
-- الأجوبة المقبولة: تمر، التمر، تمرة
+### food-7
+- العرض: حمص
+- الأجوبة المقبولة: حمص
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### food-kunafa
+### food-8
 - العرض: كنافة
-- الأجوبة المقبولة: كنافة، الكنافة، كنافه
+- الأجوبة المقبولة: كنافة
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### food-orange
-- العرض: برتقال
-- الأجوبة المقبولة: برتقال، البرتقال
+### food-9
+- العرض: سوشي
+- الأجوبة المقبولة: سوشي، Sushi
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### food-bread
-- العرض: خبز
-- الأجوبة المقبولة: خبز، الخبز
+### food-10
+- العرض: آيس كريم
+- الأجوبة المقبولة: آيس كريم، مثلجات، Ice cream
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### food-egg
-- العرض: بيض
-- الأجوبة المقبولة: بيض، البيض، بيضة
+### food-11
+- العرض: دونات
+- الأجوبة المقبولة: دونات، دونت، Donut، Doughnut
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-12
+- العرض: بان كيك
+- الأجوبة المقبولة: بان كيك، Pancake، Pancakes
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-13
+- العرض: وافل
+- الأجوبة المقبولة: وافل، Waffle، Waffles
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-14
+- العرض: سمبوسة
+- الأجوبة المقبولة: سمبوسة، سمبوسك، Samosa
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-15
+- العرض: تشيز كيك
+- الأجوبة المقبولة: تشيز كيك، Cheesecake، Cheese cake
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-16
+- العرض: بطيخ
+- الأجوبة المقبولة: بطيخ، حبحب
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-17
+- العرض: أناناس
+- الأجوبة المقبولة: أناناس، Pineapple
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-18
+- العرض: فراولة
+- الأجوبة المقبولة: فراولة، Strawberry
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-19
+- العرض: فشار
+- الأجوبة المقبولة: فشار، بوشار، Popcorn
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-20
+- العرض: شوكولاتة
+- الأجوبة المقبولة: شوكولاتة
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## بلدان
 
-### countries-saudi
+### countries-1
 - العرض: السعودية
-- الأجوبة المقبولة: السعودية، سعودية، المملكة العربية السعودية، السعوديه
+- الأجوبة المقبولة: السعودية، المملكة العربية السعودية، Saudi Arabia
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### countries-japan
-- العرض: اليابان
-- الأجوبة المقبولة: اليابان، يابان
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-brazil
-- العرض: البرازيل
-- الأجوبة المقبولة: البرازيل، برازيل
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-france
-- العرض: فرنسا
-- الأجوبة المقبولة: فرنسا، france
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-egypt
-- العرض: مصر
-- الأجوبة المقبولة: مصر، egypt
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-uae
-- العرض: الإمارات
-- الأجوبة المقبولة: الإمارات، الإمارات العربية المتحدة
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-turkey
-- العرض: تركيا
-- الأجوبة المقبولة: تركيا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-morocco
-- العرض: المغرب
-- الأجوبة المقبولة: المغرب، مغرب
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-kuwait
-- العرض: الكويت
-- الأجوبة المقبولة: الكويت، كويت
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-italy
-- العرض: إيطاليا
-- الأجوبة المقبولة: إيطاليا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-skorea
-- العرض: كوريا الجنوبية
-- الأجوبة المقبولة: كوريا الجنوبية، كوريا الجنوبيه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-qatar
-- العرض: قطر
-- الأجوبة المقبولة: قطر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-usa
-- العرض: أمريكا
-- الأجوبة المقبولة: أمريكا، الولايات المتحدة
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-china
-- العرض: الصين
-- الأجوبة المقبولة: الصين، صين
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-india
-- العرض: الهند
-- الأجوبة المقبولة: الهند، هند
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-germany
-- العرض: ألمانيا
-- الأجوبة المقبولة: ألمانيا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-spain
-- العرض: إسبانيا
-- الأجوبة المقبولة: إسبانيا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-england
-- العرض: إنجلترا
-- الأجوبة المقبولة: إنجلترا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-canada
-- العرض: كندا
-- الأجوبة المقبولة: كندا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-australia
-- العرض: أستراليا
-- الأجوبة المقبولة: أستراليا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-jordan
+### countries-2
 - العرض: الأردن
 - الأجوبة المقبولة: الأردن
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### countries-oman
-- العرض: عمان
-- الأجوبة المقبولة: عمان
+### countries-3
+- العرض: مصر
+- الأجوبة المقبولة: مصر، Egypt
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-## سيارات
-
-### cars-toyota
-- العرض: Toyota
-- الأجوبة المقبولة: Toyota، تويوتا
+### countries-4
+- العرض: الإمارات
+- الأجوبة المقبولة: الإمارات، الإمارات العربية المتحدة، UAE
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### cars-mercedes
-- العرض: Mercedes
-- الأجوبة المقبولة: Mercedes، مرسيدس، بنز
+### countries-5
+- العرض: الكويت
+- الأجوبة المقبولة: الكويت
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### cars-ferrari
-- العرض: Ferrari
-- الأجوبة المقبولة: Ferrari، فيراري
+### countries-6
+- العرض: قطر
+- الأجوبة المقبولة: قطر
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### cars-tesla
-- العرض: Tesla
-- الأجوبة المقبولة: Tesla، تسلا
+### countries-7
+- العرض: البحرين
+- الأجوبة المقبولة: البحرين
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### cars-lambo
-- العرض: Lamborghini
-- الأجوبة المقبولة: Lamborghini، لامبورغيني، لامبورجيني
+### countries-8
+- العرض: عُمان
+- الأجوبة المقبولة: عُمان، Amman
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### cars-bmw
-- العرض: BMW
-- الأجوبة المقبولة: BMW، بي ام دبليو
+### countries-9
+- العرض: المغرب
+- الأجوبة المقبولة: المغرب
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### cars-honda
-- العرض: Honda
-- الأجوبة المقبولة: Honda، هوندا
+### countries-10
+- العرض: تركيا
+- الأجوبة المقبولة: تركيا، Turkey
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### cars-ford
-- العرض: Ford
-- الأجوبة المقبولة: Ford، فورد
+### countries-11
+- العرض: اليابان
+- الأجوبة المقبولة: اليابان
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### cars-audi
-- العرض: Audi
-- الأجوبة المقبولة: Audi، أودي
+### countries-12
+- العرض: الصين
+- الأجوبة المقبولة: الصين
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### cars-vw
-- العرض: Volkswagen
-- الأجوبة المقبولة: Volkswagen، فولكس واجن، فولكسفاغن
+### countries-13
+- العرض: الهند
+- الأجوبة المقبولة: الهند، India
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### cars-mustang
-- العرض: Mustang
-- الأجوبة المقبولة: Mustang، موستانج
+### countries-14
+- العرض: فرنسا
+- الأجوبة المقبولة: فرنسا، France
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### cars-kia
-- العرض: Kia
-- الأجوبة المقبولة: Kia، كيا
+### countries-15
+- العرض: إيطاليا
+- الأجوبة المقبولة: إيطاليا، Italy
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### cars-chevrolet
-- العرض: Chevrolet
-- الأجوبة المقبولة: Chevrolet، شيفروليه
+### countries-16
+- العرض: إسبانيا
+- الأجوبة المقبولة: إسبانيا، Spain
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### cars-hyundai
-- العرض: Hyundai
-- الأجوبة المقبولة: Hyundai، هيونداي
+### countries-17
+- العرض: ألمانيا
+- الأجوبة المقبولة: ألمانيا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### cars-nissan
-- العرض: Nissan
-- الأجوبة المقبولة: Nissan، نيسان
+### countries-18
+- العرض: بريطانيا
+- الأجوبة المقبولة: بريطانيا، المملكة المتحدة، UK، United Kingdom
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### cars-jeep
-- العرض: Jeep
-- الأجوبة المقبولة: Jeep، جيب
+### countries-19
+- العرض: أمريكا
+- الأجوبة المقبولة: أمريكا، الولايات المتحدة، USA، United States
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### cars-porsche
-- العرض: Porsche
-- الأجوبة المقبولة: Porsche، بورش
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-landcruiser
-- العرض: Land Cruiser
-- الأجوبة المقبولة: Land Cruiser، لاندكروزر، لاند كروزر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-mazda
-- العرض: Mazda
-- الأجوبة المقبولة: Mazda، مازدا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-volvo
-- العرض: Volvo
-- الأجوبة المقبولة: Volvo، فولفو
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### cars-lexus
-- العرض: Lexus
-- الأجوبة المقبولة: Lexus، لكزس
+### countries-20
+- العرض: البرازيل
+- الأجوبة المقبولة: البرازيل
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## كرة قدم
 
-### football-ronaldo
+### football-1
 - العرض: كريستيانو رونالدو
-- الأجوبة المقبولة: كريستيانو رونالدو، كريستيانو، رونالدو، cr7
+- الأجوبة المقبولة: كريستيانو رونالدو
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### football-messi
-- العرض: ميسي
-- الأجوبة المقبولة: ميسي، ليونيل ميسي، messi
+### football-2
+- العرض: ليونيل ميسي
+- الأجوبة المقبولة: ليونيل ميسي
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### football-neymar
+### football-3
 - العرض: نيمار
-- الأجوبة المقبولة: نيمار، neymar
+- الأجوبة المقبولة: نيمار
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### football-salah
+### football-4
+- العرض: كيليان مبابي
+- الأجوبة المقبولة: كيليان مبابي
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### football-5
 - العرض: محمد صلاح
-- الأجوبة المقبولة: محمد صلاح، صلاح، mo salah
+- الأجوبة المقبولة: محمد صلاح
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### football-mbappe
-- العرض: مبابي
-- الأجوبة المقبولة: مبابي، كيليان مبابي، mbappe
+### football-6
+- العرض: كريم بنزيما
+- الأجوبة المقبولة: كريم بنزيما
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### football-hilal
-- العرض: الهلال
-- الأجوبة المقبولة: الهلال
+### football-7
+- العرض: لوكا مودريتش
+- الأجوبة المقبولة: لوكا مودريتش
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### football-nassr
-- العرض: النصر
-- الأجوبة المقبولة: النصر
+### football-8
+- العرض: روبرت ليفاندوفسكي
+- الأجوبة المقبولة: روبرت ليفاندوفسكي
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### football-barca
-- العرض: برشلونة
-- الأجوبة المقبولة: برشلونة، بارسا
+### football-9
+- العرض: إيرلينغ هالاند
+- الأجوبة المقبولة: إيرلينغ هالاند
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### football-madrid
-- العرض: ريال مدريد
-- الأجوبة المقبولة: ريال مدريد
+### football-10
+- العرض: فينيسيوس جونيور
+- الأجوبة المقبولة: فينيسيوس جونيور
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### football-ittihad
-- العرض: الاتحاد
-- الأجوبة المقبولة: الاتحاد
+### football-11
+- العرض: رونالدينيو
+- الأجوبة المقبولة: رونالدينيو
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### football-liverpool
-- العرض: ليفربول
-- الأجوبة المقبولة: ليفربول
+### football-12
+- العرض: زين الدين زيدان
+- الأجوبة المقبولة: زين الدين زيدان
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### football-united
-- العرض: مانشستر يونايتد
-- الأجوبة المقبولة: مانشستر يونايتد، اليونايتد
+### football-13
+- العرض: ديفيد بيكهام
+- الأجوبة المقبولة: ديفيد بيكهام
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### football-juventus
-- العرض: يوفنتوس
-- الأجوبة المقبولة: يوفنتوس
+### football-14
+- العرض: أندريس إنييستا
+- الأجوبة المقبولة: أندريس إنييستا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### football-bayern
-- العرض: بايرن ميونخ
-- الأجوبة المقبولة: بايرن ميونخ، بايرن
+### football-15
+- العرض: تشافي
+- الأجوبة المقبولة: تشافي
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### football-zidane
-- العرض: زيدان
-- الأجوبة المقبولة: زيدان
+### football-16
+- العرض: سيرجيو راموس
+- الأجوبة المقبولة: سيرجيو راموس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### football-pele
+### football-17
+- العرض: بوفون
+- الأجوبة المقبولة: بوفون
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### football-18
+- العرض: رونالدو نازاريو
+- الأجوبة المقبولة: رونالدو نازاريو
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### football-19
 - العرض: بيليه
 - الأجوبة المقبولة: بيليه
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### football-referee
-- العرض: حكم
-- الأجوبة المقبولة: حكم، الحكم
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-goal
-- العرض: مرمى
-- الأجوبة المقبولة: مرمى، المرمى
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-worldcup
-- العرض: كأس العالم
-- الأجوبة المقبولة: كأس العالم، المونديال
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-chelsea
-- العرض: تشيلسي
-- الأجوبة المقبولة: تشيلسي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### football-arsenal
-- العرض: أرسنال
-- الأجوبة المقبولة: أرسنال
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## أفلام
-
-### movies-inception
-- العرض: Inception
-- الأجوبة المقبولة: Inception، انسبشن، الإنسبشن
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-avatar
-- العرض: Avatar
-- الأجوبة المقبولة: Avatar، أفاتار
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-titanic
-- العرض: Titanic
-- الأجوبة المقبولة: Titanic، تايتانك، تايتنك، التيتانيك
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-joker
-- العرض: Joker
-- الأجوبة المقبولة: Joker، الجوكر، جوكر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-frozen
-- العرض: Frozen
-- الأجوبة المقبولة: Frozen، ملكة الثلج، فروزن
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-interstellar
-- العرض: Interstellar
-- الأجوبة المقبولة: Interstellar، إنترستيلار
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-harry
-- العرض: Harry Potter
-- الأجوبة المقبولة: Harry Potter، هاري بوتر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-lionking
-- العرض: The Lion King
-- الأجوبة المقبولة: The Lion King، الأسد الملك
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-toystory
-- العرض: Toy Story
-- الأجوبة المقبولة: Toy Story، توي ستوري
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-shrek
-- العرض: Shrek
-- الأجوبة المقبولة: Shrek، شريك
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-matrix
-- العرض: The Matrix
-- الأجوبة المقبولة: The Matrix، الماتريكس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-jurassic
-- العرض: Jurassic Park
-- الأجوبة المقبولة: Jurassic Park، حديقة الديناصورات
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-homealone
-- العرض: Home Alone
-- الأجوبة المقبولة: Home Alone، وحده في المنزل
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-coco
-- العرض: Coco
-- الأجوبة المقبولة: Coco، كوكو
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-up
-- العرض: Up
-- الأجوبة المقبولة: Up، آب
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-jaws
-- العرض: Jaws
-- الأجوبة المقبولة: Jaws، الفك المفترس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-aladdin
-- العرض: Aladdin
-- الأجوبة المقبولة: Aladdin، علاء الدين
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-nemo
-- العرض: Finding Nemo
-- الأجوبة المقبولة: Finding Nemo، نيمو
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-spiderman
-- العرض: Spider-Man
-- الأجوبة المقبولة: Spider-Man، سبايدرمان، الرجل العنكبوت
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-godfather
-- العرض: The Godfather
-- الأجوبة المقبولة: The Godfather، العراب
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-forrest
-- العرض: Forrest Gump
-- الأجوبة المقبولة: Forrest Gump، فورست غامب
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### movies-iceage
-- العرض: Ice Age
-- الأجوبة المقبولة: Ice Age، العصر الجليدي
+### football-20
+- العرض: مارادونا
+- الأجوبة المقبولة: مارادونا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## مسلسلات
 
-### series-friends
-- العرض: Friends
-- الأجوبة المقبولة: Friends، فريندز، الأصدقاء
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-got
-- العرض: Game of Thrones
-- الأجوبة المقبولة: Game of Thrones، صراع العروش، قيم أوف ثرونز
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-breaking
+### series-1
 - العرض: Breaking Bad
-- الأجوبة المقبولة: Breaking Bad، بريكينغ باد، بريكنج باد
+- الأجوبة المقبولة: Breaking Bad، بريكنق باد، بريكنغ باد
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### series-squid
-- العرض: Squid Game
-- الأجوبة المقبولة: Squid Game، لعبة الحبار، سكويد قيم
+### series-2
+- العرض: Game of Thrones
+- الأجوبة المقبولة: Game of Thrones، جيم أوف ثرونز
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### series-money
-- العرض: Money Heist
-- الأجوبة المقبولة: Money Heist، بيت الورق، لا كاسا دي بابل
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-office
-- العرض: The Office
-- الأجوبة المقبولة: The Office، ذي اوفيس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-stranger
-- العرض: Stranger Things
-- الأجوبة المقبولة: Stranger Things، سترنجر ثينجز
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-simpsons
-- العرض: The Simpsons
-- الأجوبة المقبولة: The Simpsons، سيمبسون
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-dark
-- العرض: Dark
-- الأجوبة المقبولة: Dark، دارك
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-lost
-- العرض: Lost
-- الأجوبة المقبولة: Lost، لوست
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-prison
+### series-3
 - العرض: Prison Break
-- الأجوبة المقبولة: Prison Break، بريزون بريك
+- الأجوبة المقبولة: Prison Break
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### series-himym
-- العرض: How I Met Your Mother
-- الأجوبة المقبولة: How I Met Your Mother، كيف قابلت أمكم
+### series-4
+- العرض: The Walking Dead
+- الأجوبة المقبولة: The Walking Dead، ذا ووكينغ ديد
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### series-wednesday
-- العرض: Wednesday
-- الأجوبة المقبولة: Wednesday، وينزداي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-seinfeld
-- العرض: Seinfeld
-- الأجوبة المقبولة: Seinfeld، ساينفلد
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-blackmirror
-- العرض: Black Mirror
-- الأجوبة المقبولة: Black Mirror، بلاك ميرور
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-b99
-- العرض: Brooklyn Nine-Nine
-- الأجوبة المقبولة: Brooklyn Nine-Nine، بروكلين ناين ناين
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-greys
-- العرض: Grey's Anatomy
-- الأجوبة المقبولة: Grey's Anatomy، غريز أناتومي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-crown
-- العرض: The Crown
-- الأجوبة المقبولة: The Crown، ذا كراون
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-witcher
-- العرض: The Witcher
-- الأجوبة المقبولة: The Witcher، ويتشر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-peaky
+### series-5
 - العرض: Peaky Blinders
 - الأجوبة المقبولة: Peaky Blinders، بيكي بلايندرز
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### series-sherlock
-- العرض: Sherlock
-- الأجوبة المقبولة: Sherlock، شيرلوك
+### series-6
+- العرض: Stranger Things
+- الأجوبة المقبولة: Stranger Things
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### series-houseofcards
-- العرض: House of Cards
-- الأجوبة المقبولة: House of Cards، هاوس اوف كاردز
+### series-7
+- العرض: Money Heist
+- الأجوبة المقبولة: Money Heist، La Casa de Papel، لا كاسا دي بابيل
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-8
+- العرض: The Boys
+- الأجوبة المقبولة: The Boys
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-9
+- العرض: Dexter
+- الأجوبة المقبولة: Dexter
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-10
+- العرض: Sherlock
+- الأجوبة المقبولة: Sherlock
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-11
+- العرض: The Last of Us
+- الأجوبة المقبولة: The Last of Us، ذا لاست أوف أس
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-12
+- العرض: Squid Game
+- الأجوبة المقبولة: Squid Game
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-13
+- العرض: Better Call Saul
+- الأجوبة المقبولة: Better Call Saul، بيتر كول سول
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-14
+- العرض: Vikings
+- الأجوبة المقبولة: Vikings، فايكنغز، فايكنجز
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-15
+- العرض: Lost
+- الأجوبة المقبولة: Lost
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-16
+- العرض: The Witcher
+- الأجوبة المقبولة: The Witcher، ذا ويتشر، The Witcher 3، ويتشر 3
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-17
+- العرض: House of the Dragon
+- الأجوبة المقبولة: House of the Dragon
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-18
+- العرض: The Sopranos
+- الأجوبة المقبولة: The Sopranos، ذا سوبرانوز، سوبرانوز
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-19
+- العرض: Narcos
+- الأجوبة المقبولة: Narcos، ناركوس
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-20
+- العرض: Suits
+- الأجوبة المقبولة: Suits
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## ألعاب
 
-### games-minecraft
+### games-1
 - العرض: Minecraft
 - الأجوبة المقبولة: Minecraft، ماينكرافت
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### games-fifa
-- العرض: FIFA
-- الأجوبة المقبولة: FIFA، فيفا، EA FC
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-fortnite
+### games-2
 - العرض: Fortnite
 - الأجوبة المقبولة: Fortnite، فورتنايت
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### games-gta
-- العرض: Grand Theft Auto
-- الأجوبة المقبولة: Grand Theft Auto، جي تي اي، gta
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-pubg
+### games-3
 - العرض: PUBG
-- الأجوبة المقبولة: PUBG، ببجي
+- الأجوبة المقبولة: PUBG، ببجي، PlayerUnknown's Battlegrounds
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### games-mario
-- العرض: Super Mario
-- الأجوبة المقبولة: Super Mario، سوبر ماريو
+### games-4
+- العرض: GTA V
+- الأجوبة المقبولة: GTA V، GTA 5، قراند 5، Grand Theft Auto V
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### games-tetris
-- العرض: Tetris
-- الأجوبة المقبولة: Tetris، تتريس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-amongus
-- العرض: Among Us
-- الأجوبة المقبولة: Among Us، امونج اس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-angrybirds
-- العرض: Angry Birds
-- الأجوبة المقبولة: Angry Birds، انجري بيردز
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-pacman
-- العرض: Pac-Man
-- الأجوبة المقبولة: Pac-Man، باك مان
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-sims
-- العرض: The Sims
-- الأجوبة المقبولة: The Sims، السيمز
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-clash
-- العرض: Clash of Clans
-- الأجوبة المقبولة: Clash of Clans، كلاش اوف كلانس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-pokemon
-- العرض: Pokemon
-- الأجوبة المقبولة: Pokemon، بوكيمون
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-cs
-- العرض: Counter-Strike
-- الأجوبة المقبولة: Counter-Strike، كاونتر سترايك
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-sf
-- العرض: Street Fighter
-- الأجوبة المقبولة: Street Fighter، ستريت فايتر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-cod
+### games-5
 - العرض: Call of Duty
-- الأجوبة المقبولة: Call of Duty، كول اوف ديوتي
+- الأجوبة المقبولة: Call of Duty، كول أوف ديوتي، COD
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### games-lol
-- العرض: League of Legends
-- الأجوبة المقبولة: League of Legends، ليج اوف ليجندز
+### games-6
+- العرض: FIFA
+- الأجوبة المقبولة: FIFA، EA Sports FC، EA FC، فيفا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### games-valorant
+### games-7
+- العرض: Rocket League
+- الأجوبة المقبولة: Rocket League، روكيت ليق، روكيت ليغ
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-8
 - العرض: Valorant
 - الأجوبة المقبولة: Valorant، فالورانت
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### games-roblox
-- العرض: Roblox
-- الأجوبة المقبولة: Roblox، روبلكس
+### games-9
+- العرض: League of Legends
+- الأجوبة المقبولة: League of Legends
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### games-candy
-- العرض: Candy Crush
-- الأجوبة المقبولة: Candy Crush، كاندي كراش
+### games-10
+- العرض: Counter-Strike
+- الأجوبة المقبولة: Counter-Strike، كاونتر سترايك، CS، CS2
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### games-sonic
-- العرض: Sonic
-- الأجوبة المقبولة: Sonic، سونيك
+### games-11
+- العرض: Overwatch
+- الأجوبة المقبولة: Overwatch، أوفرواتش
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### games-zelda
-- العرض: The Legend of Zelda
-- الأجوبة المقبولة: The Legend of Zelda، Zelda، زيلدا
+### games-12
+- العرض: Marvel Rivals
+- الأجوبة المقبولة: Marvel Rivals، مارفل رايفلز، مارفل ريفالز
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-13
+- العرض: Among Us
+- الأجوبة المقبولة: Among Us، امونغ اس
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-14
+- العرض: The Last of Us
+- الأجوبة المقبولة: The Last of Us، ذا لاست أوف أس
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-15
+- العرض: Red Dead Redemption 2
+- الأجوبة المقبولة: Red Dead Redemption 2، ريد ديد 2، RDR2
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-16
+- العرض: Resident Evil
+- الأجوبة المقبولة: Resident Evil، ريزدنت إيفل، رزدنت ايفل
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-17
+- العرض: Assassin’s Creed
+- الأجوبة المقبولة: Assassin’s Creed، اساسنز كريد
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-18
+- العرض: God of War
+- الأجوبة المقبولة: God of War، قاد أوف وور، جاد أوف وور
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-19
+- العرض: Elden Ring
+- الأجوبة المقبولة: Elden Ring، إلدن رينغ، الدن رينق
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-20
+- العرض: Spider-Man
+- الأجوبة المقبولة: Spider-Man، Marvel’s Spider-Man، سبايدرمان
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## تقنيات
 
-### tech-iphone
-- العرض: iPhone
-- الأجوبة المقبولة: iPhone، آيفون
+### tech-1
+- العرض: آيفون
+- الأجوبة المقبولة: آيفون
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-android
-- العرض: Android
-- الأجوبة المقبولة: Android، أندرويد
+### tech-2
+- العرض: أندرويد
+- الأجوبة المقبولة: أندرويد
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-playstation
-- العرض: PlayStation
-- الأجوبة المقبولة: PlayStation، بلايستيشن، بلاي ستيشن
+### tech-3
+- العرض: ويندوز
+- الأجوبة المقبولة: ويندوز
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-chatgpt
-- العرض: ChatGPT
-- الأجوبة المقبولة: ChatGPT، شات جي بي تي، chat gpt
+### tech-4
+- العرض: ماك
+- الأجوبة المقبولة: ماك
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-youtube
-- العرض: YouTube
-- الأجوبة المقبولة: YouTube، يوتيوب
+### tech-5
+- العرض: بلايستيشن
+- الأجوبة المقبولة: بلايستيشن
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-whatsapp
-- العرض: WhatsApp
-- الأجوبة المقبولة: WhatsApp، واتساب
+### tech-6
+- العرض: إكس بوكس
+- الأجوبة المقبولة: إكس بوكس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-tiktok
-- العرض: TikTok
-- الأجوبة المقبولة: TikTok، تيك توك
+### tech-7
+- العرض: نينتندو سويتش
+- الأجوبة المقبولة: نينتندو سويتش
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-instagram
-- العرض: Instagram
-- الأجوبة المقبولة: Instagram، انستغرام
+### tech-8
+- العرض: لابتوب
+- الأجوبة المقبولة: لابتوب
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-facebook
-- العرض: Facebook
-- الأجوبة المقبولة: Facebook، فيسبوك
+### tech-9
+- العرض: كمبيوتر
+- الأجوبة المقبولة: كمبيوتر
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-bluetooth
-- العرض: Bluetooth
-- الأجوبة المقبولة: Bluetooth، بلوتوث
+### tech-10
+- العرض: روبوت
+- الأجوبة المقبولة: روبوت
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-windows
-- العرض: Windows
-- الأجوبة المقبولة: Windows، ويندوز
+### tech-11
+- العرض: درون
+- الأجوبة المقبولة: درون
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-netflix
-- العرض: Netflix
-- الأجوبة المقبولة: Netflix، نتفلكس
+### tech-12
+- العرض: ساعة ذكية
+- الأجوبة المقبولة: ساعة ذكية
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-usb
-- العرض: USB
-- الأجوبة المقبولة: USB، يو اس بي
+### tech-13
+- العرض: سماعات لاسلكية
+- الأجوبة المقبولة: سماعات لاسلكية
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-zoom
-- العرض: Zoom
-- الأجوبة المقبولة: Zoom، زوم
+### tech-14
+- العرض: كاميرا
+- الأجوبة المقبولة: كاميرا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-ipad
-- العرض: iPad
-- الأجوبة المقبولة: iPad، آيباد
+### tech-15
+- العرض: طابعة
+- الأجوبة المقبولة: طابعة
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-xbox
-- العرض: Xbox
-- الأجوبة المقبولة: Xbox، اكس بوكس
+### tech-16
+- العرض: فلاش ميموري
+- الأجوبة المقبولة: فلاش ميموري
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-google
-- العرض: Google
-- الأجوبة المقبولة: Google، جوجل، غوغل
+### tech-17
+- العرض: باور بانك
+- الأجوبة المقبولة: باور بانك
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### tech-wifi
-- العرض: Wi-Fi
-- الأجوبة المقبولة: Wi-Fi، واي فاي، wifi
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tech-laptop
-- العرض: Laptop
-- الأجوبة المقبولة: Laptop، لابتوب
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tech-samsung
-- العرض: Samsung
-- الأجوبة المقبولة: Samsung، سامسونج
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tech-airpods
-- العرض: AirPods
-- الأجوبة المقبولة: AirPods، ايربودز
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tech-snapchat
-- العرض: Snapchat
-- الأجوبة المقبولة: Snapchat، سناب شات
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## أغراض منزلية
-
-### household-fridge
-- العرض: ثلاجة
-- الأجوبة المقبولة: ثلاجة، الثلاجة، ثلاجه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-broom
-- العرض: مكنسة
-- الأجوبة المقبولة: مكنسة، المكنسة، مكنسه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-microwave
-- العرض: ميكروويف
-- الأجوبة المقبولة: ميكروويف، المايكرويف، microwave
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-bed
-- العرض: سرير
-- الأجوبة المقبولة: سرير، السرير
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-sofa
-- العرض: كنبة
-- الأجوبة المقبولة: كنبة، الكنبة، كنبه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-tv
-- العرض: تلفزيون
-- الأجوبة المقبولة: تلفزيون، التلفزيون
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-washer
-- العرض: غسالة
-- الأجوبة المقبولة: غسالة، الغسالة، غساله
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-lamp
-- العرض: مصباح
-- الأجوبة المقبولة: مصباح، المصباح
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-mirror
-- العرض: مرآة
-- الأجوبة المقبولة: مرآة، مرايا
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-iron
-- العرض: مكواة
-- الأجوبة المقبولة: مكواة، المكواة، مكواه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-table
-- العرض: طاولة
-- الأجوبة المقبولة: طاولة، الطاولة، طاوله
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-chair
-- العرض: كرسي
-- الأجوبة المقبولة: كرسي، الكرسي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-pillow
-- العرض: وسادة
-- الأجوبة المقبولة: وسادة، الوسادة، وساده
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-curtain
-- العرض: ستارة
-- الأجوبة المقبولة: ستارة، الستارة، ستاره
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-clock
-- العرض: ساعة حائط
-- الأجوبة المقبولة: ساعة حائط، ساعه حائط
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-fan
-- العرض: مروحة
-- الأجوبة المقبولة: مروحة، المروحة، مروحه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-oven
-- العرض: فرن
-- الأجوبة المقبولة: فرن، الفرن
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-kettle
-- العرض: غلاية
-- الأجوبة المقبولة: غلاية، الغلاية، غلايه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-rug
-- العرض: سجادة
-- الأجوبة المقبولة: سجادة، السجادة، سجاده
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-closet
-- العرض: خزانة
-- الأجوبة المقبولة: خزانة، الخزانة، خزانه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-sink
-- العرض: حوض
-- الأجوبة المقبولة: حوض، الحوض
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### household-door
-- العرض: باب
-- الأجوبة المقبولة: باب، الباب
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## أدوات
-
-### tools-hammer
-- العرض: مطرقة
-- الأجوبة المقبولة: مطرقة، المطرقة، مطرقه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-screwdriver
-- العرض: مفك براغي
-- الأجوبة المقبولة: مفك براغي، مفك، screwdriver
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-scissors
-- العرض: مقص
-- الأجوبة المقبولة: مقص، المقص
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-saw
-- العرض: منشار
-- الأجوبة المقبولة: منشار، المنشار
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-pliers
-- العرض: كماشة
-- الأجوبة المقبولة: كماشة، الكماشة، كماشه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-wrench
-- العرض: مفتاح ربط
-- الأجوبة المقبولة: مفتاح ربط، مفتاح الربط
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-drill
-- العرض: مثقاب
-- الأجوبة المقبولة: مثقاب، المثقاب
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-ruler
-- العرض: مسطرة
-- الأجوبة المقبولة: مسطرة، المسطرة، مسطره
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-axe
-- العرض: فأس
-- الأجوبة المقبولة: فأس، الفأس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-shovel
-- العرض: مجرفة
-- الأجوبة المقبولة: مجرفة، المجرفة، مجرفه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-ladder
-- العرض: سلم
-- الأجوبة المقبولة: سلم، السلم
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-bucket
-- العرض: دلو
-- الأجوبة المقبولة: دلو، الدلو
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-tape
-- العرض: شريط قياس
-- الأجوبة المقبولة: شريط قياس، شريط القياس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-wheelbarrow
-- العرض: عربة يد
-- الأجوبة المقبولة: عربة يد، عربه يد
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-brush
-- العرض: فرشاة دهان
-- الأجوبة المقبولة: فرشاة دهان، فرشاه دهان
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-flashlight
-- العرض: كشاف
-- الأجوبة المقبولة: كشاف، الكشاف، مصباح يدوي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-tongs
-- العرض: ملقط مطبخ
-- الأجوبة المقبولة: ملقط مطبخ، ملقط الطعام
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-stapler
-- العرض: دباسة
-- الأجوبة المقبولة: دباسة، الدباسة، دباسه
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-extinguisher
-- العرض: طفاية حريق
-- الأجوبة المقبولة: طفاية حريق، طفاية، طفايه حريق
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-blower
-- العرض: منفاخ
-- الأجوبة المقبولة: منفاخ، المنفاخ
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-needle
-- العرض: إبرة
-- الأجوبة المقبولة: إبرة، الإبرة
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### tools-nail
-- العرض: مسمار
-- الأجوبة المقبولة: مسمار، المسمار
+### tech-18
+- العرض: نظارة واقع افتراضي
+- الأجوبة المقبولة: نظارة واقع افتراضي
 [ ] KEEP  [ ] EDIT  [ ] REMOVE

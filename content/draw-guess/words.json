@@ -1,223 +1,564 @@
 [
-  { "id": "animals-1", "text": "أسد", "categoryId": "animals" },
-  { "id": "animals-2", "text": "فيل", "categoryId": "animals" },
-  { "id": "animals-cat", "text": "قطة", "categoryId": "animals" },
-  { "id": "animals-dog", "text": "كلب", "categoryId": "animals" },
-  { "id": "animals-giraffe", "text": "زرافة", "categoryId": "animals" },
-  { "id": "animals-penguin", "text": "بطريق", "categoryId": "animals" },
-  { "id": "animals-dolphin", "text": "دلفين", "categoryId": "animals" },
-  { "id": "animals-octopus", "text": "أخطبوط", "categoryId": "animals" },
-  { "id": "animals-bee", "text": "نحلة", "categoryId": "animals" },
-  { "id": "animals-butterfly", "text": "فراشة", "categoryId": "animals" },
-  { "id": "animals-crocodile", "text": "تمساح", "categoryId": "animals" },
-  { "id": "animals-turtle", "text": "سلحفاة", "categoryId": "animals" },
-  { "id": "animals-horse", "text": "حصان", "categoryId": "animals" },
-  { "id": "animals-camel", "text": "جمل", "categoryId": "animals" },
-  { "id": "animals-rabbit", "text": "أرنب", "categoryId": "animals" },
-  { "id": "animals-bear", "text": "دب", "categoryId": "animals" },
-  { "id": "animals-fox", "text": "ثعلب", "categoryId": "animals" },
-  { "id": "animals-monkey", "text": "قرد", "categoryId": "animals" },
-  { "id": "animals-owl", "text": "بومة", "categoryId": "animals" },
-  { "id": "animals-kangaroo", "text": "كنغر", "categoryId": "animals" },
-  { "id": "animals-fish", "text": "سمكة", "categoryId": "animals" },
-  { "id": "animals-snail", "text": "حلزون", "categoryId": "animals" },
-  { "id": "food-1", "text": "بيتزا", "categoryId": "food" },
-  { "id": "food-2", "text": "آيس كريم", "categoryId": "food" },
-  { "id": "food-burger", "text": "برجر", "categoryId": "food" },
-  { "id": "food-donut", "text": "دونات", "categoryId": "food" },
-  { "id": "food-apple", "text": "تفاحة", "categoryId": "food" },
-  { "id": "food-banana", "text": "موزة", "categoryId": "food" },
-  { "id": "food-watermelon", "text": "بطيخ", "categoryId": "food" },
-  { "id": "food-cake", "text": "كعكة", "categoryId": "food" },
-  { "id": "food-fries", "text": "بطاطس مقلية", "categoryId": "food" },
-  { "id": "food-shawarma", "text": "شاورما", "categoryId": "food" },
-  { "id": "food-falafel", "text": "فلافل", "categoryId": "food" },
-  { "id": "food-grapes", "text": "عنب", "categoryId": "food" },
-  { "id": "food-bread", "text": "خبز", "categoryId": "food" },
-  { "id": "food-egg", "text": "بيضة", "categoryId": "food" },
-  { "id": "food-strawberry", "text": "فراولة", "categoryId": "food" },
-  { "id": "food-carrot", "text": "جزر", "categoryId": "food" },
-  { "id": "food-corn", "text": "ذرة", "categoryId": "food" },
-  { "id": "food-hotdog", "text": "هوت دوغ", "categoryId": "food" },
-  { "id": "food-coffee", "text": "قهوة", "categoryId": "food" },
-  { "id": "food-pear", "text": "كمثرى", "categoryId": "food" },
-  { "id": "food-croissant", "text": "كرواسون", "categoryId": "food" },
-  { "id": "food-pancake", "text": "بان كيك", "categoryId": "food" },
-  { "id": "household-1", "text": "ثلاجة", "categoryId": "household" },
-  { "id": "household-2", "text": "كرسي", "categoryId": "household" },
-  { "id": "household-bed", "text": "سرير", "categoryId": "household" },
-  { "id": "household-sofa", "text": "كنبة", "categoryId": "household" },
-  { "id": "household-tv", "text": "تلفزيون", "categoryId": "household" },
-  { "id": "household-washer", "text": "غسالة", "categoryId": "household" },
-  { "id": "household-lamp", "text": "مصباح", "categoryId": "household" },
-  { "id": "household-table", "text": "طاولة", "categoryId": "household" },
-  { "id": "household-mirror", "text": "مرآة", "categoryId": "household" },
-  { "id": "household-broom", "text": "مكنسة", "categoryId": "household" },
-  { "id": "household-iron", "text": "مكواة", "categoryId": "household" },
-  { "id": "household-microwave", "text": "ميكروويف", "categoryId": "household" },
-  { "id": "household-clock", "text": "ساعة", "categoryId": "household" },
-  { "id": "household-door", "text": "باب", "categoryId": "household" },
-  { "id": "household-window", "text": "نافذة", "categoryId": "household" },
-  { "id": "household-closet", "text": "خزانة", "categoryId": "household" },
-  { "id": "household-fan", "text": "مروحة", "categoryId": "household" },
-  { "id": "household-rug", "text": "سجادة", "categoryId": "household" },
-  { "id": "household-pillow", "text": "وسادة", "categoryId": "household" },
-  { "id": "household-oven", "text": "فرن", "categoryId": "household" },
-  { "id": "household-sink", "text": "حوض", "categoryId": "household" },
-  { "id": "household-toilet", "text": "مرحاض", "categoryId": "household" },
-  { "id": "tools-1", "text": "مطرقة", "categoryId": "tools" },
-  { "id": "tools-2", "text": "مفك براغي", "categoryId": "tools" },
-  { "id": "tools-saw", "text": "منشار", "categoryId": "tools" },
-  { "id": "tools-flashlight", "text": "كشاف", "categoryId": "tools" },
-  { "id": "tools-stapler", "text": "دباسة", "categoryId": "tools" },
-  { "id": "tools-adhesive-tape", "text": "شريط لاصق", "categoryId": "tools" },
-  { "id": "tools-scissors", "text": "مقص", "categoryId": "tools" },
-  { "id": "tools-ruler", "text": "مسطرة", "categoryId": "tools" },
-  { "id": "tools-axe", "text": "فأس", "categoryId": "tools" },
-  { "id": "tools-toolbox", "text": "صندوق أدوات", "categoryId": "tools" },
-  { "id": "tools-nail", "text": "مسمار", "categoryId": "tools" },
-  { "id": "tools-screw", "text": "برغي", "categoryId": "tools" },
-  { "id": "tools-tape", "text": "شريط قياس", "categoryId": "tools" },
-  { "id": "tools-ladder", "text": "سلم", "categoryId": "tools" },
-  { "id": "tools-bucket", "text": "دلو", "categoryId": "tools" },
-  { "id": "tools-blower", "text": "منفاخ", "categoryId": "tools" },
-  { "id": "tools-wheelbarrow", "text": "عربة يد", "categoryId": "tools" },
-  { "id": "tools-pencil", "text": "قلم رصاص", "categoryId": "tools" },
-  { "id": "tools-shovel", "text": "مجرفة", "categoryId": "tools" },
-  { "id": "tools-extinguisher", "text": "طفاية حريق", "categoryId": "tools" },
-  { "id": "tools-glue-gun", "text": "مسدس غراء", "categoryId": "tools" },
-  { "id": "tools-paint-roller", "text": "بكرة دهان", "categoryId": "tools" },
-  { "id": "tools-nail-clipper", "text": "مقص أظافر", "categoryId": "tools" },
-  { "id": "transport-1", "text": "سيارة", "categoryId": "transport" },
-  { "id": "transport-2", "text": "طائرة", "categoryId": "transport" },
-  { "id": "transport-train", "text": "قطار", "categoryId": "transport" },
-  { "id": "transport-bike", "text": "دراجة", "categoryId": "transport" },
-  { "id": "transport-ship", "text": "سفينة", "categoryId": "transport" },
-  { "id": "transport-bus", "text": "حافلة", "categoryId": "transport" },
-  { "id": "transport-boat", "text": "قارب", "categoryId": "transport" },
-  { "id": "transport-metro", "text": "مترو", "categoryId": "transport" },
-  { "id": "transport-motorcycle", "text": "دراجة نارية", "categoryId": "transport" },
-  { "id": "transport-truck", "text": "شاحنة", "categoryId": "transport" },
-  { "id": "transport-helicopter", "text": "هليكوبتر", "categoryId": "transport" },
-  { "id": "transport-taxi", "text": "تاكسي", "categoryId": "transport" },
-  { "id": "transport-scooter", "text": "سكوتر", "categoryId": "transport" },
-  { "id": "transport-submarine", "text": "غواصة", "categoryId": "transport" },
-  { "id": "transport-balloon", "text": "منطاد", "categoryId": "transport" },
-  { "id": "transport-ambulance", "text": "إسعاف", "categoryId": "transport" },
-  { "id": "transport-firetruck", "text": "سيارة إطفاء", "categoryId": "transport" },
-  { "id": "transport-cable-car", "text": "تلفريك", "categoryId": "transport" },
-  { "id": "transport-van", "text": "فان", "categoryId": "transport" },
-  { "id": "transport-canoe", "text": "زورق", "categoryId": "transport" },
-  { "id": "transport-rocket", "text": "صاروخ", "categoryId": "transport" },
-  { "id": "transport-skateboard", "text": "لوح تزلج", "categoryId": "transport" },
-  { "id": "professions-1", "text": "طبيب", "categoryId": "professions" },
-  { "id": "professions-chef", "text": "طباخ", "categoryId": "professions" },
-  { "id": "professions-police", "text": "شرطي", "categoryId": "professions" },
-  { "id": "professions-firefighter", "text": "رجل إطفاء", "categoryId": "professions" },
-  { "id": "professions-pilot", "text": "طيار", "categoryId": "professions" },
-  { "id": "professions-teacher", "text": "معلم", "categoryId": "professions" },
-  { "id": "professions-carpenter", "text": "نجار", "categoryId": "professions" },
-  { "id": "professions-baker", "text": "خباز", "categoryId": "professions" },
-  { "id": "professions-painter", "text": "رسام", "categoryId": "professions" },
-  { "id": "professions-photographer", "text": "مصور", "categoryId": "professions" },
-  { "id": "professions-nurse", "text": "ممرض", "categoryId": "professions" },
-  { "id": "professions-barber", "text": "حلاق", "categoryId": "professions" },
-  { "id": "professions-farmer", "text": "مزارع", "categoryId": "professions" },
-  { "id": "professions-mail-carrier", "text": "ساعي بريد", "categoryId": "professions" },
-  { "id": "professions-builder", "text": "بنّاء", "categoryId": "professions" },
-  { "id": "professions-driver", "text": "سائق", "categoryId": "professions" },
-  { "id": "professions-soldier", "text": "جندي", "categoryId": "professions" },
-  { "id": "professions-musician", "text": "موسيقي", "categoryId": "professions" },
-  { "id": "professions-janitor", "text": "عامل نظافة", "categoryId": "professions" },
-  { "id": "professions-dentist", "text": "طبيب أسنان", "categoryId": "professions" },
-  { "id": "professions-waiter", "text": "نادل", "categoryId": "professions" },
-  { "id": "professions-mechanic", "text": "ميكانيكي", "categoryId": "professions" },
-  { "id": "nature-1", "text": "بركان", "categoryId": "nature" },
-  { "id": "nature-mountain", "text": "جبل", "categoryId": "nature" },
-  { "id": "nature-tree", "text": "شجرة", "categoryId": "nature" },
-  { "id": "nature-rainbow", "text": "قوس قزح", "categoryId": "nature" },
-  { "id": "nature-desert", "text": "صحراء", "categoryId": "nature" },
-  { "id": "nature-sun", "text": "شمس", "categoryId": "nature" },
-  { "id": "nature-moon", "text": "قمر", "categoryId": "nature" },
-  { "id": "nature-star", "text": "نجمة", "categoryId": "nature" },
-  { "id": "nature-cloud", "text": "سحابة", "categoryId": "nature" },
-  { "id": "nature-sea", "text": "بحر", "categoryId": "nature" },
-  { "id": "nature-river", "text": "نهر", "categoryId": "nature" },
-  { "id": "nature-waterfall", "text": "شلال", "categoryId": "nature" },
-  { "id": "nature-flower", "text": "زهرة", "categoryId": "nature" },
-  { "id": "nature-rock", "text": "صخرة", "categoryId": "nature" },
-  { "id": "nature-island", "text": "جزيرة", "categoryId": "nature" },
-  { "id": "nature-forest", "text": "غابة", "categoryId": "nature" },
-  { "id": "nature-snow", "text": "ثلج", "categoryId": "nature" },
-  { "id": "nature-rain", "text": "مطر", "categoryId": "nature" },
-  { "id": "nature-lightning", "text": "برق", "categoryId": "nature" },
-  { "id": "nature-cave", "text": "كهف", "categoryId": "nature" },
-  { "id": "nature-palm", "text": "نخلة", "categoryId": "nature" },
-  { "id": "nature-wave", "text": "موج", "categoryId": "nature" },
-  { "id": "sports-1", "text": "كرة سلة", "categoryId": "sports" },
-  { "id": "sports-2", "text": "مرمى", "categoryId": "sports" },
-  { "id": "sports-football", "text": "كرة قدم", "categoryId": "sports" },
-  { "id": "sports-tennis", "text": "تنس", "categoryId": "sports" },
-  { "id": "sports-swim", "text": "سباحة", "categoryId": "sports" },
-  { "id": "sports-boxing", "text": "ملاكمة", "categoryId": "sports" },
-  { "id": "sports-volleyball", "text": "كرة طائرة", "categoryId": "sports" },
-  { "id": "sports-running", "text": "جري", "categoryId": "sports" },
-  { "id": "sports-handball", "text": "كرة يد", "categoryId": "sports" },
-  { "id": "sports-golf", "text": "جولف", "categoryId": "sports" },
-  { "id": "sports-ski", "text": "تزلج", "categoryId": "sports" },
-  { "id": "sports-archery", "text": "رماية بالقوس", "categoryId": "sports" },
-  { "id": "sports-karate", "text": "كاراتيه", "categoryId": "sports" },
-  { "id": "sports-cycling", "text": "سباق دراجات", "categoryId": "sports" },
-  { "id": "sports-weights", "text": "رفع أثقال", "categoryId": "sports" },
-  { "id": "sports-pingpong", "text": "كرة طاولة", "categoryId": "sports" },
-  { "id": "sports-jump", "text": "حبل قفز", "categoryId": "sports" },
-  { "id": "sports-bowling", "text": "بولينغ", "categoryId": "sports" },
-  { "id": "sports-hockey", "text": "هوكي", "categoryId": "sports" },
-  { "id": "sports-surf", "text": "ركوب أمواج", "categoryId": "sports" },
-  { "id": "sports-skate", "text": "تزلج لوح", "categoryId": "sports" },
-  { "id": "sports-horse-riding", "text": "ركوب خيل", "categoryId": "sports" },
-  { "id": "clothing-1", "text": "قبعة", "categoryId": "clothing" },
-  { "id": "clothing-shoe", "text": "حذاء", "categoryId": "clothing" },
-  { "id": "clothing-glasses", "text": "نظارة", "categoryId": "clothing" },
-  { "id": "clothing-dress", "text": "فستان", "categoryId": "clothing" },
-  { "id": "clothing-glove", "text": "قفاز", "categoryId": "clothing" },
-  { "id": "clothing-shirt", "text": "قميص", "categoryId": "clothing" },
-  { "id": "clothing-pants", "text": "بنطلون", "categoryId": "clothing" },
-  { "id": "clothing-sock", "text": "جورب", "categoryId": "clothing" },
-  { "id": "clothing-coat", "text": "معطف", "categoryId": "clothing" },
-  { "id": "clothing-tie", "text": "ربطة عنق", "categoryId": "clothing" },
-  { "id": "clothing-belt", "text": "حزام", "categoryId": "clothing" },
-  { "id": "clothing-scarf", "text": "وشاح", "categoryId": "clothing" },
-  { "id": "clothing-helmet", "text": "خوذة", "categoryId": "clothing" },
-  { "id": "clothing-crown", "text": "تاج", "categoryId": "clothing" },
-  { "id": "clothing-boots", "text": "جزمة", "categoryId": "clothing" },
-  { "id": "clothing-skirt", "text": "تنورة", "categoryId": "clothing" },
-  { "id": "clothing-pajamas", "text": "بيجامة", "categoryId": "clothing" },
-  { "id": "clothing-cap", "text": "كاب", "categoryId": "clothing" },
-  { "id": "clothing-abaya", "text": "عباءة", "categoryId": "clothing" },
-  { "id": "clothing-watch", "text": "ساعة يد", "categoryId": "clothing" },
-  { "id": "clothing-ring", "text": "خاتم", "categoryId": "clothing" },
-  { "id": "clothing-umbrella", "text": "مظلة", "categoryId": "clothing" },
-  { "id": "places-1", "text": "مدرسة", "categoryId": "places" },
-  { "id": "places-2", "text": "مسجد", "categoryId": "places" },
-  { "id": "places-hospital", "text": "مستشفى", "categoryId": "places" },
-  { "id": "places-airport", "text": "مطار", "categoryId": "places" },
-  { "id": "places-restaurant", "text": "مطعم", "categoryId": "places" },
-  { "id": "places-beach", "text": "شاطئ", "categoryId": "places" },
-  { "id": "places-house", "text": "بيت", "categoryId": "places" },
-  { "id": "places-stadium", "text": "ملعب", "categoryId": "places" },
-  { "id": "places-library", "text": "مكتبة", "categoryId": "places" },
-  { "id": "places-park", "text": "حديقة", "categoryId": "places" },
-  { "id": "places-market", "text": "سوق", "categoryId": "places" },
-  { "id": "places-bank", "text": "بنك", "categoryId": "places" },
-  { "id": "places-palace", "text": "قصر", "categoryId": "places" },
-  { "id": "places-tent", "text": "خيمة", "categoryId": "places" },
-  { "id": "places-bridge", "text": "جسر", "categoryId": "places" },
-  { "id": "places-farm", "text": "مزرعة", "categoryId": "places" },
-  { "id": "places-station", "text": "محطة قطار", "categoryId": "places" },
-  { "id": "places-zoo", "text": "حديقة حيوان", "categoryId": "places" },
-  { "id": "places-museum", "text": "متحف", "categoryId": "places" },
-  { "id": "places-pool", "text": "مسبح", "categoryId": "places" },
-  { "id": "places-castle", "text": "قلعة", "categoryId": "places" },
-  { "id": "places-lighthouse", "text": "منارة", "categoryId": "places" }
+  {
+    "id": "animals-1",
+    "text": "أسد",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-2",
+    "text": "نمر",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-3",
+    "text": "فيل",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-4",
+    "text": "زرافة",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-5",
+    "text": "قرد",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-6",
+    "text": "دب",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-7",
+    "text": "أرنب",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-8",
+    "text": "جمل",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-9",
+    "text": "حصان",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-10",
+    "text": "قطة",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-11",
+    "text": "كلب",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-12",
+    "text": "بطريق",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-13",
+    "text": "تمساح",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-14",
+    "text": "ثعبان",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-15",
+    "text": "دلفين",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-16",
+    "text": "أخطبوط",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-17",
+    "text": "سلحفاة",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-18",
+    "text": "ضفدع",
+    "categoryId": "animals"
+  },
+  {
+    "id": "animals-19",
+    "text": "نحلة",
+    "categoryId": "animals",
+    "aliases": [
+      "النحل"
+    ]
+  },
+  {
+    "id": "animals-20",
+    "text": "فراشة",
+    "categoryId": "animals"
+  },
+  {
+    "id": "food-1",
+    "text": "بيتزا",
+    "categoryId": "food",
+    "aliases": [
+      "Pizza"
+    ]
+  },
+  {
+    "id": "food-2",
+    "text": "برغر",
+    "categoryId": "food",
+    "aliases": [
+      "برجر",
+      "Burger"
+    ]
+  },
+  {
+    "id": "food-3",
+    "text": "شاورما",
+    "categoryId": "food",
+    "aliases": [
+      "Shawarma"
+    ]
+  },
+  {
+    "id": "food-4",
+    "text": "كبسة",
+    "categoryId": "food",
+    "aliases": [
+      "Kabsa"
+    ]
+  },
+  {
+    "id": "food-5",
+    "text": "مندي",
+    "categoryId": "food"
+  },
+  {
+    "id": "food-6",
+    "text": "فلافل",
+    "categoryId": "food",
+    "aliases": [
+      "طعمية"
+    ]
+  },
+  {
+    "id": "food-7",
+    "text": "كنافة",
+    "categoryId": "food"
+  },
+  {
+    "id": "food-8",
+    "text": "سوشي",
+    "categoryId": "food",
+    "aliases": [
+      "Sushi"
+    ]
+  },
+  {
+    "id": "food-9",
+    "text": "آيس كريم",
+    "categoryId": "food",
+    "aliases": [
+      "مثلجات",
+      "Ice cream"
+    ]
+  },
+  {
+    "id": "food-10",
+    "text": "دونات",
+    "categoryId": "food",
+    "aliases": [
+      "دونت",
+      "Donut",
+      "Doughnut"
+    ]
+  },
+  {
+    "id": "food-11",
+    "text": "بان كيك",
+    "categoryId": "food",
+    "aliases": [
+      "Pancake",
+      "Pancakes"
+    ]
+  },
+  {
+    "id": "food-12",
+    "text": "وافل",
+    "categoryId": "food",
+    "aliases": [
+      "Waffle",
+      "Waffles"
+    ]
+  },
+  {
+    "id": "food-13",
+    "text": "كب كيك",
+    "categoryId": "food",
+    "aliases": [
+      "Cupcake",
+      "Cup cake"
+    ]
+  },
+  {
+    "id": "food-14",
+    "text": "سمبوسة",
+    "categoryId": "food",
+    "aliases": [
+      "سمبوسك",
+      "Samosa"
+    ]
+  },
+  {
+    "id": "food-15",
+    "text": "تشيز كيك",
+    "categoryId": "food",
+    "aliases": [
+      "Cheesecake",
+      "Cheese cake"
+    ]
+  },
+  {
+    "id": "food-16",
+    "text": "بطيخ",
+    "categoryId": "food",
+    "aliases": [
+      "حبحب"
+    ]
+  },
+  {
+    "id": "food-17",
+    "text": "أناناس",
+    "categoryId": "food",
+    "aliases": [
+      "Pineapple"
+    ]
+  },
+  {
+    "id": "food-18",
+    "text": "فراولة",
+    "categoryId": "food",
+    "aliases": [
+      "Strawberry"
+    ]
+  },
+  {
+    "id": "food-19",
+    "text": "بيضة",
+    "categoryId": "food"
+  },
+  {
+    "id": "food-20",
+    "text": "فشار",
+    "categoryId": "food",
+    "aliases": [
+      "بوشار",
+      "Popcorn"
+    ]
+  },
+  {
+    "id": "nature-1",
+    "text": "بركان",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-2",
+    "text": "شلال",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-3",
+    "text": "قمر",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-4",
+    "text": "شمس",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-5",
+    "text": "نيزك",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-6",
+    "text": "صاروخ",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-7",
+    "text": "كوكب",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-8",
+    "text": "نجمة",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-9",
+    "text": "صحراء",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-10",
+    "text": "غيمة",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-11",
+    "text": "مطر",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-12",
+    "text": "برق",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-13",
+    "text": "إعصار",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-14",
+    "text": "قوس قزح",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-15",
+    "text": "شاطئ",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-16",
+    "text": "كهف",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-17",
+    "text": "جبل",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-18",
+    "text": "نهر",
+    "categoryId": "nature"
+  },
+  {
+    "id": "nature-19",
+    "text": "جزيرة",
+    "categoryId": "nature",
+    "aliases": [
+      "The Island"
+    ]
+  },
+  {
+    "id": "nature-20",
+    "text": "ثلج",
+    "categoryId": "nature"
+  },
+  {
+    "id": "places-1",
+    "text": "مستشفى",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-2",
+    "text": "مطار",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-3",
+    "text": "مدرسة",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-4",
+    "text": "ملعب كرة قدم",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-5",
+    "text": "حديقة حيوان",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-6",
+    "text": "مدينة ملاهي",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-7",
+    "text": "قلعة",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-8",
+    "text": "أهرامات",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-9",
+    "text": "برج إيفل",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-10",
+    "text": "برج خليفة",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-11",
+    "text": "خيمة سيرك",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-12",
+    "text": "محطة قطار",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-13",
+    "text": "مطعم",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-14",
+    "text": "فندق",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-15",
+    "text": "مكتبة",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-16",
+    "text": "مسجد",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-17",
+    "text": "متحف",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-18",
+    "text": "جسر",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-19",
+    "text": "منارة",
+    "categoryId": "places"
+  },
+  {
+    "id": "places-20",
+    "text": "محطة وقود",
+    "categoryId": "places"
+  },
+  {
+    "id": "tech-1",
+    "text": "هاتف",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-2",
+    "text": "لابتوب",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-3",
+    "text": "كمبيوتر",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-4",
+    "text": "روبوت",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-5",
+    "text": "كاميرا",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-6",
+    "text": "سماعات",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-7",
+    "text": "لوحة مفاتيح",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-8",
+    "text": "فأرة كمبيوتر",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-9",
+    "text": "شاشة",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-10",
+    "text": "طابعة",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-11",
+    "text": "ساعة ذكية",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-12",
+    "text": "شاحن",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-13",
+    "text": "باور بانك",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-14",
+    "text": "درون",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-15",
+    "text": "بلايستيشن",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-16",
+    "text": "يد تحكم",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-17",
+    "text": "نظارة واقع افتراضي",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-18",
+    "text": "ميكروفون",
+    "categoryId": "tech"
+  },
+  {
+    "id": "tech-19",
+    "text": "فلاش ميموري",
+    "categoryId": "tech"
+  }
 ]

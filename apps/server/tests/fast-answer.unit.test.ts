@@ -3,11 +3,7 @@
  * Run: pnpm --filter @wanasatna/server test:fast-answer
  */
 import assert from 'node:assert/strict';
-import type {
-  FastAnswerMatchState,
-  FastAnswerRoundState,
-  GameShellState,
-} from '@wanasatna/shared';
+import type { FastAnswerMatchState, FastAnswerRoundState, GameShellState } from '@wanasatna/shared';
 import {
   FAST_ANSWER_DEFAULT_ROUNDS,
   FAST_ANSWER_QUESTION_SECONDS,
@@ -125,23 +121,30 @@ test('normalize: trim + lower + collapse spaces', () => {
 });
 
 test('normalize: remove tatweel', () => {
-  assert.equal(normalizeAnswerText('قـاهـرة'), 'قاهرة');
+  assert.equal(normalizeAnswerText('قـاهـرة'), 'قاهره');
 });
 
 test('normalize: أإآ → ا', () => {
   assert.equal(normalizeAnswerText('أحمد'), 'احمد');
   assert.equal(normalizeAnswerText('إبراهيم'), 'ابراهيم');
-  assert.equal(normalizeAnswerText('آلة'), 'الة');
+  assert.equal(normalizeAnswerText('آلة'), 'اله');
+  assert.equal(isCorrectAnswer('ه', ['آلة']), false);
 });
 
 test('normalize: ى → ي', () => {
   assert.equal(normalizeAnswerText('مستشفى'), 'مستشفي');
 });
 
-test('normalize: does NOT map ة → ه', () => {
-  assert.equal(normalizeAnswerText('مدرسة'), 'مدرسة');
+test('normalize: maps ة → ه', () => {
+  assert.equal(normalizeAnswerText('مدرسة'), 'مدرسه');
   assert.equal(normalizeAnswerText('مدرسه'), 'مدرسه');
-  assert.notEqual(normalizeAnswerText('مدرسة'), normalizeAnswerText('مدرسه'));
+  assert.equal(normalizeAnswerText('مدرسة'), normalizeAnswerText('مدرسه'));
+});
+
+test('normalize: optional leading ال, Arabic digits, and English case', () => {
+  assert.equal(normalizeAnswerText('الأسد'), normalizeAnswerText('اسد'));
+  assert.equal(normalizeAnswerText('٣'), normalizeAnswerText('3'));
+  assert.equal(normalizeAnswerText('PUBG'), normalizeAnswerText('pubg'));
 });
 
 test('normalize: hyphen/dash becomes space separator', () => {
@@ -152,7 +155,7 @@ test('normalize: hyphen/dash becomes space separator', () => {
 });
 
 test('normalize: strip punctuation', () => {
-  assert.equal(normalizeAnswerText('القاهرة!!!'), 'القاهرة');
+  assert.equal(normalizeAnswerText('القاهرة!!!'), 'قاهره');
 });
 
 test('isCorrectAnswer matches accepted variants', () => {
@@ -226,7 +229,10 @@ test('wrong answer rejected; correct later accepted', () => {
 });
 
 test('timeout state has no winner and reveals answer', () => {
-  const match = withRound(makeMatch(), makeRound({ winnerPlayerId: null, timedOut: true, gamePhase: 'round-results' }));
+  const match = withRound(
+    makeMatch(),
+    makeRound({ winnerPlayerId: null, timedOut: true, gamePhase: 'round-results' }),
+  );
   assert.equal(match.round.winnerPlayerId, null);
   assert.equal(match.round.timedOut, true);
   assert.equal(revealPrimaryAnswer(match.round.acceptedAnswers), 'القاهرة');
@@ -273,7 +279,10 @@ test('scoring +100 once to winner, 0 others', () => {
 
 test('timeout scoring applies 0 to everyone', () => {
   const scored = applyRoundScores(
-    withRound(makeMatch(), makeRound({ winnerPlayerId: null, timedOut: true, gamePhase: 'round-results' })),
+    withRound(
+      makeMatch(),
+      makeRound({ winnerPlayerId: null, timedOut: true, gamePhase: 'round-results' }),
+    ),
   );
   assert.equal(scored.scores.p1, 0);
   assert.equal(scored.scores.p2, 0);
@@ -282,7 +291,10 @@ test('timeout scoring applies 0 to everyone', () => {
 
 test('round results continue copy mid vs final', () => {
   const mid = buildFastAnswerPlayerView(
-    withRound(makeMatch({ currentRound: 2 }), makeRound({ gamePhase: 'round-results', timedOut: false, winnerPlayerId: 'p1' })),
+    withRound(
+      makeMatch({ currentRound: 2 }),
+      makeRound({ gamePhase: 'round-results', timedOut: false, winnerPlayerId: 'p1' }),
+    ),
     'p1',
     makeShell(),
   );
@@ -315,8 +327,14 @@ test('8-player match view builds', () => {
 
 test('fixed category picker always returns locked id', () => {
   const pool = ['animals', 'food', 'series', 'games', 'tech'];
-  assert.equal(chooseRoundCategoryId('series', [], pool, () => 0), 'series');
-  assert.equal(chooseRoundCategoryId('series', ['animals', 'food'], pool, () => 4), 'series');
+  assert.equal(
+    chooseRoundCategoryId('series', [], pool, () => 0),
+    'series',
+  );
+  assert.equal(
+    chooseRoundCategoryId('series', ['animals', 'food'], pool, () => 4),
+    'series',
+  );
 });
 
 test('random category avoids repeats until pool exhausted', () => {

@@ -6,6 +6,7 @@ import { getGameCatalogEntry } from '@/lib/public/game-catalog';
 import { getGameInformationPath } from '@/lib/public/routes';
 import { getHomeRoomActionsHref } from '@/lib/public/scroll-to-room-actions';
 import { StatusBadge } from '@/components/public/status-badge';
+import { GameArtwork } from '@/components/game/game-artwork';
 import { cn } from '@/lib/utils';
 
 type GamePreviewCardProps = {
@@ -26,23 +27,31 @@ export function GamePreviewCard({ game, className }: GamePreviewCardProps) {
       className={cn(
         'wanas-interactive-card group relative flex h-full flex-col overflow-hidden p-4',
         isAvailable
-          ? 'border-t-2 border-t-wanas-accent'
+          ? 'border-t-wanas-accent border-t-2'
           : 'border-wanas-border-muted opacity-75 hover:translate-y-0 hover:shadow-[var(--wanas-shadow-card)]',
         className,
       )}
     >
       <div className="mb-3 flex items-start justify-between gap-2">
-        <div
-          className="flex size-11 items-center justify-center rounded-[var(--wanas-radius-control)] text-base font-bold transition-transform group-hover:-rotate-3 group-hover:scale-105"
-          style={{ backgroundColor: entry.iconBg, color: entry.iconText }}
-        >
-          {game.iconLabel}
-        </div>
+        {entry.imagePath ? (
+          <div className="size-16 shrink-0 transition-transform group-hover:-rotate-3 group-hover:scale-105">
+            <GameArtwork src={entry.imagePath} sizes="64px" />
+          </div>
+        ) : (
+          <div
+            className="flex size-11 items-center justify-center rounded-[var(--wanas-radius-control)] text-base font-bold"
+            style={{ backgroundColor: entry.iconBg, color: entry.iconText }}
+          >
+            {game.iconLabel}
+          </div>
+        )}
         <StatusBadge variant={badgeVariant} />
       </div>
-      <h3 className="text-base font-bold text-wanas-text-primary">{game.title}</h3>
-      <p className="mt-1.5 line-clamp-2 flex-1 text-sm leading-6 text-wanas-text-muted">{game.description}</p>
-      <p className="mt-3 text-xs font-medium text-wanas-text-subtle">{entry.playerRange}</p>
+      <h3 className="text-wanas-text-primary text-base font-bold">{game.title}</h3>
+      <p className="text-wanas-text-muted mt-1.5 line-clamp-2 flex-1 text-sm leading-6">
+        {game.description}
+      </p>
+      <p className="text-wanas-text-subtle mt-3 text-xs font-medium">{entry.playerRange}</p>
     </article>
   );
 }
@@ -62,24 +71,30 @@ export function GameCatalogCard({ game }: GameCatalogCardProps) {
   const content = (
     <>
       <div className="relative mb-5 flex items-start justify-between gap-3">
-        <div
-          className="flex size-14 items-center justify-center rounded-[18px] text-lg font-bold shadow-sm"
-          style={{ backgroundColor: entry.iconBg, color: entry.iconText }}
-        >
-          {game.iconLabel}
-        </div>
+        {entry.imagePath ? (
+          <div className="size-20 shrink-0 transition-transform group-hover:-rotate-3 group-hover:scale-105">
+            <GameArtwork src={entry.imagePath} sizes="80px" />
+          </div>
+        ) : (
+          <div
+            className="flex size-14 items-center justify-center rounded-[18px] text-lg font-bold shadow-sm"
+            style={{ backgroundColor: entry.iconBg, color: entry.iconText }}
+          >
+            {game.iconLabel}
+          </div>
+        )}
         <StatusBadge variant={badgeVariant} />
       </div>
-      <h3 className="relative text-lg font-bold text-wanas-text-primary">{game.title}</h3>
-      <p className="relative mt-2 text-sm leading-7 text-wanas-text-muted">{game.description}</p>
-      <div className="relative mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-wanas-background pt-4">
-        <span className="text-xs font-semibold text-wanas-text-muted">{entry.playerRange}</span>
+      <h3 className="text-wanas-text-primary relative text-lg font-bold">{game.title}</h3>
+      <p className="text-wanas-text-muted relative mt-2 text-sm leading-7">{game.description}</p>
+      <div className="border-wanas-background relative mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+        <span className="text-wanas-text-muted text-xs font-semibold">{entry.playerRange}</span>
         <div className="flex flex-wrap items-center gap-2">
           {isPlayableGameId(game.id) ? (
             <Link
               href={getGameInformationPath(game.id)}
               aria-label={`اعرف أكثر عن ${game.title}`}
-              className="inline-flex min-h-11 items-center rounded-full px-3 py-1.5 text-xs font-bold text-wanas-primary-dark underline-offset-2 hover:underline"
+              className="text-wanas-primary-dark inline-flex min-h-11 items-center rounded-full px-3 py-1.5 text-xs font-bold underline-offset-2 hover:underline"
             >
               اعرف أكثر
             </Link>
@@ -88,12 +103,12 @@ export function GameCatalogCard({ game }: GameCatalogCardProps) {
             <Link
               href={getHomeRoomActionsHref()}
               aria-label={`العب ${game.title} الآن`}
-              className="inline-flex min-h-11 items-center rounded-full bg-wanas-primary-surface px-3 py-1.5 text-xs font-bold text-wanas-primary-dark transition-colors hover:bg-wanas-primary-surface-strong"
+              className="bg-wanas-primary-surface text-wanas-primary-dark hover:bg-wanas-primary-surface-strong inline-flex min-h-11 items-center rounded-full px-3 py-1.5 text-xs font-bold transition-colors"
             >
               العب الآن
             </Link>
           ) : (
-            <span className="text-xs font-semibold text-wanas-text-subtle">
+            <span className="text-wanas-text-subtle text-xs font-semibold">
               {isComingSoon ? 'قريباً' : 'غير متاحة حالياً'}
             </span>
           )}
@@ -106,7 +121,7 @@ export function GameCatalogCard({ game }: GameCatalogCardProps) {
     return (
       <article
         className={cn(
-          'wanas-interactive-card group relative overflow-hidden border-t-2 border-t-wanas-accent p-5',
+          'wanas-interactive-card border-t-wanas-accent group relative overflow-hidden border-t-2 p-5',
         )}
       >
         {content}
@@ -115,7 +130,7 @@ export function GameCatalogCard({ game }: GameCatalogCardProps) {
   }
 
   return (
-    <article className="relative overflow-hidden rounded-[var(--wanas-radius-card)] border border-wanas-border-muted bg-wanas-surface-soft p-5 opacity-75">
+    <article className="border-wanas-border-muted bg-wanas-surface-soft relative overflow-hidden rounded-[var(--wanas-radius-card)] border p-5 opacity-75">
       {content}
     </article>
   );

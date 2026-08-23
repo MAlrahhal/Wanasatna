@@ -6,8 +6,10 @@ import assert from 'node:assert/strict';
 import {
   DRAWABLE_CONTENT_CATEGORY_IDS,
   DRAWABLE_CONTENT_CATEGORY_LABELS,
-  TRIVIA_CONTENT_CATEGORY_IDS,
-  TRIVIA_CONTENT_CATEGORY_LABELS,
+  FAST_ANSWER_CONTENT_CATEGORY_IDS,
+  FAST_ANSWER_CONTENT_CATEGORY_LABELS,
+  GUESSING_CHALLENGE_CONTENT_CATEGORY_IDS,
+  GUESSING_CHALLENGE_CONTENT_CATEGORY_LABELS,
   VIRTUAL_RANDOM_CATEGORY_ID,
   normalizeAcceptedAnswerKey,
   normalizeCanonicalEntryKey,
@@ -33,9 +35,9 @@ function test(name: string, fn: () => void): void {
 }
 
 function sharedCategories(): GameContentCategory[] {
-  return TRIVIA_CONTENT_CATEGORY_IDS.map((id) => ({
+  return FAST_ANSWER_CONTENT_CATEGORY_IDS.map((id) => ({
     id,
-    name: TRIVIA_CONTENT_CATEGORY_LABELS[id],
+    name: FAST_ANSWER_CONTENT_CATEGORY_LABELS[id],
     enabled: true,
   }));
 }
@@ -44,6 +46,14 @@ function drawableCategories(): GameContentCategory[] {
   return DRAWABLE_CONTENT_CATEGORY_IDS.map((id) => ({
     id,
     name: DRAWABLE_CONTENT_CATEGORY_LABELS[id],
+    enabled: true,
+  }));
+}
+
+function guessingCategories(): GameContentCategory[] {
+  return GUESSING_CHALLENGE_CONTENT_CATEGORY_IDS.map((id) => ({
+    id,
+    name: GUESSING_CHALLENGE_CONTENT_CATEGORY_LABELS[id],
     enabled: true,
   }));
 }
@@ -67,7 +77,7 @@ function sharedBundle(overrides: Partial<GameContentBundle>): GameContentBundle 
         id: 'q1',
         categoryId: 'animals',
         question: 'من ملك الغابة؟',
-        acceptedAnswers: ['أسد', 'الأسد'],
+        acceptedAnswers: ['أسد'],
       },
     ],
     ...overrides,
@@ -93,12 +103,17 @@ test('matching-key stays aligned with Fast Answer normalizeAnswerText', () => {
   }
 });
 
-test('matching-key does not fold ة→ه', () => {
-  assert.notEqual(normalizeAcceptedAnswerKey('زرافة'), normalizeAcceptedAnswerKey('زرافه'));
+test('matching-key folds ة→ه and optional leading ال', () => {
+  assert.equal(normalizeAcceptedAnswerKey('الزرافة'), normalizeAcceptedAnswerKey('زرافه'));
 });
 
 test('canonical key folds ة→ه', () => {
   assert.equal(normalizeCanonicalEntryKey('زرافة'), normalizeCanonicalEntryKey('زرافه'));
+});
+
+test('matching-key normalizes Arabic digits and English case', () => {
+  assert.equal(normalizeAcceptedAnswerKey('٣'), normalizeAcceptedAnswerKey('3'));
+  assert.equal(normalizeAcceptedAnswerKey('PUBG'), normalizeAcceptedAnswerKey('pubg'));
 });
 
 test('duplicate category ids fail with game id', () => {
@@ -128,7 +143,9 @@ test('duplicate word ids fail with game id', () => {
   );
 
   assert.equal(result.valid, false);
-  assert.ok(result.errors.some((error) => error.includes('[unit-test] Duplicate word id: animals-1')));
+  assert.ok(
+    result.errors.some((error) => error.includes('[unit-test] Duplicate word id: animals-1')),
+  );
 });
 
 test('duplicate question ids fail with game id', () => {
@@ -187,6 +204,37 @@ test('whitespace/punctuation canonical duplicates fail', () => {
   assert.ok(result.errors.some((error) => error.includes('Duplicate canonical word text')));
 });
 
+test('word aliases cannot collide with another canonical in the same category', () => {
+  const result = validateContentBundle(
+    bundle({
+      words: [
+        { id: 'w1', text: 'هاتف', categoryId: 'animals', aliases: ['جوال'] },
+        { id: 'w2', text: 'جوال', categoryId: 'animals' },
+      ],
+    }),
+  );
+
+  assert.equal(result.valid, false);
+  assert.ok(result.errors.some((error) => error.includes('Word alias collision')));
+});
+
+test('same normalized canonical may exist in different categories', () => {
+  const result = validateContentBundle(
+    bundle({
+      categories: [
+        { id: 'series', name: 'مسلسلات', enabled: true },
+        { id: 'games', name: 'ألعاب', enabled: true },
+      ],
+      words: [
+        { id: 'series-1', text: 'The Last of Us', categoryId: 'series' },
+        { id: 'games-1', text: 'The Last of Us', categoryId: 'games' },
+      ],
+    }),
+  );
+
+  assert.equal(result.valid, true);
+});
+
 test('empty accepted answer fails', () => {
   const result = validateContentBundle(
     sharedBundle({
@@ -220,26 +268,31 @@ test('normalized duplicate aliases fail', () => {
   );
 
   assert.equal(result.valid, false);
-  assert.ok(result.errors.some((error) => error.includes('duplicate accepted answers after normalization')));
+  assert.ok(
+    result.errors.some((error) => error.includes('duplicate accepted answers after normalization')),
+  );
 });
 
-test('GC canonical identity must be accepted', () => {
+test('GC canonical identity must be accepted after normalization', () => {
   const result = validateContentBundle(
     sharedBundle({
       gameId: 'guessing-challenge',
+      categories: guessingCategories(),
       questions: [
         {
           id: 'animals-lion',
           categoryId: 'animals',
           question: 'أسد',
-          acceptedAnswers: ['الأسد'],
+          acceptedAnswers: ['نمر'],
         },
       ],
     }),
   );
 
   assert.equal(result.valid, false);
-  assert.ok(result.errors.some((error) => error.includes('canonical text is not an accepted answer')));
+  assert.ok(
+    result.errors.some((error) => error.includes('canonical text is not an accepted answer')),
+  );
 });
 
 test('GC alias collisions across identities fail', () => {
@@ -269,6 +322,31 @@ test('GC alias collisions across identities fail', () => {
   assert.ok(result.errors.some((error) => error.includes('id-b')));
 });
 
+test('GC aliases may repeat across different categories', () => {
+  const result = validateContentBundle(
+    sharedBundle({
+      gameId: 'guessing-challenge',
+      categories: guessingCategories(),
+      questions: [
+        {
+          id: 'series-last-of-us',
+          categoryId: 'series',
+          question: 'The Last of Us',
+          acceptedAnswers: ['The Last of Us'],
+        },
+        {
+          id: 'games-last-of-us',
+          categoryId: 'games',
+          question: 'The Last of Us',
+          acceptedAnswers: ['The Last of Us'],
+        },
+      ],
+    }),
+  );
+
+  assert.equal(result.valid, true);
+});
+
 test('random is not a stored content category', () => {
   const result = validateContentBundle(
     bundle({
@@ -286,10 +364,7 @@ test('random is not a stored content category', () => {
 test('fast-answer cannot drift from its trivia category pack', () => {
   const result = validateContentBundle(
     sharedBundle({
-      categories: [
-        ...sharedCategories(),
-        { id: 'space', name: 'فضاء', enabled: true },
-      ],
+      categories: [...sharedCategories(), { id: 'space', name: 'فضاء', enabled: true }],
     }),
   );
 
@@ -300,10 +375,7 @@ test('fast-answer cannot drift from its trivia category pack', () => {
 test('draw-guess cannot keep movie title categories', () => {
   const result = validateContentBundle({
     gameId: 'draw-guess',
-    categories: [
-      ...drawableCategories(),
-      { id: 'movies', name: 'أفلام', enabled: true },
-    ],
+    categories: [...drawableCategories(), { id: 'movies', name: 'أفلام', enabled: true }],
     words: [{ id: 'w1', text: 'أسد', categoryId: 'animals' }],
   });
 

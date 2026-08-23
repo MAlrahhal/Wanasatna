@@ -164,7 +164,7 @@ async function createRoomWithPlayers(playerCount: number): Promise<{
 
 async function startWhoWroteItMatch(
   playerCount = 4,
-  categoryId: string | null = 'funny',
+  categoryId: string | null = 'funny-situations',
 ): Promise<{
   host: TestClient;
   clients: TestClient[];
@@ -252,7 +252,7 @@ async function main(): Promise<void> {
   await waitForServer();
 
   await runTest('3 players start with exactly 3 rounds', async () => {
-    const { host, clients } = await startWhoWroteItMatch(3, 'funny');
+    const { host, clients } = await startWhoWroteItMatch(3, 'funny-situations');
     const view = await syncView(host);
     assert.equal(view.gamePhase, 'answering');
     assert.equal(view.totalRounds, WHO_WROTE_IT_DEFAULT_ROUNDS);
@@ -262,7 +262,7 @@ async function main(): Promise<void> {
   });
 
   await runTest('8 players start', async () => {
-    const { host, clients } = await startWhoWroteItMatch(8, 'funny');
+    const { host, clients } = await startWhoWroteItMatch(8, 'funny-situations');
     const view = await syncView(host);
     assert.equal(view.gamePhase, 'answering');
     assert.equal(view.totalRounds, 3);
@@ -270,7 +270,7 @@ async function main(): Promise<void> {
   });
 
   await runTest('global guessing: sync advance + reconnect + reveal', async () => {
-    const { clients } = await startWhoWroteItMatch(4, 'funny');
+    const { clients } = await startWhoWroteItMatch(4, 'funny-situations');
     const [host, playerB, playerC, playerD] = clients;
     assert.ok(host && playerB && playerC && playerD);
 
@@ -413,7 +413,7 @@ async function main(): Promise<void> {
   });
 
   await runTest('stale roundId and answer-id guesses rejected', async () => {
-    const { host, clients } = await startWhoWroteItMatch(3, 'funny');
+    const { host, clients } = await startWhoWroteItMatch(3, 'funny-situations');
     const opening = await syncView(host);
     const staleRoundId = 'stale-round';
 
@@ -460,7 +460,7 @@ async function main(): Promise<void> {
   });
 
   await runTest('empty/oversize/duplicate answers rejected', async () => {
-    const { host, clients } = await startWhoWroteItMatch(3, 'funny');
+    const { host, clients } = await startWhoWroteItMatch(3, 'funny-situations');
     const view = await syncView(host);
 
     const empty = await ack<{ success: boolean }>(
@@ -495,7 +495,7 @@ async function main(): Promise<void> {
   });
 
   await runTest('AFK answering timeout does not stall', async () => {
-    const { host, clients } = await startWhoWroteItMatch(3, 'funny');
+    const { host, clients } = await startWhoWroteItMatch(3, 'funny-situations');
     const after = await waitFor(async () => {
       const view = await syncView(host);
       return view.gamePhase === 'round-results' || view.gamePhase === 'guessing' ? view : null;
@@ -505,7 +505,7 @@ async function main(): Promise<void> {
   });
 
   await runTest('AFK guess timeout does not stall', async () => {
-    const { host, clients } = await startWhoWroteItMatch(3, 'funny');
+    const { host, clients } = await startWhoWroteItMatch(3, 'funny-situations');
     const opening = await syncView(host);
     await submitAllAnswers(clients, opening.roundId!);
     await waitFor(async () => {
@@ -522,7 +522,7 @@ async function main(): Promise<void> {
   });
 
   await runTest('fixed category stays for all 3 rounds; random stays عشوائي', async () => {
-    const { host, clients } = await startWhoWroteItMatch(3, 'funny');
+    const { host, clients } = await startWhoWroteItMatch(3, 'funny-situations');
 
     for (let round = 1; round <= WHO_WROTE_IT_DEFAULT_ROUNDS; round += 1) {
       const view = await waitFor(async () => {
@@ -533,13 +533,13 @@ async function main(): Promise<void> {
       }, 20000, `funny answering round ${round}`);
 
       assert.equal(view.totalRounds, 3);
-      assert.equal(view.categoryId, 'funny');
-      assert.equal(view.categoryLabel, 'أسئلة مضحكة');
-      assert.equal(categoryForQuestion(view.question!), 'funny');
+      assert.equal(view.categoryId, 'funny-situations');
+      assert.equal(view.categoryLabel, 'مواقف مضحكة');
+      assert.equal(categoryForQuestion(view.question!), 'funny-situations');
 
       await submitAllAnswers(clients, view.roundId!);
       const results = await finishGuessing(clients);
-      assert.equal(results.categoryLabel, 'أسئلة مضحكة');
+      assert.equal(results.categoryLabel, 'مواقف مضحكة');
       assert.equal(
         results.roundResultsWaitingMessage,
         round < 3 ? 'الجولة التالية تبدأ تلقائياً...' : 'سيتم عرض النتائج النهائية تلقائياً...',
@@ -589,7 +589,7 @@ async function main(): Promise<void> {
   });
 
   await runTest('spectator mid-join cannot submit and does not see owners', async () => {
-    const { host, clients } = await startWhoWroteItMatch(3, 'funny');
+    const { host, clients } = await startWhoWroteItMatch(3, 'funny-situations');
     const view = await syncView(host);
 
     const spectatorSocket = await connectClient();
@@ -622,7 +622,7 @@ async function main(): Promise<void> {
   });
 
   await runTest('3 rounds then final lobby cleanup allows Game B', async () => {
-    const { host, clients } = await startWhoWroteItMatch(3, 'funny');
+    const { host, clients } = await startWhoWroteItMatch(3, 'funny-situations');
 
     for (let round = 1; round <= WHO_WROTE_IT_DEFAULT_ROUNDS; round += 1) {
       const view = await waitFor(async () => {

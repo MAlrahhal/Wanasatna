@@ -1,6 +1,27 @@
 [
-  { "id": "funny", "name": "مواقف مضحكة", "enabled": true },
-  { "id": "hypothetical", "name": "مواقف افتراضية", "enabled": true },
-  { "id": "daily", "name": "الحياة اليومية", "enabled": true },
-  { "id": "weird", "name": "مواقف غريبة", "enabled": true }
+  {
+    "id": "worst-answer",
+    "name": "أسوأ إجابة ممكنة",
+    "enabled": true
+  },
+  {
+    "id": "invent-something-silly",
+    "name": "اخترع شيء غبي",
+    "enabled": true
+  },
+  {
+    "id": "weird-scenarios",
+    "name": "سيناريوهات غريبة",
+    "enabled": true
+  },
+  {
+    "id": "complete-the-sentence",
+    "name": "كمل الجملة",
+    "enabled": true
+  },
+  {
+    "id": "rapid-response",
+    "name": "تحديات الرد السريع",
+    "enabled": true
+  }
 ]

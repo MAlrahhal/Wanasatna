@@ -35,13 +35,9 @@ import {
 import { ensureDrawGuessMatchStateWithTimer } from './init-match.js';
 import { continueFromRoundResults, endDrawingRound } from './match-lifecycle.js';
 import { clearDrawGuessPhaseTimerRuntime } from './phase-timer.js';
-import {
-  buildDrawGuessPlayerView,
-  buildDrawGuessSpectatorView,
-  withRound,
-} from './state.js';
+import { buildDrawGuessPlayerView, buildDrawGuessSpectatorView, withRound } from './state.js';
 import { deleteDrawGuessState, getDrawGuessState, setDrawGuessState } from './store.js';
-import { isCorrectGuess } from './words.js';
+import { getDrawGuessAliases, isCorrectGuess } from './words.js';
 import {
   DRAW_GUESS_BOARD_LIMITS,
   processStrokeCommand,
@@ -486,9 +482,7 @@ export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): voi
       }
 
       const nextStrokes =
-        match.round.strokes.length === 0
-          ? match.round.strokes
-          : match.round.strokes.slice(0, -1);
+        match.round.strokes.length === 0 ? match.round.strokes : match.round.strokes.slice(0, -1);
 
       const nextMatch = withRound(match, {
         ...match.round,
@@ -566,7 +560,7 @@ export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): voi
         return;
       }
 
-      if (!isCorrectGuess(guess, match.round.word)) {
+      if (!isCorrectGuess(guess, match.round.word, getDrawGuessAliases(match.round.word))) {
         sendGameResponse(callback, {
           success: true,
           data: {
@@ -638,8 +632,7 @@ export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): voi
 
       if (
         !match ||
-        (match.round.gamePhase !== 'round-results' &&
-          match.round.gamePhase !== 'match-completed')
+        (match.round.gamePhase !== 'round-results' && match.round.gamePhase !== 'match-completed')
       ) {
         sendGameResponse(callback, gameNotReadyError());
         return;

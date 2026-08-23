@@ -1,5 +1,9 @@
 import type { GameContentWord } from '@wanasatna/shared';
-import { DRAW_GUESS_GAME_ID, pickRandomWordFromCategories } from '@wanasatna/shared';
+import {
+  DRAW_GUESS_GAME_ID,
+  normalizeTextAnswer,
+  pickRandomWordFromCategories,
+} from '@wanasatna/shared';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { resolveEnabledCategoryFilter } from '../../runtime/round-category-store.js';
 
@@ -26,18 +30,19 @@ export function pickDrawGuessWord(
   return wordEntry;
 }
 
-/** Normalize Arabic guesses for trim + case-insensitive + common letter variants. */
-export function normalizeGuessText(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/\u0640/g, '')
-    .replace(/[أإآا]/g, 'ا')
-    .replace(/[ىي]/g, 'ي')
-    .replace(/ة/g, 'ه')
-    .replace(/\s+/g, ' ');
+export const normalizeGuessText = normalizeTextAnswer;
+
+export function isCorrectGuess(
+  guess: string,
+  secretWord: string,
+  aliases: readonly string[] = [],
+): boolean {
+  const normalizedGuess = normalizeGuessText(guess);
+  return [secretWord, ...aliases].some((answer) => normalizeGuessText(answer) === normalizedGuess);
 }
 
-export function isCorrectGuess(guess: string, secretWord: string): boolean {
-  return normalizeGuessText(guess) === normalizeGuessText(secretWord);
+export function getDrawGuessAliases(secretWord: string): string[] {
+  const content = getLoadedGameContent(DRAW_GUESS_GAME_ID);
+  const word = content?.bundle.words.find((entry) => entry.text === secretWord);
+  return word?.aliases ?? [];
 }

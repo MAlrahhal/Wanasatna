@@ -83,23 +83,31 @@ test('5 Guessing Challenge settings only when Guessing Challenge is selected', (
   const settings = read('components/lobby/game-settings-panel.tsx');
   assert.match(settings, /isGuessingChallenge \? \(\s*<GuessingChallengeSettingsPanel/);
   assert.match(settings, /teamSnapshot\?\.gameId === selectedGame\.id/);
-  assert.equal(getGameRoundCategories(GUESSING_CHALLENGE_GAME_ID)?.categories.some((c) => c.label === 'أغراض منزلية'), true);
-  assert.equal(getGameRoundCategories(FAST_ANSWER_GAME_ID)?.categories.some((c) => c.label === 'أغراض منزلية'), false);
+  assert.equal(
+    getGameRoundCategories(GUESSING_CHALLENGE_GAME_ID)?.categories.some(
+      (c) => c.label === 'تقنيات',
+    ),
+    true,
+  );
+  assert.equal(
+    getGameRoundCategories(FAST_ANSWER_GAME_ID)?.categories.some((c) => c.label === 'أغراض منزلية'),
+    false,
+  );
 });
 
 test('6 Judge categories only resolve for Judge', () => {
   const judge = labels(JUDGE_GAME_ID);
-  assert.equal(judge.includes('مواقف مضحكة'), true);
-  assert.equal(labels(FAST_ANSWER_GAME_ID).includes('مواقف مضحكة'), false);
-  assert.equal(labels(WHO_WROTE_IT_GAME_ID).includes('مواقف مضحكة'), false);
-  assert.equal(labels(BARA_AL_SALAFA_GAME_ID).includes('مواقف مضحكة'), false);
+  assert.equal(judge.includes('أسوأ إجابة ممكنة'), true);
+  assert.equal(labels(FAST_ANSWER_GAME_ID).includes('أسوأ إجابة ممكنة'), false);
+  assert.equal(labels(WHO_WROTE_IT_GAME_ID).includes('أسوأ إجابة ممكنة'), false);
+  assert.equal(labels(BARA_AL_SALAFA_GAME_ID).includes('أسوأ إجابة ممكنة'), false);
 });
 
 test('7 Who Wrote It categories only resolve for Who Wrote It', () => {
   const wwi = labels(WHO_WROTE_IT_GAME_ID);
-  assert.equal(wwi.includes('أسئلة مضحكة'), true);
-  assert.equal(labels(FAST_ANSWER_GAME_ID).includes('أسئلة مضحكة'), false);
-  assert.equal(labels(JUDGE_GAME_ID).includes('أسئلة مضحكة'), false);
+  assert.equal(wwi.includes('اعترافات'), true);
+  assert.equal(labels(FAST_ANSWER_GAME_ID).includes('اعترافات'), false);
+  assert.equal(labels(JUDGE_GAME_ID).includes('اعترافات'), false);
 });
 
 test('8 A → B → A remounts a single keyed setup and resets category', () => {
@@ -116,10 +124,29 @@ test('9 return from active game does not lock leftover shell categories', () => 
   assert.doesNotMatch(setup, /activeMatchParticipantIds/);
 });
 
-test('10 category content itself is unchanged', () => {
-  assert.deepEqual(labels(FAST_ANSWER_GAME_ID), labels(BARA_AL_SALAFA_GAME_ID));
-  assert.equal(labels(WHO_WROTE_IT_GAME_ID).join('|'), 'أسئلة مضحكة|أسئلة شخصية|مواقف|تفضيلات|عشوائي');
-  assert.equal(labels(JUDGE_GAME_ID).join('|'), 'مواقف مضحكة|مواقف افتراضية|الحياة اليومية|مواقف غريبة|عشوائي');
+test('10 category content matches approved per-game packs', () => {
+  assert.equal(
+    labels(BARA_AL_SALAFA_GAME_ID).join('|'),
+    'حيوانات|أكلات|بلدان|كرة قدم|مسلسلات|ألعاب|عشوائي',
+  );
+  assert.equal(labels(FAST_ANSWER_GAME_ID).join('|'), 'حيوانات|أكلات|بلدان|مسلسلات|ألعاب|عشوائي');
+  assert.equal(
+    labels(DRAW_GUESS_GAME_ID).join('|'),
+    'حيوانات|أكلات|طبيعة وفضاء وطقس|أماكن ومعالم واضحة|تقنيات|عشوائي',
+  );
+  assert.deepEqual(labels(IMPOSTER_DRAW_GAME_ID), labels(DRAW_GUESS_GAME_ID));
+  assert.equal(
+    labels(GUESSING_CHALLENGE_GAME_ID).join('|'),
+    'حيوانات|أكلات|بلدان|كرة قدم|مسلسلات|ألعاب|تقنيات|عشوائي',
+  );
+  assert.equal(
+    labels(WHO_WROTE_IT_GAME_ID).join('|'),
+    'مواقف مضحكة|اعترافات|أسئلة شخصية خفيفة|ماذا ستفعل؟|عشوائي',
+  );
+  assert.equal(
+    labels(JUDGE_GAME_ID).join('|'),
+    'أسوأ إجابة ممكنة|اخترع شيء غبي|سيناريوهات غريبة|كمل الجملة|تحديات الرد السريع|عشوائي',
+  );
   assert.equal(getGameRoundCategories(TIMING_CHALLENGE_GAME_ID), null);
   assert.ok(getGameRoundCategories(DRAW_GUESS_GAME_ID));
   assert.ok(getGameRoundCategories(IMPOSTER_DRAW_GAME_ID));

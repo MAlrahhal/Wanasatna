@@ -29,7 +29,11 @@ import {
   withRound,
 } from '../src/modules/game/plugins/draw-guess/state.js';
 import { isOversizedGameAnswer } from '../src/modules/game/runtime/game-answer-text.js';
-import { isCorrectGuess, normalizeGuessText } from '../src/modules/game/plugins/draw-guess/words.js';
+import {
+  getDrawGuessAliases,
+  isCorrectGuess,
+  normalizeGuessText,
+} from '../src/modules/game/plugins/draw-guess/words.js';
 
 registerGameContent(DRAW_GUESS_GAME_ID);
 
@@ -171,11 +175,10 @@ test('lobby settings: fixed requires eligible player; invalid rejected', () => {
   );
   assert.equal(badId.success, false);
 
-  const good = applyDrawGuessLobbySettings(
-    'room-c',
-    { drawerMode: 'fixed', fixedPlayerId: 'p2' },
-    ['p1', 'p2'],
-  );
+  const good = applyDrawGuessLobbySettings('room-c', { drawerMode: 'fixed', fixedPlayerId: 'p2' }, [
+    'p1',
+    'p2',
+  ]);
   assert.equal(good.success, true);
   if (good.success) {
     assert.equal(good.settings.fixedPlayerId, 'p2');
@@ -240,7 +243,9 @@ test('serializeDrawGuessState blanks secret word', () => {
 
 test('guess normalization Arabic variants', () => {
   assert.equal(normalizeGuessText('  آيس كريم '), normalizeGuessText('ايس كريم'));
+  assert.equal(normalizeGuessText('الزرافة'), normalizeGuessText('زرافه'));
   assert.ok(isCorrectGuess('أسد', 'اسد'));
+  assert.ok(isCorrectGuess('Pizza', 'بيتزا', getDrawGuessAliases('بيتزا')));
   assert.equal(isCorrectGuess('فيل', 'أسد'), false);
 });
 
@@ -310,11 +315,13 @@ test('fixed mode keeps same drawer across all 3 rounds when available', () => {
 });
 
 test('word exclusion accumulates across rounds when alternatives exist', () => {
-  const match = createMatchState(
-    'room-words',
-    makePlayers(3),
-    { minPlayers: 2, maxPlayers: 8, rounds: 3, roundTime: 60, enabledCategories: [] },
-  );
+  const match = createMatchState('room-words', makePlayers(3), {
+    minPlayers: 2,
+    maxPlayers: 8,
+    rounds: 3,
+    roundTime: 60,
+    enabledCategories: [],
+  });
   const r1Word = match.round.word;
   const r2 = createRoundState('room-words', match, 2, match.playerIds);
   assert.ok(match.usedWordTexts.includes(r1Word));
@@ -325,8 +332,14 @@ test('word exclusion accumulates across rounds when alternatives exist', () => {
 });
 
 test('round-results view: mid-round next copy vs final-round copy', () => {
-  const mid = withRound(makeMatch({ currentRound: 1, totalRounds: 3 }), makeRound({ gamePhase: 'round-results', phaseRemainingSeconds: 10 }));
-  const final = withRound(makeMatch({ currentRound: 3, totalRounds: 3 }), makeRound({ gamePhase: 'round-results', phaseRemainingSeconds: 10 }));
+  const mid = withRound(
+    makeMatch({ currentRound: 1, totalRounds: 3 }),
+    makeRound({ gamePhase: 'round-results', phaseRemainingSeconds: 10 }),
+  );
+  const final = withRound(
+    makeMatch({ currentRound: 3, totalRounds: 3 }),
+    makeRound({ gamePhase: 'round-results', phaseRemainingSeconds: 10 }),
+  );
   const shell = makeShell('p1');
 
   const midHost = buildDrawGuessPlayerView(mid, 'p1', shell);

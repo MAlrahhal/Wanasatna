@@ -164,7 +164,7 @@ async function createRoomWithPlayers(playerCount: number): Promise<{
 
 async function startJudgeMatch(
   playerCount = 4,
-  categoryId: string | null = 'funny',
+  categoryId: string | null = 'worst-answer',
 ): Promise<{
   host: TestClient;
   clients: TestClient[];
@@ -268,7 +268,7 @@ async function main(): Promise<void> {
   await waitForServer();
 
   await runTest('3 players → 3 unique judges then cleanup allows Game B', async () => {
-    const { host, clients } = await startJudgeMatch(3, 'funny');
+    const { host, clients } = await startJudgeMatch(3, 'worst-answer');
     const startView = await syncView(host);
     assert.equal(startView.totalRounds, 3);
     assert.equal(startView.categoryLabel, 'مواقف مضحكة');
@@ -325,7 +325,7 @@ async function main(): Promise<void> {
   });
 
   await runTest('8 players → 8 unique judges', async () => {
-    const { host, clients } = await startJudgeMatch(8, 'funny');
+    const { host, clients } = await startJudgeMatch(8, 'worst-answer');
     const startView = await syncView(host);
     assert.equal(startView.totalRounds, 8);
 
@@ -340,17 +340,17 @@ async function main(): Promise<void> {
   });
 
   await runTest('fixed category stays locked; random stays public عشوائي', async () => {
-    const fixed = await startJudgeMatch(3, 'funny');
+    const fixed = await startJudgeMatch(3, 'worst-answer');
     const first = await syncView(fixed.host);
     assert.equal(first.categoryLabel, 'مواقف مضحكة');
-    assert.equal(categoryForPrompt(first.prompt ?? ''), 'funny');
+    assert.equal(categoryForPrompt(first.prompt ?? ''), 'worst-answer');
     await playCurrentRound(fixed.host, fixed.clients, true);
     const second = await waitFor(async () => {
       const view = await syncView(fixed.host);
       return view.gamePhase === 'answering' && view.currentRound === 2 ? view : null;
     }, 15000, 'round 2 answering');
     assert.equal(second.categoryLabel, 'مواقف مضحكة');
-    assert.equal(categoryForPrompt(second.prompt ?? ''), 'funny');
+    assert.equal(categoryForPrompt(second.prompt ?? ''), 'worst-answer');
     disconnectAll(fixed.clients);
 
     const randomMatch = await startJudgeMatch(3, 'random');
@@ -361,7 +361,7 @@ async function main(): Promise<void> {
   });
 
   await runTest('stale roundId rejected for answer and judge select', async () => {
-    const { host, clients } = await startJudgeMatch(3, 'funny');
+    const { host, clients } = await startJudgeMatch(3, 'worst-answer');
     const first = await syncView(host);
     const staleRoundId = first.roundId!;
     const firstPlayed = await playCurrentRound(host, clients, true);
@@ -397,7 +397,7 @@ async function main(): Promise<void> {
   });
 
   await runTest('judge cannot submit; empty rejected; duplicate submit rejected', async () => {
-    const { host, clients } = await startJudgeMatch(3, 'funny');
+    const { host, clients } = await startJudgeMatch(3, 'worst-answer');
     const view = await syncView(host);
     const judgeClient = clients.find((client) => client.id === view.judgePlayerId)!;
     const answerer = clients.find((client) => client.id !== view.judgePlayerId)!;
@@ -434,7 +434,7 @@ async function main(): Promise<void> {
   });
 
   await runTest('privacy + reconnect + spectator do not leak owners during judging', async () => {
-    const { host, clients } = await startJudgeMatch(4, 'funny');
+    const { host, clients } = await startJudgeMatch(4, 'worst-answer');
     const answering = await syncView(host);
     await submitAllAnswers(clients, answering.roundId!, answering.judgePlayerId!);
 
@@ -500,7 +500,7 @@ async function main(): Promise<void> {
   });
 
   await runTest('judge timeout awards no winner points', async () => {
-    const { host, clients } = await startJudgeMatch(3, 'funny');
+    const { host, clients } = await startJudgeMatch(3, 'worst-answer');
     const answering = await syncView(host);
     await submitAllAnswers(clients, answering.roundId!, answering.judgePlayerId!);
 
@@ -520,7 +520,7 @@ async function main(): Promise<void> {
   });
 
   await runTest('all-submit advances early; host continue copy on non-final', async () => {
-    const { host, clients } = await startJudgeMatch(3, 'funny');
+    const { host, clients } = await startJudgeMatch(3, 'worst-answer');
     const answering = await syncView(host);
     const started = Date.now();
     await submitAllAnswers(clients, answering.roundId!, answering.judgePlayerId!);

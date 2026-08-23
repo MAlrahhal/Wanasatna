@@ -6,14 +6,9 @@ export const drawableRoundCategories: GameRoundCategoriesConfig = {
   categories: [
     { id: 'animals', label: 'حيوانات', emoji: '🐶' },
     { id: 'food', label: 'أكلات', emoji: '🍔' },
-    { id: 'household', label: 'أغراض منزلية', emoji: '🏠' },
-    { id: 'tools', label: 'أدوات', emoji: '🔧' },
-    { id: 'transport', label: 'مواصلات', emoji: '🚌' },
+    { id: 'nature', label: 'طبيعة وفضاء وطقس', emoji: '🌋' },
+    { id: 'places', label: 'أماكن ومعالم واضحة', emoji: '🏫' },
+    { id: 'tech', label: 'تقنيات', emoji: '📱' },
     { id: 'random', label: 'عشوائي', emoji: '🎲' },
-    { id: 'professions', label: 'مهن', emoji: '👨‍⚕️' },
-    { id: 'nature', label: 'طبيعة', emoji: '🌋' },
-    { id: 'sports', label: 'رياضة', emoji: '🏀' },
-    { id: 'clothing', label: 'ملابس وإكسسوارات', emoji: '👕' },
-    { id: 'places', label: 'أماكن', emoji: '🏫' },
   ],
 };

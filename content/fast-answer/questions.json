@@ -1,198 +1,910 @@
 [
-  { "id": "animals-1", "categoryId": "animals", "question": "ما اسم أكبر حيوان على اليابسة؟", "acceptedAnswers": ["فيل", "الفيل", "فيل افريقي", "الفيل الافريقي"] },
-  { "id": "animals-2", "categoryId": "animals", "question": "أي حيوان يُلقّب بملك الغابة؟", "acceptedAnswers": ["أسد", "الأسد"] },
-  { "id": "animals-3", "categoryId": "animals", "question": "ما الحيوان المعروف برقبة طويلة جداً؟", "acceptedAnswers": ["زرافة", "الزرافة", "زرافه", "الزرافه"] },
-  { "id": "animals-cow", "categoryId": "animals", "question": "ما اسم الحيوان الذي يُربى للحليب في المزارع؟", "acceptedAnswers": ["بقرة", "البقرة", "بقره"] },
-  { "id": "animals-bee", "categoryId": "animals", "question": "ما اسم الحشرة التي تصنع العسل؟", "acceptedAnswers": ["نحلة", "النحلة", "نحله"] },
-  { "id": "animals-rabbit", "categoryId": "animals", "question": "أي حيوان أليف معروف بأذنين طويلتين؟", "acceptedAnswers": ["أرنب", "الأرنب"] },
-  { "id": "animals-penguin", "categoryId": "animals", "question": "ما اسم الطائر الأبيض والأسود في المناطق الباردة؟", "acceptedAnswers": ["بطريق", "البطريق"] },
-  { "id": "animals-kangaroo", "categoryId": "animals", "question": "أي حيوان يحمل صغاره في كيس على بطنه؟", "acceptedAnswers": ["كنغر", "الكنغر"] },
-  { "id": "animals-whale", "categoryId": "animals", "question": "ما اسم أكبر حيوان معروف على الأرض؟", "acceptedAnswers": ["الحوت الأزرق", "حوت أزرق"] },
-  { "id": "animals-chameleon", "categoryId": "animals", "question": "ما الحيوان الذي يشتهر بتغيير لونه؟", "acceptedAnswers": ["حرباء", "الحرباء"] },
-  { "id": "animals-butterfly", "categoryId": "animals", "question": "ما اسم الحشرة التي تخرج من شرنقة ولها أجنحة ملونة؟", "acceptedAnswers": ["فراشة", "الفراشة", "فراشه"] },
-  { "id": "animals-spider", "categoryId": "animals", "question": "كم رجلاً للعنكبوت؟", "acceptedAnswers": ["٨", "8", "ثمانية", "ثمانيه"] },
-  { "id": "animals-cat", "categoryId": "animals", "question": "أي حيوان أليف يُعرف بصوت المواء؟", "acceptedAnswers": ["قطة", "القطة", "قطه"] },
-  { "id": "animals-dog", "categoryId": "animals", "question": "أي حيوان أليف يُعرف بالنباح؟", "acceptedAnswers": ["كلب", "الكلب"] },
-  { "id": "animals-camel", "categoryId": "animals", "question": "ما اسم الحيوان الذي له سنام؟", "acceptedAnswers": ["جمل", "الجمل"] },
-  { "id": "animals-cheetah", "categoryId": "animals", "question": "ما أسرع حيوان بري على اليابسة؟", "acceptedAnswers": ["الفهد الصياد", "فهد صياد", "الفهد"] },
-  { "id": "animals-dove", "categoryId": "animals", "question": "ما الطائر الذي يُرمز به للسلام؟", "acceptedAnswers": ["حمامة", "الحمامة", "حمامه"] },
-  { "id": "animals-hedgehog", "categoryId": "animals", "question": "ما اسم الحيوان الصغير المغطى بالشوك؟", "acceptedAnswers": ["قنفذ", "القنفذ"] },
-  { "id": "animals-shark", "categoryId": "animals", "question": "ما اسم السمكة المفترسة ذات الزعنفة المثلثة؟", "acceptedAnswers": ["قرش", "القرش"] },
-  { "id": "animals-horse", "categoryId": "animals", "question": "ما اسم الحيوان الذي يُستخدم كثيراً في الركوب؟", "acceptedAnswers": ["حصان", "الحصان"] },
-  { "id": "animals-owl", "categoryId": "animals", "question": "أي طائر يُعرف بالصيد ليلاً وله عينان كبيرتان؟", "acceptedAnswers": ["بومة", "البومة", "بومه"] },
-  { "id": "animals-dolphin", "categoryId": "animals", "question": "ما اسم الحيوان البحري الذكي المعروف بالقفز فوق الماء؟", "acceptedAnswers": ["دلفين", "الدلفين"] },
-  { "id": "food-1", "categoryId": "food", "question": "ما اسم الطبق الإيطالي المستدير الذي يُخبز بالعجين والجبن وصلصة الطماطم؟", "acceptedAnswers": ["بيتزا", "البيتزا", "pizza"] },
-  { "id": "food-2", "categoryId": "food", "question": "ما الفاكهة الصفراء الطويلة المنحنية؟", "acceptedAnswers": ["موز", "الموز", "موزه", "موزة"] },
-  { "id": "food-3", "categoryId": "food", "question": "ما المشروب الساخن المصنوع من البن؟", "acceptedAnswers": ["قهوة", "القهوة", "قهوه", "القهوه"] },
-  { "id": "food-bread", "categoryId": "food", "question": "مما يُصنع الخبز أساساً؟", "acceptedAnswers": ["دقيق", "الدقيق", "طحين", "الطحين"] },
-  { "id": "food-salt", "categoryId": "food", "question": "ما المادة البيضاء التي نملّح بها الطعام؟", "acceptedAnswers": ["ملح", "الملح"] },
-  { "id": "food-water", "categoryId": "food", "question": "ما السائل الضروري لحياة الإنسان؟", "acceptedAnswers": ["ماء", "الماء"] },
-  { "id": "food-egg", "categoryId": "food", "question": "ما الذي تضعه الدجاجة ويُطبخ للفطور غالباً؟", "acceptedAnswers": ["بيضة", "البيضة", "بيضه", "بيض"] },
-  { "id": "food-rice", "categoryId": "food", "question": "ما نوع الحبوب الذي يُطبخ ويُقدّم مع كثير من الأكلات الخليجية؟", "acceptedAnswers": ["رز", "أرز", "الرز", "الأرز"] },
-  { "id": "food-tea", "categoryId": "food", "question": "ما المشروب الساخن الذي يُحضّر عادةً بنقع أوراقه في الماء ويُشرب وحده أو مع الحليب؟", "acceptedAnswers": ["شاي", "الشاي"] },
-  { "id": "food-honey", "categoryId": "food", "question": "ما المادة الحلوة التي تنتجها النحلة؟", "acceptedAnswers": ["عسل", "العسل"] },
-  { "id": "food-orange", "categoryId": "food", "question": "ما الفاكهة الحمضية المستديرة التي تتكون من فصوص وتشتهر بعصيرها؟", "acceptedAnswers": ["برتقال", "البرتقال", "برتقاله"] },
-  { "id": "food-tomato", "categoryId": "food", "question": "ما الخضار الحمراء المستخدمة في السلطة والصلصة؟", "acceptedAnswers": ["طماطم", "الطماطم", "بندورة", "البندورة"] },
-  { "id": "food-milk", "categoryId": "food", "question": "ما السائل الأبيض الذي يُشرب من الأبقار غالباً؟", "acceptedAnswers": ["حليب", "الحليب"] },
-  { "id": "food-sugar", "categoryId": "food", "question": "ما المادة الحلوة البيضاء التي تُضاف للشاي؟", "acceptedAnswers": ["سكر", "السكر"] },
-  { "id": "food-ice", "categoryId": "food", "question": "ما الحالة الصلبة للماء؟", "acceptedAnswers": ["ثلج", "الثلج"] },
-  { "id": "food-pasta-wheat", "categoryId": "food", "question": "المعكرونة تُصنع أساساً من أي نوع من الحبوب؟", "acceptedAnswers": ["قمح", "القمح"] },
-  { "id": "food-kabsa", "categoryId": "food", "question": "ما اسم الطبق السعودي الشهير بالأرز المتبل واللومي ويُقدّم غالباً مع الدجاج أو اللحم؟", "acceptedAnswers": ["كبسة", "الكبسة", "كبسه"] },
-  { "id": "food-cocoa", "categoryId": "food", "question": "الشوكولاتة تُصنع أساساً من أي حبة؟", "acceptedAnswers": ["كاكاو", "الكاكاو", "كاكاوه"] },
-  { "id": "food-lemon", "categoryId": "food", "question": "ما الفاكهة الحامضة الصفراء الصغيرة؟", "acceptedAnswers": ["ليمون", "الليمون", "ليمونه"] },
-  { "id": "food-cheese", "categoryId": "food", "question": "ما المنتج المصنوع من الحليب والمستخدم على البيتزا؟", "acceptedAnswers": ["جبن", "جبنة", "الجبن", "الجبنة"] },
-  { "id": "food-olive", "categoryId": "food", "question": "ما الثمرة الصغيرة التي يُستخرج منها زيت يُستخدم كثيراً في الطبخ والسلطات؟", "acceptedAnswers": ["زيتون", "الزيتون"] },
-  { "id": "food-dates", "categoryId": "food", "question": "ما اسم الثمرة الشهيرة في الخليج التي تُجفف وتُخزَّن؟", "acceptedAnswers": ["تمر", "التمر", "تمرة"] },
-  { "id": "countries-1", "categoryId": "countries", "question": "ما عاصمة مصر؟", "acceptedAnswers": ["القاهرة", "قاهره", "القاهره", "cairo"] },
-  { "id": "countries-2", "categoryId": "countries", "question": "أي دولة تشتهر ببرج إيفل؟", "acceptedAnswers": ["فرنسا", "france"] },
-  { "id": "countries-3", "categoryId": "countries", "question": "ما أكبر دولة عربية من حيث المساحة؟", "acceptedAnswers": ["الجزائر", "جزائر"] },
-  { "id": "countries-tokyo", "categoryId": "countries", "question": "ما عاصمة اليابان؟", "acceptedAnswers": ["طوكيو", "tokyo"] },
-  { "id": "countries-paris", "categoryId": "countries", "question": "ما عاصمة فرنسا؟", "acceptedAnswers": ["باريس", "paris"] },
-  { "id": "countries-riyadh", "categoryId": "countries", "question": "ما عاصمة السعودية؟", "acceptedAnswers": ["الرياض", "رياض"] },
-  { "id": "countries-abudhabi", "categoryId": "countries", "question": "ما عاصمة الإمارات؟", "acceptedAnswers": ["أبوظبي", "أبو ظبي"] },
-  { "id": "countries-rome", "categoryId": "countries", "question": "ما عاصمة إيطاليا؟", "acceptedAnswers": ["روما", "rome"] },
-  { "id": "countries-ankara", "categoryId": "countries", "question": "ما عاصمة تركيا؟", "acceptedAnswers": ["أنقرة", "ankara"] },
-  { "id": "countries-berlin", "categoryId": "countries", "question": "ما عاصمة ألمانيا؟", "acceptedAnswers": ["برلين", "berlin"] },
-  { "id": "countries-madrid", "categoryId": "countries", "question": "ما عاصمة إسبانيا؟", "acceptedAnswers": ["مدريد", "madrid"] },
-  { "id": "countries-rabat", "categoryId": "countries", "question": "ما عاصمة المغرب؟", "acceptedAnswers": ["الرباط", "رباط"] },
-  { "id": "countries-doha", "categoryId": "countries", "question": "ما عاصمة قطر؟", "acceptedAnswers": ["الدوحة", "دوحة", "الدوحه"] },
-  { "id": "countries-nile", "categoryId": "countries", "question": "ما اسم النهر الذي يمر بمصر؟", "acceptedAnswers": ["النيل", "نيل"] },
-  { "id": "countries-riyal", "categoryId": "countries", "question": "ما اسم عملة السعودية؟", "acceptedAnswers": ["ريال", "الريال", "ريال سعودي"] },
-  { "id": "countries-yen", "categoryId": "countries", "question": "ما اسم عملة اليابان؟", "acceptedAnswers": ["ين", "الين", "yen"] },
-  { "id": "countries-asia", "categoryId": "countries", "question": "الصين تقع في أي قارة؟", "acceptedAnswers": ["آسيا", "asia"] },
-  { "id": "countries-brazil-lang", "categoryId": "countries", "question": "ما اللغة الرسمية في البرازيل؟", "acceptedAnswers": ["البرتغالية", "برتغالية", "برتغالي"] },
-  { "id": "countries-uk-capital", "categoryId": "countries", "question": "ما عاصمة المملكة المتحدة؟", "acceptedAnswers": ["لندن", "London"] },
-  { "id": "countries-kuwait-currency", "categoryId": "countries", "question": "ما العملة الرسمية في الكويت؟", "acceptedAnswers": ["دينار كويتي", "الدينار الكويتي", "دينار"] },
-  { "id": "countries-newdelhi", "categoryId": "countries", "question": "ما عاصمة الهند؟", "acceptedAnswers": ["نيودلهي", "نيو دلهي"] },
-  { "id": "countries-ottawa", "categoryId": "countries", "question": "ما عاصمة كندا؟", "acceptedAnswers": ["أوتاوا", "ottawa"] },
-  { "id": "cars-1", "categoryId": "cars", "question": "ما الشركة الألمانية الشهيرة بشعار النجمة الثلاثية؟", "acceptedAnswers": ["Mercedes", "مرسيدس", "بنز", "مرسيدس بنز"] },
-  { "id": "cars-2", "categoryId": "cars", "question": "ما اسم المركبة ذات العجلتين التي تعمل بمحرك؟", "acceptedAnswers": ["دراجة نارية", "دراجه ناريه", "موتوسيكل", "دباب"] },
-  { "id": "cars-3", "categoryId": "cars", "question": "ما الشركة اليابانية التي يشتهر شعارها بثلاثة أشكال بيضاوية متداخلة؟", "acceptedAnswers": ["Toyota", "تويوتا"] },
-  { "id": "cars-corolla", "categoryId": "cars", "question": "ما الشركة التي تصنع سيارة Corolla؟", "acceptedAnswers": ["Toyota", "تويوتا"] },
-  { "id": "cars-civic", "categoryId": "cars", "question": "ما الشركة التي تصنع سيارة Civic؟", "acceptedAnswers": ["Honda", "هوندا"] },
-  { "id": "cars-golf", "categoryId": "cars", "question": "ما الشركة الألمانية التي تصنع سيارة Golf؟", "acceptedAnswers": ["Volkswagen", "فولكس واجن", "فولكسفاغن"] },
-  { "id": "cars-mustang", "categoryId": "cars", "question": "سيارة Mustang الرياضية من أي شركة؟", "acceptedAnswers": ["Ford", "فورد"] },
-  { "id": "cars-audi", "categoryId": "cars", "question": "ما الشركة الألمانية التي شعارها أربع حلقات متداخلة؟", "acceptedAnswers": ["Audi", "أودي"] },
-  { "id": "cars-bmw", "categoryId": "cars", "question": "ما الشركة الألمانية التي شعارها دائرة زرقاء وبيضاء؟", "acceptedAnswers": ["BMW", "بي ام دبليو"] },
-  { "id": "cars-ferrari", "categoryId": "cars", "question": "ما الشركة الإيطالية الشهيرة بحصان على الدرع؟", "acceptedAnswers": ["Ferrari", "فيراري"] },
-  { "id": "cars-jeep", "categoryId": "cars", "question": "ما علامة السيارات المعروفة بموديل Wrangler وسيارات الدفع الرباعي؟", "acceptedAnswers": ["Jeep", "جيب"] },
-  { "id": "cars-porsche", "categoryId": "cars", "question": "ما الشركة الألمانية الرياضية الشهيرة بسيارة 911؟", "acceptedAnswers": ["Porsche", "بورش"] },
-  { "id": "cars-kia", "categoryId": "cars", "question": "ما الشركة الكورية التي تصنع موديل Sportage؟", "acceptedAnswers": ["Kia", "كيا"] },
-  { "id": "cars-tesla", "categoryId": "cars", "question": "ما الشركة التي تصنع السيارة الكهربائية Model 3؟", "acceptedAnswers": ["Tesla", "تسلا"] },
-  { "id": "cars-hyundai", "categoryId": "cars", "question": "ما الشركة الكورية التي تصنع موديل Elantra؟", "acceptedAnswers": ["Hyundai", "هيونداي"] },
-  { "id": "cars-nissan", "categoryId": "cars", "question": "ما الشركة اليابانية التي تصنع موديل Patrol؟", "acceptedAnswers": ["Nissan", "نيسان"] },
-  { "id": "cars-wheels", "categoryId": "cars", "question": "كم عجلة لسيارة الركاب العادية؟", "acceptedAnswers": ["٤", "4", "أربع", "اربعة"] },
-  { "id": "cars-steering", "categoryId": "cars", "question": "ما اسم القطعة التي يمسكها السائق لتوجيه السيارة؟", "acceptedAnswers": ["مقود", "المقود", "دركسون"] },
-  { "id": "cars-chevrolet", "categoryId": "cars", "question": "ما الشركة التي تصنع سيارة Camaro؟", "acceptedAnswers": ["Chevrolet", "شيفروليه", "شفروليه"] },
-  { "id": "cars-lambo", "categoryId": "cars", "question": "ما الشركة الإيطالية التي تصنع سيارة Aventador؟", "acceptedAnswers": ["Lamborghini", "لامبورغيني", "لامبورجيني"] },
-  { "id": "cars-honda", "categoryId": "cars", "question": "ما الشركة اليابانية التي تصنع سيارة Accord؟", "acceptedAnswers": ["Honda", "هوندا"] },
-  { "id": "cars-mazda", "categoryId": "cars", "question": "ما الشركة اليابانية التي تصنع سيارة MX-5؟", "acceptedAnswers": ["Mazda", "مازدا"] },
-  { "id": "football-1", "categoryId": "football", "question": "كم لاعباً في فريق كرة القدم على الملعب؟", "acceptedAnswers": ["١١", "11", "أحد عشر"] },
-  { "id": "football-2", "categoryId": "football", "question": "ما اسم البطولة العالمية لكرة القدم التي تقام كل أربع سنوات؟", "acceptedAnswers": ["كأس العالم", "المونديال"] },
-  { "id": "football-3", "categoryId": "football", "question": "ما اسم الركلة التي تُحتسب عند ارتكاب مخالفة تستوجبها داخل منطقة الجزاء؟", "acceptedAnswers": ["ركلة جزاء", "ضربة جزاء", "بلنتي"] },
-  { "id": "football-messi-country", "categoryId": "football", "question": "ميسي من أي دولة؟", "acceptedAnswers": ["الأرجنتين", "أرجنتين"] },
-  { "id": "football-ronaldo-country", "categoryId": "football", "question": "كريستيانو رونالدو من أي دولة؟", "acceptedAnswers": ["البرتغال", "برتغال"] },
-  { "id": "football-salah-country", "categoryId": "football", "question": "محمد صلاح من أي دولة؟", "acceptedAnswers": ["مصر"] },
-  { "id": "football-real-country", "categoryId": "football", "question": "نادي ريال مدريد من أي دولة؟", "acceptedAnswers": ["إسبانيا"] },
-  { "id": "football-hilal-country", "categoryId": "football", "question": "نادي الهلال من أي دولة؟", "acceptedAnswers": ["السعودية", "سعودية"] },
-  { "id": "football-halves", "categoryId": "football", "question": "من كم شوط تتكون مباراة كرة القدم؟", "acceptedAnswers": ["٢", "2", "شوطين"] },
-  { "id": "football-half-minutes", "categoryId": "football", "question": "كم دقيقة يستمر الشوط في كرة القدم؟", "acceptedAnswers": ["٤٥", "45", "خمس وأربعين"] },
-  { "id": "football-red-card", "categoryId": "football", "question": "ما لون البطاقة التي تعني الطرد؟", "acceptedAnswers": ["أحمر", "حمراء", "البطاقة الحمراء"] },
-  { "id": "football-yellow-card", "categoryId": "football", "question": "ما لون البطاقة التي تعني الإنذار؟", "acceptedAnswers": ["أصفر", "صفراء", "البطاقة الصفراء"] },
-  { "id": "football-keeper", "categoryId": "football", "question": "ما اسم اللاعب الوحيد المسموح له بمسك الكرة بيده داخل منطقته؟", "acceptedAnswers": ["حارس", "حارس مرمى", "الحارس"] },
-  { "id": "football-pele-country", "categoryId": "football", "question": "بيليه أسطورة كرة القدم من أي دولة؟", "acceptedAnswers": ["البرازيل", "برازيل"] },
-  { "id": "football-first-worldcup", "categoryId": "football", "question": "أين أقيم أول كأس عالم لكرة القدم سنة 1930؟", "acceptedAnswers": ["الأوروغواي", "أوروغواي"] },
-  { "id": "football-barca-country", "categoryId": "football", "question": "نادي برشلونة من أي دولة؟", "acceptedAnswers": ["إسبانيا"] },
-  { "id": "football-offside", "categoryId": "football", "question": "ما اسم المخالفة التي قد تُحتسب عندما يكون المهاجم في موقع غير قانوني لحظة تمرير الكرة إليه؟", "acceptedAnswers": ["تسلل", "التسلل"] },
-  { "id": "football-corner", "categoryId": "football", "question": "ما اسم الركلة التي تُلعب من زاوية الملعب؟", "acceptedAnswers": ["ركنية", "ركنيه", "ضربة ركنية"] },
-  { "id": "football-throwin", "categoryId": "football", "question": "ما اسم إعادة الكرة باليدين بعد خروجها من خط التماس؟", "acceptedAnswers": ["رمية تماس", "رمية التماس"] },
-  { "id": "football-neymar-country", "categoryId": "football", "question": "نيمار من أي دولة؟", "acceptedAnswers": ["البرازيل", "برازيل"] },
-  { "id": "football-zidane-country", "categoryId": "football", "question": "زيدان من أي دولة؟", "acceptedAnswers": ["فرنسا"] },
-  { "id": "football-penalty-area", "categoryId": "football", "question": "ما اسم المنطقة الكبيرة أمام المرمى التي يمكن أن تُحتسب فيها ركلة جزاء عند مخالفة المدافع؟", "acceptedAnswers": ["منطقة الجزاء", "صندوق الجزاء"] },
-  { "id": "movies-1", "categoryId": "movies", "question": "ما اسم الفيلم الشهير عن سفينة غرقت في المحيط؟", "acceptedAnswers": ["Titanic", "تايتانك", "تايتنك", "التيتانيك"] },
-  { "id": "movies-2", "categoryId": "movies", "question": "ما اسم البطل الخارق الذي حصل على قدراته بعد لدغة عنكبوت؟", "acceptedAnswers": ["Spider-Man", "سبايدرمان", "سبايدر مان", "الرجل العنكبوت"] },
-  { "id": "movies-3", "categoryId": "movies", "question": "ما اسم المخرج الذي أخرج Interstellar وInception؟", "acceptedAnswers": ["Christopher Nolan", "كريستوفر نولان", "نولان"] },
-  { "id": "movies-frozen", "categoryId": "movies", "question": "ما اسم فيلم ديزني عن أختين ومملكة ثلج؟", "acceptedAnswers": ["Frozen", "فروزن", "ملكة الثلج"] },
-  { "id": "movies-nemo", "categoryId": "movies", "question": "ما اسم فيلم بيكسار عن سمكة ضائعة يبحث عنها والدها؟", "acceptedAnswers": ["Finding Nemo", "نيمو", "البحث عن نيمو"] },
-  { "id": "movies-lionking", "categoryId": "movies", "question": "ما اسم فيلم ديزني عن الأسد سيمبا؟", "acceptedAnswers": ["The Lion King", "الأسد الملك", "ليون كينج"] },
-  { "id": "movies-harry", "categoryId": "movies", "question": "ما اسم سلسلة أفلام الساحر الشاب ذي النظارة المستديرة؟", "acceptedAnswers": ["Harry Potter", "هاري بوتر"] },
-  { "id": "movies-shrek", "categoryId": "movies", "question": "ما اسم فيلم الغول الأخضر الذي يعيش في مستنقع؟", "acceptedAnswers": ["Shrek", "شريك"] },
-  { "id": "movies-toystory", "categoryId": "movies", "question": "ما اسم فيلم بيكسار عن ألعاب تدب فيها الحياة؟", "acceptedAnswers": ["Toy Story", "توي ستوري"] },
-  { "id": "movies-matrix", "categoryId": "movies", "question": "ما اسم الفيلم عن عالم وهمي وحبة حمراء أو زرقاء؟", "acceptedAnswers": ["The Matrix", "الماتريكس", "ماتريكس"] },
-  { "id": "movies-jurassic", "categoryId": "movies", "question": "ما اسم الفيلم عن حديقة فيها ديناصورات؟", "acceptedAnswers": ["Jurassic Park", "حديقة الديناصورات"] },
-  { "id": "movies-homealone", "categoryId": "movies", "question": "ما اسم الفيلم عن طفل بقي وحده في البيت؟", "acceptedAnswers": ["Home Alone", "وحده في المنزل"] },
-  { "id": "movies-coco", "categoryId": "movies", "question": "ما اسم فيلم بيكسار عن الموسيقى ويوم الموتى؟", "acceptedAnswers": ["Coco", "كوكو"] },
-  { "id": "movies-joker", "categoryId": "movies", "question": "ما اسم فيلم 2019 الذي أدى فيه Joaquin Phoenix شخصية Arthur Fleck؟", "acceptedAnswers": ["Joker", "الجوكر"] },
-  { "id": "movies-aladdin", "categoryId": "movies", "question": "ما اسم فيلم ديزني عن المصباح السحري؟", "acceptedAnswers": ["Aladdin", "علاء الدين"] },
-  { "id": "movies-jaws", "categoryId": "movies", "question": "ما اسم الفيلم الشهير عن قرش مهاجم؟", "acceptedAnswers": ["Jaws", "الفك المفترس"] },
-  { "id": "movies-up", "categoryId": "movies", "question": "ما اسم فيلم بيكسار عن بيت يطير بالبالونات؟", "acceptedAnswers": ["Up", "آب"] },
-  { "id": "movies-inception", "categoryId": "movies", "question": "ما اسم فيلم نولان عن الدخول إلى الأحلام؟", "acceptedAnswers": ["Inception", "انسبشن", "بداية"] },
-  { "id": "movies-elsa", "categoryId": "movies", "question": "ما اسم الأخت التي تصنع الثلج في فيلم Frozen؟", "acceptedAnswers": ["Elsa", "إلسا"] },
-  { "id": "movies-avatar", "categoryId": "movies", "question": "ما اسم فيلم كاميرون عن كوكب باندورا؟", "acceptedAnswers": ["Avatar", "أفاتار"] },
-  { "id": "movies-interstellar", "categoryId": "movies", "question": "ما اسم فيلم نولان عن السفر عبر الفضاء والوقت؟", "acceptedAnswers": ["Interstellar", "إنترستيلار"] },
-  { "id": "series-1", "categoryId": "series", "question": "ما اسم المسلسل الشهير عن أطباء في مستشفى بسياتل؟", "acceptedAnswers": ["Grey's Anatomy", "غريز أناتومي", "جريز اناتومي"] },
-  { "id": "series-2", "categoryId": "series", "question": "ما اسم المسلسل التركي الشهير عن عثمان؟", "acceptedAnswers": ["Kurulus Osman", "قيامة عثمان", "قيامه عثمان"] },
-  { "id": "series-3", "categoryId": "series", "question": "ما اسم المسلسل الكوميدي الأمريكي عن ستة أصدقاء يلتقون غالباً في مقهى بنيويورك؟", "acceptedAnswers": ["Friends", "فريندز", "الأصدقاء"] },
-  { "id": "series-simpsons", "categoryId": "series", "question": "ما اسم المسلسل الكرتوني عن عائلة صفراء في سبرينغفيلد؟", "acceptedAnswers": ["The Simpsons", "سيمبسون", "عائلة سيمبسون"] },
-  { "id": "series-office", "categoryId": "series", "question": "ما اسم المسلسل الكوميدي الذي يتابع موظفي شركة Dunder Mifflin؟", "acceptedAnswers": ["The Office", "ذي اوفيس"] },
-  { "id": "series-stranger", "categoryId": "series", "question": "ما اسم المسلسل عن مجموعة أطفال يواجهون أحداثاً خارقة وعالماً مقلوباً في Hawkins؟", "acceptedAnswers": ["Stranger Things", "سترنجر ثينجز"] },
-  { "id": "series-got", "categoryId": "series", "question": "ما اسم المسلسل عن العروش والتنانين في ويستروس؟", "acceptedAnswers": ["Game of Thrones", "صراع العروش"] },
-  { "id": "series-breaking", "categoryId": "series", "question": "ما اسم مسلسل معلم الكيمياء والتر وايت؟", "acceptedAnswers": ["Breaking Bad", "بريكنق باد", "بريكينغ باد"] },
-  { "id": "series-squid", "categoryId": "series", "question": "ما اسم المسلسل الكوري عن ألعاب قاتلة وجائزة مالية؟", "acceptedAnswers": ["Squid Game", "لعبة الحبار", "سكويد قيم"] },
-  { "id": "series-sherlock", "categoryId": "series", "question": "ما اسم مسلسل المحقق في لندن مع واتسون؟", "acceptedAnswers": ["Sherlock", "شيرلوك"] },
-  { "id": "series-wednesday", "categoryId": "series", "question": "ما اسم مسلسل ابنة عائلة آدامز في المدرسة؟", "acceptedAnswers": ["Wednesday", "وينزداي"] },
-  { "id": "series-money", "categoryId": "series", "question": "ما اسم المسلسل الإسباني عن عملية سرقة يرتدي أبطالها بدلات حمراء وأقنعة دالي؟", "acceptedAnswers": ["Money Heist", "بيت الورق"] },
-  { "id": "series-dark", "categoryId": "series", "question": "ما اسم المسلسل الألماني عن السفر عبر الزمن في بلدة صغيرة؟", "acceptedAnswers": ["Dark", "دارك"] },
-  { "id": "series-lost", "categoryId": "series", "question": "ما اسم المسلسل عن ناجين من طائرة على جزيرة غامضة؟", "acceptedAnswers": ["Lost", "لوست"] },
-  { "id": "series-prison", "categoryId": "series", "question": "ما اسم المسلسل عن الهروب من السجن والوشم على الجسم؟", "acceptedAnswers": ["Prison Break", "بريزون بريك"] },
-  { "id": "series-himym", "categoryId": "series", "question": "ما اسم المسلسل عن كيف التقى الراوي بأم أولاده؟", "acceptedAnswers": ["How I Met Your Mother", "كيف قابلت أمكم"] },
-  { "id": "series-seinfeld", "categoryId": "series", "question": "ما اسم المسلسل الكوميدي عن جيري وأصدقائه في نيويورك؟", "acceptedAnswers": ["Seinfeld", "ساينفلد"] },
-  { "id": "series-blackmirror", "categoryId": "series", "question": "ما اسم المسلسل البريطاني عن التقنية ومستقبل غامض؟", "acceptedAnswers": ["Black Mirror", "بلاك ميرور"] },
-  { "id": "series-b99", "categoryId": "series", "question": "ما اسم المسلسل الكوميدي عن شرطة بروكلين؟", "acceptedAnswers": ["Brooklyn Nine-Nine", "بروكلين ناين ناين"] },
-  { "id": "series-witcher", "categoryId": "series", "question": "ما اسم مسلسل الصياد ذي الشعر الأبيض والوحوش؟", "acceptedAnswers": ["The Witcher", "ويتشر"] },
-  { "id": "series-peaky", "categoryId": "series", "question": "ما اسم المسلسل البريطاني الذي يتابع عائلة Shelby وعصابتها في Birmingham؟", "acceptedAnswers": ["Peaky Blinders", "بيكي بلايندرز"] },
-  { "id": "series-crown", "categoryId": "series", "question": "ما اسم المسلسل عن العائلة الملكية البريطانية؟", "acceptedAnswers": ["The Crown", "ذا كراون"] },
-  { "id": "games-1", "categoryId": "games", "question": "ما اسم لعبة العالم المفتوح المبنية من المكعبات والتي تعتمد على البناء والتعدين؟", "acceptedAnswers": ["Minecraft", "ماينكرافت", "ماين كرافت"] },
-  { "id": "games-2", "categoryId": "games", "question": "ما اسم سلسلة الألعاب التي تضم Mario وLuigi وPrincess Peach؟", "acceptedAnswers": ["Super Mario", "سوبر ماريو", "ماريو"] },
-  { "id": "games-3", "categoryId": "games", "question": "ما الاسم السابق لسلسلة ألعاب كرة القدم من EA التي أصبحت تُعرف باسم EA Sports FC؟", "acceptedAnswers": ["FIFA", "فيفا"] },
-  { "id": "games-tetris", "categoryId": "games", "question": "ما اسم لعبة المكعبات المتساقطة الشهيرة؟", "acceptedAnswers": ["Tetris", "تتريس"] },
-  { "id": "games-pacman", "categoryId": "games", "question": "ما اسم اللعبة الصفراء التي تأكل النقاط وتهرب من الأشباح؟", "acceptedAnswers": ["Pac-Man", "باك مان", "باكمان"] },
-  { "id": "games-pokemon", "categoryId": "games", "question": "ما اسم سلسلة الألعاب عن جمع مخلوقات قتالية مثل بيكاتشو؟", "acceptedAnswers": ["Pokemon", "بوكيمون"] },
-  { "id": "games-amongus", "categoryId": "games", "question": "ما اسم لعبة الطاقم والإمبوستر في مركبة فضاء؟", "acceptedAnswers": ["Among Us", "امونج اس"] },
-  { "id": "games-angrybirds", "categoryId": "games", "question": "ما اسم لعبة الجوال التي تُقذف فيها طيور بمقلاع نحو خنازير؟", "acceptedAnswers": ["Angry Birds", "انجري بيردز"] },
-  { "id": "games-sims", "categoryId": "games", "question": "ما اسم لعبة محاكاة الحياة اليومية وبناء البيوت؟", "acceptedAnswers": ["The Sims", "السيمز"] },
-  { "id": "games-clash", "categoryId": "games", "question": "ما اسم لعبة القرية والكلانات على الجوال؟", "acceptedAnswers": ["Clash of Clans", "كلاش اوف كلانس"] },
-  { "id": "games-fortnite", "categoryId": "games", "question": "ما اسم لعبة البناء والباتل رويال الشهيرة؟", "acceptedAnswers": ["Fortnite", "فورتنايت"] },
-  { "id": "games-roblox", "categoryId": "games", "question": "ما اسم منصة الألعاب التي يصنع فيها اللاعبون عوالمهم؟", "acceptedAnswers": ["Roblox", "روبلكس"] },
-  { "id": "games-valorant", "categoryId": "games", "question": "ما اسم لعبة التصويب التكتيكية من رايت؟", "acceptedAnswers": ["Valorant", "فالورانت"] },
-  { "id": "games-lol", "categoryId": "games", "question": "ما اسم لعبة الأبطال الشهيرة باختصار LoL؟", "acceptedAnswers": ["League of Legends", "ليج اوف ليجندز"] },
-  { "id": "games-gta", "categoryId": "games", "question": "ما اسم سلسلة ألعاب المدن المفتوحة والسرقة الشهيرة؟", "acceptedAnswers": ["Grand Theft Auto", "جي تي اي"] },
-  { "id": "games-pubg", "categoryId": "games", "question": "ما اسم لعبة الباتل رويال التي تبدأ فيها المباراة بهبوط اللاعبين إلى خريطة لجمع الأسلحة والبقاء حتى النهاية؟", "acceptedAnswers": ["PUBG", "ببجي"] },
-  { "id": "games-cod", "categoryId": "games", "question": "ما اسم سلسلة ألعاب التصويب التي تضم Modern Warfare وBlack Ops؟", "acceptedAnswers": ["Call of Duty", "كول اوف ديوتي"] },
-  { "id": "games-sf", "categoryId": "games", "question": "ما اسم لعبة القتال الشهيرة بشخصية ريو؟", "acceptedAnswers": ["Street Fighter", "ستريت فايتر"] },
-  { "id": "games-sonic", "categoryId": "games", "question": "ما اسم لعبة القنفذ الأزرق السريع؟", "acceptedAnswers": ["Sonic", "سونيك"] },
-  { "id": "games-candy", "categoryId": "games", "question": "ما اسم لعبة الحلوى ومطابقة الألوان على الجوال؟", "acceptedAnswers": ["Candy Crush", "كاندي كراش"] },
-  { "id": "games-cs", "categoryId": "games", "question": "ما اسم لعبة التصويب الشهيرة باختصار CS؟", "acceptedAnswers": ["Counter-Strike", "كاونتر سترايك"] },
-  { "id": "tech-1", "categoryId": "tech", "question": "ما اسم الشركة التي تصنع آيفون؟", "acceptedAnswers": ["Apple", "آبل"] },
-  { "id": "tech-2", "categoryId": "tech", "question": "ما الجهاز المحمول الذي نستخدمه للاتصال والتصفح؟", "acceptedAnswers": ["هاتف", "جوال", "موبايل", "الهاتف", "الجوال"] },
-  { "id": "tech-3", "categoryId": "tech", "question": "ما الشركة التي تطور متصفح Chrome ونظام Android؟", "acceptedAnswers": ["Google", "جوجل", "غوغل"] },
-  { "id": "tech-windows", "categoryId": "tech", "question": "ما نظام التشغيل الذي تطوره Microsoft لأجهزة الكمبيوتر؟", "acceptedAnswers": ["Windows", "ويندوز"] },
-  { "id": "tech-android", "categoryId": "tech", "question": "ما نظام التشغيل الذي تطوره Google للهواتف والأجهزة اللوحية؟", "acceptedAnswers": ["Android", "أندرويد"] },
-  { "id": "tech-youtube", "categoryId": "tech", "question": "ما منصة الفيديو المملوكة لـ Google والتي تتيح رفع ومشاهدة المقاطع؟", "acceptedAnswers": ["YouTube", "يوتيوب"] },
-  { "id": "tech-whatsapp", "categoryId": "tech", "question": "ما تطبيق المراسلة المملوك لـ Meta والمعروف بالمحادثات والمكالمات؟", "acceptedAnswers": ["WhatsApp", "واتساب"] },
-  { "id": "tech-instagram", "categoryId": "tech", "question": "ما تطبيق الصور والقصص الشهير من ميتا؟", "acceptedAnswers": ["Instagram", "انستغرام", "إنستقرام"] },
-  { "id": "tech-facebook", "categoryId": "tech", "question": "ما شبكة التواصل التي أسسها مارك زوكربيرغ؟", "acceptedAnswers": ["Facebook", "فيسبوك"] },
-  { "id": "tech-tiktok", "categoryId": "tech", "question": "ما تطبيق ByteDance المعروف بمقاطع الفيديو القصيرة؟", "acceptedAnswers": ["TikTok", "تيك توك"] },
-  { "id": "tech-sony", "categoryId": "tech", "question": "ما الشركة التي تصنع جهاز PlayStation؟", "acceptedAnswers": ["Sony", "سوني"] },
-  { "id": "tech-chatgpt", "categoryId": "tech", "question": "ما الشركة التي طورت ChatGPT؟", "acceptedAnswers": ["OpenAI", "اوبن اي اي"] },
-  { "id": "tech-bluetooth", "categoryId": "tech", "question": "ما اسم تقنية الاتصال اللاسلكي القصير بين الأجهزة؟", "acceptedAnswers": ["Bluetooth", "بلوتوث"] },
-  { "id": "tech-usb", "categoryId": "tech", "question": "ما اسم المنفذ الشائع لنقل البيانات وشحن الأجهزة؟", "acceptedAnswers": ["USB", "يو اس بي"] },
-  { "id": "tech-wifi", "categoryId": "tech", "question": "ما اسم تقنية الاتصال اللاسلكي المستخدمة لربط الأجهزة بالشبكة المحلية والإنترنت؟", "acceptedAnswers": ["Wi-Fi", "واي فاي"] },
-  { "id": "tech-email", "categoryId": "tech", "question": "ما اسم الرسائل الإلكترونية التي تُرسل عبر الإنترنت؟", "acceptedAnswers": ["بريد إلكتروني", "إيميل"] },
-  { "id": "tech-cpu", "categoryId": "tech", "question": "ما اسم القطعة التي تُعد عقل الكمبيوتر؟", "acceptedAnswers": ["CPU", "معالج", "المعالج"] },
-  { "id": "tech-keyboard", "categoryId": "tech", "question": "ما اسم الجهاز الذي نكتب عليه الحروف في الكمبيوتر؟", "acceptedAnswers": ["لوحة مفاتيح", "كيبورد"] },
-  { "id": "tech-mouse", "categoryId": "tech", "question": "ما اسم الجهاز الذي نحركه باليد للتحكم بالمؤشر؟", "acceptedAnswers": ["فأرة", "ماوس", "الفأرة"] },
-  { "id": "tech-chrome", "categoryId": "tech", "question": "ما متصفح الإنترنت الذي تطوره Google؟", "acceptedAnswers": ["Chrome", "كروم"] },
-  { "id": "tech-netflix", "categoryId": "tech", "question": "ما منصة البث التي تعرض أعمالاً أصلية مثل Stranger Things؟", "acceptedAnswers": ["Netflix", "نتفلكس"] },
-  { "id": "tech-zoom", "categoryId": "tech", "question": "ما تطبيق الاجتماعات المرئية المعروف باستخدام Meeting ID وPasscode في المكالمات الجماعية؟", "acceptedAnswers": ["Zoom", "زوم"] }
+  {
+    "id": "animals-1",
+    "categoryId": "animals",
+    "question": "ما أسرع حيوان بري؟",
+    "acceptedAnswers": [
+      "الفهد الصياد",
+      "الفهد",
+      "الشيتا"
+    ]
+  },
+  {
+    "id": "animals-2",
+    "categoryId": "animals",
+    "question": "ما أكبر حيوان في العالم؟",
+    "acceptedAnswers": [
+      "الحوت الأزرق",
+      "حوت أزرق"
+    ]
+  },
+  {
+    "id": "animals-3",
+    "categoryId": "animals",
+    "question": "كم قلبًا للأخطبوط؟",
+    "acceptedAnswers": [
+      "3",
+      "ثلاثة",
+      "ثلاث"
+    ]
+  },
+  {
+    "id": "animals-4",
+    "categoryId": "animals",
+    "question": "ما الحيوان المعروف بسفينة الصحراء؟",
+    "acceptedAnswers": [
+      "الجمل"
+    ]
+  },
+  {
+    "id": "animals-5",
+    "categoryId": "animals",
+    "question": "ما الحيوان الذي يغيّر لون جلده للتمويه؟",
+    "acceptedAnswers": [
+      "الحرباء"
+    ]
+  },
+  {
+    "id": "animals-6",
+    "categoryId": "animals",
+    "question": "ما أكبر طائر في العالم؟",
+    "acceptedAnswers": [
+      "النعامة"
+    ]
+  },
+  {
+    "id": "animals-7",
+    "categoryId": "animals",
+    "question": "ما الحيوان الذي يتميز برقبة طويلة جدًا؟",
+    "acceptedAnswers": [
+      "الزرافة"
+    ]
+  },
+  {
+    "id": "animals-8",
+    "categoryId": "animals",
+    "question": "ما الحيوان الذي يُلقب بملك الغابة؟",
+    "acceptedAnswers": [
+      "الأسد"
+    ]
+  },
+  {
+    "id": "animals-9",
+    "categoryId": "animals",
+    "question": "كم رجلًا للنملة؟",
+    "acceptedAnswers": [
+      "6",
+      "ستة",
+      "ست"
+    ]
+  },
+  {
+    "id": "animals-10",
+    "categoryId": "animals",
+    "question": "ما الحيوان الذي يعيش في القطب الجنوبي ويشتهر بلونه الأسود والأبيض؟",
+    "acceptedAnswers": [
+      "البطريق"
+    ]
+  },
+  {
+    "id": "animals-11",
+    "categoryId": "animals",
+    "question": "ما الحيوان البحري الذي له ثمانية أذرع؟",
+    "acceptedAnswers": [
+      "الأخطبوط"
+    ]
+  },
+  {
+    "id": "animals-12",
+    "categoryId": "animals",
+    "question": "ما الحيوان الذي يحمل صغاره في كيس؟",
+    "acceptedAnswers": [
+      "الكنغر"
+    ]
+  },
+  {
+    "id": "animals-13",
+    "categoryId": "animals",
+    "question": "ما الحيوان الذي يشتهر ببطئه ويحمل صدفة؟",
+    "acceptedAnswers": [
+      "السلحفاة"
+    ]
+  },
+  {
+    "id": "animals-14",
+    "categoryId": "animals",
+    "question": "ما الحيوان المعروف بخطوطه السوداء والبيضاء؟",
+    "acceptedAnswers": [
+      "الحمار الوحشي",
+      "حمار وحشي",
+      "الزيبرا"
+    ]
+  },
+  {
+    "id": "animals-15",
+    "categoryId": "animals",
+    "question": "ما الحشرة التي تنتج العسل؟",
+    "acceptedAnswers": [
+      "النحلة",
+      "النحل"
+    ]
+  },
+  {
+    "id": "animals-16",
+    "categoryId": "animals",
+    "question": "ما الحيوان الذي يُعرف بقدرته الكبيرة على تقليد أصوات البشر؟",
+    "acceptedAnswers": [
+      "الببغاء"
+    ]
+  },
+  {
+    "id": "animals-17",
+    "categoryId": "animals",
+    "question": "ما أكبر حيوان بري؟",
+    "acceptedAnswers": [
+      "الفيل"
+    ]
+  },
+  {
+    "id": "animals-18",
+    "categoryId": "animals",
+    "question": "ما الحيوان الذي يعيش في الماء واليابسة ويبدأ حياته كشرغوف؟",
+    "acceptedAnswers": [
+      "الضفدع"
+    ]
+  },
+  {
+    "id": "animals-19",
+    "categoryId": "animals",
+    "question": "ما الحيوان الذي يشتهر ببناء السدود؟",
+    "acceptedAnswers": [
+      "القندس",
+      "البيفر"
+    ]
+  },
+  {
+    "id": "animals-20",
+    "categoryId": "animals",
+    "question": "ما الحيوان الذي يستخدم خرطومه للشرب؟",
+    "acceptedAnswers": [
+      "الفيل"
+    ]
+  },
+  {
+    "id": "food-1",
+    "categoryId": "food",
+    "question": "ما الأكلة الإيطالية الدائرية المشهورة بالجبن والصلصة؟",
+    "acceptedAnswers": [
+      "بيتزا",
+      "Pizza"
+    ]
+  },
+  {
+    "id": "food-2",
+    "categoryId": "food",
+    "question": "ما الأكلة التي تتكون غالبًا من خبز ولحم وطبقات إضافية؟",
+    "acceptedAnswers": [
+      "برغر",
+      "برجر",
+      "Burger"
+    ]
+  },
+  {
+    "id": "food-3",
+    "categoryId": "food",
+    "question": "ما الأكلة الشامية التي تُلف غالبًا بالخبز وتحتوي لحمًا أو دجاجًا؟",
+    "acceptedAnswers": [
+      "شاورما",
+      "Shawarma"
+    ]
+  },
+  {
+    "id": "food-4",
+    "categoryId": "food",
+    "question": "ما الطبق السعودي الشهير الذي يُحضّر بالأرز واللحم أو الدجاج؟",
+    "acceptedAnswers": [
+      "كبسة",
+      "Kabsa"
+    ]
+  },
+  {
+    "id": "food-5",
+    "categoryId": "food",
+    "question": "ما الأكلة المصنوعة غالبًا من الحمص أو الفول وتُقلى على شكل أقراص؟",
+    "acceptedAnswers": [
+      "فلافل",
+      "طعمية"
+    ]
+  },
+  {
+    "id": "food-6",
+    "categoryId": "food",
+    "question": "ما الأكلة اليابانية المشهورة التي قد تحتوي أرزًا وسمكًا؟",
+    "acceptedAnswers": [
+      "سوشي",
+      "Sushi"
+    ]
+  },
+  {
+    "id": "food-7",
+    "categoryId": "food",
+    "question": "ما الحلوى الباردة المصنوعة من الحليب أو الكريمة والمنكهات؟",
+    "acceptedAnswers": [
+      "آيس كريم",
+      "مثلجات",
+      "Ice cream"
+    ]
+  },
+  {
+    "id": "food-8",
+    "categoryId": "food",
+    "question": "ما الحلوى المقلية الدائرية التي غالبًا يكون في وسطها ثقب؟",
+    "acceptedAnswers": [
+      "دونات",
+      "دونت",
+      "Donut",
+      "Doughnut"
+    ]
+  },
+  {
+    "id": "food-9",
+    "categoryId": "food",
+    "question": "ما الطعام الذي يُحضّر على شكل أقراص من عجينة سائلة ويؤكل غالبًا في الإفطار؟",
+    "acceptedAnswers": [
+      "بان كيك",
+      "Pancake",
+      "Pancakes"
+    ]
+  },
+  {
+    "id": "food-10",
+    "categoryId": "food",
+    "question": "ما الحلوى الشبكية التي تُطهى في جهاز خاص وتؤكل مع الصوصات؟",
+    "acceptedAnswers": [
+      "وافل",
+      "Waffle",
+      "Waffles"
+    ]
+  },
+  {
+    "id": "food-11",
+    "categoryId": "food",
+    "question": "ما الحلوى الصغيرة التي تشبه الكيك وتُخبز عادة في قالب ورقي؟",
+    "acceptedAnswers": [
+      "كب كيك",
+      "Cupcake",
+      "Cup cake"
+    ]
+  },
+  {
+    "id": "food-12",
+    "categoryId": "food",
+    "question": "ما المعجنات المثلثة المحشوة غالبًا باللحم أو الجبن أو الخضار؟",
+    "acceptedAnswers": [
+      "سمبوسة",
+      "سمبوسك",
+      "Samosa"
+    ]
+  },
+  {
+    "id": "food-13",
+    "categoryId": "food",
+    "question": "ما الحلوى التي تعتمد بشكل أساسي على الجبن وتُقدم ككيكة؟",
+    "acceptedAnswers": [
+      "تشيز كيك",
+      "Cheesecake",
+      "Cheese cake"
+    ]
+  },
+  {
+    "id": "food-14",
+    "categoryId": "food",
+    "question": "ما الفاكهة الكبيرة ذات القشرة الخضراء والداخل الأحمر غالبًا؟",
+    "acceptedAnswers": [
+      "بطيخ",
+      "حبحب"
+    ]
+  },
+  {
+    "id": "food-15",
+    "categoryId": "food",
+    "question": "ما الفاكهة ذات القشرة الخشنة والتاج الورقي؟",
+    "acceptedAnswers": [
+      "أناناس",
+      "Pineapple"
+    ]
+  },
+  {
+    "id": "food-16",
+    "categoryId": "food",
+    "question": "ما الفاكهة الحمراء الصغيرة التي تحمل بذورها على سطحها؟",
+    "acceptedAnswers": [
+      "فراولة",
+      "Strawberry"
+    ]
+  },
+  {
+    "id": "food-17",
+    "categoryId": "food",
+    "question": "ما الطعام الذي يُصنع من حبوب الذرة عند تسخينها حتى تنفجر؟",
+    "acceptedAnswers": [
+      "فشار",
+      "بوشار",
+      "Popcorn"
+    ]
+  },
+  {
+    "id": "countries-1",
+    "categoryId": "countries",
+    "question": "ما عاصمة السعودية؟",
+    "acceptedAnswers": [
+      "الرياض",
+      "Riyadh"
+    ]
+  },
+  {
+    "id": "countries-2",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تقع فيها مدينة دبي؟",
+    "acceptedAnswers": [
+      "الإمارات",
+      "الإمارات العربية المتحدة",
+      "UAE"
+    ]
+  },
+  {
+    "id": "countries-3",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تشتهر ببرج إيفل؟",
+    "acceptedAnswers": [
+      "فرنسا",
+      "France"
+    ]
+  },
+  {
+    "id": "countries-4",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تقع فيها الأهرامات؟",
+    "acceptedAnswers": [
+      "مصر",
+      "Egypt"
+    ]
+  },
+  {
+    "id": "countries-5",
+    "categoryId": "countries",
+    "question": "ما عاصمة اليابان؟",
+    "acceptedAnswers": [
+      "طوكيو",
+      "توكيو",
+      "Tokyo"
+    ]
+  },
+  {
+    "id": "countries-6",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تشتهر بتاج محل؟",
+    "acceptedAnswers": [
+      "الهند",
+      "India"
+    ]
+  },
+  {
+    "id": "countries-7",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تقع فيها مدينة إسطنبول؟",
+    "acceptedAnswers": [
+      "تركيا",
+      "Turkey"
+    ]
+  },
+  {
+    "id": "countries-8",
+    "categoryId": "countries",
+    "question": "ما عاصمة المغرب؟",
+    "acceptedAnswers": [
+      "الرباط",
+      "Rabat"
+    ]
+  },
+  {
+    "id": "countries-9",
+    "categoryId": "countries",
+    "question": "ما أكبر دولة في العالم من حيث المساحة؟",
+    "acceptedAnswers": [
+      "روسيا",
+      "Russia"
+    ]
+  },
+  {
+    "id": "countries-10",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تشتهر بالبيتزا والباستا؟",
+    "acceptedAnswers": [
+      "إيطاليا",
+      "Italy"
+    ]
+  },
+  {
+    "id": "countries-11",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تقع فيها مدينة أمستردام؟",
+    "acceptedAnswers": [
+      "هولندا",
+      "Netherlands",
+      "Nederland"
+    ]
+  },
+  {
+    "id": "countries-12",
+    "categoryId": "countries",
+    "question": "ما عاصمة الأردن؟",
+    "acceptedAnswers": [
+      "عمّان",
+      "Amman"
+    ]
+  },
+  {
+    "id": "countries-13",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تقع فيها مدينة برشلونة؟",
+    "acceptedAnswers": [
+      "إسبانيا",
+      "Spain"
+    ]
+  },
+  {
+    "id": "countries-14",
+    "categoryId": "countries",
+    "question": "ما عاصمة البرازيل؟",
+    "acceptedAnswers": [
+      "برازيليا",
+      "Brasilia"
+    ]
+  },
+  {
+    "id": "countries-15",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تقع فيها مدينة مكة؟",
+    "acceptedAnswers": [
+      "السعودية",
+      "المملكة العربية السعودية",
+      "Saudi Arabia"
+    ]
+  },
+  {
+    "id": "countries-16",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تقع فيها مدينة لندن؟",
+    "acceptedAnswers": [
+      "بريطانيا",
+      "المملكة المتحدة",
+      "UK",
+      "United Kingdom"
+    ]
+  },
+  {
+    "id": "countries-17",
+    "categoryId": "countries",
+    "question": "ما عاصمة ألمانيا؟",
+    "acceptedAnswers": [
+      "برلين",
+      "Berlin"
+    ]
+  },
+  {
+    "id": "countries-18",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تشتهر بساعة بيغ بن؟",
+    "acceptedAnswers": [
+      "بريطانيا",
+      "المملكة المتحدة",
+      "UK"
+    ]
+  },
+  {
+    "id": "countries-19",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تقع فيها مدينة نيويورك؟",
+    "acceptedAnswers": [
+      "أمريكا",
+      "الولايات المتحدة",
+      "USA",
+      "United States"
+    ]
+  },
+  {
+    "id": "countries-20",
+    "categoryId": "countries",
+    "question": "ما عاصمة قطر؟",
+    "acceptedAnswers": [
+      "الدوحة",
+      "Doha"
+    ]
+  },
+  {
+    "id": "series-1",
+    "categoryId": "series",
+    "question": "في أي مسلسل يظهر والتر وايت؟",
+    "acceptedAnswers": [
+      "Breaking Bad",
+      "بريكنق باد",
+      "بريكنغ باد"
+    ]
+  },
+  {
+    "id": "series-2",
+    "categoryId": "series",
+    "question": "من الشخصية الرئيسية في مسلسل Dexter؟",
+    "acceptedAnswers": [
+      "Dexter Morgan",
+      "ديكستر مورغان",
+      "ديكستر"
+    ]
+  },
+  {
+    "id": "series-3",
+    "categoryId": "series",
+    "question": "في أي مسلسل توجد عائلة Stark؟",
+    "acceptedAnswers": [
+      "Game of Thrones",
+      "جيم أوف ثرونز"
+    ]
+  },
+  {
+    "id": "series-4",
+    "categoryId": "series",
+    "question": "ما اسم السجن الشهير في بداية مسلسل Prison Break؟",
+    "acceptedAnswers": [
+      "Fox River",
+      "فوكس ريفر"
+    ]
+  },
+  {
+    "id": "series-5",
+    "categoryId": "series",
+    "question": "في أي مسلسل يظهر Tommy Shelby؟",
+    "acceptedAnswers": [
+      "Peaky Blinders",
+      "بيكي بلايندرز"
+    ]
+  },
+  {
+    "id": "series-6",
+    "categoryId": "series",
+    "question": "ما اسم المجموعة الخارقة في مسلسل The Boys؟",
+    "acceptedAnswers": [
+      "The Seven",
+      "السبعة",
+      "ذا سفن"
+    ]
+  },
+  {
+    "id": "series-7",
+    "categoryId": "series",
+    "question": "في أي مسلسل يظهر Saul Goodman؟",
+    "acceptedAnswers": [
+      "Better Call Saul",
+      "بيتر كول سول"
+    ]
+  },
+  {
+    "id": "series-8",
+    "categoryId": "series",
+    "question": "ما اسم المدينة التي تدور فيها أحداث Stranger Things؟",
+    "acceptedAnswers": [
+      "Hawkins",
+      "هوكينز"
+    ]
+  },
+  {
+    "id": "series-9",
+    "categoryId": "series",
+    "question": "في أي مسلسل يظهر Ragnar Lothbrok؟",
+    "acceptedAnswers": [
+      "Vikings",
+      "فايكنغز",
+      "فايكنجز"
+    ]
+  },
+  {
+    "id": "series-10",
+    "categoryId": "series",
+    "question": "ما اسم اللعبة القاتلة الشهيرة في مسلسل Squid Game؟",
+    "acceptedAnswers": [
+      "Red Light, Green Light",
+      "الضوء الأحمر والضوء الأخضر"
+    ]
+  },
+  {
+    "id": "series-11",
+    "categoryId": "series",
+    "question": "في أي مسلسل يظهر Rick Grimes؟",
+    "acceptedAnswers": [
+      "The Walking Dead",
+      "ذا ووكينغ ديد"
+    ]
+  },
+  {
+    "id": "series-12",
+    "categoryId": "series",
+    "question": "ما اسم المحقق الشهير في مسلسل Sherlock؟",
+    "acceptedAnswers": [
+      "Sherlock Holmes",
+      "شيرلوك هولمز",
+      "شيرلوك"
+    ]
+  },
+  {
+    "id": "series-13",
+    "categoryId": "series",
+    "question": "في أي مسلسل تظهر شخصية Geralt of Rivia؟",
+    "acceptedAnswers": [
+      "The Witcher",
+      "ذا ويتشر"
+    ]
+  },
+  {
+    "id": "series-14",
+    "categoryId": "series",
+    "question": "ما اسم عائلة التنين الرئيسية في House of the Dragon؟",
+    "acceptedAnswers": [
+      "Targaryen",
+      "تارغاريان",
+      "تارجيريان"
+    ]
+  },
+  {
+    "id": "series-15",
+    "categoryId": "series",
+    "question": "في أي مسلسل يظهر Pablo Escobar كشخصية رئيسية؟",
+    "acceptedAnswers": [
+      "Narcos",
+      "ناركوس"
+    ]
+  },
+  {
+    "id": "series-16",
+    "categoryId": "series",
+    "question": "ما اسم المحامي الرئيسي في مسلسل Suits؟",
+    "acceptedAnswers": [
+      "Harvey Specter",
+      "هارفي سبكتر",
+      "هارفي"
+    ]
+  },
+  {
+    "id": "series-17",
+    "categoryId": "series",
+    "question": "في أي مسلسل يظهر Tony Soprano؟",
+    "acceptedAnswers": [
+      "The Sopranos",
+      "ذا سوبرانوز",
+      "سوبرانوز"
+    ]
+  },
+  {
+    "id": "series-18",
+    "categoryId": "series",
+    "question": "ما اسم الشخصية التي يلعبها Pedro Pascal في The Last of Us؟",
+    "acceptedAnswers": [
+      "Joel",
+      "جويل"
+    ]
+  },
+  {
+    "id": "series-19",
+    "categoryId": "series",
+    "question": "في أي مسلسل تدور أحداث سرقة دار السك الإسبانية؟",
+    "acceptedAnswers": [
+      "Money Heist",
+      "La Casa de Papel",
+      "لا كاسا دي بابيل"
+    ]
+  },
+  {
+    "id": "series-20",
+    "categoryId": "series",
+    "question": "ما اسم المدينة/الجزيرة الغامضة التي تدور حولها أحداث مسلسل Lost؟",
+    "acceptedAnswers": [
+      "الجزيرة",
+      "The Island"
+    ]
+  },
+  {
+    "id": "games-1",
+    "categoryId": "games",
+    "question": "في أي لعبة يظهر شخصية Steve؟",
+    "acceptedAnswers": [
+      "Minecraft",
+      "ماينكرافت"
+    ]
+  },
+  {
+    "id": "games-2",
+    "categoryId": "games",
+    "question": "ما اسم اللعبة الشهيرة التي يتنافس فيها 100 لاعب تقريبًا حتى يبقى لاعب أو فريق واحد؟",
+    "acceptedAnswers": [
+      "PUBG",
+      "ببجي",
+      "PlayerUnknown's Battlegrounds"
+    ]
+  },
+  {
+    "id": "games-3",
+    "categoryId": "games",
+    "question": "في أي لعبة توجد مدينة Los Santos؟",
+    "acceptedAnswers": [
+      "GTA V",
+      "GTA 5",
+      "قراند 5",
+      "Grand Theft Auto V"
+    ]
+  },
+  {
+    "id": "games-4",
+    "categoryId": "games",
+    "question": "ما اسم لعبة السيارات التي تلعب فيها كرة قدم بالسيارات؟",
+    "acceptedAnswers": [
+      "Rocket League",
+      "روكيت ليق",
+      "روكيت ليغ"
+    ]
+  },
+  {
+    "id": "games-5",
+    "categoryId": "games",
+    "question": "في أي لعبة يظهر العميل Jett؟",
+    "acceptedAnswers": [
+      "Valorant",
+      "فالورانت"
+    ]
+  },
+  {
+    "id": "games-6",
+    "categoryId": "games",
+    "question": "ما اسم لعبة التصويب الشهيرة التي تحتوي على خرائط مثل Dust II؟",
+    "acceptedAnswers": [
+      "Counter-Strike",
+      "كاونتر سترايك",
+      "CS",
+      "CS2"
+    ]
+  },
+  {
+    "id": "games-7",
+    "categoryId": "games",
+    "question": "في أي لعبة يظهر البطل Tracer؟",
+    "acceptedAnswers": [
+      "Overwatch",
+      "أوفرواتش"
+    ]
+  },
+  {
+    "id": "games-8",
+    "categoryId": "games",
+    "question": "ما اسم اللعبة التي يكون فيها بعض اللاعبين Impostors؟",
+    "acceptedAnswers": [
+      "Among Us",
+      "امونغ اس"
+    ]
+  },
+  {
+    "id": "games-9",
+    "categoryId": "games",
+    "question": "في أي لعبة يظهر Joel وEllie؟",
+    "acceptedAnswers": [
+      "The Last of Us",
+      "ذا لاست أوف أس"
+    ]
+  },
+  {
+    "id": "games-10",
+    "categoryId": "games",
+    "question": "ما اسم لعبة العالم المفتوح التي بطلها Arthur Morgan؟",
+    "acceptedAnswers": [
+      "Red Dead Redemption 2",
+      "ريد ديد 2",
+      "RDR2"
+    ]
+  },
+  {
+    "id": "games-11",
+    "categoryId": "games",
+    "question": "ما سلسلة ألعاب الرعب الشهيرة التي تحتوي على شخصيات مثل Leon Kennedy؟",
+    "acceptedAnswers": [
+      "Resident Evil",
+      "ريزدنت إيفل",
+      "رزدنت ايفل"
+    ]
+  },
+  {
+    "id": "games-12",
+    "categoryId": "games",
+    "question": "في أي سلسلة ألعاب يظهر Ezio Auditore؟",
+    "acceptedAnswers": [
+      "Assassin’s Creed",
+      "اساسنز كريد"
+    ]
+  },
+  {
+    "id": "games-13",
+    "categoryId": "games",
+    "question": "ما اسم سلسلة الألعاب التي بطلها Kratos؟",
+    "acceptedAnswers": [
+      "God of War",
+      "قاد أوف وور",
+      "جاد أوف وور"
+    ]
+  },
+  {
+    "id": "games-14",
+    "categoryId": "games",
+    "question": "في أي لعبة يظهر عالم The Lands Between؟",
+    "acceptedAnswers": [
+      "Elden Ring",
+      "إلدن رينغ",
+      "الدن رينق"
+    ]
+  },
+  {
+    "id": "games-15",
+    "categoryId": "games",
+    "question": "ما اسم اللعبة التي تحتوي على شخصيات مثل Iron Man وSpider-Man وDoctor Strange في مواجهات جماعية؟",
+    "acceptedAnswers": [
+      "Marvel Rivals",
+      "مارفل رايفلز",
+      "مارفل ريفالز"
+    ]
+  },
+  {
+    "id": "games-16",
+    "categoryId": "games",
+    "question": "ما اسم لعبة كرة القدم التي كانت تصدر سابقًا باسم FIFA وأصبحت EA Sports FC؟",
+    "acceptedAnswers": [
+      "EA Sports FC",
+      "EA FC",
+      "فيفا",
+      "FIFA"
+    ]
+  },
+  {
+    "id": "games-17",
+    "categoryId": "games",
+    "question": "في أي لعبة يظهر بطل اسمه Geralt؟",
+    "acceptedAnswers": [
+      "The Witcher 3",
+      "ويتشر 3",
+      "The Witcher"
+    ]
+  },
+  {
+    "id": "games-18",
+    "categoryId": "games",
+    "question": "ما اسم لعبة الباتل رويال الشهيرة من Epic Games؟",
+    "acceptedAnswers": [
+      "Fortnite",
+      "فورتنايت"
+    ]
+  },
+  {
+    "id": "games-19",
+    "categoryId": "games",
+    "question": "ما اسم لعبة التصويب التي تحتوي على طور Warzone؟",
+    "acceptedAnswers": [
+      "Call of Duty",
+      "كول أوف ديوتي",
+      "COD"
+    ]
+  },
+  {
+    "id": "games-20",
+    "categoryId": "games",
+    "question": "ما اسم لعبة Spider-Man الشهيرة من Insomniac؟",
+    "acceptedAnswers": [
+      "Marvel’s Spider-Man",
+      "Spider-Man",
+      "سبايدرمان"
+    ]
+  }
 ]

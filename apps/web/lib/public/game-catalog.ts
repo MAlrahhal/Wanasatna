@@ -5,6 +5,7 @@ export type GameAvailability = 'available' | 'coming-soon';
 
 export type GameCatalogEntry = {
   availability: GameAvailability;
+  imagePath: string | null;
   accent: string;
   accentLight: string;
   accentBorder: string;
@@ -18,6 +19,7 @@ export type GameCatalogEntry = {
 export const gameCatalogById: Record<string, GameCatalogEntry> = {
   'bara-al-salafa': {
     availability: 'available',
+    imagePath: '/games/bara-al-salafa.png',
     accent: 'var(--wanas-game-blue)',
     accentLight: 'var(--wanas-game-blue-surface)',
     accentBorder: 'var(--wanas-game-blue-border)',
@@ -29,6 +31,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
   },
   'draw-guess': {
     availability: 'available',
+    imagePath: '/games/draw-guess.png',
     accent: 'var(--wanas-game-orange)',
     accentLight: 'var(--wanas-game-orange-surface)',
     accentBorder: 'var(--wanas-game-orange-border)',
@@ -40,6 +43,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
   },
   'timing-challenge': {
     availability: 'available',
+    imagePath: '/games/timing-challenge.png',
     accent: 'var(--wanas-game-rose)',
     accentLight: 'var(--wanas-game-rose-surface)',
     accentBorder: 'var(--wanas-game-rose-border)',
@@ -51,6 +55,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
   },
   'fast-answer': {
     availability: 'available',
+    imagePath: '/games/fast-answer.png',
     accent: 'var(--wanas-game-teal)',
     accentLight: 'var(--wanas-game-teal-surface)',
     accentBorder: 'var(--wanas-game-teal-border)',
@@ -62,6 +67,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
   },
   'imposter-draw': {
     availability: 'available',
+    imagePath: '/games/imposter-draw.png',
     accent: 'var(--wanas-game-purple)',
     accentLight: 'var(--wanas-game-purple-surface)',
     accentBorder: 'var(--wanas-game-purple-border-strong)',
@@ -73,6 +79,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
   },
   'who-wrote-it': {
     availability: 'available',
+    imagePath: '/games/who-wrote-it.png',
     accent: 'var(--wanas-game-purple)',
     accentLight: 'var(--wanas-game-purple-surface)',
     accentBorder: 'var(--wanas-game-purple-border-strong)',
@@ -84,6 +91,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
   },
   judge: {
     availability: 'available',
+    imagePath: '/games/judge.png',
     accent: 'var(--wanas-game-slate)',
     accentLight: 'var(--wanas-game-slate-surface)',
     accentBorder: 'var(--wanas-game-slate-border)',
@@ -95,6 +103,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
   },
   'guessing-challenge': {
     availability: 'available',
+    imagePath: '/games/guessing-challenge.png',
     accent: 'var(--wanas-game-teal)',
     accentLight: 'var(--wanas-game-teal-surface)',
     accentBorder: 'var(--wanas-game-teal-border)',
@@ -106,6 +115,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
   },
   marathon: {
     availability: 'coming-soon',
+    imagePath: null,
     accent: 'var(--wanas-game-green)',
     accentLight: 'var(--wanas-game-green-surface)',
     accentBorder: 'var(--wanas-game-green-border)',
@@ -119,6 +129,7 @@ export const gameCatalogById: Record<string, GameCatalogEntry> = {
 
 const defaultCatalogEntry: GameCatalogEntry = {
   availability: 'coming-soon',
+  imagePath: null,
   accent: 'var(--wanas-game-slate)',
   accentLight: 'var(--wanas-game-slate-surface)',
   accentBorder: 'var(--wanas-game-slate-border)',
