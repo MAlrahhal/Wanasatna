@@ -1,5 +1,5 @@
 import type { LobbyPlayer } from '@/lib/lobby/types';
-import { getPlayerAvatarEmoji } from '@/components/lobby/lobby-ui';
+import { PlayerAvatar } from '@/components/player/player-avatar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -8,8 +8,7 @@ type PlayerCardProps = {
   isCurrentPlayer?: boolean;
   canKick?: boolean;
   onKick?: (playerId: string) => void;
-  avatarColors: { bg: string; text: string };
-  avatarEmoji?: string;
+  onAvatarClick?: () => void;
   isWaitingForNextMatch?: boolean;
 };
 
@@ -18,13 +17,9 @@ export function PlayerCard({
   isCurrentPlayer = false,
   canKick = false,
   onKick,
-  avatarColors,
-  avatarEmoji,
+  onAvatarClick,
   isWaitingForNextMatch = false,
 }: PlayerCardProps) {
-  const initial = player.name.charAt(0);
-  const emoji = avatarEmoji ?? getPlayerAvatarEmoji(player.id);
-
   return (
     <div
       className={cn(
@@ -35,19 +30,18 @@ export function PlayerCard({
       )}
     >
       <div className="relative shrink-0">
-        <div
-          className="flex size-9 items-center justify-center rounded-full text-xs font-semibold"
-          style={{ backgroundColor: avatarColors.bg, color: avatarColors.text }}
-          aria-hidden
-        >
-          {initial}
-        </div>
-        <span
-          className="absolute -bottom-0.5 -start-0.5 flex size-4 items-center justify-center rounded-full border border-wanas-border bg-wanas-surface text-[10px] leading-none"
-          aria-hidden
-        >
-          {emoji}
-        </span>
+        {isCurrentPlayer && onAvatarClick ? (
+          <button
+            type="button"
+            aria-label="تغيير صورتك"
+            className="block rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent"
+            onClick={onAvatarClick}
+          >
+            <PlayerAvatar playerId={player.id} avatarId={player.avatarId} playerName={player.name} className="size-11" sizes="44px" />
+          </button>
+        ) : (
+          <PlayerAvatar playerId={player.id} avatarId={player.avatarId} playerName={player.name} className="size-11" sizes="44px" />
+        )}
       </div>
 
       <div className="min-w-0 flex-1">

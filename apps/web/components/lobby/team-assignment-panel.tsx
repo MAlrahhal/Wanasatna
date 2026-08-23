@@ -2,6 +2,7 @@
 
 import type { PregameTeamSnapshot, TeamId } from '@wanasatna/shared';
 import { cn } from '@/lib/utils';
+import { PlayerAvatar } from '@/components/player/player-avatar';
 
 type LobbyPlayer = {
   id: string;
@@ -61,11 +62,14 @@ function TeamColumn({
           >
             {player ? (
               <>
-                <span className="truncate text-xs font-semibold text-wanas-text-primary">
-                  {player.name}
-                  {player.isHost ? ' · مضيف' : ''}
-                  {player.isConnected === false ? ' · غير متصل' : ''}
-                </span>
+                <div className="flex min-w-0 items-center gap-2">
+                  <PlayerAvatar playerId={player.id} playerName={player.name} className="size-8" sizes="32px" />
+                  <span className="truncate text-xs font-semibold text-wanas-text-primary">
+                    {player.name}
+                    {player.isHost ? ' · مضيف' : ''}
+                    {player.isConnected === false ? ' · غير متصل' : ''}
+                  </span>
+                </div>
                 {isHost ? (
                   <button
                     type="button"
@@ -168,7 +172,10 @@ export function TeamAssignmentPanel({
                 key={player.id}
                 className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-wanas-border/70 px-2.5 py-1.5"
               >
-                <span className="text-xs font-semibold text-wanas-text-primary">{player.name}</span>
+                <span className="flex min-w-0 items-center gap-2 text-xs font-semibold text-wanas-text-primary">
+                  <PlayerAvatar playerId={player.id} playerName={player.name} className="size-8" sizes="32px" />
+                  <span className="truncate">{player.name}</span>
+                </span>
                 {isHost ? (
                   <div className="flex gap-1">
                     <button

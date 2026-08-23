@@ -8,7 +8,7 @@ import type {
 import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
-import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
+import { PlayerAvatar } from '@/components/player/player-avatar';
 import { Button } from '@/components/ui/button';
 import { WHO_WROTE_IT_GAME_ICON, WHO_WROTE_IT_GAME_NAME } from '@/lib/game/who-wrote-it-brand';
 import { SYSTEM_COPY, presentSystemCopy } from '@/lib/ui/system-copy';
@@ -121,7 +121,6 @@ export function WhoWroteItRoundResultsScreen({
           <h2 className="mb-2 text-sm font-bold text-wanas-text-primary">نقاط الجولة</h2>
           <ul className="space-y-1">
             {sortedResults.map((player) => {
-              const colors = getPlayerAvatarColors(player.playerId);
               const isCurrent = player.playerId === currentPlayerId;
 
               return (
@@ -133,15 +132,7 @@ export function WhoWroteItRoundResultsScreen({
                   )}
                 >
                   <div className="flex min-w-0 items-center gap-2">
-                    <span
-                      className={cn(
-                        'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold',
-                        colors.bg,
-                        colors.text,
-                      )}
-                    >
-                      {player.name.slice(0, 1)}
-                    </span>
+                    <PlayerAvatar playerId={player.playerId} playerName={player.name} className="size-7" sizes="28px" />
                     <p className="truncate text-sm font-semibold text-wanas-text-primary">
                       {player.name}
                       {isCurrent ? ' (أنت)' : ''}

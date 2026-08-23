@@ -5,6 +5,7 @@ export function toLobbyPlayer(player: RoomPlayerData): LobbyPlayer {
   return {
     id: player.id,
     name: player.name,
+    avatarId: player.avatarId,
     isHost: player.isHost,
     isSpectator: player.isSpectator,
     isConnected: player.status === 'CONNECTED',

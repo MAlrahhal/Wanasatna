@@ -13,10 +13,12 @@ import {
   ROOM_UPDATED_EVENT,
   UNLOCK_ROOM_EVENT,
   UPDATE_ROOM_GAME_SETTINGS_EVENT,
+  UPDATE_PLAYER_AVATAR_EVENT,
   ROOM_GAME_SETTINGS_UPDATED_EVENT,
   type CreateRoomResponse,
   type ReconnectResponse,
   type RoomActionResponse,
+  isActiveShellPhase,
 } from '@wanasatna/shared';
 import { resolveSocketAccountUser } from '../auth/socket-auth.js';
 import { getGameShellByRoomId } from '../game/game.service.js';
@@ -58,7 +60,8 @@ import {
   getPlayerChannel,
   getRoomChannel,
 } from './room.utils.js';
-import { validateCreateRoomPayload, validateJoinRoomPayload, validateUpdateRoomGameSettingsPayload } from './room.validators.js';
+import { setPlayerAvatarId } from './player-avatar.store.js';
+import { validateCreateRoomPayload, validateJoinRoomPayload, validateUpdatePlayerAvatarPayload, validateUpdateRoomGameSettingsPayload } from './room.validators.js';
 
 export function registerCreateRoomHandler(io: Server, socket: Socket): void {
   socket.on(
@@ -411,6 +414,39 @@ export function registerUpdateRoomGameSettingsHandler(io: Server, socket: Socket
       } catch {
         sendInternalError(callback);
       }
+    },
+  );
+}
+
+export function registerUpdatePlayerAvatarHandler(io: Server, socket: Socket): void {
+  socket.on(
+    UPDATE_PLAYER_AVATAR_EVENT,
+    async (payload: unknown, callback?: (response: RoomActionResponse<unknown>) => void) => {
+      const contextError = getSocketContext(socket);
+      if (contextError) {
+        sendResponse(callback, contextError);
+        return;
+      }
+
+      const validation = validateUpdatePlayerAvatarPayload(payload);
+      if (!validation.success) {
+        sendResponse(callback, validation);
+        return;
+      }
+
+      const { playerId, roomId } = socket.data;
+      const shell = getGameShellByRoomId(roomId!);
+      if (shell && isActiveShellPhase(shell.phase)) {
+        sendResponse(callback, {
+          success: false,
+          error: { code: 'MATCH_IN_PROGRESS', message: 'Avatar cannot be changed during a game.' },
+        });
+        return;
+      }
+
+      setPlayerAvatarId(playerId!, roomId!, validation.data.avatarId);
+      await broadcastRoomPlayersSnapshot(io, roomId!);
+      sendResponse(callback, { success: true, data: { avatarId: validation.data.avatarId } });
     },
   );
 }

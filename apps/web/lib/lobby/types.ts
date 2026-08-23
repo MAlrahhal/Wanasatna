@@ -1,6 +1,9 @@
+import type { PlayerAvatarId } from '@wanasatna/shared';
+
 export type LobbyPlayer = {
   id: string;
   name: string;
+  avatarId?: PlayerAvatarId;
   isHost: boolean;
   isSpectator: boolean;
   /** Room presence: CONNECTED stays online; DISCONNECTED stays in roster offline. */

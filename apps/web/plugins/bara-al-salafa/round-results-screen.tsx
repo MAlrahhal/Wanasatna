@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
-import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
+import { PlayerAvatar } from '@/components/player/player-avatar';
 import { Button } from '@/components/ui/button';
 import { BARA_AL_SALAFA_GAME_ICON } from '@/lib/game/bara-al-salafa-brand';
 import { compareByRoundPointsThenName } from '@/lib/game/leaderboard-sort';
@@ -107,7 +107,6 @@ function RoundPointsList({
       <h2 className="wanas-game-title mb-4">نقاط الجولة</h2>
       <ul className="space-y-2.5">
         {sortedRoundResults.map((player) => {
-          const avatarColors = getPlayerAvatarColors(player.id);
           const isCurrentPlayer = player.id === currentPlayerId;
           const isTopScorer = player.roundPoints === topRoundPoints && topRoundPoints > 0;
 
@@ -126,13 +125,7 @@ function RoundPointsList({
               )}
               aria-current={isCurrentPlayer ? 'true' : undefined}
             >
-              <div
-                className="flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-semibold ring-2 ring-[color:var(--wanas-game-card-border)]"
-                style={{ backgroundColor: avatarColors.bg, color: avatarColors.text }}
-                aria-hidden
-              >
-                {player.name.charAt(0)}
-              </div>
+              <PlayerAvatar playerId={player.id} playerName={player.name} className="size-10 ring-2 ring-[color:var(--wanas-game-card-border)]" sizes="40px" />
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-1.5">

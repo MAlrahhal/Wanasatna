@@ -1,10 +1,12 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { MAX_ROOM_PLAYERS } from '@wanasatna/shared';
+import { getDefaultPlayerAvatarId, MAX_ROOM_PLAYERS } from '@wanasatna/shared';
 import type { LobbyPlayer } from '@/lib/lobby/types';
 import { UiDialog } from '@/components/ui/dialog';
-import { getPlayerAvatarColors, getPlayerAvatarEmoji, LobbyPanel } from './lobby-ui';
+import { LobbyPanel } from './lobby-ui';
+import { AvatarPickerDialog } from './avatar-picker-dialog';
+import { useRoom } from '@/contexts/room-context';
 import { PlayerCard } from './player-card';
 
 type PlayersPanelProps = {
@@ -28,7 +30,10 @@ export function PlayersPanel({
 }: PlayersPanelProps) {
   const participantSet = new Set(activeMatchParticipantIds ?? []);
   const [kickTarget, setKickTarget] = useState<LobbyPlayer | null>(null);
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const kickingRef = useRef(false);
+  const { updatePlayerAvatar } = useRoom();
+  const currentPlayer = players.find((player) => player.id === currentPlayerId) ?? null;
 
   function handleConfirmKick() {
     if (!kickTarget || kickingRef.current) {
@@ -59,8 +64,7 @@ export function PlayersPanel({
             isCurrentPlayer={player.id === currentPlayerId}
             canKick={isHost}
             onKick={() => setKickTarget(player)}
-            avatarColors={getPlayerAvatarColors(player.id)}
-            avatarEmoji={getPlayerAvatarEmoji(player.id)}
+            onAvatarClick={player.id === currentPlayerId && !hasActiveMatch ? () => setAvatarPickerOpen(true) : undefined}
             isWaitingForNextMatch={
               hasActiveMatch && activeMatchParticipantIds !== null && !participantSet.has(player.id)
             }
@@ -86,6 +90,21 @@ export function PlayersPanel({
         }}
         onConfirm={handleConfirmKick}
       />
+
+      {currentPlayer ? (
+        <AvatarPickerDialog
+          open={avatarPickerOpen}
+          playerId={currentPlayer.id}
+          playerName={currentPlayer.name}
+          selectedAvatarId={currentPlayer.avatarId ?? getDefaultPlayerAvatarId(currentPlayer.id)}
+          onClose={() => setAvatarPickerOpen(false)}
+          onSelect={(avatarId) => {
+            void updatePlayerAvatar(avatarId).then((success) => {
+              if (success) setAvatarPickerOpen(false);
+            });
+          }}
+        />
+      ) : null}
     </LobbyPanel>
   );
 }

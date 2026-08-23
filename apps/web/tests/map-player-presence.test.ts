@@ -24,6 +24,7 @@ function test(name: string, fn: () => void): void {
 const connected: RoomPlayerData = {
   id: 'p1',
   name: 'محمد',
+  avatarId: 'avatar-01',
   status: 'CONNECTED',
   isSpectator: false,
   isHost: true,
@@ -32,6 +33,7 @@ const connected: RoomPlayerData = {
 const disconnected: RoomPlayerData = {
   id: 'p2',
   name: 'خالد',
+  avatarId: 'avatar-02',
   status: 'DISCONNECTED',
   isSpectator: false,
   isHost: false,

@@ -7,7 +7,6 @@ import { PlaygroundSection, PlaygroundSubsection } from '@/components/dev/playgr
 import { EmptyState } from '@/components/lobby/empty-state';
 import { GameCard } from '@/components/lobby/game-card';
 import { PlayerCard } from '@/components/lobby/player-card';
-import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
 import { FeatureCard } from '@/components/public/feature-card';
 import { KeyIcon, PublicField, UserIcon } from '@/components/public/public-field';
 import { StatusBadge } from '@/components/public/status-badge';
@@ -268,11 +267,7 @@ export function UiPlaygroundClient() {
               <GameCard game={demoComingSoonGame} selected={false} onSelect={() => undefined} disabled />
             </PlaygroundSubsection>
             <PlaygroundSubsection title="Player Card">
-              <PlayerCard
-                player={demoPlayers[0]!}
-                isCurrentPlayer
-                avatarColors={getPlayerAvatarColors(demoPlayers[0]!.id)}
-              />
+              <PlayerCard player={demoPlayers[0]!} isCurrentPlayer />
             </PlaygroundSubsection>
             <PlaygroundSubsection title="Room Card">
               <RoomCard title="إنشاء غرفة" description="ابدأ غرفة جديدة وشارك الرمز" icon="+">

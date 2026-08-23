@@ -10,6 +10,7 @@ import {
 } from '../../game/runtime/pregame-teams-room-hooks.js';
 import { broadcastRoomPlayersSnapshot, getRoomChannel, RECONNECT_WINDOW_MS } from '../room.utils.js';
 import { permanentlyDepartPlayer } from './permanent-departure.service.js';
+import { clearPlayerAvatarId, clearRoomPlayerAvatars } from '../player-avatar.store.js';
 
 function expiryIntervalMs(): number {
   return env.testMode ? 200 : 15_000;
@@ -66,7 +67,9 @@ export async function announcePermanentPlayerRemoval(
   playerId: string,
   result: { roomDeleted: boolean; hostChanged: HostChangedPayload | null },
 ): Promise<void> {
+  clearPlayerAvatarId(playerId);
   if (result.roomDeleted) {
+    clearRoomPlayerAvatars(roomId);
     onRoomDeleted(io, roomId);
     return;
   }

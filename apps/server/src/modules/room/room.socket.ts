@@ -11,6 +11,7 @@ import {
   registerRoomSyncHandler,
   registerUnlockRoomHandler,
   registerUpdateRoomGameSettingsHandler,
+  registerUpdatePlayerAvatarHandler,
 } from './room.socket.handlers.js';
 import { registerRoomChatHandlers } from './room-chat.socket.handlers.js';
 
@@ -23,6 +24,7 @@ export function registerRoomSockets(io: Server): void {
     registerLockRoomHandler(io, socket);
     registerUnlockRoomHandler(io, socket);
     registerUpdateRoomGameSettingsHandler(io, socket);
+    registerUpdatePlayerAvatarHandler(io, socket);
     registerReconnectHandler(io, socket);
     registerRoomSyncHandler(io, socket);
     registerRoomChatHandlers(io, socket);

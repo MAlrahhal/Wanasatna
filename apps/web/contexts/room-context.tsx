@@ -41,7 +41,9 @@ import {
   TEAM_SNAPSHOT_EVENT,
   TEAM_SYNC_EVENT,
   UPDATE_ROOM_GAME_SETTINGS_EVENT,
+  UPDATE_PLAYER_AVATAR_EVENT,
   getGameTeamCapability,
+  type PlayerAvatarId,
   type PregameTeamSnapshot,
   type TeamId,
 } from '@wanasatna/shared';
@@ -102,6 +104,7 @@ type RoomContextValue = {
   unlockRoom: () => Promise<void>;
   kickPlayer: (playerId: string) => Promise<void>;
   updateRoomGameSettings: (gameId: string, settings: Record<string, number>) => Promise<void>;
+  updatePlayerAvatar: (avatarId: PlayerAvatarId) => Promise<boolean>;
   selectGame: (gameId: string) => void;
   selectRoundCategory: (categoryId: string) => void;
   startGame: () => Promise<void>;
@@ -765,6 +768,20 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const updatePlayerAvatar = useCallback(async (avatarId: PlayerAvatarId) => {
+    const response = await emitRoomAck<{ avatarId: PlayerAvatarId }>(UPDATE_PLAYER_AVATAR_EVENT, {
+      avatarId,
+    });
+
+    if (!response.success) {
+      setErrorMessage(getRoomErrorMessage(response.error.code, response.error.message));
+      return false;
+    }
+
+    setErrorMessage(null);
+    return true;
+  }, []);
+
   const configureTeams = useCallback(
     async (gameId: string, mode: string) => {
       if (!getGameTeamCapability(gameId)) {
@@ -1002,6 +1019,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       unlockRoom,
       kickPlayer,
       updateRoomGameSettings,
+      updatePlayerAvatar,
       selectGame,
       selectRoundCategory,
       startGame,
@@ -1042,6 +1060,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       timingChallengeSettings,
       guessingChallengeMode,
       updateRoomGameSettings,
+      updatePlayerAvatar,
       unlockRoom,
     ],
   );

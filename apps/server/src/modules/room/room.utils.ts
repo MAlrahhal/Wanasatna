@@ -11,6 +11,7 @@ import {
   type RoomSessionData,
 } from '@wanasatna/shared';
 import { setRoomGameSettingsCache } from './room-game-settings.store.js';
+import { getPlayerAvatarId } from './player-avatar.store.js';
 
 export const ROOM_CODE_LENGTH = 6;
 export const MAX_CODE_GENERATION_ATTEMPTS = 10;
@@ -69,6 +70,7 @@ export function mapPlayerData(player: Player, hostPlayerId: string): RoomPlayerD
   return {
     id: player.id,
     name: player.name,
+    avatarId: getPlayerAvatarId(player.id),
     status: player.status,
     isSpectator: player.isSpectator,
     isHost: player.id === hostPlayerId,

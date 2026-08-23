@@ -1,5 +1,6 @@
 import type { GameShellPlayer } from '@wanasatna/shared';
 import { cn } from '@/lib/utils';
+import { PlayerAvatar } from '@/components/player/player-avatar';
 
 type GameShellPlayersProps = {
   players: GameShellPlayer[];
@@ -21,9 +22,11 @@ export function GameShellPlayers({ players }: GameShellPlayersProps) {
             key={player.id}
             className="flex items-center justify-between rounded-xl border border-border bg-background px-3 py-2"
           >
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-foreground">{player.name}</p>
-              <div className="mt-1 flex flex-wrap gap-1.5">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <PlayerAvatar playerId={player.id} playerName={player.name} className="size-9" sizes="36px" />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-foreground">{player.name}</p>
+                <div className="mt-1 flex flex-wrap gap-1.5">
                 {player.isHost ? (
                   <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                     المضيف
@@ -34,6 +37,7 @@ export function GameShellPlayers({ players }: GameShellPlayersProps) {
                     غير متصل
                   </span>
                 ) : null}
+                </div>
               </div>
             </div>
             <span

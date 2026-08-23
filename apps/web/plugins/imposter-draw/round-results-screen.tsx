@@ -5,7 +5,7 @@ import type { ImposterDrawRoundResultEntry } from '@wanasatna/shared';
 import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
-import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
+import { PlayerAvatar } from '@/components/player/player-avatar';
 import { Button } from '@/components/ui/button';
 import { IMPOSTER_DRAW_GAME_ICON, IMPOSTER_DRAW_GAME_NAME } from '@/lib/game/imposter-draw-brand';
 import { compareByRoundPointsThenName } from '@/lib/game/leaderboard-sort';
@@ -119,7 +119,6 @@ export function ImposterDrawRoundResultsScreen({
           <h2 className="wanas-game-title mb-4">نقاط الجولة</h2>
           <ul className="space-y-2.5">
             {sortedRoundResults.map((player) => {
-              const avatarColors = getPlayerAvatarColors(player.playerId);
               const isCurrent = player.playerId === currentPlayerId;
 
               return (
@@ -132,12 +131,7 @@ export function ImposterDrawRoundResultsScreen({
                       : 'border-[color:var(--wanas-game-card-border)]',
                   )}
                 >
-                  <span
-                    className="flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
-                    style={{ backgroundColor: avatarColors.bg, color: avatarColors.text }}
-                  >
-                    {player.name.charAt(0)}
-                  </span>
+                  <PlayerAvatar playerId={player.playerId} playerName={player.name} className="size-10" sizes="40px" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-wanas-text-primary">
                       {player.name}

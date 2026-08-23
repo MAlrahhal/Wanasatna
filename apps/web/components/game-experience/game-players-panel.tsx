@@ -1,6 +1,6 @@
 'use client';
 
-import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
+import { PlayerAvatar } from '@/components/player/player-avatar';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
 import { cn } from '@/lib/utils';
@@ -31,7 +31,6 @@ export function GamePlayersPanel({ className }: GamePlayersPanelProps) {
 
       <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto">
         {players.map((roomPlayer) => {
-          const avatarColors = getPlayerAvatarColors(roomPlayer.id);
           const isCurrent = roomPlayer.id === currentPlayer?.id;
           const isConnected = connectionById.get(roomPlayer.id);
 
@@ -45,13 +44,7 @@ export function GamePlayersPanel({ className }: GamePlayersPanelProps) {
                   : 'border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)]',
               )}
             >
-              <div
-                className="flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
-                style={{ backgroundColor: avatarColors.bg, color: avatarColors.text }}
-                aria-hidden
-              >
-                {roomPlayer.name.charAt(0)}
-              </div>
+              <PlayerAvatar playerId={roomPlayer.id} avatarId={roomPlayer.avatarId} playerName={roomPlayer.name} className="size-9" sizes="36px" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-[color:var(--wanas-game-text-primary)]">
                   {roomPlayer.name}

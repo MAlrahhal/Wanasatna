@@ -5,7 +5,7 @@ import type { FastAnswerRoundResultEntry } from '@wanasatna/shared';
 import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
-import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
+import { PlayerAvatar } from '@/components/player/player-avatar';
 import { Button } from '@/components/ui/button';
 import { FAST_ANSWER_GAME_ICON, FAST_ANSWER_GAME_NAME } from '@/lib/game/fast-answer-brand';
 import { compareByRoundPointsThenName } from '@/lib/game/leaderboard-sort';
@@ -109,7 +109,6 @@ export function FastAnswerRoundResultsScreen({
           <h2 className="wanas-game-title mb-4">نقاط الجولة</h2>
           <ul className="space-y-2.5">
             {sortedRoundResults.map((player) => {
-              const colors = getPlayerAvatarColors(player.playerId);
               const isCurrent = player.playerId === currentPlayerId;
 
               return (
@@ -122,15 +121,7 @@ export function FastAnswerRoundResultsScreen({
                   )}
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <span
-                      className={cn(
-                        'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold',
-                        colors.bg,
-                        colors.text,
-                      )}
-                    >
-                      {player.name.slice(0, 1)}
-                    </span>
+                    <PlayerAvatar playerId={player.playerId} playerName={player.name} className="size-9" sizes="36px" />
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-wanas-text-primary">
                         {player.name}

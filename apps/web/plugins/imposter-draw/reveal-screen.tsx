@@ -2,7 +2,7 @@
 
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader, resolveHeaderTimer } from '@/components/game/game-header';
-import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
+import { PlayerAvatar } from '@/components/player/player-avatar';
 import { IMPOSTER_DRAW_GAME_ICON, IMPOSTER_DRAW_GAME_NAME } from '@/lib/game/imposter-draw-brand';
 
 export type ImposterDrawRevealScreenProps = {
@@ -28,8 +28,6 @@ export function ImposterDrawRevealScreen({
   roomCode,
   className,
 }: ImposterDrawRevealScreenProps) {
-  const avatarColors = getPlayerAvatarColors(impostorPlayerId);
-
   return (
     <GameScreen ariaLabel="كشف الإمبوستر" maxWidth="4xl" className={className}>
       <GameHeader
@@ -48,12 +46,7 @@ export function ImposterDrawRevealScreen({
       />
 
       <GameCard className="border-wanas-error-border/70 px-5 py-10 text-center sm:px-8">
-        <div
-          className="mx-auto flex size-24 items-center justify-center rounded-full text-3xl font-semibold"
-          style={{ backgroundColor: avatarColors.bg, color: avatarColors.text }}
-        >
-          {impostorName.charAt(0)}
-        </div>
+        <PlayerAvatar playerId={impostorPlayerId} playerName={impostorName} className="mx-auto size-24" sizes="96px" />
         <p className="mt-5 text-2xl font-bold text-wanas-text-primary sm:text-3xl">
           الإمبوستر هو: {impostorName}
         </p>

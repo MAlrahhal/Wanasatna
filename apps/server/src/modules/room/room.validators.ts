@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { RoomActionResponse, RoomErrorCode } from '@wanasatna/shared';
 import {
   MAX_ROOM_CHAT_CONTENT_LENGTH,
+  isPlayerAvatarId,
   playerNameContainsForbiddenChars,
   textContainsForbiddenChars,
 } from '@wanasatna/shared';
@@ -31,6 +32,10 @@ export const joinRoomSchema = z.object({
 
 export const kickPlayerSchema = z.object({
   playerId: playerIdSchema,
+});
+
+export const updatePlayerAvatarSchema = z.object({
+  avatarId: z.string().refine(isPlayerAvatarId, 'Invalid avatar selection'),
 });
 
 export const reconnectSchema = z.object({
@@ -65,6 +70,7 @@ const updateRoomGameSettingsSchema = z
 export type CreateRoomInput = z.infer<typeof createRoomSchema>;
 export type JoinRoomInput = z.infer<typeof joinRoomSchema>;
 export type KickPlayerInput = z.infer<typeof kickPlayerSchema>;
+export type UpdatePlayerAvatarInput = z.infer<typeof updatePlayerAvatarSchema>;
 export type ReconnectInput = z.infer<typeof reconnectSchema>;
 export type SendRoomChatInput = z.infer<typeof sendRoomChatSchema>;
 
@@ -108,6 +114,10 @@ export function validateJoinRoomPayload(payload: unknown) {
 
 export function validateKickPlayerPayload(payload: unknown) {
   return validatePayload(kickPlayerSchema, payload);
+}
+
+export function validateUpdatePlayerAvatarPayload(payload: unknown) {
+  return validatePayload(updatePlayerAvatarSchema, payload);
 }
 
 export function validateReconnectPayload(payload: unknown) {

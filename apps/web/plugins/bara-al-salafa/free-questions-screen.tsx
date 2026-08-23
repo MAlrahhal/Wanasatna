@@ -2,7 +2,7 @@
 
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader, resolveHeaderTimer } from '@/components/game/game-header';
-import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
+import { PlayerAvatar } from '@/components/player/player-avatar';
 import { Button } from '@/components/ui/button';
 import { BARA_AL_SALAFA_GAME_ICON } from '@/lib/game/bara-al-salafa-brand';
 import type { LobbyPlayer } from '@/lib/lobby/types';
@@ -82,8 +82,6 @@ function SelectablePlayerCard({
   selected: boolean;
   onSelect?: (playerId: string) => void;
 }) {
-  const avatarColors = getPlayerAvatarColors(player.id);
-
   return (
     <button
       type="button"
@@ -99,13 +97,7 @@ function SelectablePlayerCard({
       aria-pressed={selected}
       aria-label={selected ? `${player.name} — مختار` : `اختيار ${player.name}`}
     >
-      <div
-        className="flex size-12 shrink-0 items-center justify-center rounded-full text-sm font-semibold ring-2 ring-[color:var(--wanas-game-card-border)]"
-        style={{ backgroundColor: avatarColors.bg, color: avatarColors.text }}
-        aria-hidden
-      >
-        {player.name.charAt(0)}
-      </div>
+      <PlayerAvatar playerId={player.id} avatarId={player.avatarId} playerName={player.name} className="size-12 ring-2 ring-[color:var(--wanas-game-card-border)]" sizes="48px" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-base font-semibold text-wanas-text-primary">{player.name}</p>
         {selected ? <p className="mt-0.5 text-xs font-medium text-wanas-accent-hover">مختار</p> : null}
@@ -219,8 +211,6 @@ function FreeQuestionsTurnFooter({
       <ul className="mt-3 space-y-2">
         {players.map((player) => {
           const status = getTurnStatus(player.id, activePlayerId, completedPlayerIds);
-          const avatarColors = getPlayerAvatarColors(player.id);
-
           return (
             <li
               key={player.id}
@@ -231,13 +221,7 @@ function FreeQuestionsTurnFooter({
                 status === 'waiting' && 'border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)]',
               )}
             >
-              <div
-                className="flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ring-2 ring-[color:var(--wanas-game-card-border)]"
-                style={{ backgroundColor: avatarColors.bg, color: avatarColors.text }}
-                aria-hidden
-              >
-                {player.name.charAt(0)}
-              </div>
+              <PlayerAvatar playerId={player.id} avatarId={player.avatarId} playerName={player.name} className="size-9 ring-2 ring-[color:var(--wanas-game-card-border)]" sizes="36px" />
               <p className="min-w-0 flex-1 truncate text-sm font-medium text-wanas-text-primary">
                 {player.name}
               </p>

@@ -1,5 +1,6 @@
 import type { RoomGameSettings } from '../game/admin-settings.js';
 import type { RoomPlayerData } from './player.js';
+import type { PlayerAvatarId } from './avatar.js';
 
 export type CreateRoomPayload = {
   playerName: string;
@@ -12,6 +13,10 @@ export type JoinRoomPayload = {
 
 export type KickPlayerPayload = {
   playerId: string;
+};
+
+export type UpdatePlayerAvatarPayload = {
+  avatarId: PlayerAvatarId;
 };
 
 export type ReconnectPayload = {

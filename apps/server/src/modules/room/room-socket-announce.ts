@@ -9,6 +9,7 @@ import {
 import { evaluatePlayerRecovery } from '../game/runtime/player-recovery.js';
 import { onRoomDeleted, onRoomPlayerRemoved } from '../game/runtime/pregame-teams-room-hooks.js';
 import { broadcastRoomPlayersSnapshot, getPlayerChannel, getRoomChannel } from './room.utils.js';
+import { clearPlayerAvatarId, clearRoomPlayerAvatars } from './player-avatar.store.js';
 
 export async function announceKickedPlayer(
   io: Server,
@@ -16,6 +17,7 @@ export async function announceKickedPlayer(
   kickedPlayerId: string,
   roomDeleted: boolean,
 ): Promise<void> {
+  clearPlayerAvatarId(kickedPlayerId);
   const roomChannel = getRoomChannel(roomId);
   const kickedPlayerChannel = getPlayerChannel(kickedPlayerId);
 
@@ -40,6 +42,7 @@ export async function announceKickedPlayer(
     return;
   }
 
+  clearRoomPlayerAvatars(roomId);
   onRoomDeleted(io, roomId);
 }
 
@@ -66,5 +69,6 @@ export async function announceAdminRoomClosed(io: Server, roomId: string): Promi
     socket.data.roomId = undefined;
   }
 
+  clearRoomPlayerAvatars(roomId);
   onRoomDeleted(io, roomId);
 }

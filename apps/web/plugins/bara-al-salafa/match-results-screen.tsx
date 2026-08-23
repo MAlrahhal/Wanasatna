@@ -2,7 +2,7 @@
 
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
-import { getPlayerAvatarColors } from '@/components/lobby/lobby-ui';
+import { PlayerAvatar } from '@/components/player/player-avatar';
 import { Button } from '@/components/ui/button';
 import { BARA_AL_SALAFA_GAME_ICON } from '@/lib/game/bara-al-salafa-brand';
 import { useDeadlineClock } from '@/lib/game/use-deadline-clock';
@@ -50,17 +50,9 @@ function getArabicRankLabel(rank: number): string {
 }
 
 function WinnerHeroCard({ entry }: { entry: MatchLeaderboardEntry }) {
-  const avatarColors = getPlayerAvatarColors(entry.id);
-
   return (
     <div className="flex flex-col items-center gap-4 text-center">
-      <div
-        className="flex size-16 items-center justify-center rounded-full text-2xl font-semibold ring-4 ring-[color:var(--wanas-game-card-border)] shadow-lg sm:size-24 sm:text-4xl"
-        style={{ backgroundColor: avatarColors.bg, color: avatarColors.text }}
-        aria-hidden
-      >
-        {entry.name.charAt(0)}
-      </div>
+      <PlayerAvatar playerId={entry.id} playerName={entry.name} className="size-16 ring-4 ring-[color:var(--wanas-game-card-border)] shadow-lg sm:size-24" sizes="(max-width: 640px) 64px, 96px" />
       <div>
         <p className="text-2xl font-bold text-wanas-text-primary sm:text-3xl">{entry.name}</p>
         <p className="mt-1.5 font-mono text-lg font-semibold tabular-nums text-wanas-warning-dark">
@@ -140,7 +132,6 @@ function FinalLeaderboard({
       <h2 className="wanas-game-title mb-4">الترتيب النهائي</h2>
       <ul className="space-y-2.5">
         {leaderboard.map((entry) => {
-          const avatarColors = getPlayerAvatarColors(entry.id);
           const isCurrentPlayer = entry.id === currentPlayerId;
           const isTopThree = entry.rank <= 3;
 
@@ -169,13 +160,7 @@ function FinalLeaderboard({
               >
                 {getRankMedal(entry.rank, entry.isFirstPlace)}
               </span>
-              <div
-                className="flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-semibold ring-2 ring-[color:var(--wanas-game-card-border)]"
-                style={{ backgroundColor: avatarColors.bg, color: avatarColors.text }}
-                aria-hidden
-              >
-                {entry.name.charAt(0)}
-              </div>
+              <PlayerAvatar playerId={entry.id} playerName={entry.name} className="size-10 ring-2 ring-[color:var(--wanas-game-card-border)]" sizes="40px" />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-1.5">
                   <p className="truncate text-sm font-semibold text-wanas-text-primary">{entry.name}</p>

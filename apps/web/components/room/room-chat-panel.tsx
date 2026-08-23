@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { MAX_ROOM_CHAT_CONTENT_LENGTH, type RoomChatMessage } from '@wanasatna/shared';
 import { Button } from '@/components/ui/button';
+import { PlayerAvatar } from '@/components/player/player-avatar';
 import { useRoomChat } from '@/contexts/room-chat-context';
 import { useRoom } from '@/contexts/room-context';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
@@ -105,18 +106,23 @@ export function RoomChatPanel({ className, variant = 'lobby' }: RoomChatPanelPro
           return (
             <div
               key={message.id}
-              className={cn('rounded-xl px-3 py-2 text-sm leading-6', own && 'bg-wanas-surface-soft')}
+              className={cn('flex items-start gap-2 rounded-xl px-3 py-2 text-sm leading-6', own && 'bg-wanas-surface-soft')}
             >
-              <p
-                className={cn(
-                  'truncate text-[11px] font-semibold',
-                  isGame ? 'text-[color:var(--wanas-game-text-secondary)]' : 'text-wanas-text-muted',
-                )}
-                title={message.senderName}
-              >
-                {message.senderName}
-              </p>
-              <p className="mt-0.5 whitespace-pre-wrap break-words">{message.content}</p>
+              {message.playerId ? (
+                <PlayerAvatar playerId={message.playerId} playerName={message.senderName} className="mt-0.5 size-8" sizes="32px" />
+              ) : null}
+              <div className="min-w-0 flex-1">
+                <p
+                  className={cn(
+                    'truncate text-[11px] font-semibold',
+                    isGame ? 'text-[color:var(--wanas-game-text-secondary)]' : 'text-wanas-text-muted',
+                  )}
+                  title={message.senderName}
+                >
+                  {message.senderName}
+                </p>
+                <p className="mt-0.5 whitespace-pre-wrap break-words">{message.content}</p>
+              </div>
             </div>
           );
         })}
