@@ -88,10 +88,10 @@ export function AvatarPickerDialog({
                 aria-label={`اختيار الصورة ${avatar.id.slice(-2)}`}
                 aria-pressed={selected}
                 className={cn(
-                  'focus-visible:ring-wanas-accent relative aspect-square rounded-full outline-none transition-transform focus-visible:ring-2',
+                  'focus-visible:ring-wanas-accent relative aspect-square cursor-pointer rounded-full outline-none transition-all duration-150 focus-visible:ring-2 focus-visible:ring-offset-2',
                   selected
-                    ? 'ring-wanas-accent scale-95 ring-4'
-                    : 'hover:ring-wanas-accent/35 hover:scale-105 hover:ring-2',
+                    ? 'ring-wanas-accent bg-wanas-accent/10 scale-95 shadow-lg ring-4'
+                    : 'hover:ring-wanas-accent/60 hover:bg-wanas-accent/5 hover:scale-105 hover:shadow-md hover:ring-2 active:scale-95',
                 )}
                 onClick={() => onSelect(avatar.id)}
               >
