@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ADMIN_GAME_SETTING_SPECS,
+  MARATHON_FINAL_RESULTS_SECONDS,
   MARATHON_MIN_GAMES,
   MARATHON_SUPPORTED_GAME_IDS,
+  MARATHON_TRANSITION_SECONDS,
   settingSelectOptions,
   type MarathonGameConfiguration,
   type MarathonGameId,
@@ -86,12 +88,13 @@ function Leaderboard({
 }
 
 function MarathonResults() {
-  const { state, continueNow, returnToLobby, errorMessage } = useMarathon();
-  const { isHost } = useRoom();
+  const { state, errorMessage } = useMarathon();
   const remaining = useCountdown(state?.transitionDeadlineAtMs ?? null);
   if (!state) return <SystemStatus tone="loading" title="جارٍ مزامنة الماراتون…" />;
   const final = state.status === 'FINISHED';
   const next = !final ? state.gamePlan[state.currentGameIndex + 1] : null;
+  const countdownDuration = final ? MARATHON_FINAL_RESULTS_SECONDS : MARATHON_TRANSITION_SECONDS;
+  const progress = Math.min(100, Math.max(0, (remaining / countdownDuration) * 100));
   return (
     <main className="mx-auto flex min-h-full w-full max-w-2xl flex-col gap-5 px-4 py-6 sm:px-6">
       <header className="text-center">
@@ -121,19 +124,43 @@ function MarathonResults() {
         </section>
       ) : null}
       {!final && next ? (
-        <section className="border-wanas-accent/35 bg-wanas-surface rounded-2xl border p-4">
-          <p className="text-wanas-text-muted mb-3 text-sm">اللعبة القادمة</p>
+        <section className="border-wanas-accent/35 bg-wanas-surface rounded-2xl border p-4 shadow-[var(--wanas-shadow-panel)]">
+          <p className="text-wanas-accent mb-3 text-sm font-bold">اللعبة التالية:</p>
           <GameIdentity gameId={next.gameId} />
         </section>
       ) : null}
-      <p className="text-center text-lg font-black tabular-nums">
-        {final ? 'العودة إلى اللوبي' : 'تبدأ خلال'} {remaining}…
-      </p>
-      {isHost ? (
-        <Button size="lg" onClick={() => void (final ? returnToLobby() : continueNow())}>
-          {final ? 'العودة إلى اللوبي' : 'ابدأ الآن'}
-        </Button>
-      ) : null}
+      <section
+        aria-live="polite"
+        className="border-wanas-border bg-wanas-surface-soft rounded-2xl border px-4 py-4 text-center"
+      >
+        <div className="mb-2 flex items-center justify-center gap-2">
+          <span
+            className="border-wanas-accent/30 border-t-wanas-accent size-4 animate-spin rounded-full border-2"
+            aria-hidden
+          />
+          <p className="text-wanas-text-muted text-sm font-semibold">
+            {final ? 'جارٍ إنهاء الماراتون تلقائيًا' : 'جارٍ تجهيز اللعبة التالية تلقائيًا'}
+          </p>
+        </div>
+        <p className="text-lg font-black tabular-nums">
+          {final ? 'العودة إلى اللوبي' : 'تبدأ تلقائيًا'} خلال {remaining} ثوانٍ...
+        </p>
+        <div
+          className="bg-wanas-border mt-3 h-1.5 overflow-hidden rounded-full"
+          role="progressbar"
+          aria-label={
+            final ? 'الوقت المتبقي للعودة إلى اللوبي' : 'الوقت المتبقي لبدء اللعبة التالية'
+          }
+          aria-valuemin={0}
+          aria-valuemax={countdownDuration}
+          aria-valuenow={remaining}
+        >
+          <div
+            className="bg-wanas-accent h-full rounded-full transition-[width] duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </section>
       {errorMessage ? <SystemStatus tone="error" title={errorMessage} /> : null}
     </main>
   );
