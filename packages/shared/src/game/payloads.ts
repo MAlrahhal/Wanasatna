@@ -30,7 +30,7 @@ export type StartGameShellFromLobbyPayload = {
 export type GameShellAbortReason = 'host_aborted' | 'insufficient_players';
 
 export type GameShellNavigatePayload = {
-  path: '/game' | '/lobby';
+  path: '/game' | '/lobby' | '/marathon';
   roomId: string;
   roomCode?: string;
   reason?: GameShellAbortReason;

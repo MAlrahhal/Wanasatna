@@ -151,7 +151,7 @@ export function completeMatchCompletedPhase(io: Server, roomId: string): void {
     }
 
     teardownShellAndReturnToLobby(io, roomId);
-  });
+  }, io);
 }
 
 export function cleanupBaraAlSalafaRuntime(roomId: string): void {

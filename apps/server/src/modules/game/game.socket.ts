@@ -3,6 +3,7 @@ import { registerAllGameContent } from '../content/index.js';
 import { registerAllGamePlugins } from './plugins/index.js';
 import { listRegisteredGames, registerPluginSocketHandlers } from './runtime/index.js';
 import { registerPregameTeamHandlers } from './pregame-teams.socket.js';
+import { registerMarathonSocketHandlers } from '../marathon/marathon.socket.js';
 import {
   registerGameShellCancelCountdownHandler,
   registerGameShellEndHandler,
@@ -45,6 +46,7 @@ export function registerGameSockets(io: Server): void {
     registerGameShellStartFromLobbyHandler(io, socket);
     registerGameShellReturnToLobbyHandler(io, socket);
     registerPregameTeamHandlers(io, socket);
+    registerMarathonSocketHandlers(io, socket);
     registerPluginSocketHandlers(io, socket);
   });
 }

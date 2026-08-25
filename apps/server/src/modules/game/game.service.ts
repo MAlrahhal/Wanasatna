@@ -647,6 +647,7 @@ export async function startGameShellFromLobby(
   roomId: string,
   playerId: string,
   gameId: string,
+  options?: { skipSettingsHydration?: boolean },
 ): Promise<GameActionResponse<{ state: GameShellState }>> {
   const hostCheck = await assertHost(roomId, playerId);
 
@@ -666,7 +667,9 @@ export async function startGameShellFromLobby(
     return disabled;
   }
 
-  await hydrateRoomGameSettings(roomId);
+  if (!options?.skipSettingsHydration) {
+    await hydrateRoomGameSettings(roomId);
+  }
 
   const initResponse = await initGameShell(roomId, playerId, { gameId });
 

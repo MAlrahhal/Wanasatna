@@ -6,6 +6,7 @@ import { RoomChatProvider } from '@/contexts/room-chat-context';
 import { SystemStatus } from '@/components/ui/system-status';
 import { GameAudioSession } from '@/components/game/game-audio-session';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
+import { MarathonProvider } from '@/contexts/marathon-context';
 
 function RoomRouteFallback() {
   return (
@@ -19,10 +20,12 @@ export default function RoomLayout({ children }: { children: ReactNode }) {
   return (
     <Suspense fallback={<RoomRouteFallback />}>
       <RoomProvider>
-        <RoomChatProvider>
-          <GameAudioSession />
-          {children}
-        </RoomChatProvider>
+        <MarathonProvider>
+          <RoomChatProvider>
+            <GameAudioSession />
+            {children}
+          </RoomChatProvider>
+        </MarathonProvider>
       </RoomProvider>
     </Suspense>
   );

@@ -34,6 +34,7 @@
     "test:shutdown": "tsx tests/graceful-shutdown.unit.test.ts",
     "test:content": "tsx tests/content-validation.unit.test.ts && tsx tests/content-contract.unit.test.ts",
     "test:plugin-registry": "tsx tests/plugin-registry.unit.test.ts",
+    "test:marathon": "tsx tests/marathon.unit.test.ts",
     "test:timing-challenge": "tsx tests/timing-challenge.unit.test.ts",
     "test:timing-challenge:integration": "tsx tests/timing-challenge.integration.test.ts",
     "test:fast-answer": "tsx tests/fast-answer.unit.test.ts",

@@ -2,6 +2,7 @@ export * from './plugin/index.js';
 export * from './plugins/index.js';
 export * from './teams/index.js';
 export * from './admin-settings.js';
+export * from './marathon.js';
 export * from './availability.js';
 export * from './constants.js';
 export * from './end-game.js';
@@ -13,4 +14,3 @@ export * from './player.js';
 export * from './responses.js';
 export * from './state.js';
 export * from './match-participant.js';
-

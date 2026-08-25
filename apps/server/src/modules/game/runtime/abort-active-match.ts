@@ -7,6 +7,7 @@ import { deleteGameShell, getGameShellByRoomId } from '../game.service.js';
 import { cleanupGameShellRuntime, returnRoomToLobbyAfterMatch } from '../game.lifecycle.js';
 import { clearPlayerRecoveryForTeardown } from './player-recovery.js';
 import { cleanupPluginMatchState } from './cleanup-plugin-match.js';
+import { recordAbortedMarathonLeg } from '../../marathon/marathon.runtime.js';
 
 const ABORT_MESSAGES: Record<GameShellAbortReason, string | undefined> = {
   host_aborted: undefined,
@@ -40,12 +41,25 @@ export async function abortActiveMatch(
   cleanupPluginMatchState(roomId, abortedGameId);
   deleteGameShell(roomId);
 
+  const marathonTransition = recordAbortedMarathonLeg(
+    io,
+    roomId,
+    abortedShellId,
+    reason === 'insufficient_players'
+      ? 'تم تخطي اللعبة لعدم توفر عدد كافٍ من اللاعبين.'
+      : 'أنهى المضيف هذه اللعبة.',
+  );
+
   console.info('[game-restart]', {
     stage: 'old-shell-cleanup-complete',
     roomId,
     shellId: abortedShellId,
     reason,
   });
+
+  if (marathonTransition) {
+    return true;
+  }
 
   const room = await prisma.room.findUnique({
     where: { id: roomId },

@@ -215,5 +215,5 @@ export function completeMatch(io: Server, roomId: string): void {
     }
 
     teardownShellAndReturnToLobby(io, roomId);
-  });
+  }, io);
 }

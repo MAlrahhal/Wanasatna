@@ -13,6 +13,7 @@ import {
   removePlayerFromPregameTeams,
   syncPregameTeamsWithRoster,
 } from './pregame-teams.service.js';
+import { clearMarathonState, markMarathonPlayerDeparted } from '../../marathon/marathon.runtime.js';
 
 /** Call after join so lobby team state tracks the roster. */
 export async function onRoomRosterJoined(io: Server, roomId: string): Promise<void> {
@@ -31,12 +32,14 @@ export async function onRoomPlayerRemoved(
   roomDeleted: boolean,
 ): Promise<void> {
   if (roomDeleted) {
+    clearMarathonState(roomId);
     clearTeamsForRoom(roomId);
     return;
   }
 
   handleJudgePermanentLeave(io, roomId, playerId);
   handleGuessingChallengePermanentLeave(io, roomId, playerId);
+  markMarathonPlayerDeparted(roomId, playerId);
 
   const eligible = await loadEligibleLobbyPlayerIds(roomId);
   const snapshot = removePlayerFromPregameTeams(roomId, playerId, eligible);
@@ -56,4 +59,5 @@ export function onRoomDeleted(io: Server, roomId: string): void {
   }
 
   clearTeamsForRoom(roomId);
+  clearMarathonState(roomId);
 }

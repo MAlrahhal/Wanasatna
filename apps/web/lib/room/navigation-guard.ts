@@ -109,6 +109,7 @@ export function isRoomRoute(pathname: string): boolean {
   return (
     pathname === '/lobby' ||
     pathname === '/game' ||
+    pathname === '/marathon' ||
     pathname.startsWith('/lobby/') ||
     pathname.startsWith('/game/')
   );

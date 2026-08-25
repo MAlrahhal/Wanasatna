@@ -57,13 +57,6 @@ export const mockLobbyGames: LobbyGame[] = [
     iconLabel: 'س',
     emoji: '⚡',
   },
-  {
-    id: 'marathon',
-    title: 'Marathon',
-    description: 'سلسلة ألعاب متتابعة في جلسة واحدة.',
-    iconLabel: 'M',
-    emoji: '🎲',
-  },
 ];
 
 export const mockGameSettingsByGameId: Record<string, LobbyGameSettingsPlaceholder[]> = {
@@ -98,9 +91,5 @@ export const mockGameSettingsByGameId: Record<string, LobbyGameSettingsPlacehold
   'fast-answer': [
     { id: 'info-rounds', label: 'عدد الجولات', value: '٥ جولات ثابتة' },
     { id: 'info-time', label: 'وقت السؤال', value: '١٥ ثانية' },
-  ],
-  marathon: [
-    { id: 'games', label: 'عدد الألعاب', value: '٣ ألعاب' },
-    { id: 'order', label: 'ترتيب الألعاب', value: 'عشوائي' },
   ],
 };

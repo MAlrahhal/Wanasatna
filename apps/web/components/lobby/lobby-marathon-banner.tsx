@@ -1,25 +1,50 @@
+'use client';
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { useMarathon } from '@/contexts/marathon-context';
+import { useRoom } from '@/contexts/room-context';
+
 export function LobbyMarathonBanner() {
+  const { isHost } = useRoom();
+  const { state, prepare } = useMarathon();
+  const [loading, setLoading] = useState(false);
+
+  async function enterMarathon() {
+    setLoading(true);
+    try {
+      await prepare();
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <section
       aria-label="ماراثون الألعاب"
-      className="flex items-center gap-2.5 rounded-xl border border-wanas-border bg-wanas-surface px-3 py-1.5 xl:gap-3 xl:py-2"
+      className="border-wanas-accent/35 bg-wanas-surface flex items-center gap-2.5 rounded-xl border px-3 py-2"
     >
       <span
-        className="flex size-9 shrink-0 items-center justify-center rounded-full bg-wanas-warning-surface text-lg"
+        className="bg-wanas-warning-surface flex size-9 shrink-0 items-center justify-center rounded-full text-lg"
         aria-hidden
       >
         🏆
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-bold text-wanas-text-primary">ماراثون الألعاب</p>
-        <p className="truncate text-[11px] leading-4 text-wanas-text-muted">سلسلة ألعاب ممتعة</p>
+        <p className="text-wanas-text-primary text-sm font-bold">ماراثون الألعاب</p>
+        <p className="text-wanas-text-muted truncate text-[11px] leading-4">
+          عدة ألعاب، غرفة واحدة، وترتيب تراكمي
+        </p>
       </div>
-      <span className="hidden text-[11px] text-wanas-text-muted sm:inline">
-        ترقبوا انطلاق التحديات والمكافآت قريباً!
-      </span>
-      <span className="shrink-0 rounded-full bg-wanas-primary-surface px-2.5 py-1 text-[11px] font-semibold text-wanas-accent">
-        قريباً
-      </span>
+      {isHost ? (
+        <Button size="sm" type="button" loading={loading} onClick={() => void enterMarathon()}>
+          إعداد الماراتون
+        </Button>
+      ) : (
+        <span className="text-wanas-text-muted text-[11px] font-semibold">
+          {state?.status === 'PREPARING' ? 'المضيف يجهّز الماراتون' : 'للمضيف'}
+        </span>
+      )}
     </section>
   );
 }

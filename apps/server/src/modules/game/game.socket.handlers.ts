@@ -53,6 +53,8 @@ import {
   startGameShellTimer,
   stopGameShellTimer,
 } from './game.timer.js';
+import { clearMarathonState } from '../marathon/marathon.runtime.js';
+import { getMarathonState } from '../marathon/marathon.store.js';
 import {
   getGameSocketContext,
   rejectIfGameSyncRateLimited,
@@ -305,6 +307,17 @@ export function registerGameShellStartFromLobbyHandler(io: Server, socket: Socke
       const { playerId, roomId } = socket.data;
 
       try {
+        const marathon = getMarathonState(roomId!);
+        if (marathon && marathon.status !== 'PREPARING') {
+          sendGameResponse(callback, {
+            success: false,
+            error: { code: 'INVALID_PHASE', message: 'الماراتون جارٍ بالفعل.' },
+          });
+          return;
+        }
+        if (marathon?.status === 'PREPARING') {
+          clearMarathonState(roomId!);
+        }
         await hydrateRoomGameSettings(roomId!);
         setRoomRoundCategory(roomId!, validation.data.categoryId);
 

@@ -256,7 +256,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
 
   const canonicalizeActiveLobbyUrl = useCallback(
     (roomCode: string) => {
-      if (pathnameRef.current === '/game') {
+      if (pathnameRef.current === '/game' || pathnameRef.current === '/marathon') {
         return;
       }
 
@@ -278,7 +278,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
 
   const redirectIfActiveGameShell = useCallback(
     async (playerId?: string) => {
-      if (pathnameRef.current === '/game') {
+      if (pathnameRef.current === '/game' || pathnameRef.current === '/marathon') {
         return;
       }
 
@@ -475,7 +475,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      if (pathname === '/game') {
+      if (pathname === '/game' || pathname === '/marathon') {
         manager.rehydrateFromStorageIfNeeded();
         state = manager.getState();
         if (!state.session) {
@@ -529,7 +529,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
           });
           return;
         }
-        if (pathname !== '/lobby' && pathname !== '/game') {
+        if (pathname !== '/lobby' && pathname !== '/game' && pathname !== '/marathon') {
           return;
         }
 

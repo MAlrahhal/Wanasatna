@@ -13,6 +13,7 @@ import {
 import { initializePluginOnPlaying } from './runtime/initialize-plugin-on-playing.js';
 import { broadcastRoomPlayersSnapshot } from '../room/room.utils.js';
 import { clearRoomSpectatorFlags } from '../room/services/clear-spectators.service.js';
+import { getMarathonState } from '../marathon/marathon.store.js';
 
 type LobbyWaitSchedule = {
   timeoutId: ReturnType<typeof setTimeout>;
@@ -254,6 +255,11 @@ export function teardownShellAndReturnToLobby(
     message?: string;
   },
 ): void {
+  if (getMarathonState(roomId)?.status === 'TRANSITION') {
+    cleanupGameShellRuntime(roomId);
+    deleteGameShell(roomId);
+    return;
+  }
   cleanupGameShellRuntime(roomId);
   deleteGameShell(roomId);
   void returnRoomToLobbyAfterMatch(io, roomId, options);

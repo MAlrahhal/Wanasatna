@@ -19,6 +19,7 @@ import {
 } from './room-tx.js';
 import { getGameShellByRoomId } from '../../game/game.service.js';
 import { recordProductEvent } from '../../analytics/product-event.service.js';
+import { isMarathonParticipationLocked } from '../../marathon/marathon.store.js';
 
 const ACTIVE_STATUSES = [PlayerStatus.CONNECTED, PlayerStatus.DISCONNECTED] as const;
 
@@ -97,7 +98,7 @@ async function joinRoomInLockedTx(
       roomId,
       name: playerName,
       status: PlayerStatus.CONNECTED,
-      isSpectator: getGameShellByRoomId(roomId) !== null,
+      isSpectator: getGameShellByRoomId(roomId) !== null || isMarathonParticipationLocked(roomId),
       reconnectTokenHash,
       userId: accountUserId || null,
     },

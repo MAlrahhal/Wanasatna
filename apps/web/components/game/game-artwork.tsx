@@ -2,13 +2,16 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 type GameArtworkProps = {
-  src: string;
+  src: string | null;
   alt?: string;
   className?: string;
   sizes?: string;
 };
 
 export function GameArtwork({ src, alt = '', className, sizes = '80px' }: GameArtworkProps) {
+  if (!src) {
+    return null;
+  }
   return (
     <Image
       src={src}
