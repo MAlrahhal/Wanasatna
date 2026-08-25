@@ -13,7 +13,10 @@ export function LobbyChat({ className }: LobbyChatProps) {
   return (
     <LobbyPanel
       title={SYSTEM_COPY.chatTitle}
-      className={cn('flex h-full min-h-[280px] flex-col', className)}
+      className={cn(
+        'flex h-[min(360px,calc(55dvh-5rem))] min-h-0 flex-col xl:h-[400px]',
+        className,
+      )}
       bodyClassName="flex min-h-0 flex-1 flex-col p-3"
     >
       <RoomChatPanel />

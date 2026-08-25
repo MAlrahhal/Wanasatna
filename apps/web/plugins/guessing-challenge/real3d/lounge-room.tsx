@@ -1,7 +1,11 @@
 'use client';
 
+import { useTexture } from '@react-three/drei';
+import { useLayoutEffect } from 'react';
+import { SRGBColorSpace } from 'three';
+
 /**
- * Cozy Fall Guys–inspired lounge: purple walls, wood floor, rug, neon W, props.
+ * Cozy Fall Guys–inspired lounge: purple walls, wood floor, rug, wall branding, props.
  * Lightweight primitives only — no GLTF.
  */
 export function LoungeRoom({ compactGpu = false }: { compactGpu?: boolean }) {
@@ -58,8 +62,8 @@ export function LoungeRoom({ compactGpu = false }: { compactGpu?: boolean }) {
         <meshStandardMaterial color="#2e1065" roughness={1} />
       </mesh>
 
-      {/* Neon W — far upper-left corner (not above opponent head / name) */}
-      <NeonW position={[-3.25, 2.95, -4.28]} />
+      {/* Wall branding — far upper-left corner (not above opponent head / name) */}
+      <WanasatnaWallLogo position={[-3.25, 2.95, -4.28]} />
 
       {/* Left shelf + props */}
       <group position={[-3.4, 0.9, -3.6]}>
@@ -142,30 +146,20 @@ export function LoungeRoom({ compactGpu = false }: { compactGpu?: boolean }) {
   );
 }
 
-function NeonW({ position }: { position: [number, number, number] }) {
-  const bar = (props: {
-    pos: [number, number, number];
-    rot?: [number, number, number];
-    size: [number, number, number];
-  }) => (
-    <mesh position={props.pos} rotation={props.rot ?? [0, 0, 0]}>
-      <boxGeometry args={props.size} />
-      <meshStandardMaterial
-        color="#f472b6"
-        emissive="#ec4899"
-        emissiveIntensity={1.4}
-        roughness={0.35}
-      />
-    </mesh>
-  );
+function WanasatnaWallLogo({ position }: { position: [number, number, number] }) {
+  const logoTexture = useTexture('/brand/wanasatna-logo.png');
+
+  useLayoutEffect(() => {
+    logoTexture.colorSpace = SRGBColorSpace;
+    logoTexture.needsUpdate = true;
+  }, [logoTexture]);
 
   return (
     <group position={position}>
-      {bar({ pos: [-0.42, 0, 0], rot: [0, 0, 0.35], size: [0.12, 0.85, 0.08] })}
-      {bar({ pos: [-0.14, -0.12, 0], rot: [0, 0, -0.45], size: [0.12, 0.7, 0.08] })}
-      {bar({ pos: [0.14, -0.12, 0], rot: [0, 0, 0.45], size: [0.12, 0.7, 0.08] })}
-      {bar({ pos: [0.42, 0, 0], rot: [0, 0, -0.35], size: [0.12, 0.85, 0.08] })}
-      <pointLight intensity={0.55} distance={5} color="#f472b6" position={[0, 0, 0.4]} />
+      <mesh position={[0, -0.3, 0]}>
+        <planeGeometry args={[1.58, 1.5]} />
+        <meshBasicMaterial map={logoTexture} transparent alphaTest={0.05} toneMapped={false} />
+      </mesh>
     </group>
   );
 }

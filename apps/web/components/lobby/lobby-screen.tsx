@@ -207,7 +207,7 @@ export function LobbyScreen() {
               </button>
             </div>
           ) : null}
-          <LobbyChat className="min-h-0 flex-1" />
+          <LobbyChat className="min-h-0" />
         </div>
 
         <div
