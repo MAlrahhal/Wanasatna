@@ -14,6 +14,10 @@ const ABORT_MESSAGES: Record<GameShellAbortReason, string | undefined> = {
   insufficient_players: 'تم إنهاء اللعبة لعدم توفر عدد كافٍ من اللاعبين.',
 };
 
+function markMarathonAbortReason(reason: GameShellAbortReason, message: string): string {
+  return reason === 'insufficient_players' ? `[skipped] ${message}` : message;
+}
+
 export async function abortActiveMatch(
   io: Server,
   roomId: string,
@@ -45,9 +49,12 @@ export async function abortActiveMatch(
     io,
     roomId,
     abortedShellId,
-    reason === 'insufficient_players'
-      ? 'تم تخطي اللعبة لعدم توفر عدد كافٍ من اللاعبين.'
-      : 'أنهى المضيف هذه اللعبة.',
+    markMarathonAbortReason(
+      reason,
+      reason === 'insufficient_players'
+        ? 'تم تخطي اللعبة لعدم توفر عدد كافٍ من اللاعبين.'
+        : 'أنهى المضيف هذه اللعبة.',
+    ),
   );
 
   console.info('[game-restart]', {

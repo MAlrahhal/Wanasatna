@@ -23,4 +23,23 @@ assert.match(source, /selected\.length >= MARATHON_MAX_GAMES/);
 assert.match(source, /اختر لعبتين على الأقل للبدء/);
 assert.match(source, /وصلت إلى الحد الأقصى: 7 ألعاب/);
 
-console.log('PASS Marathon setup limits and automatic transition UI contract');
+assert.match(source, /if \(!isHost\)/);
+assert.match(source, /المضيف يجهّز ماراثون الألعاب الآن/);
+assert.match(source, /setConfigurations\(\(current\) => \(\{ \.\.\.current, \[gameId\]/);
+assert.match(source, /const next = \[\.\.\.current\]/);
+assert.match(source, /lastTransition/);
+assert.match(source, /تم إنهاء لعبة/);
+assert.match(source, /تم تخطي لعبة/);
+assert.match(source, /اكتملت لعبة/);
+assert.match(source, /اللعبة القادمة:/);
+assert.match(source, /endMarathon/);
+
+const managementSource = readFileSync(
+  path.join(root, 'components/game-experience/game-room-management-dialog.tsx'),
+  'utf8',
+);
+assert.match(managementSource, /confirmAction === 'end-marathon'/);
+assert.match(managementSource, /إنهاء الماراثون/);
+assert.match(managementSource, /متابعة الماراثون إلى اللعبة التالية/);
+
+console.log('PASS Marathon setup limits, host privacy, controls, and transition UI contract');

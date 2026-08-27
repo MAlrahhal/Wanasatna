@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { UiDialog } from '@/components/ui/dialog';
 import { useGameShell } from '@/contexts/game-shell-context';
+import { useMarathon } from '@/contexts/marathon-context';
 import { useRoom } from '@/contexts/room-context';
 import { buildRoomInviteUrl } from '@/lib/room/session';
 import { SYSTEM_COPY, copyLinkFailedMessage } from '@/lib/ui/system-copy';
@@ -16,7 +17,7 @@ type GameRoomManagementDialogProps = {
   gameName: string;
 };
 
-type ConfirmAction = 'end-game' | 'leave-room' | null;
+type ConfirmAction = 'end-game' | 'end-marathon' | 'leave-room' | null;
 
 export function GameRoomManagementDialog({
   open,
@@ -25,6 +26,7 @@ export function GameRoomManagementDialog({
   gameName,
 }: GameRoomManagementDialogProps) {
   const { endGame } = useGameShell();
+  const { state: marathon, endMarathon } = useMarathon();
   const { leaveRoom } = useRoom();
   const [copiedCode, setCopiedCode] = useState(false);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
@@ -90,6 +92,12 @@ export function GameRoomManagementDialog({
         return;
       }
 
+      if (confirmAction === 'end-marathon') {
+        const ended = await endMarathon();
+        if (ended) onClose();
+        return;
+      }
+
       await leaveRoom('/');
     } finally {
       setIsSubmitting(false);
@@ -104,14 +112,14 @@ export function GameRoomManagementDialog({
         role="presentation"
         onClick={onClose}
       >
-        <div className="absolute inset-0 bg-wanas-text-primary/50" aria-hidden />
+        <div className="bg-wanas-text-primary/50 absolute inset-0" aria-hidden />
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="game-room-management-title"
           dir="rtl"
           className={cn(
-            'relative z-10 flex max-h-[min(88dvh,100%)] w-full max-w-md flex-col overflow-y-auto rounded-t-[var(--wanas-radius-panel)] border border-wanas-border bg-wanas-surface p-5 shadow-[var(--wanas-shadow-panel)] sm:rounded-[var(--wanas-radius-panel)] sm:p-6',
+            'border-wanas-border bg-wanas-surface relative z-10 flex max-h-[min(88dvh,100%)] w-full max-w-md flex-col overflow-y-auto rounded-t-[var(--wanas-radius-panel)] border p-5 shadow-[var(--wanas-shadow-panel)] sm:rounded-[var(--wanas-radius-panel)] sm:p-6',
             'pb-[max(1.25rem,env(safe-area-inset-bottom))]',
           )}
           onClick={(event) => event.stopPropagation()}
@@ -120,16 +128,16 @@ export function GameRoomManagementDialog({
             <div>
               <h2
                 id="game-room-management-title"
-                className="text-xl font-bold leading-7 text-wanas-text-primary"
+                className="text-wanas-text-primary text-xl font-bold leading-7"
               >
                 إدارة الغرفة
               </h2>
-              <p className="mt-1 text-sm leading-7 text-wanas-text-secondary">{gameName}</p>
+              <p className="text-wanas-text-secondary mt-1 text-sm leading-7">{gameName}</p>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex size-11 min-h-11 min-w-11 items-center justify-center rounded-lg text-wanas-text-muted hover:bg-wanas-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/45"
+              className="text-wanas-text-muted hover:bg-wanas-surface-soft focus-visible:ring-wanas-accent/45 inline-flex size-11 min-h-11 min-w-11 items-center justify-center rounded-lg focus-visible:outline-none focus-visible:ring-2"
               aria-label="إغلاق"
             >
               ✕
@@ -138,9 +146,12 @@ export function GameRoomManagementDialog({
 
           <dl className="space-y-4">
             <div>
-              <dt className="text-xs font-medium text-wanas-text-muted">رمز الغرفة</dt>
+              <dt className="text-wanas-text-muted text-xs font-medium">رمز الغرفة</dt>
               <dd className="mt-1 flex items-center gap-2">
-                <span dir="ltr" className="font-mono text-lg font-bold tracking-widest text-wanas-text-primary">
+                <span
+                  dir="ltr"
+                  className="text-wanas-text-primary font-mono text-lg font-bold tracking-widest"
+                >
                   {roomCode}
                 </span>
                 <Button
@@ -160,15 +171,22 @@ export function GameRoomManagementDialog({
             </div>
 
             <div>
-              <dt className="text-xs font-medium text-wanas-text-muted">رابط الدعوة</dt>
-              <dd className="mt-1 min-w-0 truncate rounded-lg border border-wanas-border bg-wanas-surface-soft px-3 py-2 text-xs text-wanas-text-muted" dir="ltr">
+              <dt className="text-wanas-text-muted text-xs font-medium">رابط الدعوة</dt>
+              <dd
+                className="border-wanas-border bg-wanas-surface-soft text-wanas-text-muted mt-1 min-w-0 truncate rounded-lg border px-3 py-2 text-xs"
+                dir="ltr"
+              >
                 {inviteUrl}
               </dd>
             </div>
           </dl>
 
           <div className="mt-5 flex flex-col gap-2">
-            <Button type="button" className="min-h-11 w-full" onClick={() => void handleCopyRoomLink()}>
+            <Button
+              type="button"
+              className="min-h-11 w-full"
+              onClick={() => void handleCopyRoomLink()}
+            >
               {shareMessage === SYSTEM_COPY.copiedLink ? 'تم نسخ الرابط' : 'مشاركة الغرفة'}
             </Button>
             <Button
@@ -179,6 +197,16 @@ export function GameRoomManagementDialog({
             >
               إنهاء اللعبة
             </Button>
+            {marathon && marathon.status !== 'PREPARING' && marathon.status !== 'FINISHED' ? (
+              <Button
+                type="button"
+                variant="destructive"
+                className="min-h-11 w-full"
+                onClick={() => setConfirmAction('end-marathon')}
+              >
+                إنهاء الماراثون
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="destructive"
@@ -193,7 +221,7 @@ export function GameRoomManagementDialog({
           </div>
 
           {shareMessage ? (
-            <p className="mt-3 text-center text-xs text-wanas-text-muted" role="status">
+            <p className="text-wanas-text-muted mt-3 text-center text-xs" role="status">
               {shareMessage}
             </p>
           ) : null}
@@ -203,10 +231,25 @@ export function GameRoomManagementDialog({
       <UiDialog
         open={confirmAction === 'end-game'}
         title="إنهاء اللعبة؟"
-        description="سيتم إنهاء المباراة الحالية والعودة إلى اختيار الألعاب لجميع اللاعبين."
+        description={
+          marathon && marathon.status !== 'FINISHED'
+            ? 'سيتم إنهاء اللعبة الحالية فقط، ثم متابعة الماراثون إلى اللعبة التالية.'
+            : 'سيتم إنهاء المباراة الحالية والعودة إلى اختيار الألعاب لجميع اللاعبين.'
+        }
         variant="warning"
         cancelLabel={SYSTEM_COPY.cancel}
         confirmLabel={isSubmitting ? 'جاري الإنهاء…' : 'إنهاء اللعبة'}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={() => void handleConfirm()}
+      />
+
+      <UiDialog
+        open={confirmAction === 'end-marathon'}
+        title="إنهاء الماراثون؟"
+        description="ستتوقف اللعبة الحالية ولن تبدأ أي لعبة أخرى. ستظهر النتائج النهائية بالنقاط المكتسبة حتى الآن، ثم يعود الجميع إلى اللوبي."
+        variant="warning"
+        cancelLabel={SYSTEM_COPY.cancel}
+        confirmLabel={isSubmitting ? 'جاري الإنهاء…' : 'إنهاء الماراثون'}
         onClose={() => setConfirmAction(null)}
         onConfirm={() => void handleConfirm()}
       />

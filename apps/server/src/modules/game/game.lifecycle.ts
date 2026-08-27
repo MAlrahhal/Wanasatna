@@ -1,6 +1,10 @@
 import type { Server } from 'socket.io';
 import type { GameShellAbortReason } from '@wanasatna/shared';
-import { advanceShellToCountdownFromLobby, deleteGameShell, getGameShellByRoomId } from './game.service.js';
+import {
+  advanceShellToCountdownFromLobby,
+  deleteGameShell,
+  getGameShellByRoomId,
+} from './game.service.js';
 import { resolveLobbyWaitMs } from '../../config/test-timers.js';
 import { logGameShellDiagnostic } from './game.diagnostics.js';
 import {
@@ -255,7 +259,8 @@ export function teardownShellAndReturnToLobby(
     message?: string;
   },
 ): void {
-  if (getMarathonState(roomId)?.status === 'TRANSITION') {
+  const marathonStatus = getMarathonState(roomId)?.status;
+  if (marathonStatus === 'TRANSITION' || marathonStatus === 'FINISHED') {
     cleanupGameShellRuntime(roomId);
     deleteGameShell(roomId);
     return;

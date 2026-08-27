@@ -1,6 +1,7 @@
 import type { Server, Socket } from 'socket.io';
 import {
   MARATHON_CONTINUE_EVENT,
+  MARATHON_END_EVENT,
   MARATHON_PREPARE_EVENT,
   MARATHON_RETURN_TO_LOBBY_EVENT,
   MARATHON_START_EVENT,
@@ -16,7 +17,13 @@ import {
 } from '../game/game.socket.utils.js';
 import { getRoomChannel } from '../room/room.utils.js';
 import { getMarathonState } from './marathon.store.js';
-import { continueMarathon, prepareMarathon, startMarathon } from './marathon.runtime.js';
+import {
+  continueMarathon,
+  endMarathonByHost,
+  prepareMarathon,
+  startMarathon,
+  toMarathonClientState,
+} from './marathon.runtime.js';
 import { validateMarathonPlan } from './marathon.validation.js';
 
 function validationError(message: string) {
@@ -36,12 +43,13 @@ export function registerMarathonSocketHandlers(io: Server, socket: Socket): void
         sendGameResponse(callback, validationError('المضيف فقط يمكنه تجهيز الماراتون.'));
         return;
       }
-      io.to(getRoomChannel(state.roomId)).emit(MARATHON_STATE_EVENT, { state });
+      const clientState = toMarathonClientState(state);
+      io.to(getRoomChannel(state.roomId)).emit(MARATHON_STATE_EVENT, { state: clientState });
       io.to(getRoomChannel(state.roomId)).emit('game-shell-navigate', {
         path: '/marathon',
         roomId: state.roomId,
       });
-      sendGameResponse(callback, { success: true, data: { state } });
+      sendGameResponse(callback, { success: true, data: { state: clientState } });
     } catch {
       sendGameInternalError(callback);
     }
@@ -54,10 +62,11 @@ export function registerMarathonSocketHandlers(io: Server, socket: Socket): void
       return;
     }
     const state = getMarathonState(socket.data.roomId!);
+    const clientState = state ? toMarathonClientState(state) : null;
     if (state) {
-      socket.emit(MARATHON_STATE_EVENT, { state });
+      socket.emit(MARATHON_STATE_EVENT, { state: clientState });
     }
-    sendGameResponse(callback, { success: true, data: { state } });
+    sendGameResponse(callback, { success: true, data: { state: clientState } });
   });
 
   socket.on(MARATHON_START_EVENT, async (payload: StartMarathonPayload, callback) => {
@@ -81,8 +90,27 @@ export function registerMarathonSocketHandlers(io: Server, socket: Socket): void
       sendGameResponse(
         callback,
         result.success
-          ? { success: true, data: { state: result.state } }
+          ? { success: true, data: { state: toMarathonClientState(result.state) } }
           : validationError(result.message),
+      );
+    } catch {
+      sendGameInternalError(callback);
+    }
+  });
+
+  socket.on(MARATHON_END_EVENT, async (_payload: unknown, callback) => {
+    const contextError = getGameSocketContext(socket);
+    if (contextError) {
+      sendGameResponse(callback, contextError);
+      return;
+    }
+    try {
+      const state = await endMarathonByHost(io, socket.data.roomId!, socket.data.playerId!);
+      sendGameResponse(
+        callback,
+        state
+          ? { success: true, data: { state: toMarathonClientState(state) } }
+          : validationError('المضيف الحالي فقط يمكنه إنهاء الماراثون.'),
       );
     } catch {
       sendGameInternalError(callback);
@@ -100,7 +128,7 @@ export function registerMarathonSocketHandlers(io: Server, socket: Socket): void
       sendGameResponse(
         callback,
         state
-          ? { success: true, data: { state } }
+          ? { success: true, data: { state: toMarathonClientState(state) } }
           : validationError('انتهت صلاحية هذا الإجراء أو أنك لست المضيف الحالي.'),
       );
     } catch {

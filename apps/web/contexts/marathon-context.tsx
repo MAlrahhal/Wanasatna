@@ -11,6 +11,7 @@ import {
 } from 'react';
 import {
   MARATHON_CONTINUE_EVENT,
+  MARATHON_END_EVENT,
   MARATHON_PREPARE_EVENT,
   MARATHON_RETURN_TO_LOBBY_EVENT,
   MARATHON_START_EVENT,
@@ -30,6 +31,7 @@ type MarathonContextValue = {
   start: (gamePlan: MarathonGamePlanItem[]) => Promise<boolean>;
   continueNow: () => Promise<void>;
   returnToLobby: () => Promise<void>;
+  endMarathon: () => Promise<boolean>;
 };
 
 const MarathonContext = createContext<MarathonContextValue | null>(null);
@@ -100,9 +102,20 @@ export function MarathonProvider({ children }: { children: ReactNode }) {
     if (!response.success) setErrorMessage(response.error.message);
   }, []);
 
+  const endMarathon = useCallback(async () => {
+    const response = await emitGameShellWithAck<{ state: MarathonState }>(MARATHON_END_EVENT);
+    if (!response.success) {
+      setErrorMessage(response.error.message);
+      return false;
+    }
+    setErrorMessage(null);
+    setState(response.data.state);
+    return true;
+  }, []);
+
   const value = useMemo(
-    () => ({ state, errorMessage, prepare, start, continueNow, returnToLobby }),
-    [state, errorMessage, prepare, start, continueNow, returnToLobby],
+    () => ({ state, errorMessage, prepare, start, continueNow, returnToLobby, endMarathon }),
+    [state, errorMessage, prepare, start, continueNow, returnToLobby, endMarathon],
   );
   return <MarathonContext.Provider value={value}>{children}</MarathonContext.Provider>;
 }

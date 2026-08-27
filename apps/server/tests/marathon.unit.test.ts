@@ -26,7 +26,7 @@ function item(gameId: string, settings: Record<string, number> = {}) {
   return {
     gameId,
     configuration: {
-      categoryId: 'all',
+      categoryId: gameId === 'timing-challenge' ? null : 'random',
       settings,
       ...(gameId === 'timing-challenge'
         ? { timingChallenge: { mode: 'guess-time', minSeconds: 3, maxSeconds: 15 } }
@@ -60,6 +60,29 @@ test('accepts all seven games', () => {
     validateMarathonPlan(MARATHON_SUPPORTED_GAME_IDS.map((id) => item(id))).success,
     true,
   );
+});
+
+test('each leg keeps an independent validated settings snapshot through reorder', () => {
+  const original = [
+    item('fast-answer', { rounds: 7, answerSeconds: 20 }),
+    item('judge', { answerSeconds: 60, judgeSeconds: 30 }),
+  ];
+  const reordered = validateMarathonPlan([original[1], original[0]]);
+  assert.equal(reordered.success, true);
+  if (reordered.success) {
+    assert.deepEqual(reordered.plan[0]!.configuration.settings, {
+      answerSeconds: 60,
+      judgeSeconds: 30,
+    });
+    assert.deepEqual(reordered.plan[1]!.configuration.settings, {
+      answerSeconds: 20,
+      rounds: 7,
+    });
+    assert.notEqual(
+      reordered.plan[0]!.configuration.settings,
+      reordered.plan[1]!.configuration.settings,
+    );
+  }
 });
 
 test('rejects one game, duplicates, and Guessing Challenge', () => {
@@ -114,6 +137,56 @@ test('transition is ten seconds and authoritative path has stale guards', () => 
   assert.match(source, /startGameShellFromLobby/);
 });
 
+test('setup mutations and End Marathon are current-host authorized server-side', () => {
+  const runtime = readFileSync(
+    new URL('../src/modules/marathon/marathon.runtime.ts', import.meta.url),
+    'utf8',
+  );
+  const socket = readFileSync(
+    new URL('../src/modules/marathon/marathon.socket.ts', import.meta.url),
+    'utf8',
+  );
+  assert.match(runtime, /currentHost\(roomId\)\) !== playerId/);
+  assert.match(runtime, /export async function endMarathonByHost/);
+  assert.match(runtime, /finishReason: 'host-ended'/);
+  assert.match(socket, /MARATHON_END_EVENT/);
+});
+
+test('client state redacts every leg configuration while preserving game order', () => {
+  const runtime = readFileSync(
+    new URL('../src/modules/marathon/marathon.runtime.ts', import.meta.url),
+    'utf8',
+  );
+  const socket = readFileSync(
+    new URL('../src/modules/marathon/marathon.socket.ts', import.meta.url),
+    'utf8',
+  );
+  assert.match(runtime, /configuration: \{ categoryId: null, settings: \{\} \}/);
+  assert.match(socket, /toMarathonClientState\(state\)/);
+});
+
+test('intermediate transitions stay on Marathon and final cleanup alone returns to Lobby', () => {
+  const runtime = readFileSync(
+    new URL('../src/modules/marathon/marathon.runtime.ts', import.meta.url),
+    'utf8',
+  );
+  const transitionStart = runtime.indexOf('export function activateMarathonTransition');
+  const transitionEnd = runtime.indexOf('function scheduleAdvance', transitionStart);
+  const transitionSource = runtime.slice(transitionStart, transitionEnd);
+  assert.match(transitionSource, /path: '\/marathon'/);
+  assert.doesNotMatch(
+    transitionSource,
+    /navigateRoomToLobby|clearRoomSpectatorFlags|deleteMarathonState/,
+  );
+  assert.match(runtime, /returnMarathonToLobby/);
+  assert.match(runtime, /endingRooms\.has\(state\.roomId\)/);
+  const lifecycle = readFileSync(
+    new URL('../src/modules/game/game.lifecycle.ts', import.meta.url),
+    'utf8',
+  );
+  assert.match(lifecycle, /marathonStatus === 'TRANSITION' \|\| marathonStatus === 'FINISHED'/);
+});
+
 test('persisted match is awaited before Marathon leg teardown/advance', () => {
   const source = readFileSync(
     new URL('../src/modules/game/runtime/persist-completed-match.ts', import.meta.url),
@@ -150,7 +223,10 @@ test('midway joins stay spectators until final Marathon cleanup', () => {
   assert.match(cleanupSource, /await clearRoomSpectatorFlags\(roomId\)/);
   assert.ok(
     cleanupSource.indexOf('await clearRoomSpectatorFlags(roomId)') <
-      cleanupSource.indexOf('deleteMarathonState(roomId)', cleanupSource.indexOf('returnMarathonToLobby')),
+      cleanupSource.indexOf(
+        'deleteMarathonState(roomId)',
+        cleanupSource.indexOf('returnMarathonToLobby'),
+      ),
   );
 });
 
@@ -174,10 +250,7 @@ test('insufficient-player abort skips the current leg instead of ending the Mara
 
 test('standalone Guessing Challenge completion remains outside Marathon persistence path', () => {
   const source = readFileSync(
-    new URL(
-      '../src/modules/game/plugins/guessing-challenge/match-lifecycle.ts',
-      import.meta.url,
-    ),
+    new URL('../src/modules/game/plugins/guessing-challenge/match-lifecycle.ts', import.meta.url),
     'utf8',
   );
   assert.match(source, /persistCompletedMatchThen\(roomId, \(\) =>/);

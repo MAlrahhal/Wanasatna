@@ -12,6 +12,7 @@ import {
   type MarathonGameConfiguration,
   type MarathonGameId,
   type MarathonGamePlanItem,
+  type MarathonState,
 } from '@wanasatna/shared';
 import { useMarathon } from '@/contexts/marathon-context';
 import { useRoom } from '@/contexts/room-context';
@@ -28,13 +29,19 @@ const gameById = new Map(mockLobbyGames.map((game) => [game.id, game]));
 function createConfiguration(gameId: MarathonGameId): MarathonGameConfiguration {
   const settings: Record<string, number> = {};
   for (const spec of ADMIN_GAME_SETTING_SPECS[gameId] ?? []) {
-    if (!(gameId === 'judge' && spec.key === 'rounds')) settings[spec.key] = spec.default;
+    settings[spec.key] = spec.default;
   }
   return {
     categoryId: getDefaultRoundCategoryId(gameId),
     settings,
     ...(gameId === 'timing-challenge'
-      ? { timingChallenge: { mode: 'guess-time' as const, minSeconds: 3, maxSeconds: 15 } }
+      ? {
+          timingChallenge: {
+            mode: 'guess-time' as const,
+            minSeconds: settings.minSeconds ?? 3,
+            maxSeconds: settings.maxSeconds ?? 15,
+          },
+        }
       : {}),
     ...(gameId === 'draw-guess' ? { drawGuess: { drawerMode: 'random' as const } } : {}),
   };
@@ -65,6 +72,15 @@ function GameIdentity({ gameId }: { gameId: MarathonGameId }) {
   );
 }
 
+function transitionCopy(state: MarathonState): string | null {
+  const transition = state.lastTransition;
+  if (!transition) return null;
+  const gameName = gameById.get(transition.gameId)?.title ?? transition.gameId;
+  if (transition.kind === 'host-ended') return `تم إنهاء لعبة ${gameName} بواسطة المضيف`;
+  if (transition.kind === 'skipped') return `تم تخطي لعبة ${gameName}: ${transition.reason ?? ''}`;
+  return `اكتملت لعبة ${gameName}`;
+}
+
 function Leaderboard({
   entries,
 }: {
@@ -89,11 +105,13 @@ function Leaderboard({
 }
 
 function MarathonResults() {
-  const { state, errorMessage } = useMarathon();
+  const { state, errorMessage, endMarathon } = useMarathon();
+  const { isHost } = useRoom();
   const remaining = useCountdown(state?.transitionDeadlineAtMs ?? null);
   if (!state) return <SystemStatus tone="loading" title="جارٍ مزامنة الماراتون…" />;
   const final = state.status === 'FINISHED';
   const next = !final ? state.gamePlan[state.currentGameIndex + 1] : null;
+  const completedCopy = transitionCopy(state);
   const countdownDuration = final ? MARATHON_FINAL_RESULTS_SECONDS : MARATHON_TRANSITION_SECONDS;
   const progress = Math.min(100, Math.max(0, (remaining / countdownDuration) * 100));
   return (
@@ -102,9 +120,13 @@ function MarathonResults() {
         <p className="text-wanas-accent text-sm font-bold">
           {final
             ? 'النتائج النهائية'
-            : `اكتملت المباراة ${state.completedGames.length} من ${state.gamePlan.length}`}
+            : `المرحلة ${state.currentGameIndex + 1} من ${state.gamePlan.length}`}
         </p>
         <h1 className="mt-1 text-3xl font-black">نتائج الماراثون</h1>
+        {completedCopy ? <p className="mt-2 text-lg font-bold">{completedCopy}</p> : null}
+        {final && state.finishReason === 'host-ended' ? (
+          <p className="text-wanas-warning mt-2 text-sm font-bold">أنهى المضيف الماراثون</p>
+        ) : null}
         {final && state.leaderboard[0] ? (
           <p className="mt-2 text-lg">
             🏆 الفائز: <strong>{state.leaderboard[0].playerName}</strong>
@@ -128,6 +150,9 @@ function MarathonResults() {
         <section className="border-wanas-accent/35 bg-wanas-surface rounded-2xl border p-4 shadow-[var(--wanas-shadow-panel)]">
           <p className="text-wanas-accent mb-3 text-sm font-bold">اللعبة التالية:</p>
           <GameIdentity gameId={next.gameId} />
+          <p className="mt-3 text-center font-bold">
+            اللعبة القادمة: {gameById.get(next.gameId)?.title}
+          </p>
         </section>
       ) : null}
       <section
@@ -163,6 +188,11 @@ function MarathonResults() {
         </div>
       </section>
       {errorMessage ? <SystemStatus tone="error" title={errorMessage} /> : null}
+      {!final && isHost ? (
+        <Button type="button" variant="destructive" onClick={() => void endMarathon()}>
+          إنهاء الماراثون
+        </Button>
+      ) : null}
     </main>
   );
 }
@@ -221,6 +251,23 @@ export function MarathonPageClient() {
   }
   function update(gameId: MarathonGameId, patch: Partial<MarathonGameConfiguration>) {
     setConfigurations((current) => ({ ...current, [gameId]: { ...current[gameId], ...patch } }));
+  }
+  function updateSetting(gameId: MarathonGameId, key: string, value: number) {
+    const configuration = configurations[gameId];
+    if (gameId === 'timing-challenge' && configuration.timingChallenge) {
+      const requestedMin = key === 'minSeconds' ? value : configuration.timingChallenge.minSeconds;
+      const requestedMax = key === 'maxSeconds' ? value : configuration.timingChallenge.maxSeconds;
+      const maxSeconds = Math.min(60, Math.max(requestedMin + 1, requestedMax));
+      const minSeconds = Math.max(1, Math.min(requestedMin, maxSeconds - 1));
+      update(gameId, {
+        settings: { ...configuration.settings, minSeconds, maxSeconds },
+        timingChallenge: { ...configuration.timingChallenge, minSeconds, maxSeconds },
+      });
+      return;
+    }
+    update(gameId, {
+      settings: { ...configuration.settings, [key]: value },
+    });
   }
   async function begin() {
     setStarting(true);
@@ -334,31 +381,29 @@ export function MarathonPageClient() {
                         </select>
                       </label>
                     ) : null}
-                    {(ADMIN_GAME_SETTING_SPECS[gameId] ?? []).map((spec) =>
-                      gameId === 'judge' && spec.key === 'rounds' ? null : (
-                        <label key={spec.key} className="text-sm font-bold">
-                          {spec.label}
-                          <select
-                            className="border-wanas-border bg-wanas-surface-soft mt-1 h-11 w-full rounded-lg border px-3"
-                            value={configuration.settings[spec.key] ?? spec.default}
-                            onChange={(event) =>
-                              update(gameId, {
-                                settings: {
-                                  ...configuration.settings,
-                                  [spec.key]: Number(event.target.value),
-                                },
-                              })
-                            }
-                          >
-                            {settingSelectOptions(spec).map((value) => (
+                    {(ADMIN_GAME_SETTING_SPECS[gameId] ?? []).map((spec) => (
+                      <label key={spec.key} className="text-sm font-bold">
+                        {spec.label}
+                        <select
+                          className="border-wanas-border bg-wanas-surface-soft mt-1 h-11 w-full rounded-lg border px-3"
+                          value={configuration.settings[spec.key] ?? spec.default}
+                          onChange={(event) =>
+                            updateSetting(gameId, spec.key, Number(event.target.value))
+                          }
+                        >
+                          {gameId === 'judge' && spec.key === 'rounds' ? (
+                            <option value={0}>تلقائي ({Math.max(1, players.length)})</option>
+                          ) : null}
+                          {settingSelectOptions(spec)
+                            .filter((value) => gameId !== 'timing-challenge' || value <= 60)
+                            .map((value) => (
                               <option key={value} value={value}>
                                 {value}
                               </option>
                             ))}
-                          </select>
-                        </label>
-                      ),
-                    )}
+                        </select>
+                      </label>
+                    ))}
                     {gameId === 'timing-challenge' && configuration.timingChallenge ? (
                       <label className="text-sm font-bold">
                         وضع اللعب

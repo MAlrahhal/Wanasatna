@@ -59,6 +59,13 @@ export type MarathonSkippedGame = {
   reason: string;
 };
 
+export type MarathonTransition = {
+  gameIndex: number;
+  gameId: MarathonGameId;
+  kind: 'completed' | 'host-ended' | 'skipped';
+  reason: string | null;
+};
+
 export type MarathonStatus = 'PREPARING' | 'PLAYING' | 'TRANSITION' | 'FINISHED';
 
 export type MarathonState = {
@@ -75,6 +82,8 @@ export type MarathonState = {
   departedPlayerIds: string[];
   completedGames: MarathonCompletedGame[];
   skippedGames: MarathonSkippedGame[];
+  lastTransition: MarathonTransition | null;
+  finishReason: 'completed' | 'host-ended' | null;
   transitionDeadlineAtMs: number | null;
   startedAt: string | null;
   finishedAt: string | null;
@@ -94,6 +103,7 @@ export const MARATHON_START_EVENT = 'marathon-start' as const;
 export const MARATHON_SYNC_EVENT = 'marathon-sync' as const;
 export const MARATHON_CONTINUE_EVENT = 'marathon-continue' as const;
 export const MARATHON_RETURN_TO_LOBBY_EVENT = 'marathon-return-to-lobby' as const;
+export const MARATHON_END_EVENT = 'marathon-end' as const;
 export const MARATHON_STATE_EVENT = 'marathon-state' as const;
 
 export function isMarathonGameId(value: string): value is MarathonGameId {

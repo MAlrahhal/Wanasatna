@@ -14,6 +14,7 @@ import {
   type MarathonState,
 } from '@wanasatna/shared';
 import { prisma } from '../../lib/prisma.js';
+import { abortPersistedMatch } from '../match/match-history.service.js';
 import type { MatchParticipantResult } from '../match/match-history.types.js';
 import { getRoomChannel } from '../room/room.utils.js';
 import { getRoomGameSettings, setRoomGameSettingsCache } from '../room/room-game-settings.store.js';
@@ -22,12 +23,19 @@ import { broadcastRoomPlayersSnapshot } from '../room/room.utils.js';
 import { applyDrawGuessLobbySettings } from '../game/plugins/draw-guess/socket.handlers.js';
 import { applyTimingChallengeLobbySettings } from '../game/plugins/timing-challenge/socket.handlers.js';
 import {
+  cleanupGameShellRuntime,
   navigateRoomToGame,
   navigateRoomToLobby,
   scheduleGameShellLifecycle,
 } from '../game/game.lifecycle.js';
 import { broadcastGameShellState, stopGameShellTimer } from '../game/game.timer.js';
-import { getGameShellByRoomId, startGameShellFromLobby } from '../game/game.service.js';
+import {
+  deleteGameShell,
+  getGameShellByRoomId,
+  startGameShellFromLobby,
+} from '../game/game.service.js';
+import { cleanupPluginMatchState } from '../game/runtime/cleanup-plugin-match.js';
+import { clearPlayerRecoveryForTeardown } from '../game/runtime/player-recovery.js';
 import { setRoomRoundCategory } from '../game/runtime/round-category-store.js';
 import {
   deleteMarathonState,
@@ -38,6 +46,7 @@ import {
 
 const timers = new Map<string, ReturnType<typeof setTimeout>>();
 const advancingRooms = new Set<string>();
+const endingRooms = new Set<string>();
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -73,7 +82,19 @@ function save(state: MarathonState): MarathonState {
 }
 
 function broadcast(io: Server, state: MarathonState): void {
-  io.to(getRoomChannel(state.roomId)).emit(MARATHON_STATE_EVENT, { state });
+  io.to(getRoomChannel(state.roomId)).emit(MARATHON_STATE_EVENT, {
+    state: toMarathonClientState(state),
+  });
+}
+
+export function toMarathonClientState(state: MarathonState): MarathonState {
+  return {
+    ...state,
+    gamePlan: state.gamePlan.map((item) => ({
+      gameId: item.gameId,
+      configuration: { categoryId: null, settings: {} },
+    })),
+  };
 }
 
 function clearTimer(roomId: string): void {
@@ -91,6 +112,7 @@ export function isMarathonActive(roomId: string): boolean {
 export function clearMarathonState(roomId: string): void {
   clearTimer(roomId);
   advancingRooms.delete(roomId);
+  endingRooms.delete(roomId);
   deleteMarathonState(roomId);
 }
 
@@ -126,6 +148,8 @@ export async function prepareMarathon(
     departedPlayerIds: [],
     completedGames: [],
     skippedGames: [],
+    lastTransition: null,
+    finishReason: null,
     transitionDeadlineAtMs: null,
     startedAt: null,
     finishedAt: null,
@@ -214,13 +238,18 @@ function applyConfiguration(
   return null;
 }
 
-async function finishMarathon(io: Server, state: MarathonState): Promise<MarathonState> {
+async function finishMarathon(
+  io: Server,
+  state: MarathonState,
+  finishReason: MarathonState['finishReason'] = 'completed',
+): Promise<MarathonState> {
   const next = save({
     ...state,
     status: 'FINISHED',
     activeShellId: null,
     transitionDeadlineAtMs: Date.now() + MARATHON_FINAL_RESULTS_SECONDS * 1000,
     finishedAt: nowIso(),
+    finishReason,
     timerGeneration: state.timerGeneration + 1,
   });
   broadcast(io, next);
@@ -233,7 +262,7 @@ async function startNextPlayableLeg(
   state: MarathonState,
   fromIndex: number,
 ): Promise<MarathonState> {
-  if (advancingRooms.has(state.roomId)) {
+  if (advancingRooms.has(state.roomId) || endingRooms.has(state.roomId)) {
     return getMarathonState(state.roomId) ?? state;
   }
   advancingRooms.add(state.roomId);
@@ -252,7 +281,12 @@ async function startNextPlayableLegUnlocked(
   clearTimer(state.roomId);
   for (let index = fromIndex; index < state.gamePlan.length; index += 1) {
     const latest = getMarathonState(state.roomId);
-    if (!latest || latest.marathonId !== state.marathonId) {
+    if (
+      !latest ||
+      latest.marathonId !== state.marathonId ||
+      latest.status === 'FINISHED' ||
+      endingRooms.has(state.roomId)
+    ) {
       return state;
     }
     const connected = await prisma.player.findMany({
@@ -276,6 +310,7 @@ async function startNextPlayableLegUnlocked(
     if (!response?.success) {
       state = save({
         ...latest,
+        status: 'TRANSITION',
         currentGameIndex: index,
         skippedGames: [
           ...latest.skippedGames,
@@ -287,15 +322,39 @@ async function startNextPlayableLegUnlocked(
               (response && !response.success ? response.error.message : 'لا يوجد مضيف متصل.'),
           },
         ],
+        lastTransition: {
+          gameIndex: index,
+          gameId: item.gameId,
+          kind: 'skipped',
+          reason:
+            configurationError ??
+            (response && !response.success ? response.error.message : 'لا يوجد مضيف متصل.'),
+        },
+        transitionDeadlineAtMs: Date.now() + MARATHON_TRANSITION_SECONDS * 1000,
+        timerGeneration: latest.timerGeneration + 1,
       });
-      continue;
+      activateMarathonTransition(io, state);
+      return state;
+    }
+    const afterStart = getMarathonState(state.roomId);
+    if (
+      !afterStart ||
+      afterStart.marathonId !== state.marathonId ||
+      afterStart.status === 'FINISHED' ||
+      endingRooms.has(state.roomId)
+    ) {
+      cleanupGameShellRuntime(state.roomId);
+      cleanupPluginMatchState(state.roomId, item.gameId);
+      deleteGameShell(state.roomId);
+      return afterStart ?? state;
     }
     state = save({
-      ...latest,
+      ...afterStart,
       status: 'PLAYING',
       currentGameIndex: index,
       activeShellId: response.data.state.shellId,
       transitionDeadlineAtMs: null,
+      lastTransition: null,
     });
     stopGameShellTimer(state.roomId);
     broadcastGameShellState(io, response.data.state);
@@ -338,6 +397,12 @@ export function recordCompletedMarathonLeg(
     ],
     transitionDeadlineAtMs: Date.now() + MARATHON_TRANSITION_SECONDS * 1000,
     timerGeneration: state.timerGeneration + 1,
+    lastTransition: {
+      gameIndex: state.currentGameIndex,
+      gameId: state.gamePlan[state.currentGameIndex]!.gameId,
+      kind: 'completed',
+      reason: null,
+    },
   });
 }
 
@@ -356,6 +421,8 @@ export function recordAbortedMarathonLeg(
   shellId: string,
   reason: string,
 ): MarathonState | null {
+  const kind = reason.startsWith('[skipped] ') ? 'skipped' : 'host-ended';
+  const displayReason = reason.replace(/^\[skipped\] /, '');
   const state = getMarathonState(roomId);
   if (!state || state.status !== 'PLAYING' || state.activeShellId !== shellId) {
     return null;
@@ -367,15 +434,69 @@ export function recordAbortedMarathonLeg(
   const transition = save({
     ...state,
     status: 'TRANSITION',
-    skippedGames: [
-      ...state.skippedGames,
-      { gameIndex: state.currentGameIndex, gameId: item.gameId, reason },
-    ],
+    skippedGames:
+      kind === 'skipped'
+        ? [
+            ...state.skippedGames,
+            { gameIndex: state.currentGameIndex, gameId: item.gameId, reason: displayReason },
+          ]
+        : state.skippedGames,
+    lastTransition: {
+      gameIndex: state.currentGameIndex,
+      gameId: item.gameId,
+      kind,
+      reason: displayReason,
+    },
     transitionDeadlineAtMs: Date.now() + MARATHON_TRANSITION_SECONDS * 1000,
     timerGeneration: state.timerGeneration + 1,
   });
   activateMarathonTransition(io, transition);
   return transition;
+}
+
+export async function endMarathonByHost(
+  io: Server,
+  roomId: string,
+  playerId: string,
+): Promise<MarathonState | null> {
+  const state = getMarathonState(roomId);
+  if (!state || state.status === 'FINISHED' || (await currentHost(roomId)) !== playerId) {
+    return null;
+  }
+
+  endingRooms.add(roomId);
+  clearTimer(roomId);
+  const finished = save({
+    ...state,
+    status: 'FINISHED',
+    activeShellId: null,
+    transitionDeadlineAtMs: Date.now() + MARATHON_FINAL_RESULTS_SECONDS * 1000,
+    finishedAt: nowIso(),
+    finishReason: 'host-ended',
+    timerGeneration: state.timerGeneration + 1,
+  });
+
+  const shell = getGameShellByRoomId(roomId);
+  if (shell) {
+    try {
+      await abortPersistedMatch(roomId);
+    } catch (error) {
+      console.error('[marathon-lifecycle]', {
+        stage: 'host-end-persisted-match-abort-failed',
+        roomId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+    clearPlayerRecoveryForTeardown(io, roomId);
+    cleanupGameShellRuntime(roomId);
+    cleanupPluginMatchState(roomId, shell.gameId);
+    deleteGameShell(roomId);
+  }
+
+  broadcast(io, finished);
+  io.to(getRoomChannel(roomId)).emit('game-shell-navigate', { path: '/marathon', roomId });
+  scheduleAdvance(io, finished);
+  return finished;
 }
 
 function scheduleAdvance(io: Server, state: MarathonState): void {
@@ -437,6 +558,7 @@ export async function returnMarathonToLobby(io: Server, roomId: string): Promise
   await clearRoomSpectatorFlags(roomId);
   await broadcastRoomPlayersSnapshot(io, roomId);
   deleteMarathonState(roomId);
+  endingRooms.delete(roomId);
   navigateRoomToLobby(io, roomId);
 }
 

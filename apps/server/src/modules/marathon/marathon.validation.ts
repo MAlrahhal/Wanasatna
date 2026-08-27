@@ -5,6 +5,7 @@ import {
   isMarathonGameId,
   type MarathonGamePlanItem,
 } from '@wanasatna/shared';
+import { loadGameContentBundle } from '../content/loader.js';
 
 export type MarathonPlanValidation =
   { success: true; plan: MarathonGamePlanItem[] } | { success: false; message: string };
@@ -49,7 +50,7 @@ export function validateMarathonPlan(raw: unknown): MarathonPlanValidation {
       if (
         typeof value !== 'number' ||
         !Number.isInteger(value) ||
-        value < spec.min ||
+        (value < spec.min && !(item.gameId === 'judge' && spec.key === 'rounds' && value === 0)) ||
         value > spec.max
       ) {
         return { success: false, message: `إعداد ${spec.label} غير صالح.` };
@@ -61,6 +62,18 @@ export function validateMarathonPlan(raw: unknown): MarathonPlanValidation {
       typeof rawConfiguration.categoryId === 'string'
         ? rawConfiguration.categoryId.trim() || null
         : null;
+    if (item.gameId === 'timing-challenge' && categoryId !== null) {
+      return { success: false, message: 'هذه اللعبة لا تستخدم فئات.' };
+    }
+    if (item.gameId !== 'timing-challenge' && categoryId !== null) {
+      const validCategoryIds = new Set([
+        'random',
+        ...loadGameContentBundle(item.gameId).categories.map((category) => category.id),
+      ]);
+      if (!validCategoryIds.has(categoryId)) {
+        return { success: false, message: 'فئة اللعبة غير صالحة.' };
+      }
+    }
     const configuration: MarathonGamePlanItem['configuration'] = { categoryId, settings };
 
     if (item.gameId === 'timing-challenge') {
@@ -75,6 +88,12 @@ export function validateMarathonPlan(raw: unknown): MarathonPlanValidation {
         timing.minSeconds >= timing.maxSeconds
       ) {
         return { success: false, message: 'إعدادات تحدي التوقيت غير صالحة.' };
+      }
+      if (
+        (settings.minSeconds !== undefined && settings.minSeconds !== timing.minSeconds) ||
+        (settings.maxSeconds !== undefined && settings.maxSeconds !== timing.maxSeconds)
+      ) {
+        return { success: false, message: 'إعدادات وقت اللعبة غير متطابقة.' };
       }
       configuration.timingChallenge = {
         mode: timing.mode,
