@@ -1,12 +1,10 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { getDefaultPlayerAvatarId, MAX_ROOM_PLAYERS } from '@wanasatna/shared';
+import { MAX_ROOM_PLAYERS } from '@wanasatna/shared';
 import type { LobbyPlayer } from '@/lib/lobby/types';
 import { UiDialog } from '@/components/ui/dialog';
 import { LobbyPanel } from './lobby-ui';
-import { AvatarPickerDialog } from './avatar-picker-dialog';
-import { useRoom } from '@/contexts/room-context';
 import { PlayerCard } from './player-card';
 
 type PlayersPanelProps = {
@@ -17,6 +15,7 @@ type PlayersPanelProps = {
   activeMatchParticipantIds?: string[] | null;
   hasActiveMatch?: boolean;
   playerCap?: number;
+  onChangeAvatar?: () => void;
 };
 
 export function PlayersPanel({
@@ -27,13 +26,11 @@ export function PlayersPanel({
   activeMatchParticipantIds = null,
   hasActiveMatch = false,
   playerCap = MAX_ROOM_PLAYERS,
+  onChangeAvatar,
 }: PlayersPanelProps) {
   const participantSet = new Set(activeMatchParticipantIds ?? []);
   const [kickTarget, setKickTarget] = useState<LobbyPlayer | null>(null);
-  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const kickingRef = useRef(false);
-  const { updatePlayerAvatar } = useRoom();
-  const currentPlayer = players.find((player) => player.id === currentPlayerId) ?? null;
 
   function handleConfirmKick() {
     if (!kickTarget || kickingRef.current) {
@@ -64,7 +61,9 @@ export function PlayersPanel({
             isCurrentPlayer={player.id === currentPlayerId}
             canKick={isHost}
             onKick={() => setKickTarget(player)}
-            onAvatarClick={player.id === currentPlayerId && !hasActiveMatch ? () => setAvatarPickerOpen(true) : undefined}
+            onAvatarClick={
+              player.id === currentPlayerId && !hasActiveMatch ? onChangeAvatar : undefined
+            }
             isWaitingForNextMatch={
               hasActiveMatch && activeMatchParticipantIds !== null && !participantSet.has(player.id)
             }
@@ -72,7 +71,7 @@ export function PlayersPanel({
         ))}
       </div>
 
-      <p className="mt-1 text-center text-[11px] leading-5 text-wanas-text-muted">
+      <p className="text-wanas-text-muted mt-1 text-center text-[11px] leading-5">
         دعوة الأصدقاء غير متاحة حالياً.
       </p>
 
@@ -90,21 +89,6 @@ export function PlayersPanel({
         }}
         onConfirm={handleConfirmKick}
       />
-
-      {currentPlayer ? (
-        <AvatarPickerDialog
-          open={avatarPickerOpen}
-          playerId={currentPlayer.id}
-          playerName={currentPlayer.name}
-          selectedAvatarId={currentPlayer.avatarId ?? getDefaultPlayerAvatarId(currentPlayer.id)}
-          onClose={() => setAvatarPickerOpen(false)}
-          onSelect={(avatarId) => {
-            void updatePlayerAvatar(avatarId).then((success) => {
-              if (success) setAvatarPickerOpen(false);
-            });
-          }}
-        />
-      ) : null}
     </LobbyPanel>
   );
 }

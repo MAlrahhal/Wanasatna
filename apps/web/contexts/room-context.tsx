@@ -15,6 +15,7 @@ import type { LobbyPlayer } from '@/lib/lobby/types';
 import { getRoomErrorMessage } from '@/lib/room/error-messages';
 import {
   GAME_SHELL_NAVIGATE_EVENT,
+  END_ROOM_EVENT,
   GAME_SHELL_START_FROM_LOBBY_EVENT,
   GAME_SHELL_SYNC_EVENT,
   KICK_PLAYER_EVENT,
@@ -63,10 +64,7 @@ import { getRoomSocket } from '@/lib/room/socket';
 import { getRuntimeId, recordContinuity } from '@/lib/room-v2/continuity';
 import { emitRoomAck } from '@/lib/room-v2/emit';
 import { canAutoResumeWithExplicitName } from '@/lib/room-v2/join-intent';
-import {
-  getRoomSessionManager,
-  type RoomManagerState,
-} from '@/lib/room-v2';
+import { getRoomSessionManager, type RoomManagerState } from '@/lib/room-v2';
 import type { RoomLifecycleStatus } from '@/lib/room-v2/types';
 import { getDefaultRoundCategoryId } from '@/lib/game/round-categories';
 import { replaceHomeClean } from '@/lib/public/home-url';
@@ -109,6 +107,7 @@ type RoomContextValue = {
   selectRoundCategory: (categoryId: string) => void;
   startGame: () => Promise<void>;
   leaveRoom: (redirectTo?: string) => Promise<void>;
+  endRoom: () => Promise<boolean>;
   isWaitingForNextMatch: boolean;
   activeMatchParticipantIds: string[] | null;
   teamSnapshot: PregameTeamSnapshot | null;
@@ -158,10 +157,7 @@ function isReusableActiveSession(state: RoomManagerState, roomCode?: string): bo
     return false;
   }
 
-  if (
-    roomCode &&
-    canonicalizeRoomCode(state.session.roomCode) !== canonicalizeRoomCode(roomCode)
-  ) {
+  if (roomCode && canonicalizeRoomCode(state.session.roomCode) !== canonicalizeRoomCode(roomCode)) {
     return false;
   }
 
@@ -191,10 +187,8 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   const [timingChallengeSettings, setTimingChallengeSettings] = useState<TimingChallengeSettings>(
     DEFAULT_TIMING_CHALLENGE_SETTINGS,
   );
-  const [guessingChallengeMode, setGuessingChallengeMode] =
-    useState<GuessingChallengeMode>('1v1');
-  const [drawGuessDrawerMode, setDrawGuessDrawerMode] =
-    useState<DrawGuessDrawerMode>('random');
+  const [guessingChallengeMode, setGuessingChallengeMode] = useState<GuessingChallengeMode>('1v1');
+  const [drawGuessDrawerMode, setDrawGuessDrawerMode] = useState<DrawGuessDrawerMode>('random');
   const [drawGuessFixedPlayerId, setDrawGuessFixedPlayerId] = useState<string | null>(null);
   const [teamSnapshot, setTeamSnapshot] = useState<PregameTeamSnapshot | null>(null);
   const [activeGameShell, setActiveGameShell] = useState<GameShellState | null>(null);
@@ -206,13 +200,11 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   const playerIdRef = useRef<string | null>(null);
   const selectedGameIdRef = useRef<string | null>(null);
 
-  if (
-    !(
-      status === 'connected' &&
-      room?.code &&
-      lobbyUrlNeedsNormalization(searchParams, room.code)
-    )
-  ) {
+  if (!(
+    status === 'connected' &&
+    room?.code &&
+    lobbyUrlNeedsNormalization(searchParams, room.code)
+  )) {
     searchParamsRef.current = searchParams;
   }
   pathnameRef.current = pathname;
@@ -452,7 +444,10 @@ export function RoomProvider({ children }: { children: ReactNode }) {
           : '';
         if (sessionCode) {
           canonicalizeActiveLobbyUrl(sessionCode);
-          if (!isReusableActiveSession(state, sessionCode) && !manager.hasLiveActiveRoom(sessionCode)) {
+          if (
+            !isReusableActiveSession(state, sessionCode) &&
+            !manager.hasLiveActiveRoom(sessionCode)
+          ) {
             await manager.resumeSameRoom(sessionCode);
             if (cancelled) {
               return;
@@ -511,10 +506,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
           const liveCode = state.session?.roomCode
             ? canonicalizeRoomCode(state.session.roomCode)
             : '';
-          if (
-            liveCode &&
-            (manager.hasLiveActiveRoom(liveCode) || state.status === 'active')
-          ) {
+          if (liveCode && (manager.hasLiveActiveRoom(liveCode) || state.status === 'active')) {
             manager.clearExplicitLeaveHome();
             canonicalizeActiveLobbyUrl(liveCode);
             recordContinuity('LOBBY_BOOTSTRAP_STALE', {
@@ -540,7 +532,10 @@ export function RoomProvider({ children }: { children: ReactNode }) {
 
         if (sessionCode === urlRoomCode) {
           // Fresh Create/Join: socket already bound — never resume, never redirect Home.
-          if (manager.hasLiveActiveRoom(urlRoomCode) || isReusableActiveSession(state, urlRoomCode)) {
+          if (
+            manager.hasLiveActiveRoom(urlRoomCode) ||
+            isReusableActiveSession(state, urlRoomCode)
+          ) {
             manager.clearExplicitLeaveHome();
             recordContinuity('LOBBY_REUSE_LIVE', {
               socketId: getRoomSocket().id ?? null,
@@ -686,12 +681,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     }
 
     const liveCode = canonicalizeRoomCode(room.code);
-    if (
-      urlAction === 'create' ||
-      urlHasName ||
-      !urlRoomCode ||
-      urlRoomCode !== liveCode
-    ) {
+    if (urlAction === 'create' || urlHasName || !urlRoomCode || urlRoomCode !== liveCode) {
       canonicalizeActiveLobbyUrl(liveCode);
     }
   }, [status, room?.code, urlAction, urlHasName, urlRoomCode, canonicalizeActiveLobbyUrl]);
@@ -757,16 +747,19 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const updateRoomGameSettings = useCallback(async (gameId: string, settings: Record<string, number>) => {
-    const response = await emitRoomAck<{ roomId: string; gameSettings: RoomData['gameSettings'] }>(
-      UPDATE_ROOM_GAME_SETTINGS_EVENT,
-      { gameId, settings },
-    );
+  const updateRoomGameSettings = useCallback(
+    async (gameId: string, settings: Record<string, number>) => {
+      const response = await emitRoomAck<{
+        roomId: string;
+        gameSettings: RoomData['gameSettings'];
+      }>(UPDATE_ROOM_GAME_SETTINGS_EVENT, { gameId, settings });
 
-    if (!response.success) {
-      setErrorMessage(getRoomErrorMessage(response.error.code, response.error.message));
-    }
-  }, []);
+      if (!response.success) {
+        setErrorMessage(getRoomErrorMessage(response.error.code, response.error.message));
+      }
+    },
+    [],
+  );
 
   const updatePlayerAvatar = useCallback(async (avatarId: PlayerAvatarId) => {
     const response = await emitRoomAck<{ avatarId: PlayerAvatarId }>(UPDATE_PLAYER_AVATAR_EVENT, {
@@ -782,34 +775,41 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     return true;
   }, []);
 
-  const configureTeams = useCallback(
-    async (gameId: string, mode: string) => {
-      if (!getGameTeamCapability(gameId)) {
-        setTeamSnapshot(null);
-        return;
-      }
+  const endRoom = useCallback(async () => {
+    const response = await emitRoomAck<{ roomId: string }>(END_ROOM_EVENT);
+    if (!response.success) {
+      setErrorMessage(getRoomErrorMessage(response.error.code, response.error.message));
+      return false;
+    }
+    setErrorMessage(null);
+    return true;
+  }, []);
 
-      const response = await emitGameShellWithAck<PregameTeamSnapshot>(TEAM_CONFIGURE_EVENT, {
-        gameId,
-        mode,
-      });
+  const configureTeams = useCallback(async (gameId: string, mode: string) => {
+    if (!getGameTeamCapability(gameId)) {
+      setTeamSnapshot(null);
+      return;
+    }
 
-      if (response.success) {
-        setTeamSnapshot(response.data);
-        setErrorMessage(null);
-        return;
-      }
+    const response = await emitGameShellWithAck<PregameTeamSnapshot>(TEAM_CONFIGURE_EVENT, {
+      gameId,
+      mode,
+    });
 
-      // Non-hosts / unbound sockets: pull current snapshot if any.
-      const sync = await emitGameShellWithAck<{ snapshot: PregameTeamSnapshot | null }>(
-        TEAM_SYNC_EVENT,
-      );
-      if (sync.success) {
-        setTeamSnapshot(sync.data.snapshot);
-      }
-    },
-    [],
-  );
+    if (response.success) {
+      setTeamSnapshot(response.data);
+      setErrorMessage(null);
+      return;
+    }
+
+    // Non-hosts / unbound sockets: pull current snapshot if any.
+    const sync = await emitGameShellWithAck<{ snapshot: PregameTeamSnapshot | null }>(
+      TEAM_SYNC_EVENT,
+    );
+    if (sync.success) {
+      setTeamSnapshot(sync.data.snapshot);
+    }
+  }, []);
 
   const selectGame = useCallback(
     (gameId: string) => {
@@ -829,8 +829,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       setSelectedRoundCategoryId(getDefaultRoundCategoryId(gameId));
 
       if (getGameTeamCapability(gameId)) {
-        const mode =
-          gameId === GUESSING_CHALLENGE_GAME_ID ? guessingChallengeMode : '1v1';
+        const mode = gameId === GUESSING_CHALLENGE_GAME_ID ? guessingChallengeMode : '1v1';
         void configureTeams(gameId, mode);
       } else {
         setTeamSnapshot(null);
@@ -1024,6 +1023,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       selectRoundCategory,
       startGame,
       leaveRoom,
+      endRoom,
       isWaitingForNextMatch: isWaitingForNextMatchValue,
       activeMatchParticipantIds,
       teamSnapshot,
@@ -1036,6 +1036,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       assignPlayerTeam,
       configureTeams,
       errorMessage,
+      endRoom,
       isHost,
       isWaitingForNextMatchValue,
       kickPlayer,

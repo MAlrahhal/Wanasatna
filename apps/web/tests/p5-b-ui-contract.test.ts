@@ -107,6 +107,17 @@ test('lobby leave uses shared dialog and consistent wording', () => {
   assert.match(header, /buildRoomInviteUrl/);
   assert.match(header, /تم نسخ الرابط/);
   assert.doesNotMatch(header, /navigator\.share/);
+  assert.match(header, /إنهاء الغرفة/);
+  assert.match(header, /سيتم إنهاء الغرفة وإخراج جميع اللاعبين منها/);
+  assert.match(header, /\{isHost \? \(/);
+  assert.match(header, /تغيير الأيقونة/);
+  assert.match(header, /onChangeAvatar/);
+});
+
+test('game settings heading has no helper subtitle', () => {
+  const panel = read('components/lobby/game-settings-panel.tsx');
+  assert.match(panel, /إعدادات اللعبة/);
+  assert.doesNotMatch(panel, /يمكن للمضيف تعديل الإعدادات عند توفرها/);
 });
 
 test('selected game and host/non-host catalog states are explicit', () => {

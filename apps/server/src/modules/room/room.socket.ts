@@ -3,6 +3,7 @@ import './room.types.js';
 import {
   registerCreateRoomHandler,
   registerDisconnectHandler,
+  registerEndRoomHandler,
   registerJoinRoomHandler,
   registerKickPlayerHandler,
   registerLeaveRoomHandler,
@@ -20,6 +21,7 @@ export function registerRoomSockets(io: Server): void {
     registerCreateRoomHandler(io, socket);
     registerJoinRoomHandler(io, socket);
     registerLeaveRoomHandler(io, socket);
+    registerEndRoomHandler(io, socket);
     registerKickPlayerHandler(io, socket);
     registerLockRoomHandler(io, socket);
     registerUnlockRoomHandler(io, socket);

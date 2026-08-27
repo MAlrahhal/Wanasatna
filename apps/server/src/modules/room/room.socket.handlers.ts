@@ -1,6 +1,7 @@
 import type { Server, Socket } from 'socket.io';
 import {
   CREATE_ROOM_EVENT,
+  END_ROOM_EVENT,
   GAME_SHELL_STATE_EVENT,
   HOST_CHANGED_EVENT,
   JOIN_ROOM_EVENT,
@@ -32,7 +33,8 @@ import {
   forgetSocketAbuseState,
 } from '../../lib/abuse-limiter.js';
 import { announcePermanentPlayerRemoval } from './services/disconnected-player-expiry.service.js';
-import { announceKickedPlayer } from './room-socket-announce.js';
+import { announceKickedPlayer, announceRoomClosed } from './room-socket-announce.js';
+import { endRoomByHost } from './services/end-room.service.js';
 import {
   handlePlayerDisconnect,
   kickPlayer,
@@ -55,13 +57,14 @@ import {
   sendInternalError,
   sendResponse,
 } from './room.socket.utils.js';
-import {
-  broadcastRoomPlayersSnapshot,
-  getPlayerChannel,
-  getRoomChannel,
-} from './room.utils.js';
+import { broadcastRoomPlayersSnapshot, getPlayerChannel, getRoomChannel } from './room.utils.js';
 import { setPlayerAvatarId } from './player-avatar.store.js';
-import { validateCreateRoomPayload, validateJoinRoomPayload, validateUpdatePlayerAvatarPayload, validateUpdateRoomGameSettingsPayload } from './room.validators.js';
+import {
+  validateCreateRoomPayload,
+  validateJoinRoomPayload,
+  validateUpdatePlayerAvatarPayload,
+  validateUpdateRoomGameSettingsPayload,
+} from './room.validators.js';
 
 export function registerCreateRoomHandler(io: Server, socket: Socket): void {
   socket.on(
@@ -279,6 +282,30 @@ export function registerLeaveRoomHandler(io: Server, socket: Socket): void {
           await announcePermanentPlayerRemoval(io, roomId!, playerId!, response.data);
         }
 
+        sendResponse(callback, response);
+      } catch {
+        sendInternalError(callback);
+      }
+    },
+  );
+}
+
+export function registerEndRoomHandler(io: Server, socket: Socket): void {
+  socket.on(
+    END_ROOM_EVENT,
+    async (_payload: unknown, callback?: (response: RoomActionResponse<unknown>) => void) => {
+      const contextError = getSocketContext(socket);
+      if (contextError) {
+        sendResponse(callback, contextError);
+        return;
+      }
+
+      const { playerId, roomId } = socket.data;
+      try {
+        const response = await endRoomByHost(roomId!, playerId!);
+        if (response.success) {
+          await announceRoomClosed(io, roomId!, 'أنهى المضيف الغرفة.');
+        }
         sendResponse(callback, response);
       } catch {
         sendInternalError(callback);

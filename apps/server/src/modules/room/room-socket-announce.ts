@@ -50,12 +50,16 @@ export function emitRoomLockedState(io: Server, payload: RoomUpdatedPayload): vo
   io.to(getRoomChannel(payload.roomId)).emit(ROOM_UPDATED_EVENT, payload);
 }
 
-export async function announceAdminRoomClosed(io: Server, roomId: string): Promise<void> {
+export async function announceRoomClosed(
+  io: Server,
+  roomId: string,
+  message: string,
+): Promise<void> {
   const roomChannel = getRoomChannel(roomId);
 
   io.to(roomChannel).emit(ROOM_CLOSED_EVENT, {
     roomId,
-    message: ADMIN_ROOM_CLOSED_MESSAGE,
+    message,
   });
 
   const sockets = await io.in(roomChannel).fetchSockets();
@@ -71,4 +75,8 @@ export async function announceAdminRoomClosed(io: Server, roomId: string): Promi
 
   clearRoomPlayerAvatars(roomId);
   onRoomDeleted(io, roomId);
+}
+
+export async function announceAdminRoomClosed(io: Server, roomId: string): Promise<void> {
+  await announceRoomClosed(io, roomId, ADMIN_ROOM_CLOSED_MESSAGE);
 }

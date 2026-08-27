@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { getDefaultPlayerAvatarId } from '@wanasatna/shared';
 import { useRoom } from '@/contexts/room-context';
 import { mockGameSettingsByGameId, mockLobbyGames } from '@/lib/lobby/mock-games';
 import { usePlayableGameAvailability } from '@/lib/games/use-game-availability';
@@ -17,6 +18,7 @@ import { LobbyMarathonBanner } from './lobby-marathon-banner';
 import { LobbyStartGamePanel } from './lobby-start-game-panel';
 import { LobbySelectedGameSetup } from './lobby-selected-game-setup';
 import { PlayersPanel } from './players-panel';
+import { AvatarPickerDialog } from './avatar-picker-dialog';
 import { cn } from '@/lib/utils';
 
 export function LobbyScreen() {
@@ -35,6 +37,8 @@ export function LobbyScreen() {
     selectGame,
     selectRoundCategory,
     leaveRoom,
+    endRoom,
+    updatePlayerAvatar,
     isWaitingForNextMatch,
     activeMatchParticipantIds,
     selectedRoundCategoryId,
@@ -45,6 +49,7 @@ export function LobbyScreen() {
   const [chatOpen, setChatOpen] = useState(false);
   const [lobbyNotice, setLobbyNotice] = useState<string | null>(null);
   const [recovered, setRecovered] = useState(false);
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const wasReconnecting = useRef(false);
 
   useEffect(() => {
@@ -102,6 +107,7 @@ export function LobbyScreen() {
   const selectedGameSettings = selectedGameId
     ? (mockGameSettingsByGameId[selectedGameId] ?? [])
     : [];
+  const hasActiveMatch = isWaitingForNextMatch || activeMatchParticipantIds !== null;
 
   if (sessionEndReason === 'kick') {
     return <RoomSystemState kind="kicked" />;
@@ -135,7 +141,9 @@ export function LobbyScreen() {
         <SystemStatus tone="reconnecting" title={SYSTEM_COPY.reconnecting} />
       ) : null}
       {recovered ? <SystemStatus tone="success" title={SYSTEM_COPY.recovered} /> : null}
-      {errorMessage && status !== 'reconnecting' ? <LobbyErrorBanner message={errorMessage} /> : null}
+      {errorMessage && status !== 'reconnecting' ? (
+        <LobbyErrorBanner message={errorMessage} />
+      ) : null}
       {lobbyNotice ? <LobbyErrorBanner message={lobbyNotice} /> : null}
       {isWaitingForNextMatch ? <ActiveMatchWaitingPanel /> : null}
 
@@ -146,6 +154,9 @@ export function LobbyScreen() {
         onLockRoom={() => void lockRoom()}
         onUnlockRoom={() => void unlockRoom()}
         onLeaveRoom={() => void leaveRoom()}
+        onEndRoom={endRoom}
+        onChangeAvatar={() => setAvatarPickerOpen(true)}
+        canChangeAvatar={!hasActiveMatch}
       />
 
       <div className="flex gap-2 xl:hidden">
@@ -175,7 +186,7 @@ export function LobbyScreen() {
           aria-pressed={chatOpen}
           aria-label="الدردشة"
           onClick={() => setChatOpen(true)}
-          className="inline-flex h-11 min-h-11 items-center justify-center rounded-xl border border-wanas-border bg-wanas-surface px-3 text-sm font-semibold text-wanas-text-muted"
+          className="border-wanas-border bg-wanas-surface text-wanas-text-muted inline-flex h-11 min-h-11 items-center justify-center rounded-xl border px-3 text-sm font-semibold"
         >
           دردشة
         </button>
@@ -185,21 +196,27 @@ export function LobbyScreen() {
         <div
           className={cn(
             chatOpen
-              ? 'fixed inset-x-0 bottom-0 z-40 flex max-h-[55dvh] flex-col rounded-t-2xl border-t border-wanas-border bg-wanas-surface p-3 shadow-[var(--wanas-shadow-panel)]'
+              ? 'border-wanas-border bg-wanas-surface fixed inset-x-0 bottom-0 z-40 flex max-h-[55dvh] flex-col rounded-t-2xl border-t p-3 shadow-[var(--wanas-shadow-panel)]'
               : 'hidden',
             'xl:static xl:z-auto xl:order-3 xl:block xl:max-h-none xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none',
           )}
           role={chatOpen ? 'dialog' : undefined}
           aria-modal={chatOpen ? true : undefined}
           aria-label={chatOpen ? SYSTEM_COPY.chatTitle : undefined}
-          style={chatOpen ? { paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' } : undefined}
+          style={
+            chatOpen
+              ? { paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }
+              : undefined
+          }
         >
           {chatOpen ? (
             <div className="mb-2 flex items-center justify-between xl:hidden">
-              <p className="text-sm font-semibold text-wanas-text-primary">{SYSTEM_COPY.chatTitle}</p>
+              <p className="text-wanas-text-primary text-sm font-semibold">
+                {SYSTEM_COPY.chatTitle}
+              </p>
               <button
                 type="button"
-                className="inline-flex size-11 min-h-11 min-w-11 items-center justify-center rounded-lg text-wanas-text-muted"
+                className="text-wanas-text-muted inline-flex size-11 min-h-11 min-w-11 items-center justify-center rounded-lg"
                 aria-label="إغلاق"
                 onClick={() => setChatOpen(false)}
               >
@@ -212,7 +229,7 @@ export function LobbyScreen() {
 
         <div
           className={cn(
-            'flex min-w-0 flex-col gap-2 xl:order-2 lg:gap-2',
+            'flex min-w-0 flex-col gap-2 lg:gap-2 xl:order-2',
             mobileSection !== 'games' && 'hidden xl:flex',
           )}
         >
@@ -244,11 +261,27 @@ export function LobbyScreen() {
             isHost={isHost}
             onKickPlayer={(playerId) => void kickPlayer(playerId)}
             activeMatchParticipantIds={activeMatchParticipantIds}
-            hasActiveMatch={isWaitingForNextMatch || activeMatchParticipantIds !== null}
+            hasActiveMatch={hasActiveMatch}
             playerCap={room?.playerCap}
+            onChangeAvatar={() => setAvatarPickerOpen(true)}
           />
         </div>
       </div>
+
+      {player ? (
+        <AvatarPickerDialog
+          open={avatarPickerOpen}
+          playerId={player.id}
+          playerName={player.name}
+          selectedAvatarId={player.avatarId ?? getDefaultPlayerAvatarId(player.id)}
+          onClose={() => setAvatarPickerOpen(false)}
+          onSelect={(avatarId) => {
+            void updatePlayerAvatar(avatarId).then((success) => {
+              if (success) setAvatarPickerOpen(false);
+            });
+          }}
+        />
+      ) : null}
     </div>
   );
 }

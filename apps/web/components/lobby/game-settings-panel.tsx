@@ -3,7 +3,11 @@
 import type { LobbyGame, LobbyGameSettingsPlaceholder } from '@/lib/lobby/types';
 import { useAuth } from '@/contexts/auth-context';
 import { useRoom } from '@/contexts/room-context';
-import { GUESSING_CHALLENGE_GAME_ID, TIMING_CHALLENGE_GAME_ID, DRAW_GUESS_GAME_ID } from '@wanasatna/shared';
+import {
+  GUESSING_CHALLENGE_GAME_ID,
+  TIMING_CHALLENGE_GAME_ID,
+  DRAW_GUESS_GAME_ID,
+} from '@wanasatna/shared';
 import { DrawGuessSettingsPanel } from './draw-guess-settings-panel';
 import { ExperimentalGameSettingsPanel } from './experimental-game-settings-panel';
 import { GuessingChallengeSettingsPanel } from './guessing-challenge-settings-panel';
@@ -41,33 +45,26 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
   const isDrawGuess = selectedGame?.id === DRAW_GUESS_GAME_ID;
   const showsTeams = Boolean(
     selectedGame &&
-      getGameTeamCapability(selectedGame.id) &&
-      teamSnapshot?.gameId === selectedGame.id,
+    getGameTeamCapability(selectedGame.id) &&
+    teamSnapshot?.gameId === selectedGame.id,
   );
 
   return (
-    <section className="rounded-xl border border-wanas-border bg-wanas-surface px-2.5 py-2 xl:px-3 xl:py-2.5">
+    <section className="border-wanas-border bg-wanas-surface rounded-xl border px-2.5 py-2 xl:px-3 xl:py-2.5">
       <div className="mb-2 flex items-start gap-2">
         <span
-          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-wanas-primary-surface text-sm"
+          className="bg-wanas-primary-surface flex size-8 shrink-0 items-center justify-center rounded-full text-sm"
           aria-hidden
         >
           ⚙
         </span>
-        <div className="min-w-0">
-          <h3 className="text-sm font-bold text-wanas-text-primary">إعدادات اللعبة</h3>
-          <p className="text-[11px] leading-4 text-wanas-text-muted">
-            {!selectedGame
-              ? 'اختر لعبة لعرض إعداداتها.'
-              : isHost
-                ? 'يمكن للمضيف تعديل الإعدادات عند توفرها.'
-                : 'عرض فقط — التعديل متاح للمضيف.'}
-          </p>
-        </div>
+        <h3 className="text-wanas-text-primary min-w-0 self-center text-sm font-bold">
+          إعدادات اللعبة
+        </h3>
       </div>
 
       {!selectedGame ? (
-        <p className="text-xs text-wanas-text-muted">لا توجد إعدادات حتى يتم اختيار لعبة.</p>
+        <p className="text-wanas-text-muted text-xs">لا توجد إعدادات حتى يتم اختيار لعبة.</p>
       ) : isTimingChallenge ? (
         <TimingChallengeSettingsPanel
           settings={timingChallengeSettings}
@@ -96,15 +93,15 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
           {settings.map((setting) => (
             <div
               key={setting.id}
-              className="flex min-h-10 items-center justify-between rounded-lg border border-wanas-border bg-wanas-surface-soft px-3 py-2"
+              className="border-wanas-border bg-wanas-surface-soft flex min-h-10 items-center justify-between rounded-lg border px-3 py-2"
             >
-              <span className="text-[11px] text-wanas-text-muted">{setting.label}</span>
-              <span className="text-xs font-bold text-wanas-text-primary">{setting.value}</span>
+              <span className="text-wanas-text-muted text-[11px]">{setting.label}</span>
+              <span className="text-wanas-text-primary text-xs font-bold">{setting.value}</span>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-xs text-wanas-text-muted">لا توجد إعدادات إضافية لهذه اللعبة.</p>
+        <p className="text-wanas-text-muted text-xs">لا توجد إعدادات إضافية لهذه اللعبة.</p>
       )}
 
       {isAdmin && selectedGame ? (

@@ -1,6 +1,7 @@
 export const CREATE_ROOM_EVENT = 'create-room' as const;
 export const JOIN_ROOM_EVENT = 'join-room' as const;
 export const LEAVE_ROOM_EVENT = 'leave-room' as const;
+export const END_ROOM_EVENT = 'end-room' as const;
 export const KICK_PLAYER_EVENT = 'kick-player' as const;
 export const LOCK_ROOM_EVENT = 'lock-room' as const;
 export const UNLOCK_ROOM_EVENT = 'unlock-room' as const;
