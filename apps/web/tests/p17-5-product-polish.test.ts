@@ -80,7 +80,8 @@ test('FAQ and contact stay guest-truthful', () => {
   const contact = read('app/(public)/contact/contact-page-client.tsx');
   assert.match(faq, /لا تحتاج حسابًا للعب/);
   assert.doesNotMatch(faq, /سجّل دخولك|أنشئ حساب|فائدة تسجيل الدخول/);
-  assert.match(contact, /الخدمة ستتوفر قريباً/);
+  assert.match(contact, /انضم إلى ديسكورد وناستنا/);
+  assert.match(contact, /PUBLIC_EXTERNAL_LINKS\.discordInvite/);
   assert.doesNotMatch(contact, /onSubmit|fetch\(|mailto:/);
 });
 

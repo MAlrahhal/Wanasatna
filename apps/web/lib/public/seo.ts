@@ -21,7 +21,7 @@ export const FAQ_PAGE_DESCRIPTION =
 
 export const CONTACT_PAGE_TITLE = 'تواصل معنا';
 export const CONTACT_PAGE_DESCRIPTION =
-  'أرسل ملاحظتك أو اقتراحك من النموذج في هذه الصفحة. استقبال الرسائل الآلي غير مفعّل بعد.';
+  'الدعم والتواصل مع فريق وناستنا يتم عبر سيرفر Discord الرسمي.';
 
 export const INDEXABLE_PUBLIC_PATHS = [
   PUBLIC_ROUTES.home,

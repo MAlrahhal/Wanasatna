@@ -180,7 +180,7 @@ test('14 no fake contact/company details', () => {
   const contactPage = read('app/(public)/contact/page.tsx');
   assert.doesNotMatch(contact, fakeContactPattern);
   assert.doesNotMatch(contactPage, fakeContactPattern);
-  assert.match(contact, /الخدمة ستتوفر قريباً/);
+  assert.match(contact, /انضم إلى ديسكورد وناستنا/);
   assert.doesNotMatch(CONTACT_PAGE_DESCRIPTION, fakeContactPattern);
 });
 

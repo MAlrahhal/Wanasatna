@@ -182,7 +182,7 @@ test('internal links, FAQ/contact truth, structured data, 404', () => {
 
   const contact = read('app/(public)/contact/contact-page-client.tsx');
   assert.doesNotMatch(contact, /support@|@wanasatna\.com|\+966|Instagram/);
-  assert.match(contact, /الخدمة ستتوفر قريباً/);
+  assert.match(contact, /انضم إلى ديسكورد وناستنا/);
 
   const json = `${JSON.stringify(websiteJsonLd)}${read('lib/public/game-seo-content.ts')}`;
   assert.match(json, /WebSite/);
