@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   ADMIN_GAME_SETTING_SPECS,
   MARATHON_FINAL_RESULTS_SECONDS,
+  MARATHON_MAX_GAMES,
   MARATHON_MIN_GAMES,
   MARATHON_SUPPORTED_GAME_IDS,
   MARATHON_TRANSITION_SECONDS,
@@ -204,7 +205,7 @@ export function MarathonPageClient() {
     setSelected((current) =>
       current.includes(gameId)
         ? current.filter((id) => id !== gameId)
-        : current.length < 7
+        : current.length < MARATHON_MAX_GAMES
           ? [...current, gameId]
           : current,
     );
@@ -248,15 +249,18 @@ export function MarathonPageClient() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {supported.map(({ id, game }) => {
             const active = selected.includes(id);
+            const unavailable = !active && selected.length >= MARATHON_MAX_GAMES;
             return (
               <button
                 type="button"
                 key={id}
                 aria-pressed={active}
+                disabled={unavailable}
                 onClick={() => toggle(id)}
                 className={cn(
                   'bg-wanas-surface rounded-xl border p-3 text-center',
                   active ? 'border-wanas-accent ring-wanas-accent ring-2' : 'border-wanas-border',
+                  unavailable && 'cursor-not-allowed opacity-50',
                 )}
               >
                 <div className="mx-auto size-16">
@@ -267,6 +271,15 @@ export function MarathonPageClient() {
             );
           })}
         </div>
+        <p className="text-wanas-text-muted mt-2 text-sm" aria-live="polite">
+          {selected.length < MARATHON_MIN_GAMES
+            ? selected.length === 1
+              ? 'اختر لعبة إضافية للبدء.'
+              : 'اختر لعبتين على الأقل للبدء.'
+            : selected.length === MARATHON_MAX_GAMES
+              ? 'وصلت إلى الحد الأقصى: 7 ألعاب.'
+              : 'يمكنك إضافة ألعاب أخرى أو متابعة ضبط الترتيب والإعدادات.'}
+        </p>
       </section>
       {selected.length > 0 ? (
         <section>

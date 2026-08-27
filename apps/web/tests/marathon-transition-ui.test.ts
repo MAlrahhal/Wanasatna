@@ -18,5 +18,9 @@ assert.match(source, /العودة إلى اللوبي.*خلال \{remaining\} �
 assert.match(source, /role="progressbar"/);
 assert.match(source, /جارٍ تجهيز اللعبة التالية تلقائيًا/);
 assert.doesNotMatch(source, /continueNow|returnToLobby/);
+assert.match(source, /disabled=\{unavailable\}/);
+assert.match(source, /selected\.length >= MARATHON_MAX_GAMES/);
+assert.match(source, /اختر لعبتين على الأقل للبدء/);
+assert.match(source, /وصلت إلى الحد الأقصى: 7 ألعاب/);
 
-console.log('PASS Marathon transition and final-result UI use automatic progression copy');
+console.log('PASS Marathon setup limits and automatic transition UI contract');

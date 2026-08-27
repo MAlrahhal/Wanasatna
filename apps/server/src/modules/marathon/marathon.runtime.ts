@@ -37,6 +37,7 @@ import {
 } from './marathon.store.js';
 
 const timers = new Map<string, ReturnType<typeof setTimeout>>();
+const advancingRooms = new Set<string>();
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -89,6 +90,7 @@ export function isMarathonActive(roomId: string): boolean {
 
 export function clearMarathonState(roomId: string): void {
   clearTimer(roomId);
+  advancingRooms.delete(roomId);
   deleteMarathonState(roomId);
 }
 
@@ -227,6 +229,22 @@ async function finishMarathon(io: Server, state: MarathonState): Promise<Maratho
 }
 
 async function startNextPlayableLeg(
+  io: Server,
+  state: MarathonState,
+  fromIndex: number,
+): Promise<MarathonState> {
+  if (advancingRooms.has(state.roomId)) {
+    return getMarathonState(state.roomId) ?? state;
+  }
+  advancingRooms.add(state.roomId);
+  try {
+    return await startNextPlayableLegUnlocked(io, state, fromIndex);
+  } finally {
+    advancingRooms.delete(state.roomId);
+  }
+}
+
+async function startNextPlayableLegUnlocked(
   io: Server,
   state: MarathonState,
   fromIndex: number,

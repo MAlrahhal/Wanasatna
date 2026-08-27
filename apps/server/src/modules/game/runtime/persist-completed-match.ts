@@ -9,6 +9,8 @@ import {
 } from '../../marathon/marathon.runtime.js';
 import { getMarathonState } from '../../marathon/marathon.store.js';
 
+const pendingMarathonCompletions = new Set<string>();
+
 /**
  * Snapshot final scores from in-memory plugin state, then run the existing
  * shell teardown immediately. History write is best-effort and must not delay
@@ -20,20 +22,35 @@ export function persistCompletedMatchThen(roomId: string, teardown: () => void, 
   const marathon = getMarathonState(roomId);
 
   if (io && marathon?.status === 'PLAYING' && shell?.shellId === marathon.activeShellId) {
+    const completionKey = `${roomId}:${shell.shellId}`;
+    if (pendingMarathonCompletions.has(completionKey)) {
+      return;
+    }
+    pendingMarathonCompletions.add(completionKey);
     void (async () => {
-      await completePersistedMatch(roomId, results);
+      try {
+        await completePersistedMatch(roomId, results);
+      } catch (error) {
+        opsLogger.error('match-history-write-failed', 'تعذر إكمال مرحلة الماراتون.', {
+          stage: 'marathon-complete-failed',
+          roomId,
+          errorName: error instanceof Error ? error.name : typeof error,
+        });
+      }
       const transition = recordCompletedMarathonLeg(roomId, shell.shellId, results);
       teardown();
       if (transition) {
         activateMarathonTransition(io, transition);
       }
-    })().catch((error) => {
-      opsLogger.error('match-history-write-failed', 'تعذر إكمال مرحلة الماراتون.', {
-        stage: 'marathon-complete-failed',
-        roomId,
-        errorName: error instanceof Error ? error.name : typeof error,
-      });
-    });
+    })()
+      .catch((error) => {
+        opsLogger.error('match-history-write-failed', 'تعذر إكمال مرحلة الماراتون.', {
+          stage: 'marathon-transition-failed',
+          roomId,
+          errorName: error instanceof Error ? error.name : typeof error,
+        });
+      })
+      .finally(() => pendingMarathonCompletions.delete(completionKey));
     return;
   }
 

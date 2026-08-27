@@ -123,6 +123,18 @@ test('persisted match is awaited before Marathon leg teardown/advance', () => {
   const teardownAt = source.indexOf('teardown();', completeAt);
   const transitionAt = source.indexOf('activateMarathonTransition', teardownAt);
   assert.ok(completeAt >= 0 && teardownAt > completeAt && transitionAt > teardownAt);
+  assert.match(source, /pendingMarathonCompletions\.has\(completionKey\)/);
+  assert.match(source, /pendingMarathonCompletions\.add\(completionKey\)/);
+});
+
+test('concurrent transition advances are serialized per room', () => {
+  const source = readFileSync(
+    new URL('../src/modules/marathon/marathon.runtime.ts', import.meta.url),
+    'utf8',
+  );
+  assert.match(source, /advancingRooms\.has\(state\.roomId\)/);
+  assert.match(source, /advancingRooms\.add\(state\.roomId\)/);
+  assert.match(source, /finally \{\s*advancingRooms\.delete\(state\.roomId\)/);
 });
 
 test('midway joins stay spectators until final Marathon cleanup', () => {
