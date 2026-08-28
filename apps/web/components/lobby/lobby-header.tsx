@@ -77,6 +77,12 @@ const EndRoomIcon = () => (
     <path d="M7.2 5.8a8 8 0 1 0 9.6 0" />
   </HeaderIcon>
 );
+const CrownIcon = () => (
+  <HeaderIcon>
+    <path d="m4 8 3.2 3L12 5l4.8 6L20 8l-1.5 9h-13L4 8Z" />
+    <path d="M6 20h12" />
+  </HeaderIcon>
+);
 
 export function LobbyHeader({
   roomCode,
@@ -148,24 +154,26 @@ export function LobbyHeader({
   }
 
   const actionClass =
-    'h-11 min-h-11 w-full justify-start border-white/15 bg-white/[0.06] text-white shadow-none hover:border-white/30 hover:bg-white/10 focus-visible:ring-white/30 lg:h-9 lg:min-h-9 lg:w-auto lg:justify-center';
+    'h-11 min-h-11 w-full cursor-pointer justify-start border bg-[#11162f]/75 px-3.5 text-sm font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] transition-colors duration-200 focus-visible:ring-2 lg:h-10 lg:min-h-10 lg:w-auto lg:justify-center lg:px-4';
 
   return (
-    <header className="from-wanas-brand-navy to-wanas-primary-dark relative rounded-2xl border border-white/10 bg-gradient-to-l text-white shadow-[0_12px_32px_rgba(27,46,94,0.22)]">
-      <div className="flex min-h-20 items-center justify-between gap-3 px-3 py-3 sm:px-4 lg:min-h-0 lg:gap-5">
+    <header className="relative rounded-[1.35rem] border border-violet-400/[0.16] bg-[linear-gradient(105deg,rgba(8,11,29,0.99),rgba(16,20,47,0.98),rgba(9,12,31,0.99))] text-white shadow-[0_16px_40px_rgba(4,7,22,0.38)] ring-1 ring-inset ring-white/[0.025]">
+      <div className="flex min-h-20 items-center justify-between gap-3 px-3 py-3 sm:px-4 lg:gap-4 lg:px-5 lg:py-4">
         <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
           {showInvitationDetails ? (
-            <div className="min-w-0 rounded-xl border border-white/15 bg-black/10 px-3 py-2 shadow-inner">
-              <p className="text-[10px] font-semibold tracking-wide text-white/60">رمز الغرفة</p>
+            <div className="min-w-0 rounded-2xl border border-violet-400/30 bg-[linear-gradient(145deg,rgba(36,31,70,0.8),rgba(14,18,42,0.92))] px-4 py-2.5 shadow-[0_8px_24px_rgba(76,29,149,0.16),inset_0_1px_0_rgba(255,255,255,0.05)] ring-1 ring-inset ring-violet-300/[0.06]">
+              <p className="text-[11px] font-semibold tracking-wide text-violet-100/55">
+                رمز الغرفة
+              </p>
               <p
                 dir="ltr"
-                className="mt-0.5 truncate font-mono text-xl font-black tracking-[0.2em] text-white sm:text-2xl"
+                className="mt-0.5 truncate font-mono text-xl font-black tracking-[0.24em] text-white drop-shadow-[0_1px_5px_rgba(255,255,255,0.12)] sm:text-2xl"
               >
                 {roomCode}
               </p>
             </div>
           ) : (
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/10">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-violet-400/20 bg-violet-400/[0.08] text-violet-200">
               <AvatarIcon />
             </div>
           )}
@@ -175,31 +183,35 @@ export function LobbyHeader({
               className={cn(
                 'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold',
                 isLocked
-                  ? 'border-red-300/30 bg-red-400/15 text-red-100'
-                  : 'border-emerald-300/30 bg-emerald-400/15 text-emerald-100',
+                  ? 'border-red-400/20 bg-red-400/[0.09] text-red-200'
+                  : 'border-emerald-400/20 bg-emerald-400/[0.09] text-emerald-300',
               )}
             >
               <span
-                className={cn('size-1.5 rounded-full', isLocked ? 'bg-red-300' : 'bg-emerald-300')}
+                className={cn(
+                  'size-1.5 rounded-full shadow-[0_0_8px_currentColor]',
+                  isLocked ? 'bg-red-300 text-red-300' : 'bg-emerald-400 text-emerald-400',
+                )}
                 aria-hidden
               />
               {isLocked ? 'الغرفة مقفلة' : 'الغرفة مفتوحة'}
             </span>
             {isHost ? (
-              <span className="rounded-full border border-amber-200/25 bg-amber-300/15 px-2.5 py-1 text-[11px] font-bold text-amber-100">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/20 bg-amber-300/[0.08] px-2.5 py-1 text-[11px] font-bold text-amber-300">
+                <CrownIcon />
                 المضيف
               </span>
             ) : null}
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          <GameAudioControl className="border-white/15 bg-white/[0.06] text-white hover:bg-white/10" />
+        <div className="flex shrink-0 items-center gap-2 lg:border-s lg:border-white/[0.07] lg:ps-4">
+          <GameAudioControl className="border-white/[0.07] bg-[#11162f]/75 text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] hover:border-white/15 hover:bg-white/[0.07]" />
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="size-11 min-h-11 border-white/15 bg-white/[0.06] px-0 text-white shadow-none hover:border-white/30 hover:bg-white/10 lg:hidden"
+            className="size-11 min-h-11 cursor-pointer border-violet-400/20 bg-violet-400/[0.08] px-0 text-violet-100 shadow-none hover:border-violet-300/35 hover:bg-violet-400/[0.14] lg:hidden"
             aria-expanded={menuOpen}
             aria-controls="lobby-header-menu"
             aria-label={menuOpen ? 'إغلاق قائمة الغرفة' : 'فتح قائمة الغرفة'}
@@ -212,7 +224,7 @@ export function LobbyHeader({
         <div
           id="lobby-header-menu"
           className={cn(
-            'bg-wanas-brand-navy absolute inset-x-2 top-[calc(100%+0.5rem)] z-30 flex-col gap-2 rounded-2xl border border-white/10 p-3 shadow-xl lg:static lg:z-auto lg:flex lg:flex-row lg:flex-wrap lg:items-center lg:bg-transparent lg:p-0 lg:shadow-none',
+            'absolute inset-x-2 top-[calc(100%+0.5rem)] z-30 flex-col gap-2 rounded-2xl border border-violet-400/[0.16] bg-[#090d22]/[0.98] p-3 shadow-[0_18px_40px_rgba(2,4,15,0.5)] lg:static lg:z-auto lg:flex lg:flex-row lg:flex-wrap lg:items-center lg:bg-transparent lg:p-0 lg:shadow-none',
             menuOpen ? 'flex' : 'hidden lg:flex',
           )}
         >
@@ -220,7 +232,10 @@ export function LobbyHeader({
             type="button"
             variant="outline"
             size="sm"
-            className={actionClass}
+            className={cn(
+              actionClass,
+              'border-blue-400/[0.14] text-blue-300 hover:border-blue-400/35 hover:bg-blue-400/[0.09] focus-visible:ring-blue-300/35',
+            )}
             disabled={!canChangeAvatar}
             title={canChangeAvatar ? undefined : 'يمكن تغيير الأيقونة بعد انتهاء اللعبة الحالية.'}
             onClick={onChangeAvatar}
@@ -235,7 +250,10 @@ export function LobbyHeader({
                 type="button"
                 variant="outline"
                 size="sm"
-                className={actionClass}
+                className={cn(
+                  actionClass,
+                  'border-purple-400/[0.14] text-purple-300 hover:border-purple-400/35 hover:bg-purple-400/[0.09] focus-visible:ring-purple-300/35',
+                )}
                 onClick={() => void handleCopyCode()}
                 aria-live="polite"
               >
@@ -246,7 +264,10 @@ export function LobbyHeader({
                 type="button"
                 variant="outline"
                 size="sm"
-                className={actionClass}
+                className={cn(
+                  actionClass,
+                  'border-teal-400/[0.14] text-teal-300 hover:border-teal-400/35 hover:bg-teal-400/[0.09] focus-visible:ring-teal-300/35',
+                )}
                 onClick={() => void handleCopyRoomLink()}
               >
                 <ShareIcon />
@@ -256,7 +277,10 @@ export function LobbyHeader({
                 type="button"
                 variant="outline"
                 size="sm"
-                className={actionClass}
+                className={cn(
+                  actionClass,
+                  'border-sky-400/[0.14] text-sky-300 hover:border-sky-400/35 hover:bg-sky-400/[0.09] focus-visible:ring-sky-300/35',
+                )}
                 onClick={isLocked ? onUnlockRoom : onLockRoom}
               >
                 <LockIcon locked={isLocked} />
@@ -271,7 +295,7 @@ export function LobbyHeader({
             size="sm"
             className={cn(
               actionClass,
-              'border-amber-300/25 bg-amber-300/10 text-amber-100 hover:border-amber-200/40 hover:bg-amber-300/15',
+              'border-amber-400/20 bg-amber-400/[0.055] text-amber-300 hover:border-amber-300/40 hover:bg-amber-400/[0.11] focus-visible:ring-amber-300/35',
             )}
             onClick={() => setLeaveOpen(true)}
           >
@@ -284,7 +308,7 @@ export function LobbyHeader({
               type="button"
               variant="destructive"
               size="sm"
-              className="h-11 min-h-11 w-full justify-start border-red-300/30 bg-red-500/20 text-red-100 hover:bg-red-500/30 lg:h-9 lg:min-h-9 lg:w-auto lg:justify-center"
+              className="h-11 min-h-11 w-full cursor-pointer justify-start border border-rose-400/25 bg-rose-400/[0.085] px-3.5 text-sm font-bold text-rose-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] transition-colors duration-200 hover:border-rose-300/45 hover:bg-rose-400/[0.14] focus-visible:ring-2 focus-visible:ring-rose-300/40 lg:h-10 lg:min-h-10 lg:w-auto lg:justify-center lg:px-4"
               onClick={() => setEndRoomOpen(true)}
             >
               <EndRoomIcon />
@@ -296,7 +320,7 @@ export function LobbyHeader({
 
       {shareMessage ? (
         <p
-          className="bg-wanas-brand-navy absolute end-3 top-full z-40 mt-2 rounded-lg px-3 py-2 text-xs font-medium text-white shadow-lg"
+          className="absolute end-3 top-full z-40 mt-2 rounded-lg border border-violet-400/15 bg-[#090d22] px-3 py-2 text-xs font-medium text-violet-100 shadow-lg"
           aria-live="polite"
         >
           {shareMessage}
