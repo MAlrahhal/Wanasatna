@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prisma:generate": "prisma generate",
+    "test:database-url-guard": "tsx tests/database-url-guard.unit.test.ts",
     "test:unit": "tsx tests/unit.test.ts && tsx tests/graceful-shutdown.unit.test.ts",
     "test:room-chat": "tsx tests/room-chat.unit.test.ts",
     "test:p12-b2": "tsx tests/p12-b2-room-lifecycle.unit.test.ts",

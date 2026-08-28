@@ -4,7 +4,16 @@
  */
 import { test, expect, type Page } from '@playwright/test';
 
-const WEB_ORIGIN = process.env.WANASATNA_PROD_WEB_URL ?? 'https://wanasatna.com';
+if (process.env.WANASATNA_PRODUCTION_WRITE_AUDIT_CONFIRM !== 'WRITE_TO_PRODUCTION') {
+  throw new Error(
+    'Production write audit blocked. Set WANASATNA_PRODUCTION_WRITE_AUDIT_CONFIRM=WRITE_TO_PRODUCTION only for an approved manual run.',
+  );
+}
+
+const WEB_ORIGIN = process.env.WANASATNA_PROD_WEB_URL?.trim();
+if (!WEB_ORIGIN) {
+  throw new Error('WANASATNA_PROD_WEB_URL must be set explicitly for a production write audit.');
+}
 
 type SocketTrace = {
   type: 'emit' | 'ack' | 'connect' | 'error' | 'snapshot';

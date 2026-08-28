@@ -3,7 +3,8 @@
  * Connects to the real Railway server origin used by wanasatna.com.
  *
  * Usage:
- *   pnpm --filter @wanasatna/server exec tsx tests/production-isolation.audit.ts
+ *   Set WANASATNA_PRODUCTION_WRITE_AUDIT_CONFIRM=WRITE_TO_PRODUCTION and
+ *   WANASATNA_PROD_SERVER_URL explicitly, then run this file manually.
  *
  * Optional:
  *   WANASATNA_PROD_SERVER_URL=https://... tsx ...
@@ -13,9 +14,16 @@
 import assert from 'node:assert/strict';
 import { io as ioClient, type Socket } from 'socket.io-client';
 
-const PROD_SERVER_URL =
-  process.env.WANASATNA_PROD_SERVER_URL?.trim() ||
-  'https://wanasatnaserver-production.up.railway.app';
+if (process.env.WANASATNA_PRODUCTION_WRITE_AUDIT_CONFIRM !== 'WRITE_TO_PRODUCTION') {
+  throw new Error(
+    'Production write audit blocked. Set WANASATNA_PRODUCTION_WRITE_AUDIT_CONFIRM=WRITE_TO_PRODUCTION only for an approved manual run.',
+  );
+}
+
+const PROD_SERVER_URL = process.env.WANASATNA_PROD_SERVER_URL?.trim();
+if (!PROD_SERVER_URL) {
+  throw new Error('WANASATNA_PROD_SERVER_URL must be set explicitly for a production write audit.');
+}
 
 type Ack<T> = { success: true; data: T } | { success: false; error: { code: string; message: string } };
 

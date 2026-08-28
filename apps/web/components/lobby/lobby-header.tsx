@@ -234,7 +234,7 @@ export function LobbyHeader({
             size="sm"
             className={cn(
               actionClass,
-              'border-blue-400/[0.14] text-blue-300 hover:border-blue-400/35 hover:bg-blue-400/[0.09] focus-visible:ring-blue-300/35',
+              'border-slate-400/[0.14] bg-indigo-400/[0.025] text-slate-200 hover:border-indigo-300/30 hover:bg-indigo-400/[0.08] hover:text-indigo-100 focus-visible:ring-indigo-300/30',
             )}
             disabled={!canChangeAvatar}
             title={canChangeAvatar ? undefined : 'يمكن تغيير الأيقونة بعد انتهاء اللعبة الحالية.'}
@@ -252,7 +252,7 @@ export function LobbyHeader({
                 size="sm"
                 className={cn(
                   actionClass,
-                  'border-purple-400/[0.14] text-purple-300 hover:border-purple-400/35 hover:bg-purple-400/[0.09] focus-visible:ring-purple-300/35',
+                  'border-slate-400/[0.14] bg-indigo-400/[0.025] text-slate-200 hover:border-indigo-300/30 hover:bg-indigo-400/[0.08] hover:text-indigo-100 focus-visible:ring-indigo-300/30',
                 )}
                 onClick={() => void handleCopyCode()}
                 aria-live="polite"
@@ -266,7 +266,7 @@ export function LobbyHeader({
                 size="sm"
                 className={cn(
                   actionClass,
-                  'border-teal-400/[0.14] text-teal-300 hover:border-teal-400/35 hover:bg-teal-400/[0.09] focus-visible:ring-teal-300/35',
+                  'border-slate-400/[0.14] bg-indigo-400/[0.025] text-slate-200 hover:border-indigo-300/30 hover:bg-indigo-400/[0.08] hover:text-indigo-100 focus-visible:ring-indigo-300/30',
                 )}
                 onClick={() => void handleCopyRoomLink()}
               >
@@ -279,7 +279,7 @@ export function LobbyHeader({
                 size="sm"
                 className={cn(
                   actionClass,
-                  'border-sky-400/[0.14] text-sky-300 hover:border-sky-400/35 hover:bg-sky-400/[0.09] focus-visible:ring-sky-300/35',
+                  'border-slate-400/[0.14] bg-indigo-400/[0.025] text-slate-200 hover:border-indigo-300/30 hover:bg-indigo-400/[0.08] hover:text-indigo-100 focus-visible:ring-indigo-300/30',
                 )}
                 onClick={isLocked ? onUnlockRoom : onLockRoom}
               >
