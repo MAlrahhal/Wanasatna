@@ -137,8 +137,8 @@ test('room-link copy and single lobby hamburger are unchanged in intent', () => 
   assert.match(header, /تم نسخ الرابط/);
   assert.doesNotMatch(header, /navigator\.share/);
   assert.match(header, /aria-label=\{menuOpen \? 'إغلاق قائمة الغرفة' : 'فتح قائمة الغرفة'\}/);
-  assert.match(header, /xl:hidden/);
-  assert.match(header, /hidden xl:flex/);
+  assert.match(header, /lg:hidden/);
+  assert.match(header, /hidden lg:flex/);
 });
 
 test('player count is LTR-safe and kick stays dialog-backed', () => {

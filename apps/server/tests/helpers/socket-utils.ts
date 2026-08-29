@@ -47,8 +47,58 @@ export type TestClient = {
 
 export const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-export function ack<T = unknown>(socket: Socket, event: string, payload: unknown = {}): Promise<T> {
-  return new Promise((resolve, reject) => {
+type SyncBudget = {
+  tokens: number;
+  lastMs: number;
+  tail: Promise<void>;
+};
+
+const syncBudgetBySocket = new WeakMap<Socket, SyncBudget>();
+const SYNC_ACK_CAPACITY = 4;
+const SYNC_ACK_REFILL_PER_MS = 1.9 / 1000;
+
+async function reserveSyncBudget(socket: Socket): Promise<void> {
+  const budget = syncBudgetBySocket.get(socket) ?? {
+    tokens: SYNC_ACK_CAPACITY,
+    lastMs: Date.now(),
+    tail: Promise.resolve(),
+  };
+  syncBudgetBySocket.set(socket, budget);
+
+  const reservation = budget.tail.then(async () => {
+    let now = Date.now();
+    budget.tokens = Math.min(
+      SYNC_ACK_CAPACITY,
+      budget.tokens + (now - budget.lastMs) * SYNC_ACK_REFILL_PER_MS,
+    );
+    budget.lastMs = now;
+
+    if (budget.tokens < 1) {
+      await sleep(Math.ceil((1 - budget.tokens) / SYNC_ACK_REFILL_PER_MS));
+      now = Date.now();
+      budget.tokens = Math.min(
+        SYNC_ACK_CAPACITY,
+        budget.tokens + (now - budget.lastMs) * SYNC_ACK_REFILL_PER_MS,
+      );
+      budget.lastMs = now;
+    }
+
+    budget.tokens -= 1;
+  });
+  budget.tail = reservation.catch(() => undefined);
+  await reservation;
+}
+
+export async function ack<T = unknown>(
+  socket: Socket,
+  event: string,
+  payload: unknown = {},
+): Promise<T> {
+  if (event.endsWith('sync')) {
+    await reserveSyncBudget(socket);
+  }
+
+  return new Promise<T>((resolve, reject) => {
     socket.timeout(15000).emit(event, payload, (err: Error | null, res: T) =>
       err ? reject(err) : resolve(res),
     );

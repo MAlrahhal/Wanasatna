@@ -128,7 +128,7 @@ async function createRoomWithPlayers(playerCount: number): Promise<TestClient[]>
 async function startTiming(
   clients: TestClient[],
   mode: 'guess-time' | 'stop-timer',
-): Promise<void> {
+): Promise<TimingChallengePlayerView> {
   const host = clients[0]!;
   const startRes = await ack<{ success: boolean; error?: { message?: string } }>(
     host.socket,
@@ -150,7 +150,7 @@ async function startTiming(
     200,
   );
 
-  await waitFor(async () => {
+  return waitFor(async () => {
     const view = await syncView(host.socket);
     return view.gamePhase === 'ready' ? view : null;
   }, 10000, 'ready');
@@ -163,15 +163,8 @@ async function disconnectAll(clients: TestClient[]): Promise<void> {
   await sleep(50);
 }
 
-async function readyAll(clients: TestClient[]): Promise<string> {
-  const first = await syncView(clients[0]!.socket);
-  const roundId = first.roundId;
-
+async function readyAll(clients: TestClient[], roundId: string): Promise<void> {
   for (const client of clients) {
-    const view = await syncView(client.socket);
-    if (view.isMatchSpectator || view.selfReady) {
-      continue;
-    }
     const res = await ack<{ success: boolean; error?: { message?: string } }>(
       client.socket,
       TIMING_CHALLENGE_READY_EVENT,
@@ -179,13 +172,11 @@ async function readyAll(clients: TestClient[]): Promise<string> {
     );
     assert.ok(res.success, res.error?.message ?? 'ready');
   }
-
-  return roundId;
 }
 
-async function playGuessRound(clients: TestClient[]): Promise<void> {
+async function playGuessRound(clients: TestClient[], roundId: string): Promise<void> {
   const host = clients[0]!;
-  await readyAll(clients);
+  await readyAll(clients, roundId);
 
   await waitFor(async () => {
     const view = await syncView(host.socket);
@@ -220,9 +211,9 @@ async function playGuessRound(clients: TestClient[]): Promise<void> {
   assert.ok(results.targetMs !== null);
 }
 
-async function playStopRound(clients: TestClient[]): Promise<void> {
+async function playStopRound(clients: TestClient[], roundId: string): Promise<void> {
   const host = clients[0]!;
-  await readyAll(clients);
+  await readyAll(clients, roundId);
 
   await waitFor(async () => {
     const view = await syncView(host.socket);
@@ -289,17 +280,19 @@ async function finishMatchToLobby(clients: TestClient[]): Promise<void> {
 async function runGuessMatch(playerCount: number): Promise<void> {
   const clients = await createRoomWithPlayers(playerCount);
   try {
-    await startTiming(clients, 'guess-time');
-    const first = await syncView(clients[0]!.socket);
+    const first = await startTiming(clients, 'guess-time');
     assert.equal(first.totalRounds, 3);
     assert.equal(first.mode, 'guess-time');
 
     for (let round = 1; round <= 3; round += 1) {
-      await waitFor(async () => {
-        const view = await syncView(clients[0]!.socket);
-        return view.gamePhase === 'ready' && view.currentRound === round ? view : null;
-      }, 20000, `ready r${round}`);
-      await playGuessRound(clients);
+      const readyView =
+        round === 1
+          ? first
+          : await waitFor(async () => {
+              const view = await syncView(clients[0]!.socket);
+              return view.gamePhase === 'ready' && view.currentRound === round ? view : null;
+            }, 20000, `ready r${round}`);
+      await playGuessRound(clients, readyView.roundId);
       if (round < 3) {
         await ack(clients[0]!.socket, TIMING_CHALLENGE_CONTINUE_ROUND_RESULTS_EVENT, {});
       } else {
@@ -335,13 +328,16 @@ async function runGuessMatch(playerCount: number): Promise<void> {
 async function runStopMatch(playerCount: number): Promise<void> {
   const clients = await createRoomWithPlayers(playerCount);
   try {
-    await startTiming(clients, 'stop-timer');
+    const first = await startTiming(clients, 'stop-timer');
     for (let round = 1; round <= 3; round += 1) {
-      await waitFor(async () => {
-        const view = await syncView(clients[0]!.socket);
-        return view.gamePhase === 'ready' && view.currentRound === round ? view : null;
-      }, 20000, `stop ready r${round}`);
-      await playStopRound(clients);
+      const readyView =
+        round === 1
+          ? first
+          : await waitFor(async () => {
+              const view = await syncView(clients[0]!.socket);
+              return view.gamePhase === 'ready' && view.currentRound === round ? view : null;
+            }, 20000, `stop ready r${round}`);
+      await playStopRound(clients, readyView.roundId);
       await ack(clients[0]!.socket, TIMING_CHALLENGE_CONTINUE_ROUND_RESULTS_EVENT, {});
     }
     await waitFor(async () => {

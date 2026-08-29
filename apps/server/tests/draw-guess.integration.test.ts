@@ -14,7 +14,6 @@ import {
   DRAW_GUESS_SUBMIT_GUESS_EVENT,
   DRAW_GUESS_SYNC_EVENT,
   DRAW_GUESS_UNDO_EVENT,
-  GAME_SHELL_RETURN_TO_LOBBY_EVENT,
   RECONNECT_EVENT,
 } from '@wanasatna/shared';
 import {
@@ -333,14 +332,9 @@ async function runCompleteMatch(
       return view.gamePhase === 'match-completed' ? view : null;
     }, 10000, 'match completed');
 
-    await waitFor(
-      async () =>
-        clients.some((client) => client.shellEvents.some((event) => event.phase === 'FINISHED'))
-          ? true
-          : null,
-      20000,
-      'shell FINISHED',
-      300,
+    assert.equal(
+      clients.some((client) => client.shellEvents.some((event) => event.phase === 'FINISHED')),
+      false,
     );
   } finally {
     await disconnectAll(clients);
@@ -464,7 +458,7 @@ async function main(): Promise<void> {
 
       const spectatorView = await syncDrawGuess(spectator.socket);
       assert.equal(spectatorView.isMatchSpectator, true);
-      assert.equal(spectatorView.secretWord, null);
+      assert.equal(spectatorView.secretWord, drawer.view.secretWord);
       assert.equal(spectatorView.canGuess, false);
       assert.ok(Array.isArray(spectatorView.strokes));
 
@@ -585,20 +579,7 @@ async function main(): Promise<void> {
     try {
       await runCompleteMatchFlowInline(clients);
 
-      await waitFor(
-        async () =>
-          host.shellEvents.some((event) => event.phase === 'FINISHED') ? true : null,
-        25000,
-        'FINISHED after match',
-        300,
-      );
-
-      const returnRes = await ack<{ success: boolean; error?: { message?: string } }>(
-        host.socket,
-        GAME_SHELL_RETURN_TO_LOBBY_EVENT,
-        {},
-      );
-      assert.ok(returnRes.success, returnRes.error?.message ?? 'return-to-lobby');
+      assert.equal(host.shellEvents.some((event) => event.phase === 'FINISHED'), false);
 
       await waitFor(async () => {
         const sync = await ack<{

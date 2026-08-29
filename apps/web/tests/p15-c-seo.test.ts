@@ -135,8 +135,13 @@ test('metadata uniqueness, canonicals, OG, and Twitter', () => {
   assert.match(read('app/(public)/games/[gameId]/page.tsx'), /canonical: path/);
   assert.doesNotMatch(read('app/(public)/games/[gameId]/page.tsx'), /canonical: '\/'/);
 
+  const home = read('app/(public)/page.tsx');
+  assert.match(home, /url: '\/brand\/wanasatna-og\.png'/);
+  assert.match(home, /width: 1200/);
+  assert.match(home, /height: 630/);
+  assert.match(home, /card: 'summary_large_image'/);
+
   for (const file of [
-    'app/(public)/page.tsx',
     'app/(public)/games/page.tsx',
     'app/(public)/faq/page.tsx',
     'app/(public)/contact/page.tsx',

@@ -177,7 +177,8 @@ export function useRoomActions() {
       return;
     }
 
-    const trimmedCode = joinCode.trim();
+    const manager = getRoomSessionManager();
+    const trimmedCode = manager.shouldSuppressInvitePrefill() ? '' : joinCode.trim();
     const trimmedName = playerName.trim();
     const nextFieldErrors: FieldErrors = {};
 
@@ -231,7 +232,6 @@ export function useRoomActions() {
     setIsJoining(true);
 
     void (async () => {
-      const manager = getRoomSessionManager();
       try {
         // Form code is invite data only — clear Leave suppress so Lobby won't bounce Home.
         manager.clearExplicitLeaveHome();
@@ -292,11 +292,15 @@ export function useRoomActions() {
   );
 
   const urlInviteCode = readInviteCode(searchParams);
+  const suppressInvitePrefill =
+    typeof window !== 'undefined' && getRoomSessionManager().shouldSuppressInvitePrefill();
+  const visibleJoinCode = suppressInvitePrefill ? '' : joinCode;
 
   return {
     playerName,
-    joinCode,
-    inviteFromLink: urlInviteCode !== '' && joinCode === urlInviteCode,
+    joinCode: visibleJoinCode,
+    inviteFromLink:
+      !suppressInvitePrefill && urlInviteCode !== '' && visibleJoinCode === urlInviteCode,
     errorMessage,
     fieldErrors,
     isCreating,

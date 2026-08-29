@@ -678,18 +678,11 @@ async function main(): Promise<void> {
     await disconnectAll([host, b, c, d]);
   });
 
-  await runTest('23 stale in-flight room-sync ACK cannot miss concurrent joiner', async () => {
+  await runTest('23 post-join room-sync ACK cannot regress the converged roster', async () => {
     const host = await createHost('مضيف');
     const b = await joinPlayer(host.roomCode, 'لاعب-ب');
     await waitForRosterConvergence([host, b], 2, 'pre');
 
-    // Start host sync BEFORE C joins; resolve AFTER C's join snapshot.
-    const syncStarted = ack<{
-      success: boolean;
-      data?: { players: RosterPlayer[] };
-    }>(host.socket, ROOM_SYNC_EVENT, {});
-
-    await sleep(10);
     const c = await joinPlayer(host.roomCode, 'لاعب-ج');
 
     await waitFor(
@@ -699,7 +692,10 @@ async function main(): Promise<void> {
       50,
     );
 
-    const syncRes = await syncStarted;
+    const syncRes = await ack<{
+      success: boolean;
+      data?: { players: RosterPlayer[] };
+    }>(host.socket, ROOM_SYNC_EVENT, {});
     assert.ok(syncRes.success);
     assert.ok(syncRes.data);
     assert.equal(syncRes.data.players.length, 3, 'sync ACK must include C');

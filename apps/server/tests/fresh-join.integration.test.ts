@@ -22,6 +22,7 @@ import {
   connectClient,
   sleep,
   trackClientEvents,
+  waitFor,
   type TestClient,
 } from './helpers/socket-utils.js';
 
@@ -130,21 +131,45 @@ async function main(): Promise<void> {
 
     await disconnectClient(clients[1]!);
     await disconnectClient(clients[2]!);
-    await waitForRecoveryActive(host);
+    await waitFor(
+      async () =>
+        host.recoveryEvents.some((event) => event.isActive && event.connectedCount === 1)
+          ? true
+          : null,
+      5000,
+      'recovery active with one connected participant',
+      100,
+    );
 
-    const activeBefore = host.recoveryEvents.filter((event) => event.isActive).at(-1);
+    const activeBefore = host.recoveryEvents.findLast(
+      (event) => event.isActive && event.connectedCount === 1,
+    );
     assert.ok(activeBefore);
     assert.equal(activeBefore!.connectedCount, 1);
+    const recoveryEventCount = host.recoveryEvents.length;
 
-    await joinFreshPlayer(roomCode, 'أحمد');
+    const waiter = await joinFreshPlayer(roomCode, 'أحمد');
 
-    await sleep(400);
-    const activeAfter = host.recoveryEvents.filter((event) => event.isActive).at(-1);
+    await waitFor(
+      async () =>
+        host.recoveryEvents
+          .slice(recoveryEventCount)
+          .some((event) => event.isActive && event.connectedCount === 1)
+          ? true
+          : null,
+      5000,
+      'fresh spectator does not change recovery participant count',
+      100,
+    );
+    const activeAfter = host.recoveryEvents
+      .slice(recoveryEventCount)
+      .findLast((event) => event.isActive);
     assert.ok(activeAfter?.isActive);
     assert.equal(activeAfter!.connectedCount, 1);
 
     host.socket.disconnect();
     clients.forEach((c) => c.socket.disconnect());
+    waiter.socket.disconnect();
   });
 
   await runTest('D original participant reconnect cancels recovery', async () => {

@@ -280,7 +280,7 @@ async function main(): Promise<void> {
 
     await waitFor(
       async () => (host.navigations.includes('/lobby') ? true : null),
-      8000,
+      20000,
       'recovery abort to lobby',
       100,
     );

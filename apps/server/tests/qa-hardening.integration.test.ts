@@ -22,6 +22,7 @@ import {
   DEFAULT_SERVER_URL,
   sleep,
   trackClientEvents,
+  waitFor,
   waitForServer,
   type TestClient,
 } from './helpers/socket-utils.js';
@@ -104,24 +105,48 @@ async function main(): Promise<void> {
   console.log('[qa-hardening] waiting for test server...');
   await waitForServer();
 
-  await runTest('H2: zero connected participants at PLAYING aborts match, server survives', async () => {
+  await runTest('H2: all match participants disconnected abort after recovery', async () => {
     const clients = await createRoomWithPlayers(['محمد', 'خالد', 'علي']);
     const host = clients[0]!;
+    const observer = makeClient('مراقب');
+    observer.socket = await connectClient();
+    trackClientEvents(observer);
 
     const startRes = await ack<{ success: boolean }>(host.socket, 'game-shell-start-from-lobby', {
       gameId: BARA_AL_SALAFA_GAME_ID,
     });
     assert.ok(startRes.success);
 
-    // Everyone drops before the match reaches PLAYING. Plugin initialization
-    // then runs with zero connected participants — the previous behavior was
-    // an unhandled 'No connected players available.' rejection killing Node.
+    const observerJoin = await ack<{
+      success: boolean;
+      data: {
+        player: { id: string; isSpectator?: boolean };
+        room: { id: string };
+        reconnectToken?: string;
+      };
+    }>(observer.socket, 'join-room', {
+      roomCode: host.roomCode,
+      playerName: observer.name,
+    });
+    assert.ok(observerJoin.success);
+    assert.equal(observerJoin.data.player.isSpectator, true);
+
     for (const client of clients) {
       client.socket.disconnect();
     }
 
-    // lobby wait (50ms) + countdown (1s) + plugin init + abort, with buffer.
-    await sleep(4000);
+    await waitFor(
+      async () => {
+        const syncRes = await ack<{ success: boolean; data?: { state: unknown } }>(
+          observer.socket,
+          GAME_SHELL_SYNC_EVENT,
+        );
+        return syncRes.success && syncRes.data?.state === null ? true : null;
+      },
+      20000,
+      'isolated match shell cleanup',
+      200,
+    );
 
     await assertServerHealthy('zero-participant plugin initialization');
 
@@ -145,6 +170,7 @@ async function main(): Promise<void> {
     assert.equal(syncRes.data.state, null, 'broken match shell was aborted');
 
     host.socket.disconnect();
+    observer.socket.disconnect();
   });
 
   await runTest('M2: room dissolving during lobby-wait window leaves server alive', async () => {

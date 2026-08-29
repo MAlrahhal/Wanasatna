@@ -173,12 +173,8 @@ function sampleStroke(turnId: string, strokeId: string) {
   };
 }
 
-async function acknowledgeBriefing(clients: TestClient[]): Promise<void> {
+async function acknowledgeBriefing(clients: TestClient[]): Promise<ImposterDrawPlayerView> {
   for (const client of clients) {
-    const view = await syncView(client.socket);
-    if (view.isMatchSpectator || view.hasAcknowledgedBriefing) {
-      continue;
-    }
     const res = await ack<{ success: boolean; error?: { message?: string } }>(
       client.socket,
       IMPOSTER_DRAW_SUBMIT_ROLE_UNDERSTOOD_EVENT,
@@ -187,7 +183,7 @@ async function acknowledgeBriefing(clients: TestClient[]): Promise<void> {
     assert.ok(res.success, res.error?.message ?? 'ack briefing');
   }
 
-  await waitFor(async () => {
+  return waitFor(async () => {
     const view = await syncView(clients[0]!.socket);
     return view.gamePhase === 'drawing-turns' ? view : null;
   }, 10000, 'drawing after briefing ack');
@@ -205,16 +201,16 @@ async function waitForPhase(
   }, timeoutMs, label);
 }
 
-async function playThroughDrawing(clients: TestClient[]): Promise<string[]> {
+async function playThroughDrawing(
+  clients: TestClient[],
+  initialView: ImposterDrawPlayerView,
+): Promise<string[]> {
   const host = clients[0]!;
   const drawers: string[] = [];
   let previousTurnId: string | null = null;
+  let view = initialView;
 
-  while (true) {
-    const view = await syncView(host.socket);
-    if (view.gamePhase !== 'drawing-turns') {
-      break;
-    }
+  while (view.gamePhase === 'drawing-turns') {
 
     const drawerId = view.currentDrawerPlayerId;
     assert.ok(drawerId);
@@ -223,7 +219,7 @@ async function playThroughDrawing(clients: TestClient[]): Promise<string[]> {
     const drawer = clients.find((client) => client.id === drawerId);
     assert.ok(drawer, 'drawer client');
 
-    const drawerView = await syncView(drawer.socket);
+    const drawerView = drawer.id === host.id ? view : await syncView(drawer.socket);
     assert.equal(drawerView.canDraw, true);
     assert.equal(drawerView.referenceImage, null);
 
@@ -260,7 +256,7 @@ async function playThroughDrawing(clients: TestClient[]): Promise<string[]> {
 
     previousTurnId = drawerView.turnId;
 
-    await waitFor(async () => {
+    view = await waitFor(async () => {
       const next = await syncView(host.socket);
       if (next.gamePhase === 'voting') {
         return next;
@@ -364,13 +360,15 @@ async function runCompleteMatch(playerCount: number): Promise<void> {
     }
 
     for (let round = 1; round <= 3; round += 1) {
-      await waitFor(async () => {
-        const view = await syncView(host.socket);
-        return view.gamePhase === 'briefing' && view.currentRound === round ? view : null;
-      }, 20000, `round ${round} briefing`);
+      if (round > 1) {
+        await waitFor(async () => {
+          const view = await syncView(host.socket);
+          return view.gamePhase === 'briefing' && view.currentRound === round ? view : null;
+        }, 20000, `round ${round} briefing`);
+      }
 
-      await acknowledgeBriefing(clients);
-      const drawers = await playThroughDrawing(clients);
+      const drawingView = await acknowledgeBriefing(clients);
+      const drawers = await playThroughDrawing(clients, drawingView);
       assert.equal(drawers.length, playerCount, `every player draws once in round ${round}`);
 
       const afterDrawing = await syncView(host.socket);

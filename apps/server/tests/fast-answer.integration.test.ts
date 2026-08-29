@@ -191,7 +191,7 @@ async function main(): Promise<void> {
   await waitForServer();
 
   await runTest('sync privacy + locked category + 5 rounds', async () => {
-    const { clients } = await startFastAnswerMatch(2, 'football');
+    const { clients } = await startFastAnswerMatch(2, 'series');
 
     for (const client of clients) {
       const view = await syncView(client);
@@ -201,10 +201,10 @@ async function main(): Promise<void> {
       assert.equal('acceptedAnswers' in view, false);
       assert.ok(typeof view.question === 'string');
       assert.equal(view.totalRounds, FAST_ANSWER_DEFAULT_ROUNDS);
-      assert.equal(view.categoryId, 'football');
+      assert.equal(view.categoryId, 'series');
       assert.ok(view.roundId);
       const entry = contentQuestions.find((item) => item.question === view.question);
-      assert.equal(entry?.categoryId, 'football');
+      assert.equal(entry?.categoryId, 'series');
     }
 
     for (const client of clients) {
@@ -335,7 +335,7 @@ async function main(): Promise<void> {
   });
 
   await runTest('host skip results + complete match cleanup allows next game', async () => {
-    const { host, clients } = await startFastAnswerMatch(2, 'movies');
+    const { host, clients } = await startFastAnswerMatch(2, 'games');
 
     for (let round = 1; round <= FAST_ANSWER_DEFAULT_ROUNDS; round += 1) {
       const view = await waitFor(async () => {
@@ -345,7 +345,7 @@ async function main(): Promise<void> {
           : null;
       }, 20000, `question round ${round}`);
 
-      assert.equal(view.categoryId, 'movies');
+      assert.equal(view.categoryId, 'games');
       assert.equal(view.totalRounds, 5);
       assert.ok(view.roundId);
 

@@ -328,19 +328,32 @@ async function main(): Promise<void> {
     }
   });
 
-  await test('pre-deploy Neon inventory is still empty for legacy objects', async () => {
-    const [sessionCount] = await prisma.$queryRaw<Array<{ count: bigint }>>(
-      Prisma.sql`SELECT COUNT(*)::bigint AS count FROM "Session"`,
-    );
-    const [chatCount] = await prisma.$queryRaw<Array<{ count: bigint }>>(
-      Prisma.sql`SELECT COUNT(*)::bigint AS count FROM "ChatMessage"`,
-    );
-    const [activeCount] = await prisma.$queryRaw<Array<{ count: bigint }>>(
-      Prisma.sql`SELECT COUNT(*)::bigint AS count FROM "Room" WHERE "activeSessionId" IS NOT NULL`,
-    );
-    assert.equal(Number(sessionCount?.count ?? -1), 0);
-    assert.equal(Number(chatCount?.count ?? -1), 0);
-    assert.equal(Number(activeCount?.count ?? -1), 0);
+  await test('migrated DB inventory excludes legacy objects and preserves RoomMessage', async () => {
+    const [inventory] = await prisma.$queryRaw<
+      Array<{
+        sessionTable: string | null;
+        chatMessageTable: string | null;
+        roomMessageTable: string | null;
+        legacyRoomColumnCount: bigint;
+      }>
+    >(Prisma.sql`
+      SELECT
+        to_regclass('"Session"')::text AS "sessionTable",
+        to_regclass('"ChatMessage"')::text AS "chatMessageTable",
+        to_regclass('"RoomMessage"')::text AS "roomMessageTable",
+        (
+          SELECT COUNT(*)::bigint
+          FROM information_schema.columns
+          WHERE table_schema = current_schema()
+            AND table_name = 'Room'
+            AND column_name IN ('activeSessionId', 'sessionType')
+        ) AS "legacyRoomColumnCount"
+    `);
+    assert.ok(inventory);
+    assert.equal(inventory.sessionTable, null);
+    assert.equal(inventory.chatMessageTable, null);
+    assert.notEqual(inventory.roomMessageTable, null);
+    assert.equal(Number(inventory.legacyRoomColumnCount), 0);
   });
 
   if (failed > 0) {

@@ -65,7 +65,11 @@ test('invite/home join errors map cleanly and ?code= flow is intact', () => {
   assert.match(invite, /presentRoomActionError/);
   assert.match(invite, /id="join-code"/);
   assert.match(invite, /readOnly/);
-  assert.match(hook, /inviteFromLink:\s*urlInviteCode !== '' && joinCode === urlInviteCode/);
+  assert.match(hook, /const visibleJoinCode = suppressInvitePrefill \? '' : joinCode/);
+  assert.match(
+    hook,
+    /inviteFromLink:\s*!suppressInvitePrefill && urlInviteCode !== '' && visibleJoinCode === urlInviteCode/,
+  );
   assert.match(hook, /manager\.enterFromJoinForm\(trimmedCode, trimmedName\)/);
   assert.doesNotMatch(home, /تعذر إكمال العملية/);
   assert.doesNotMatch(invite, /تعذر إكمال العملية/);

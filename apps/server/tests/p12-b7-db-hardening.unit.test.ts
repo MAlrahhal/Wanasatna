@@ -125,7 +125,7 @@ async function main(): Promise<void> {
     const purgeAt = indexSource.indexOf('await purgeExpiredAuthSessions');
     const listenAt = indexSource.indexOf('httpServer.listen');
     assert.ok(reconcileAt >= 0 && purgeAt > reconcileAt && listenAt > purgeAt);
-    assert.match(indexSource, /startup-expired-purge-failed/);
+    assert.match(indexSource, /auth-session-cleanup-failed/);
     assert.doesNotMatch(
       indexSource.slice(purgeAt, listenAt),
       /process\.exit\(1\)/,

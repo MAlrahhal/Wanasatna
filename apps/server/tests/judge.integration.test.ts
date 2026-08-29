@@ -271,7 +271,7 @@ async function main(): Promise<void> {
     const { host, clients } = await startJudgeMatch(3, 'worst-answer');
     const startView = await syncView(host);
     assert.equal(startView.totalRounds, 3);
-    assert.equal(startView.categoryLabel, 'مواقف مضحكة');
+    assert.equal(startView.categoryLabel, 'أسوأ إجابة ممكنة');
 
     const judges: string[] = [];
     for (let round = 1; round <= 3; round += 1) {
@@ -342,14 +342,14 @@ async function main(): Promise<void> {
   await runTest('fixed category stays locked; random stays public عشوائي', async () => {
     const fixed = await startJudgeMatch(3, 'worst-answer');
     const first = await syncView(fixed.host);
-    assert.equal(first.categoryLabel, 'مواقف مضحكة');
+    assert.equal(first.categoryLabel, 'أسوأ إجابة ممكنة');
     assert.equal(categoryForPrompt(first.prompt ?? ''), 'worst-answer');
     await playCurrentRound(fixed.host, fixed.clients, true);
     const second = await waitFor(async () => {
       const view = await syncView(fixed.host);
       return view.gamePhase === 'answering' && view.currentRound === 2 ? view : null;
     }, 15000, 'round 2 answering');
-    assert.equal(second.categoryLabel, 'مواقف مضحكة');
+    assert.equal(second.categoryLabel, 'أسوأ إجابة ممكنة');
     assert.equal(categoryForPrompt(second.prompt ?? ''), 'worst-answer');
     disconnectAll(fixed.clients);
 

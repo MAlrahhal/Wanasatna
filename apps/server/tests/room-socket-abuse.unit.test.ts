@@ -306,8 +306,9 @@ test('RECONNECT spam is rejected before reconnectPlayer; burst stays under quota
   assert.equal(reconnectCalls, 30);
 });
 
-test('ROOM_SYNC excess is rejected before Prisma work and ACKs immediately', async () => {
+test('ROOM_SYNC excess is rejected before Prisma work and ACKs RATE_LIMITED', async () => {
   setupRuntimeMocks();
+  setAbuseLimiterNow(() => 5_000_000);
   let syncCalls = 0;
   roomMutationRuntime.syncBoundRoomSession = async () => {
     syncCalls += 1;
@@ -319,7 +320,6 @@ test('ROOM_SYNC excess is rejected before Prisma work and ACKs immediately', asy
   socket.data.roomId = 'room-1';
   registerRoomSyncHandler(fakeIo, socket);
 
-  const started = Date.now();
   for (let index = 0; index < 4; index += 1) {
     const response = (await emitAck(socket, ROOM_SYNC_EVENT, {})) as { success: boolean };
     assert.equal(response.success, true);
@@ -328,7 +328,7 @@ test('ROOM_SYNC excess is rejected before Prisma work and ACKs immediately', asy
     success: boolean;
     error?: { code: string };
   };
-  assert.ok(Date.now() - started < 1000);
+  assert.equal(limited.success, false);
   assert.equal(limited.error?.code, 'RATE_LIMITED');
   assert.equal(syncCalls, 4);
 });

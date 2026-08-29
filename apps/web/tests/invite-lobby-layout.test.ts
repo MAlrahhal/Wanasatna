@@ -42,7 +42,11 @@ test('?code= activates dedicated invite UI and reuses Join', () => {
 
   assert.match(home, /if \(room\.inviteFromLink\)/);
   assert.match(home, /<InviteJoinCard/);
-  assert.match(hook, /inviteFromLink:\s*urlInviteCode !== '' && joinCode === urlInviteCode/);
+  assert.match(hook, /const visibleJoinCode = suppressInvitePrefill \? '' : joinCode/);
+  assert.match(
+    hook,
+    /inviteFromLink:\s*!suppressInvitePrefill && urlInviteCode !== '' && visibleJoinCode === urlInviteCode/,
+  );
   assert.match(hook, /handleJoinRoom/);
   assert.match(home, /onJoinRoom=\{room\.handleJoinRoom\}/);
 
@@ -121,15 +125,12 @@ test('category selection and compact layout are preserved', () => {
   assert.match(panel, /grid grid-cols-2/);
   assert.match(panel, /bg-wanas-accent text-white/);
   assert.match(categories, /كرة قدم/);
-  assert.match(categories, /سيارات/);
   assert.match(categories, /بلدان/);
   assert.match(categories, /أكلات/);
   assert.match(categories, /حيوانات/);
   assert.match(categories, /عشوائي/);
-  assert.match(categories, /تقنيات/);
   assert.match(categories, /ألعاب/);
   assert.match(categories, /مسلسلات/);
-  assert.match(categories, /أفلام/);
   assert.match(categories, /defaultCategoryId: 'random'/);
 });
 
@@ -157,7 +158,8 @@ test('game settings and host start behavior are unchanged', () => {
   assert.match(start, /getGameStartPlayerRequirementReason/);
   assert.match(start, /بدء اللعبة/);
   assert.match(marathon, /ماراثون الألعاب/);
-  assert.match(marathon, /قريباً/);
+  assert.match(marathon, /await prepare\(\)/);
+  assert.match(marathon, /إعداد الماراتون/);
   assert.doesNotMatch(marathon, /startMarathon|onStartMarathon/);
 });
 
