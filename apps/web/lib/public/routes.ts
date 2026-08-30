@@ -3,6 +3,8 @@ export const PUBLIC_ROUTES = {
   games: '/games',
   faq: '/faq',
   contact: '/contact',
+  privacy: '/privacy',
+  terms: '/terms',
   login: '/login',
 } as const;
 

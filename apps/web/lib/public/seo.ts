@@ -23,11 +23,21 @@ export const CONTACT_PAGE_TITLE = 'تواصل معنا';
 export const CONTACT_PAGE_DESCRIPTION =
   'الدعم والتواصل مع فريق وناستنا يتم عبر سيرفر Discord الرسمي.';
 
+export const PRIVACY_PAGE_TITLE = 'سياسة الخصوصية';
+export const PRIVACY_PAGE_DESCRIPTION =
+  'تعرّف على البيانات التي تعالجها وناستنا لتشغيل الغرف والألعاب والحسابات، وكيف تُستخدم وتُحفظ.';
+
+export const TERMS_PAGE_TITLE = 'الشروط والأحكام';
+export const TERMS_PAGE_DESCRIPTION =
+  'شروط استخدام منصة وناستنا للألعاب الجماعية، وقواعد الاستخدام والتواصل والمسؤوليات الأساسية.';
+
 export const INDEXABLE_PUBLIC_PATHS = [
   PUBLIC_ROUTES.home,
   PUBLIC_ROUTES.games,
   PUBLIC_ROUTES.faq,
   PUBLIC_ROUTES.contact,
+  PUBLIC_ROUTES.privacy,
+  PUBLIC_ROUTES.terms,
 ] as const;
 
 export const GAME_INFORMATION_PATHS = PLAYABLE_GAME_IDS.map((gameId) =>
