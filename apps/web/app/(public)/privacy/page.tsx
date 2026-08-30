@@ -3,25 +3,21 @@ import Link from 'next/link';
 import { PageHero } from '@/components/public/page-hero';
 import { BRAND_NAME_AR } from '@/lib/public/brand';
 import { PUBLIC_ROUTES } from '@/lib/public/routes';
-import { PRIVACY_PAGE_DESCRIPTION, PRIVACY_PAGE_TITLE } from '@/lib/public/seo';
+import {
+  buildPublicSocialMetadata,
+  PRIVACY_PAGE_DESCRIPTION,
+  PRIVACY_PAGE_TITLE,
+} from '@/lib/public/seo';
 
 export const metadata: Metadata = {
   title: PRIVACY_PAGE_TITLE,
   description: PRIVACY_PAGE_DESCRIPTION,
   alternates: { canonical: '/privacy' },
-  openGraph: {
+  ...buildPublicSocialMetadata({
     title: `${PRIVACY_PAGE_TITLE} | ${BRAND_NAME_AR}`,
     description: PRIVACY_PAGE_DESCRIPTION,
     url: '/privacy',
-    locale: 'ar',
-    siteName: BRAND_NAME_AR,
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary',
-    title: `${PRIVACY_PAGE_TITLE} | ${BRAND_NAME_AR}`,
-    description: PRIVACY_PAGE_DESCRIPTION,
-  },
+  }),
 };
 
 const sectionClassName =

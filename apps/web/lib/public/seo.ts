@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { PLAYABLE_GAME_IDS } from '@wanasatna/shared';
 import { BRAND_NAME_AR } from '@/lib/public/brand';
 import { PUBLIC_ROUTES, getGameInformationPath } from '@/lib/public/routes';
@@ -31,6 +32,41 @@ export const TERMS_PAGE_TITLE = 'الشروط والأحكام';
 export const TERMS_PAGE_DESCRIPTION =
   'شروط استخدام منصة وناستنا للألعاب الجماعية، وقواعد الاستخدام والتواصل والمسؤوليات الأساسية.';
 
+export const SOCIAL_IMAGE = {
+  url: '/brand/wanasatna-og.png',
+  width: 1200,
+  height: 630,
+  alt: `${BRAND_NAME_AR} (Wanasatna)`,
+} as const;
+
+export function buildPublicSocialMetadata({
+  title,
+  description,
+  url,
+}: {
+  title: string;
+  description: string;
+  url: string;
+}) {
+  return {
+    openGraph: {
+      title,
+      description,
+      url,
+      locale: 'ar',
+      siteName: BRAND_NAME_AR,
+      type: 'website',
+      images: [SOCIAL_IMAGE],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [SOCIAL_IMAGE],
+    },
+  } satisfies Pick<Metadata, 'openGraph' | 'twitter'>;
+}
+
 export const INDEXABLE_PUBLIC_PATHS = [
   PUBLIC_ROUTES.home,
   PUBLIC_ROUTES.games,
@@ -48,6 +84,7 @@ export const websiteJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: BRAND_NAME_AR,
+  alternateName: 'Wanasatna',
   url: `${SITE_ORIGIN}/`,
   inLanguage: 'ar',
   description: HOME_DESCRIPTION,

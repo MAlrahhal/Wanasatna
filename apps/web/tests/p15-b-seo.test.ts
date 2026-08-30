@@ -105,7 +105,7 @@ test('4-7 eight game pages resolve with unique title, description, canonical', (
   assert.match(route, /generateStaticParams/);
   assert.match(route, /PLAYABLE_GAME_IDS/);
   assert.match(route, /notFound/);
-  assert.match(route, /openGraph/);
+  assert.match(route, /buildPublicSocialMetadata/);
   assert.equal(existsSync(join(root, 'app/(public)/games/[gameId]/page.tsx')), true);
 
   const titles = new Set<string>();

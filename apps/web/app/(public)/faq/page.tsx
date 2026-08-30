@@ -2,25 +2,17 @@ import type { Metadata } from 'next';
 import { FAQAccordion } from '@/components/public/faq-accordion';
 import { PageHero } from '@/components/public/page-hero';
 import { BRAND_NAME_AR } from '@/lib/public/brand';
-import { FAQ_PAGE_DESCRIPTION, FAQ_PAGE_TITLE } from '@/lib/public/seo';
+import { buildPublicSocialMetadata, FAQ_PAGE_DESCRIPTION, FAQ_PAGE_TITLE } from '@/lib/public/seo';
 
 export const metadata: Metadata = {
   title: FAQ_PAGE_TITLE,
   description: FAQ_PAGE_DESCRIPTION,
   alternates: { canonical: '/faq' },
-  openGraph: {
+  ...buildPublicSocialMetadata({
     title: `${FAQ_PAGE_TITLE} | ${BRAND_NAME_AR}`,
     description: FAQ_PAGE_DESCRIPTION,
     url: '/faq',
-    locale: 'ar',
-    siteName: BRAND_NAME_AR,
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary',
-    title: `${FAQ_PAGE_TITLE} | ${BRAND_NAME_AR}`,
-    description: FAQ_PAGE_DESCRIPTION,
-  },
+  }),
 };
 
 export default function FaqPage() {
