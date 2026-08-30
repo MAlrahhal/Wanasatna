@@ -159,7 +159,7 @@ export function LobbyHeader({
   return (
     <header className="relative rounded-[1.35rem] border border-violet-400/[0.16] bg-[linear-gradient(105deg,rgba(8,11,29,0.99),rgba(16,20,47,0.98),rgba(9,12,31,0.99))] text-white shadow-[0_16px_40px_rgba(4,7,22,0.38)] ring-1 ring-inset ring-white/[0.025]">
       <div className="flex min-h-20 items-center justify-between gap-3 px-3 py-3 sm:px-4 lg:gap-4 lg:px-5 lg:py-4">
-        <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+        <div className="flex min-w-0 flex-col items-start gap-2.5 min-[430px]:flex-row min-[430px]:items-center sm:gap-3">
           {showInvitationDetails ? (
             <div className="min-w-0 rounded-2xl border border-violet-400/30 bg-[linear-gradient(145deg,rgba(36,31,70,0.8),rgba(14,18,42,0.92))] px-4 py-2.5 shadow-[0_8px_24px_rgba(76,29,149,0.16),inset_0_1px_0_rgba(255,255,255,0.05)] ring-1 ring-inset ring-violet-300/[0.06]">
               <p className="text-[11px] font-semibold tracking-wide text-violet-100/55">
