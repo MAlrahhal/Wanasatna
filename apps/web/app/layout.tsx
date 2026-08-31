@@ -51,6 +51,9 @@ export const metadata: Metadata = {
     title: HOME_TITLE,
     description: HOME_DESCRIPTION,
   },
+  other: {
+    "google-adsense-account": "ca-pub-6489048987333106",
+  },
 };
 
 export const viewport: Viewport = {
