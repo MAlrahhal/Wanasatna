@@ -41,13 +41,11 @@ export function authorizeAdmin(user: PublicUser | null | undefined): AdminAuthRe
   return { ok: true, user };
 }
 
-export async function resolveAdminUser(
-  sessionToken: string | undefined,
-): Promise<AdminAuthResult> {
+export async function resolveAdminUser(sessionToken: string | undefined): Promise<AdminAuthResult> {
   let user: PublicUser | null = null;
 
   try {
-    user = await resolveAuthSession(sessionToken);
+    user = await resolveAuthSession(sessionToken, { requireAdminMfa: true });
   } catch {
     user = null;
   }
@@ -68,11 +66,7 @@ function sendAdminDenied(res: Response, result: AdminAuthFailure): void {
  * reloads User from the database, and checks User.role === ADMIN.
  * Ignores client role, email query params, and Player.userId.
  */
-export async function requireAdmin(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): Promise<void> {
+export async function requireAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
   const result = await resolveAdminUser(readAuthCookie(req));
 
   if (!result.ok) {

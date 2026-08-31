@@ -32,6 +32,7 @@ import {
   consumeRoomSyncLimit,
   forgetSocketAbuseState,
 } from '../../lib/abuse-limiter.js';
+import { opsLogger, sanitizeErrorName, sanitizeKnownErrorCode } from '../../lib/ops-logger.js';
 import { announcePermanentPlayerRemoval } from './services/disconnected-player-expiry.service.js';
 import { announceKickedPlayer, announceRoomClosed } from './room-socket-announce.js';
 import { endRoomByHost } from './services/end-room.service.js';
@@ -149,10 +150,11 @@ export function registerCreateRoomHandler(io: Server, socket: Socket): void {
 
         sendResponse(callback, response);
       } catch (error) {
-        console.info('[create-room]', {
+        opsLogger.error('room-create-handler-failed', 'تعذر إكمال طلب إنشاء الغرفة.', {
+          operation: 'create-room-socket',
           stage: 'socket-handler-thrown',
-          errorName: error instanceof Error ? error.name : typeof error,
-          errorMessage: error instanceof Error ? error.message : String(error),
+          errorName: sanitizeErrorName(error),
+          errorCode: sanitizeKnownErrorCode(error),
           callbackErrorCode: 'INTERNAL_ERROR',
         });
         sendInternalError(callback);
@@ -594,10 +596,12 @@ export function registerReconnectHandler(io: Server, socket: Socket): void {
 
         await evaluatePlayerRecovery(io, postAckRoomId);
       } catch (error) {
-        console.info('[reconnect]', {
+        opsLogger.warn('room-reconnect-side-effect-failed', 'تعذر إكمال مزامنة ما بعد العودة.', {
+          operation: 'reconnect-post-ack',
           stage: 'post-ack-side-effect-failed',
-          errorName: error instanceof Error ? error.name : typeof error,
-          errorMessage: error instanceof Error ? error.message : String(error),
+          roomId: postAckRoomId,
+          errorName: sanitizeErrorName(error),
+          errorCode: sanitizeKnownErrorCode(error),
         });
       }
     },

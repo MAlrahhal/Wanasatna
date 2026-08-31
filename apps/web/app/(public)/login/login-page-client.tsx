@@ -90,6 +90,10 @@ export function LoginPageClient() {
       }
 
       setPassword('');
+      if ('mfaRequired' in result.data) {
+        setErrorMessage(AUTH_COPY.adminMfaRequired);
+        return;
+      }
       router.replace(PUBLIC_ROUTES.home);
     } catch {
       setErrorMessage(AUTH_COPY.connectionFailed);
@@ -120,15 +124,15 @@ export function LoginPageClient() {
         ))}
       </div>
 
-      <div className="mx-auto max-w-md space-y-4 rounded-[24px] border border-wanas-border bg-wanas-surface p-6 shadow-sm">
+      <div className="border-wanas-border bg-wanas-surface mx-auto max-w-md space-y-4 rounded-[24px] border p-6 shadow-sm">
         {status === 'loading' || user ? (
-          <p className="text-center text-sm text-wanas-text-muted">{AUTH_COPY.resolvingSession}</p>
+          <p className="text-wanas-text-muted text-center text-sm">{AUTH_COPY.resolvingSession}</p>
         ) : (
           <>
             <div
               role="tablist"
               aria-label="اختيار نوع الحساب"
-              className="grid grid-cols-2 gap-1 rounded-2xl border border-wanas-border bg-wanas-surface-soft p-1"
+              className="border-wanas-border bg-wanas-surface-soft grid grid-cols-2 gap-1 rounded-2xl border p-1"
             >
               {(['login', 'register'] as const).map((tab) => (
                 <button
@@ -142,7 +146,7 @@ export function LoginPageClient() {
                   }}
                   className={cn(
                     'inline-flex h-10 items-center justify-center rounded-xl text-sm font-semibold transition-colors',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/30',
+                    'focus-visible:ring-wanas-accent/30 focus-visible:outline-none focus-visible:ring-2',
                     mode === tab
                       ? 'bg-wanas-surface text-wanas-text-primary shadow-sm'
                       : 'text-wanas-text-muted hover:text-wanas-text-primary',
@@ -164,7 +168,7 @@ export function LoginPageClient() {
                 <div
                   id="auth-form-error"
                   role="alert"
-                  className="rounded-2xl border border-wanas-error-border bg-wanas-error-surface px-4 py-3 text-sm text-wanas-error"
+                  className="border-wanas-error-border bg-wanas-error-surface text-wanas-error rounded-2xl border px-4 py-3 text-sm"
                 >
                   {errorMessage}
                 </div>
@@ -210,9 +214,9 @@ export function LoginPageClient() {
                 type="submit"
                 disabled={isSubmitting || !showForm}
                 className={cn(
-                  'inline-flex h-12 w-full items-center justify-center rounded-2xl bg-wanas-accent text-sm font-bold text-white shadow-sm hover:bg-wanas-accent-hover',
+                  'bg-wanas-accent hover:bg-wanas-accent-hover inline-flex h-12 w-full items-center justify-center rounded-2xl text-sm font-bold text-white shadow-sm',
                   'disabled:cursor-not-allowed disabled:opacity-60',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/30 focus-visible:ring-offset-2',
+                  'focus-visible:ring-wanas-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
                 )}
               >
                 {isSubmitting
@@ -230,8 +234,8 @@ export function LoginPageClient() {
         <GuardedPublicLink
           href={PUBLIC_ROUTES.home}
           className={cn(
-            'inline-flex h-12 items-center justify-center rounded-2xl border border-wanas-border bg-wanas-surface-soft px-6 text-sm font-bold text-wanas-primary-dark',
-            'hover:bg-wanas-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/30 focus-visible:ring-offset-2',
+            'border-wanas-border bg-wanas-surface-soft text-wanas-primary-dark inline-flex h-12 items-center justify-center rounded-2xl border px-6 text-sm font-bold',
+            'hover:bg-wanas-surface focus-visible:ring-wanas-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           )}
         >
           {AUTH_COPY.playAsGuest}

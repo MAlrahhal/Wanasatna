@@ -36,8 +36,19 @@ export const loginSchema = z.object({
   password: passwordSchema,
 });
 
+export const adminMfaVerificationSchema = z.object({
+  challengeToken: z
+    .string()
+    .min(32)
+    .max(128)
+    .regex(/^[A-Za-z0-9_-]+$/),
+  method: z.enum(['totp', 'recovery']),
+  code: z.string().trim().min(6).max(64),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type AdminMfaVerificationInput = z.infer<typeof adminMfaVerificationSchema>;
 
 type ValidationSuccess<T> = { success: true; data: T };
 type ValidationFailure = Extract<AuthActionResponse<never>, { success: false }>;
@@ -75,4 +86,8 @@ export function validateRegisterPayload(payload: unknown) {
 
 export function validateLoginPayload(payload: unknown) {
   return validatePayload(loginSchema, payload);
+}
+
+export function validateAdminMfaVerificationPayload(payload: unknown) {
+  return validatePayload(adminMfaVerificationSchema, payload);
 }

@@ -2,6 +2,7 @@ import type { Server as HttpServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { env } from '../config/env.js';
 import { consumeConnectLimit, startAbuseLimiterCleanup } from '../lib/abuse-limiter.js';
+import { createSocketOriginAllowRequest } from '../lib/origin-policy.js';
 import { SOCKET_MAX_HTTP_BUFFER_SIZE } from '../lib/socket-limits.js';
 import { attachOptionalSocketAuth } from '../modules/auth/socket-auth.js';
 import { startExpiredAuthSessionCleanup } from '../modules/auth/auth-session-cleanup.js';
@@ -24,6 +25,10 @@ export function createSocketServer(httpServer: HttpServer): SocketIOServer {
           : env.clientOrigin,
       credentials: true,
     },
+    allowRequest: createSocketOriginAllowRequest({
+      nodeEnv: env.nodeEnv,
+      clientOrigin: env.clientOrigin,
+    }),
     maxHttpBufferSize: SOCKET_MAX_HTTP_BUFFER_SIZE,
   });
 

@@ -29,6 +29,7 @@ import {
   ROOM_TX_RETRY_LIMIT,
 } from '../room/services/room-tx.js';
 import { setRoomLockedAsAdmin } from '../room/services/shared-room.service.js';
+import { createAdminAuditLogBestEffort } from './admin-audit.service.js';
 
 const SEAT_STATUSES = [PlayerStatus.CONNECTED, PlayerStatus.DISCONNECTED] as const;
 
@@ -111,18 +112,6 @@ function mapRoomDetails(row: AdminRoomRow): AdminRoomDetails {
   return { ...live, players };
 }
 
-function logAdminRoom(fields: {
-  action: string;
-  adminUserId: string;
-  roomId: string;
-  roomCode?: string | null;
-  playerId?: string;
-  alreadyClosed?: boolean;
-  roomDeleted?: boolean;
-}): void {
-  console.info('[admin-room]', fields);
-}
-
 function cleanupClosedRoomMemory(roomId: string): void {
   const shell = getGameShellByRoomId(roomId);
   if (shell) {
@@ -144,9 +133,7 @@ function fail(
   return { success: false, error: { code, message } };
 }
 
-function mapRoomActionError(
-  code: string,
-): AdminActionResponse<never> {
+function mapRoomActionError(code: string): AdminActionResponse<never> {
   if (code === 'ROOM_NOT_FOUND') {
     return fail('ROOM_NOT_FOUND', ADMIN_ROOM_NOT_FOUND_MESSAGE);
   }
@@ -188,106 +175,164 @@ export async function adminLockRoom(
   roomId: string,
   adminUserId: string,
   isLocked: boolean,
+  requestId?: string,
 ): Promise<AdminActionResponse<AdminRoomLockData>> {
-  const result = await setRoomLockedAsAdmin(roomId, isLocked);
+  const action = isLocked ? 'ROOM_LOCK' : 'ROOM_UNLOCK';
+  let roomMutationCompleted = false;
+  try {
+    const result = await setRoomLockedAsAdmin(roomId, isLocked);
 
-  if (!result.success) {
-    return mapRoomActionError(result.error.code);
+    if (!result.success) {
+      await createAdminAuditLogBestEffort({
+        actorUserId: adminUserId,
+        action,
+        targetId: roomId,
+        outcome: 'FAILURE',
+        requestId,
+        metadata: { isLocked },
+      });
+      return mapRoomActionError(result.error.code);
+    }
+
+    roomMutationCompleted = true;
+    await createAdminAuditLogBestEffort({
+      actorUserId: adminUserId,
+      action,
+      targetId: roomId,
+      outcome: 'SUCCESS',
+      requestId,
+      metadata: { isLocked: result.data.isLocked },
+    });
+
+    const io = getSocketServer();
+    if (io) {
+      emitRoomLockedState(io, result.data);
+    }
+
+    return {
+      success: true,
+      data: {
+        roomId: result.data.roomId,
+        isLocked: result.data.isLocked,
+      },
+    };
+  } catch (error) {
+    if (!roomMutationCompleted) {
+      await createAdminAuditLogBestEffort({
+        actorUserId: adminUserId,
+        action,
+        targetId: roomId,
+        outcome: 'FAILURE',
+        requestId,
+        metadata: { isLocked },
+      });
+    }
+    throw error;
   }
-
-  const io = getSocketServer();
-  if (io) {
-    emitRoomLockedState(io, result.data);
-  }
-
-  const room = await prisma.room.findUnique({
-    where: { id: roomId },
-    select: { code: true },
-  });
-
-  logAdminRoom({
-    action: isLocked ? 'lock' : 'unlock',
-    adminUserId,
-    roomId,
-    roomCode: room?.code ?? null,
-  });
-
-  return {
-    success: true,
-    data: {
-      roomId: result.data.roomId,
-      isLocked: result.data.isLocked,
-    },
-  };
 }
 
 export async function adminKickPlayer(
   roomId: string,
   playerId: string,
   adminUserId: string,
+  requestId?: string,
 ): Promise<AdminActionResponse<AdminKickPlayerData>> {
-  const room = await prisma.room.findUnique({
-    where: { id: roomId },
-    select: { code: true },
-  });
+  let roomMutationCompleted = false;
+  try {
+    const result = await kickPlayerAsAdmin(roomId, playerId);
 
-  const result = await kickPlayerAsAdmin(roomId, playerId);
+    if (!result.success) {
+      await createAdminAuditLogBestEffort({
+        actorUserId: adminUserId,
+        action: 'ROOM_KICK',
+        targetId: roomId,
+        outcome: 'FAILURE',
+        requestId,
+        metadata: { playerId },
+      });
+      return mapRoomActionError(result.error.code);
+    }
 
-  if (!result.success) {
-    return mapRoomActionError(result.error.code);
+    roomMutationCompleted = true;
+    await createAdminAuditLogBestEffort({
+      actorUserId: adminUserId,
+      action: 'ROOM_KICK',
+      targetId: roomId,
+      outcome: 'SUCCESS',
+      requestId,
+      metadata: {
+        playerId: result.data.kickedPlayerId,
+        roomDeleted: result.data.roomDeleted,
+      },
+    });
+
+    const io = getSocketServer();
+    if (io) {
+      await announceKickedPlayer(io, roomId, result.data.kickedPlayerId, result.data.roomDeleted);
+    } else if (result.data.roomDeleted) {
+      cleanupClosedRoomMemory(roomId);
+    }
+
+    return {
+      success: true,
+      data: {
+        roomId,
+        playerId: result.data.kickedPlayerId,
+        roomDeleted: result.data.roomDeleted,
+      },
+    };
+  } catch (error) {
+    if (!roomMutationCompleted) {
+      await createAdminAuditLogBestEffort({
+        actorUserId: adminUserId,
+        action: 'ROOM_KICK',
+        targetId: roomId,
+        outcome: 'FAILURE',
+        requestId,
+        metadata: { playerId },
+      });
+    }
+    throw error;
   }
-
-  const io = getSocketServer();
-  if (io) {
-    await announceKickedPlayer(io, roomId, result.data.kickedPlayerId, result.data.roomDeleted);
-  } else if (result.data.roomDeleted) {
-    cleanupClosedRoomMemory(roomId);
-  }
-
-  logAdminRoom({
-    action: 'kick',
-    adminUserId,
-    roomId,
-    roomCode: room?.code ?? null,
-    playerId,
-    roomDeleted: result.data.roomDeleted,
-  });
-
-  return {
-    success: true,
-    data: {
-      roomId,
-      playerId: result.data.kickedPlayerId,
-      roomDeleted: result.data.roomDeleted,
-    },
-  };
 }
 
 export async function adminForceCloseRoom(
   roomId: string,
   adminUserId: string,
+  requestId?: string,
 ): Promise<AdminActionResponse<AdminForceCloseRoomData>> {
   let lastError: unknown;
+  let roomOperationCompleted = false;
 
   for (let attempt = 0; attempt < ROOM_TX_RETRY_LIMIT; attempt += 1) {
     try {
       const outcome = await prisma.$transaction(async (tx) => {
         const locked = await lockRoomRow(tx, roomId);
         if (!locked) {
-          return { alreadyClosed: true, roomCode: null as string | null };
+          return { alreadyClosed: true };
         }
 
         const room = await tx.room.findUnique({
           where: { id: roomId },
-          select: { id: true, code: true },
+          select: { id: true },
         });
 
         if (!room) {
-          return { alreadyClosed: true, roomCode: null as string | null };
+          return { alreadyClosed: true };
         }
 
         await deleteRoomWithRelations(roomId, tx);
-        return { alreadyClosed: false, roomCode: room.code };
+        return { alreadyClosed: false };
+      });
+
+      roomOperationCompleted = true;
+      await createAdminAuditLogBestEffort({
+        actorUserId: adminUserId,
+        action: 'ROOM_FORCE_CLOSE',
+        targetId: roomId,
+        outcome: 'SUCCESS',
+        requestId,
+        metadata: { alreadyClosed: outcome.alreadyClosed },
       });
 
       const io = getSocketServer();
@@ -296,14 +341,6 @@ export async function adminForceCloseRoom(
       } else {
         cleanupClosedRoomMemory(roomId);
       }
-
-      logAdminRoom({
-        action: 'force-close',
-        adminUserId,
-        roomId,
-        roomCode: outcome.roomCode,
-        alreadyClosed: outcome.alreadyClosed,
-      });
 
       if (!outcome.alreadyClosed) {
         await recordProductEvent({
@@ -322,19 +359,22 @@ export async function adminForceCloseRoom(
     } catch (error) {
       lastError = error;
       if (isPrismaNotFound(error)) {
+        roomOperationCompleted = true;
+        await createAdminAuditLogBestEffort({
+          actorUserId: adminUserId,
+          action: 'ROOM_FORCE_CLOSE',
+          targetId: roomId,
+          outcome: 'SUCCESS',
+          requestId,
+          metadata: { alreadyClosed: true },
+        });
+
         const io = getSocketServer();
         if (io) {
           await announceAdminRoomClosed(io, roomId);
         } else {
           cleanupClosedRoomMemory(roomId);
         }
-
-        logAdminRoom({
-          action: 'force-close',
-          adminUserId,
-          roomId,
-          alreadyClosed: true,
-        });
 
         return {
           success: true,
@@ -346,10 +386,26 @@ export async function adminForceCloseRoom(
       }
 
       if (!isRetryableTransactionError(error) || attempt === ROOM_TX_RETRY_LIMIT - 1) {
+        if (!roomOperationCompleted) {
+          await createAdminAuditLogBestEffort({
+            actorUserId: adminUserId,
+            action: 'ROOM_FORCE_CLOSE',
+            targetId: roomId,
+            outcome: 'FAILURE',
+            requestId,
+          });
+        }
         throw error;
       }
     }
   }
 
+  await createAdminAuditLogBestEffort({
+    actorUserId: adminUserId,
+    action: 'ROOM_FORCE_CLOSE',
+    targetId: roomId,
+    outcome: 'FAILURE',
+    requestId,
+  });
   throw lastError;
 }

@@ -6,6 +6,7 @@ import {
   getGameShellByRoomId,
 } from './game.service.js';
 import { resolveLobbyWaitMs } from '../../config/test-timers.js';
+import { opsLogger, sanitizeErrorName, sanitizeKnownErrorCode } from '../../lib/ops-logger.js';
 import { logGameShellDiagnostic } from './game.diagnostics.js';
 import {
   broadcastGameShellNavigate,
@@ -100,7 +101,8 @@ function runCountdownTransition(
       roomId,
       shellId,
       trigger,
-      error: error instanceof Error ? error.message : String(error),
+      errorName: sanitizeErrorName(error),
+      errorCode: sanitizeKnownErrorCode(error),
     });
 
     clearLobbyWaitTimeout(roomId);
@@ -195,7 +197,8 @@ export function ensureGameShellLifecycleProgress(io: Server, roomId: string): vo
         roomId,
         trigger: 'lifecycle-recovery',
         shellId: shellIdForInit,
-        error: error instanceof Error ? error.message : String(error),
+        errorName: sanitizeErrorName(error),
+        errorCode: sanitizeKnownErrorCode(error),
       });
     });
   }
@@ -229,20 +232,24 @@ export async function returnRoomToLobbyAfterMatch(
   try {
     await clearRoomSpectatorFlags(roomId);
   } catch (error) {
-    console.error('[room-lifecycle]', {
+    opsLogger.error('room-spectator-reset-failed', 'تعذر تصفير حالة المتفرجين.', {
+      operation: 'clear-room-spectators',
       stage: 'clear-spectators-failed',
       roomId,
-      error: error instanceof Error ? error.message : String(error),
+      errorName: sanitizeErrorName(error),
+      errorCode: sanitizeKnownErrorCode(error),
     });
   }
 
   try {
     await broadcastRoomPlayersSnapshot(io, roomId);
   } catch (error) {
-    console.error('[room-lifecycle]', {
+    opsLogger.error('room-roster-broadcast-failed', 'تعذر بث قائمة لاعبي الغرفة.', {
+      operation: 'broadcast-room-roster',
       stage: 'lobby-roster-broadcast-failed',
       roomId,
-      error: error instanceof Error ? error.message : String(error),
+      errorName: sanitizeErrorName(error),
+      errorCode: sanitizeKnownErrorCode(error),
     });
   }
 

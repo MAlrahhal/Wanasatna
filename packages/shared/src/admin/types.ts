@@ -25,6 +25,45 @@ export const ADMIN_SYSTEM_POLL_MS = 25_000;
 export const ADMIN_ANALYTICS_POLL_MS = 60_000;
 export const ADMIN_ANALYTICS_DEFAULT_RANGE = '7d';
 export const ADMIN_ANALYTICS_RANGES = ['24h', '7d', '30d', 'all'] as const;
+export const ADMIN_AUDIT_PAGE_SIZE = 50;
+
+export const ADMIN_AUDIT_ACTIONS = [
+  'ROLE_PROMOTED',
+  'MFA_ENROLLMENT_STARTED',
+  'MFA_ENABLED',
+  'MFA_LOGIN_SUCCESS',
+  'MFA_LOGIN_FAILURE',
+  'MFA_RECOVERY_USED',
+  'GAME_AVAILABILITY_SET',
+  'ROOM_LOCK',
+  'ROOM_UNLOCK',
+  'ROOM_KICK',
+  'ROOM_FORCE_CLOSE',
+] as const;
+
+export type AdminAuditAction = (typeof ADMIN_AUDIT_ACTIONS)[number];
+export type AdminAuditOutcome = 'SUCCESS' | 'FAILURE';
+export type AdminAuditMetadataValue = string | number | boolean | null;
+export type AdminAuditMetadata = Record<string, AdminAuditMetadataValue>;
+
+export type AdminAuditEntry = {
+  id: string;
+  occurredAt: string;
+  actorUserId: string | null;
+  action: AdminAuditAction;
+  targetType: string | null;
+  targetId: string | null;
+  outcome: AdminAuditOutcome;
+  requestId: string | null;
+  metadata: AdminAuditMetadata | null;
+};
+
+export type AdminAuditData = {
+  entries: AdminAuditEntry[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
 
 export type AdminAnalyticsRange = (typeof ADMIN_ANALYTICS_RANGES)[number];
 

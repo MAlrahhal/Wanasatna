@@ -14,6 +14,7 @@ import {
   type MarathonState,
 } from '@wanasatna/shared';
 import { prisma } from '../../lib/prisma.js';
+import { opsLogger, sanitizeErrorName, sanitizeKnownErrorCode } from '../../lib/ops-logger.js';
 import { abortPersistedMatch } from '../match/match-history.service.js';
 import type { MatchParticipantResult } from '../match/match-history.types.js';
 import { getRoomChannel } from '../room/room.utils.js';
@@ -481,10 +482,12 @@ export async function endMarathonByHost(
     try {
       await abortPersistedMatch(roomId);
     } catch (error) {
-      console.error('[marathon-lifecycle]', {
+      opsLogger.error('marathon-match-abort-failed', 'تعذر إلغاء سجل مباراة الماراتون.', {
+        operation: 'abort-persisted-match',
         stage: 'host-end-persisted-match-abort-failed',
         roomId,
-        error: error instanceof Error ? error.message : String(error),
+        errorName: sanitizeErrorName(error),
+        errorCode: sanitizeKnownErrorCode(error),
       });
     }
     clearPlayerRecoveryForTeardown(io, roomId);

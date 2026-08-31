@@ -26,7 +26,7 @@ import { promoteExistingUserToAdmin } from '../src/modules/admin/promote-existin
 import { AUTH_COOKIE_NAME } from '../src/modules/auth/auth.cookie.js';
 import { resetAuthRateLimiterForTests } from '../src/modules/auth/auth-rate-limit.js';
 import { stopExpiredAuthSessionCleanup } from '../src/modules/auth/auth-session-cleanup.js';
-import { logoutAuthSession, registerUser } from '../src/modules/auth/auth.service.js';
+import { loginUser, logoutAuthSession, registerUser } from '../src/modules/auth/auth.service.js';
 import { registerAllGameContent } from '../src/modules/content/index.js';
 import { getLoadedGameContent } from '../src/modules/content/registry.js';
 import { deleteGameShell, initGameShell } from '../src/modules/game/game.service.js';
@@ -75,7 +75,7 @@ async function test(name: string, fn: () => void | Promise<void>): Promise<void>
   } catch (error) {
     failed += 1;
     console.error(`FAIL ${name}`);
-    console.error(error instanceof Error ? error.stack ?? error.message : error);
+    console.error(error instanceof Error ? (error.stack ?? error.message) : error);
   }
 }
 
@@ -115,6 +115,20 @@ async function registerAccount(prefix: string) {
   return { email, user: registered.session.user, sessionToken: registered.session.sessionToken };
 }
 
+async function promoteAccount(account: Awaited<ReturnType<typeof registerAccount>>) {
+  await promoteExistingUserToAdmin(account.email);
+  const loggedIn = await loginUser({ email: account.email, password: 'password-ok' });
+  assert.equal(loggedIn.success, true);
+  if (!loggedIn.success || !loggedIn.session) {
+    throw new Error('post-promotion login failed');
+  }
+  return {
+    email: account.email,
+    user: loggedIn.session.user,
+    sessionToken: loggedIn.session.sessionToken,
+  };
+}
+
 function makePlayers(count: number) {
   return Array.from({ length: count }, (_, index) => ({
     id: `p${index + 1}`,
@@ -128,9 +142,9 @@ function makePlayers(count: number) {
 
 function ack<T>(socket: Socket, event: string, payload: unknown): Promise<T> {
   return new Promise((resolve, reject) => {
-    socket.timeout(15000).emit(event, payload, (err: Error | null, res: T) =>
-      err ? reject(err) : resolve(res),
-    );
+    socket
+      .timeout(15000)
+      .emit(event, payload, (err: Error | null, res: T) => (err ? reject(err) : resolve(res)));
   });
 }
 
@@ -283,8 +297,7 @@ async function main(): Promise<void> {
   });
 
   await test('3 ADMIN can edit', async () => {
-    const account = await registerAccount('admin');
-    await promoteExistingUserToAdmin(account.email);
+    const account = await promoteAccount(await registerAccount('admin'));
     await withSocketServer(async (url) => {
       const host = await createBoundRoom(
         url,
@@ -338,8 +351,7 @@ async function main(): Promise<void> {
   });
 
   await test('5 Player.userId alone insufficient', async () => {
-    const account = await registerAccount('userid');
-    await promoteExistingUserToAdmin(account.email);
+    const account = await promoteAccount(await registerAccount('userid'));
     await withSocketServer(async (url) => {
       const host = await createBoundRoom(url, uniqueName('ربط'));
       try {
@@ -364,8 +376,7 @@ async function main(): Promise<void> {
   });
 
   await test('6 expired Admin session fails', async () => {
-    const account = await registerAccount('expired');
-    await promoteExistingUserToAdmin(account.email);
+    const account = await promoteAccount(await registerAccount('expired'));
     await withSocketServer(async (url) => {
       const host = await createBoundRoom(
         url,
@@ -391,8 +402,7 @@ async function main(): Promise<void> {
   });
 
   await test('7 active-game edits rejected', async () => {
-    const account = await registerAccount('live');
-    await promoteExistingUserToAdmin(account.email);
+    const account = await promoteAccount(await registerAccount('live'));
     await withSocketServer(async (url) => {
       const host = await createBoundRoom(
         url,
@@ -421,8 +431,7 @@ async function main(): Promise<void> {
   });
 
   await test('8-9 server rejects out-of-range and ignores unknown keys', async () => {
-    const account = await registerAccount('range');
-    await promoteExistingUserToAdmin(account.email);
+    const account = await promoteAccount(await registerAccount('range'));
     await withSocketServer(async (url) => {
       const host = await createBoundRoom(
         url,
@@ -448,10 +457,7 @@ async function main(): Promise<void> {
         assert.equal(mixed.success, true, mixed.success ? '' : mixed.error.message);
         if (mixed.success) {
           assert.equal(mixed.data.gameSettings?.['guessing-challenge']?.turnSeconds, 60);
-          assert.equal(
-            JSON.stringify(mixed.data.gameSettings).includes('yellowCards'),
-            false,
-          );
+          assert.equal(JSON.stringify(mixed.data.gameSettings).includes('yellowCards'), false);
         }
       } finally {
         host.socket.close();
@@ -462,8 +468,7 @@ async function main(): Promise<void> {
   });
 
   await test('10 settings survive Host transfer', async () => {
-    const account = await registerAccount('transfer');
-    await promoteExistingUserToAdmin(account.email);
+    const account = await promoteAccount(await registerAccount('transfer'));
     await withSocketServer(async (url) => {
       const host = await createBoundRoom(
         url,
@@ -497,8 +502,7 @@ async function main(): Promise<void> {
   });
 
   await test('11 settings survive Admin logout', async () => {
-    const account = await registerAccount('logout');
-    await promoteExistingUserToAdmin(account.email);
+    const account = await promoteAccount(await registerAccount('logout'));
     await withSocketServer(async (url) => {
       const host = await createBoundRoom(
         url,

@@ -14,7 +14,12 @@ import { ADMIN_DENIED_MESSAGE, authorizeAdmin } from '../src/modules/admin/requi
 import { promoteExistingUserToAdmin } from '../src/modules/admin/promote-existing-user.js';
 import { AUTH_COOKIE_NAME } from '../src/modules/auth/auth.cookie.js';
 import { resetAuthRateLimiterForTests } from '../src/modules/auth/auth-rate-limit.js';
-import { logoutAuthSession, registerUser, resolveAuthSession } from '../src/modules/auth/auth.service.js';
+import {
+  loginUser,
+  logoutAuthSession,
+  registerUser,
+  resolveAuthSession,
+} from '../src/modules/auth/auth.service.js';
 import { createRoom } from '../src/modules/room/services/create-room.service.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -34,7 +39,7 @@ async function test(name: string, fn: () => void | Promise<void>): Promise<void>
   } catch (error) {
     failed += 1;
     console.error(`FAIL ${name}`);
-    console.error(error instanceof Error ? error.stack ?? error.message : error);
+    console.error(error instanceof Error ? (error.stack ?? error.message) : error);
   }
 }
 
@@ -121,7 +126,10 @@ async function main(): Promise<void> {
 
   await test('source: ADMIN comes from DB role; no ADMIN_EMAILS; bootstrap is not HTTP', () => {
     assert.doesNotMatch(read('src/config/env.ts'), /ADMIN_EMAILS|adminEmails/);
-    assert.doesNotMatch(read('src/modules/admin/require-admin.ts'), /ADMIN_EMAILS|req\.query|req\.body/);
+    assert.doesNotMatch(
+      read('src/modules/admin/require-admin.ts'),
+      /ADMIN_EMAILS|req\.query|req\.body/,
+    );
     assert.match(read('src/modules/admin/require-admin.ts'), /resolveAuthSession/);
     assert.match(read('src/modules/admin/require-admin.ts'), /user\.role !== 'ADMIN'/);
     assert.match(read('src/modules/admin/admin.routes.ts'), /requireAdmin/);
@@ -129,8 +137,13 @@ async function main(): Promise<void> {
     assert.match(read('src/routes/index.ts'), /apiRouter\.use\("\/admin", adminRouter\)/);
     assert.doesNotMatch(read('src/index.ts'), /admin/i);
     assert.doesNotMatch(read('src/modules/room/services/reconnect.service.ts'), /modules\/admin/);
-    assert.doesNotMatch(read('scripts/promote-admin.ts'), /createApp|Router|passwordHash|sessionToken/);
+    assert.doesNotMatch(
+      read('scripts/promote-admin.ts'),
+      /createApp|Router|passwordHash|sessionToken/,
+    );
     assert.match(read('src/modules/admin/promote-existing-user.ts'), /prisma\.user\.findUnique/);
+    assert.match(read('src/modules/admin/promote-existing-user.ts'), /prisma\.\$transaction/);
+    assert.match(read('src/modules/admin/promote-existing-user.ts'), /tx\.authSession\.deleteMany/);
     assert.doesNotMatch(read('src/modules/admin/promote-existing-user.ts'), /prisma\.user\.create/);
   });
 
@@ -232,9 +245,7 @@ async function main(): Promise<void> {
     const { email } = await registerAccount('emaileak');
     await promoteExistingUserToAdmin(email);
     await withApp(async (baseUrl) => {
-      const result = await fetch(
-        `${baseUrl}/api/admin/me?email=${encodeURIComponent(email)}`,
-      );
+      const result = await fetch(`${baseUrl}/api/admin/me?email=${encodeURIComponent(email)}`);
       assert.equal(result.status, 401);
       const body = (await result.json()) as { success: boolean };
       assert.equal(body.success, false);
@@ -332,11 +343,18 @@ async function main(): Promise<void> {
     await cleanupEmail(email);
   });
 
-  await test('10 promoted ADMIN works on existing AuthSession', async () => {
+  await test('10 promotion revokes every old AuthSession and requires a fresh login', async () => {
     const { email, registered } = await registerAccount('promote');
     if (!registered.session) {
       throw new Error('missing session');
     }
+
+    const secondLogin = await loginUser({ email, password: 'password-ok' });
+    assert.equal(secondLogin.success, true);
+    if (!secondLogin.success || !secondLogin.session) {
+      throw new Error('second login failed');
+    }
+    assert.equal(await prisma.authSession.count({ where: { userId: registered.data.user.id } }), 2);
 
     const before = await resolveAuthSession(registered.session.sessionToken);
     assert.equal(before?.role, 'USER');
@@ -350,13 +368,21 @@ async function main(): Promise<void> {
     assert.equal(promoted.email, email);
 
     const after = await resolveAuthSession(registered.session.sessionToken);
-    assert.equal(after?.role, 'ADMIN');
+    assert.equal(after, null);
+    assert.equal(await resolveAuthSession(secondLogin.session.sessionToken), null);
+    assert.equal(await prisma.authSession.count({ where: { userId: registered.data.user.id } }), 0);
 
     await withApp(async (baseUrl) => {
-      const cookie = `${AUTH_COOKIE_NAME}=${registered.session!.sessionToken}`;
-      const result = await getAdminMe(baseUrl, { headers: { cookie } });
-      assert.equal(result.status, 200);
-      const data = result.body.data as { user: { role: string } };
+      const oldCookie = `${AUTH_COOKIE_NAME}=${registered.session!.sessionToken}`;
+      const oldSessionResult = await getAdminMe(baseUrl, { headers: { cookie: oldCookie } });
+      assert.equal(oldSessionResult.status, 401);
+
+      const freshCookie = await loginCookie(baseUrl, email);
+      const freshSessionResult = await getAdminMe(baseUrl, {
+        headers: { cookie: freshCookie },
+      });
+      assert.equal(freshSessionResult.status, 200);
+      const data = freshSessionResult.body.data as { user: { role: string } };
       assert.equal(data.user.role, 'ADMIN');
     });
     await cleanupEmail(email);

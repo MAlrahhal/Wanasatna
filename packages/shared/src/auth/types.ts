@@ -39,6 +39,21 @@ export type AuthSessionData = {
   user: PublicUser;
 };
 
+export type AdminMfaChallengeData = {
+  mfaRequired: true;
+  challengeToken: string;
+};
+
+export type AuthLoginData = AuthSessionData | AdminMfaChallengeData;
+
+export type AdminMfaMethod = 'totp' | 'recovery';
+
+export type AdminMfaVerifyInput = {
+  challengeToken: string;
+  method: AdminMfaMethod;
+  code: string;
+};
+
 export type AuthMeData = {
   user: PublicUser | null;
 };

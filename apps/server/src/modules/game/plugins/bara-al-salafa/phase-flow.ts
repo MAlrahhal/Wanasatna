@@ -1,9 +1,7 @@
 import type { Server } from 'socket.io';
 import type { BaraAlSalafaMatchState, GameShellState } from '@wanasatna/shared';
-import {
-  BARA_AL_SALAFA_GAME_ID,
-  BARA_AL_SALAFA_PHASE_CHANGED_EVENT,
-} from '@wanasatna/shared';
+import { BARA_AL_SALAFA_GAME_ID, BARA_AL_SALAFA_PHASE_CHANGED_EVENT } from '@wanasatna/shared';
+import { opsLogger, sanitizeErrorName } from '../../../../lib/ops-logger.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
 import {
@@ -70,7 +68,11 @@ export function startDirectedQuestionsPhase(
     directedQuestionPairs = buildDirectedQuestionPairsFromOrder(speakingOrder);
   } catch (error) {
     if (error instanceof DirectedQuestionPairsBuildError) {
-      console.error('[bara-al-salafa] Failed to build directed question pairs:', error.message);
+      opsLogger.error('directed-question-pairs-build-failed', 'تعذر تجهيز ترتيب الأسئلة.', {
+        operation: 'build-directed-question-pairs',
+        roomId,
+        errorName: sanitizeErrorName(error),
+      });
       return match;
     }
 
@@ -211,7 +213,7 @@ export function applyFreeQuestionAdvance(
     return match;
   }
 
-  let nextMatch = completeActiveFreeQuestionTurn(match, activePlayerId);
+  const nextMatch = completeActiveFreeQuestionTurn(match, activePlayerId);
 
   if (isFreeQuestionsPhaseComplete(shell, nextMatch)) {
     return startVotingPhase(io, roomId, nextMatch);
@@ -258,7 +260,7 @@ export function applyFreeQuestionSkipTurn(
   }
 
   const turnOwner = match.round.activeFreeQuestionPlayerId ?? activePlayerId;
-  let nextMatch = completeActiveFreeQuestionTurn(match, turnOwner);
+  const nextMatch = completeActiveFreeQuestionTurn(match, turnOwner);
 
   if (isFreeQuestionsPhaseComplete(shell, nextMatch)) {
     return startVotingPhase(io, roomId, nextMatch);
@@ -448,9 +450,7 @@ export function startGuessResultPhase(
   _shell: GameShellState,
 ): BaraAlSalafaMatchState {
   const finalizedMatch =
-    match.round.guessedCorrectly === null
-      ? finalizeImpostorGuessWithoutSubmission(match)
-      : match;
+    match.round.guessedCorrectly === null ? finalizeImpostorGuessWithoutSubmission(match) : match;
 
   return commitPhase(
     io,
@@ -495,7 +495,7 @@ export function applyRoleUnderstoodSubmission(
     return match;
   }
 
-  let nextMatch = applyRoleUnderstood(match, playerId);
+  const nextMatch = applyRoleUnderstood(match, playerId);
   setBaraAlSalafaState(roomId, nextMatch);
 
   if (haveAllConnectedParticipantsAcknowledgedRole(shell, nextMatch)) {

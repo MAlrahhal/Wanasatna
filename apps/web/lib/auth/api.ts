@@ -1,5 +1,12 @@
 import { getServerUrl } from '@/lib/config/server-url';
-import type { AuthActionResponse, AuthMeData, AuthSessionData, PublicUser } from '@wanasatna/shared';
+import type {
+  AdminMfaVerifyInput,
+  AuthActionResponse,
+  AuthLoginData,
+  AuthMeData,
+  AuthSessionData,
+  PublicUser,
+} from '@wanasatna/shared';
 import { AUTH_COPY } from '@/lib/auth/copy';
 
 function authUrl(path: string): string {
@@ -67,7 +74,7 @@ export async function registerAccount(input: {
 export async function loginAccount(input: {
   email: string;
   password: string;
-}): Promise<AuthActionResponse<AuthSessionData>> {
+}): Promise<AuthActionResponse<AuthLoginData>> {
   try {
     const response = await fetch(authUrl('/login'), {
       method: 'POST',
@@ -77,6 +84,22 @@ export async function loginAccount(input: {
         email: input.email,
         password: input.password,
       }),
+    });
+    return parseAuthResponse<AuthLoginData>(response);
+  } catch {
+    return connectionFailure();
+  }
+}
+
+export async function verifyAdminMfa(
+  input: AdminMfaVerifyInput,
+): Promise<AuthActionResponse<AuthSessionData>> {
+  try {
+    const response = await fetch(authUrl('/mfa/verify'), {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
     });
     return parseAuthResponse<AuthSessionData>(response);
   } catch {

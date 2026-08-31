@@ -14,7 +14,9 @@ function readHandshakeAuthToken(socket: Socket): string | undefined {
  */
 export async function attachOptionalSocketAuth(socket: Socket): Promise<void> {
   try {
-    socket.data.authUser = await resolveAuthSession(readHandshakeAuthToken(socket));
+    socket.data.authUser = await resolveAuthSession(readHandshakeAuthToken(socket), {
+      requireAdminMfa: true,
+    });
   } catch {
     socket.data.authUser = null;
   }
@@ -27,7 +29,9 @@ export async function attachOptionalSocketAuth(socket: Socket): Promise<void> {
  */
 export async function resolveSocketAccountUser(socket: Socket): Promise<PublicUser | null> {
   try {
-    const user = await resolveAuthSession(readHandshakeAuthToken(socket));
+    const user = await resolveAuthSession(readHandshakeAuthToken(socket), {
+      requireAdminMfa: true,
+    });
     socket.data.authUser = user;
     return user;
   } catch {

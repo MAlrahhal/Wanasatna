@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { PlayerStatus, Prisma, RoomStatus } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
+import { opsLogger, sanitizeErrorName, sanitizeKnownErrorCode } from '../../../lib/ops-logger.js';
 import {
   ADMIN_ROOM_PLAYER_CAP,
   MAX_ROOM_PLAYERS,
@@ -106,19 +107,16 @@ export async function createRoom(
       data: mapRoomSession(room, room.hostPlayer, players, reconnectToken),
     };
   } catch (error) {
-    const prismaCode =
-      error instanceof Prisma.PrismaClientKnownRequestError ? error.code : undefined;
-    const errorName = error instanceof Error ? error.name : typeof error;
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    logCreateRoomDiagnostic('db-error', {
-      errorName,
-      errorMessage,
-      prismaCode,
+    opsLogger.error('room-create-failed', 'تعذر إكمال إنشاء الغرفة.', {
+      operation: 'create-room',
+      errorName: sanitizeErrorName(error),
+      errorCode: sanitizeKnownErrorCode(error),
     });
 
     if (error instanceof Error && error.message === 'ROOM_CODE_GENERATION_FAILED') {
-      logCreateRoomDiagnostic('callback-error', { callbackErrorCode: 'ROOM_CODE_GENERATION_FAILED' });
+      logCreateRoomDiagnostic('callback-error', {
+        callbackErrorCode: 'ROOM_CODE_GENERATION_FAILED',
+      });
       return serviceError(
         'ROOM_CODE_GENERATION_FAILED',
         'Unable to generate a unique room code. Please try again.',
@@ -142,10 +140,7 @@ export async function createRoom(
 
     if (error instanceof Prisma.PrismaClientInitializationError) {
       logCreateRoomDiagnostic('callback-error', { callbackErrorCode: 'INTERNAL_ERROR' });
-      return serviceError(
-        'INTERNAL_ERROR',
-        'Unable to connect to the database. Please try again later.',
-      );
+      return serviceError('INTERNAL_ERROR', 'Unable to create the room. Please try again.');
     }
 
     if (error instanceof Prisma.PrismaClientValidationError) {
@@ -153,7 +148,10 @@ export async function createRoom(
       return serviceError('INTERNAL_ERROR', 'Unable to create the room. Please try again.');
     }
 
-    logCreateRoomDiagnostic('callback-error', { callbackErrorCode: 'INTERNAL_ERROR', rethrow: true });
+    logCreateRoomDiagnostic('callback-error', {
+      callbackErrorCode: 'INTERNAL_ERROR',
+      rethrow: true,
+    });
     throw error;
   }
 }

@@ -1,5 +1,6 @@
 import { UserRole } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
+import { createAdminAuditLog } from './admin-audit.service.js';
 
 export type PromotedAdminUser = {
   id: string;
@@ -32,10 +33,22 @@ export async function promoteExistingUserToAdmin(identifier: string): Promise<Pr
     throw new Error('No matching User. Promotion aborted.');
   }
 
-  const updated = await prisma.user.update({
-    where: { id: existing.id },
-    data: { role: UserRole.ADMIN },
-    select: { id: true, email: true, role: true },
+  const updated = await prisma.$transaction(async (tx) => {
+    const user = await tx.user.update({
+      where: { id: existing.id },
+      data: { role: UserRole.ADMIN },
+      select: { id: true, email: true, role: true },
+    });
+    await tx.authSession.deleteMany({ where: { userId: existing.id } });
+    await createAdminAuditLog(
+      {
+        action: 'ROLE_PROMOTED',
+        targetId: existing.id,
+        outcome: 'SUCCESS',
+      },
+      tx,
+    );
+    return user;
   });
 
   return {

@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import type {
   AdminActionResponse,
+  AdminAuditData,
   AdminDashboardData,
   AdminErrorCode,
   AdminGamesData,
@@ -32,17 +33,18 @@ import { getAdminSystemSnapshot } from './admin-system.service.js';
 import { getAdminUserById, listAdminUsers } from './admin-users.service.js';
 import { requireAdmin } from './require-admin.js';
 import { toAdminPublicUser } from './to-admin-public-user.js';
-import {
-  listGameAvailability,
-  setGameEnabled,
-} from '../game/game-availability.service.js';
+import { listAdminAuditLogs } from './admin-audit.service.js';
+import { listGameAvailability, setGameEnabled } from '../game/game-availability.service.js';
 
 export const adminRouter = Router();
 
 const ADMIN_LOAD_FAILED = 'تعذر تحميل لوحة الإدارة.';
 
 function sendAdminJsonError(
-  res: { status: (code: number) => { json: (body: unknown) => void }; locals?: { requestId?: string } },
+  res: {
+    status: (code: number) => { json: (body: unknown) => void };
+    locals?: { requestId?: string };
+  },
   status: number,
   code: AdminErrorCode,
   message: string,
@@ -50,7 +52,8 @@ function sendAdminJsonError(
   const requestId = typeof res.locals?.requestId === 'string' ? res.locals.requestId : undefined;
   const body: AdminActionResponse<never> = {
     success: false,
-    error: requestId && code === 'INTERNAL_ERROR' ? { code, message, requestId } : { code, message },
+    error:
+      requestId && code === 'INTERNAL_ERROR' ? { code, message, requestId } : { code, message },
   };
   if (code === 'INTERNAL_ERROR') {
     opsLogger.error('admin-internal-error', 'تعذر تنفيذ عملية الإدارة.', {
@@ -169,7 +172,12 @@ adminRouter.post('/rooms/:roomId/lock', requireAdmin, async (req, res) => {
   }
 
   try {
-    const result = await adminLockRoom(req.params.roomId, adminUserId, true);
+    const result = await adminLockRoom(
+      req.params.roomId,
+      adminUserId,
+      true,
+      typeof res.locals.requestId === 'string' ? res.locals.requestId : undefined,
+    );
     if (!result.success) {
       sendAdminJsonError(
         res,
@@ -197,7 +205,12 @@ adminRouter.post('/rooms/:roomId/unlock', requireAdmin, async (req, res) => {
   }
 
   try {
-    const result = await adminLockRoom(req.params.roomId, adminUserId, false);
+    const result = await adminLockRoom(
+      req.params.roomId,
+      adminUserId,
+      false,
+      typeof res.locals.requestId === 'string' ? res.locals.requestId : undefined,
+    );
     if (!result.success) {
       sendAdminJsonError(
         res,
@@ -225,7 +238,12 @@ adminRouter.post('/rooms/:roomId/players/:playerId/kick', requireAdmin, async (r
   }
 
   try {
-    const result = await adminKickPlayer(req.params.roomId, req.params.playerId, adminUserId);
+    const result = await adminKickPlayer(
+      req.params.roomId,
+      req.params.playerId,
+      adminUserId,
+      typeof res.locals.requestId === 'string' ? res.locals.requestId : undefined,
+    );
     if (!result.success) {
       const status =
         result.error.code === 'ROOM_NOT_FOUND' || result.error.code === 'PLAYER_NOT_FOUND'
@@ -252,7 +270,11 @@ adminRouter.delete('/rooms/:roomId', requireAdmin, async (req, res) => {
   }
 
   try {
-    const result = await adminForceCloseRoom(req.params.roomId, adminUserId);
+    const result = await adminForceCloseRoom(
+      req.params.roomId,
+      adminUserId,
+      typeof res.locals.requestId === 'string' ? res.locals.requestId : undefined,
+    );
     if (!result.success) {
       sendAdminJsonError(res, 500, result.error.code, result.error.message);
       return;
@@ -295,7 +317,26 @@ adminRouter.get('/games', requireAdmin, async (_req, res) => {
   }
 });
 
+adminRouter.get('/audit', requireAdmin, async (req, res) => {
+  try {
+    const data = await listAdminAuditLogs({ page: req.query.page });
+    res.status(200).json({ success: true, data } satisfies AdminActionResponse<AdminAuditData>);
+  } catch (error) {
+    if (isPrismaError(error)) {
+      sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_LOAD_FAILED);
+      return;
+    }
+    sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_LOAD_FAILED);
+  }
+});
+
 adminRouter.patch('/games/:gameId', requireAdmin, async (req, res) => {
+  const adminUserId = req.authUser?.id;
+  if (!adminUserId) {
+    sendAdminJsonError(res, 403, 'FORBIDDEN', 'غير مصرح لك بالدخول إلى لوحة الإدارة.');
+    return;
+  }
+
   const gameId = typeof req.params.gameId === 'string' ? req.params.gameId.trim() : '';
   if (!isPlayableGameId(gameId)) {
     sendAdminJsonError(res, 400, 'VALIDATION_ERROR', 'هذه اللعبة غير معروفة.');
@@ -309,7 +350,10 @@ adminRouter.patch('/games/:gameId', requireAdmin, async (req, res) => {
   }
 
   try {
-    const data = await setGameEnabled(gameId, parsed.data.isEnabled);
+    const data = await setGameEnabled(gameId, parsed.data.isEnabled, {
+      actorUserId: adminUserId,
+      requestId: typeof res.locals.requestId === 'string' ? res.locals.requestId : undefined,
+    });
     res.status(200).json({ success: true, data } satisfies AdminActionResponse<typeof data>);
   } catch (error) {
     if (isPrismaError(error)) {

@@ -1,12 +1,9 @@
 import type { Server } from 'socket.io';
 import type { GameShellAbortReason, GameShellState } from '@wanasatna/shared';
 import { GAME_SHELL_NAVIGATE_EVENT, GAME_SHELL_STATE_EVENT } from '@wanasatna/shared';
+import { sanitizeErrorName, sanitizeKnownErrorCode } from '../../lib/ops-logger.js';
 import { getRoomChannel } from '../room/room.utils.js';
-import {
-  applyCountdownTick,
-  applyGameTimerTick,
-  getGameShellByRoomId,
-} from './game.service.js';
+import { applyCountdownTick, applyGameTimerTick, getGameShellByRoomId } from './game.service.js';
 import { logGameShellDiagnostic } from './game.diagnostics.js';
 import { initializePluginOnPlaying } from './runtime/initialize-plugin-on-playing.js';
 
@@ -97,7 +94,8 @@ export function startGameShellTimer(io: Server, roomId: string, kind: TimerKind)
             roomId,
             trigger: 'countdown-timer',
             shellId: shellIdForInit,
-            error: error instanceof Error ? error.message : String(error),
+            errorName: sanitizeErrorName(error),
+            errorCode: sanitizeKnownErrorCode(error),
           });
         });
       }

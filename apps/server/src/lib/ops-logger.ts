@@ -1,5 +1,5 @@
 const FORBIDDEN_META_KEY =
-  /password|cookie|token|hash|email|database|secret|authorization|reconnect|drawing|stroke|canonical|answer|content/i;
+  /password|cookie|token|hash|email|database|secret|authorization|reconnect|drawing|stroke|canonical|answer|content|error.*message|raw.*error/i;
 
 function sanitizeString(value: string): string {
   if (/postgres(ql)?:\/\//i.test(value) || /DATABASE_URL/i.test(value)) {
@@ -30,7 +30,12 @@ function sanitizeMeta(meta: Record<string, unknown> | undefined): Record<string,
   return safe;
 }
 
-function write(level: 'info' | 'warn' | 'error', event: string, message: string, meta?: Record<string, unknown>): void {
+function write(
+  level: 'info' | 'warn' | 'error',
+  event: string,
+  message: string,
+  meta?: Record<string, unknown>,
+): void {
   const line = JSON.stringify({
     timestamp: new Date().toISOString(),
     level,
@@ -67,4 +72,13 @@ export function sanitizeErrorName(error: unknown): string {
     return error.name;
   }
   return typeof error;
+}
+
+export function sanitizeKnownErrorCode(error: unknown): string | undefined {
+  if (!error || typeof error !== 'object' || !('code' in error)) {
+    return undefined;
+  }
+
+  const code = (error as { code?: unknown }).code;
+  return typeof code === 'string' && /^P\d{4}$/.test(code) ? code : undefined;
 }

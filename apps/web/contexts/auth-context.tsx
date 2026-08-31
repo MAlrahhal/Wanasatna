@@ -9,12 +9,19 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import type { AuthActionResponse, AuthSessionData, PublicUser } from '@wanasatna/shared';
+import type {
+  AdminMfaVerifyInput,
+  AuthActionResponse,
+  AuthLoginData,
+  AuthSessionData,
+  PublicUser,
+} from '@wanasatna/shared';
 import {
   fetchAuthMe,
   loginAccount,
   logoutAccount,
   registerAccount,
+  verifyAdminMfa,
 } from '@/lib/auth/api';
 import { refreshIdleRoomSocketForAccountAuth } from '@/lib/auth/refresh-idle-socket';
 
@@ -23,7 +30,8 @@ type AuthStatus = 'loading' | 'ready';
 type AuthContextValue = {
   status: AuthStatus;
   user: PublicUser | null;
-  login: (email: string, password: string) => Promise<AuthActionResponse<AuthSessionData>>;
+  login: (email: string, password: string) => Promise<AuthActionResponse<AuthLoginData>>;
+  verifyAdminMfa: (input: AdminMfaVerifyInput) => Promise<AuthActionResponse<AuthSessionData>>;
   register: (input: {
     email: string;
     password: string;
@@ -65,6 +73,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     const result = await loginAccount({ email, password });
+    if (result.success && 'user' in result.data) {
+      setUser(result.data.user);
+      setStatus('ready');
+      refreshIdleRoomSocketForAccountAuth();
+    }
+    return result;
+  }, []);
+
+  const confirmAdminMfa = useCallback(async (input: AdminMfaVerifyInput) => {
+    const result = await verifyAdminMfa(input);
     if (result.success) {
       setUser(result.data.user);
       setStatus('ready');
@@ -99,10 +117,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       status,
       user,
       login,
+      verifyAdminMfa: confirmAdminMfa,
       register,
       logout,
     }),
-    [status, user, login, register, logout],
+    [status, user, login, confirmAdminMfa, register, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

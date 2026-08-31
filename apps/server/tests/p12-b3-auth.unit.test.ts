@@ -12,7 +12,12 @@ import { createApp } from '../src/app.js';
 import { prisma } from '../src/lib/prisma.js';
 import { AUTH_COOKIE_NAME } from '../src/modules/auth/auth.cookie.js';
 import { resetAuthRateLimiterForTests } from '../src/modules/auth/auth-rate-limit.js';
-import { loginUser, logoutAuthSession, registerUser, resolveAuthSession } from '../src/modules/auth/auth.service.js';
+import {
+  loginUser,
+  logoutAuthSession,
+  registerUser,
+  resolveAuthSession,
+} from '../src/modules/auth/auth.service.js';
 import { hashSessionToken } from '../src/modules/auth/session-token.js';
 import { MAX_ROOM_PLAYERS } from '../src/modules/room/room.utils.js';
 
@@ -33,7 +38,7 @@ async function test(name: string, fn: () => void | Promise<void>): Promise<void>
   } catch (error) {
     failed += 1;
     console.error(`FAIL ${name}`);
-    console.error(error instanceof Error ? error.stack ?? error.message : error);
+    console.error(error instanceof Error ? (error.stack ?? error.message) : error);
   }
 }
 
@@ -100,8 +105,14 @@ async function main(): Promise<void> {
     assert.doesNotMatch(read('src/modules/auth/password.ts'), /jwt|bcrypt/i);
     assert.match(read('src/modules/auth/password.ts'), /argon2id/);
     assert.doesNotMatch(read('src/config/env.ts'), /ADMIN_EMAILS|adminEmails/);
-    assert.doesNotMatch(read('src/modules/auth/auth.service.ts'), /ADMIN_EMAILS|adminEmails|resolveRole/);
-    assert.doesNotMatch(read('src/modules/auth/auth.middleware.ts'), /role:\s*UserRole\.ADMIN|user\.update/);
+    assert.doesNotMatch(
+      read('src/modules/auth/auth.service.ts'),
+      /ADMIN_EMAILS|adminEmails|resolveRole/,
+    );
+    assert.doesNotMatch(
+      read('src/modules/auth/auth.middleware.ts'),
+      /role:\s*UserRole\.ADMIN|user\.update/,
+    );
     assert.doesNotMatch(read('src/modules/auth/auth.validators.ts'), /\brole\b/);
     assert.doesNotMatch(read('src/modules/auth/auth.routes.ts'), /playerCap|20-player|extended/);
   });
@@ -410,6 +421,7 @@ async function main(): Promise<void> {
         });
         if (response.status === 429) {
           limited += 1;
+          assert.match(response.headers.get('retry-after') ?? '', /^\d+$/);
           const body = (await response.json()) as { error?: { code?: string } };
           assert.equal(body.error?.code, 'RATE_LIMITED');
         } else {

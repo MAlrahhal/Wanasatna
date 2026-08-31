@@ -15,7 +15,8 @@ export const AUTH_COPY = {
   saveNameTitle: 'حفظ الاسم المفضّل',
   benefit: 'احفظ اسمك وخله جاهز كل مرة ترجع فيها.',
   guestStillPlays: 'اللعب بدون حساب يبقى متاحاً',
-  pageDescription: 'الحساب اختياري. احفظ اسمك وخله جاهز كل مرة ترجع فيها. يمكنك دائماً اللعب بدون حساب.',
+  pageDescription:
+    'الحساب اختياري. احفظ اسمك وخله جاهز كل مرة ترجع فيها. يمكنك دائماً اللعب بدون حساب.',
   invalidCredentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
   emailTaken: 'هذا البريد الإلكتروني مستخدم بالفعل.',
   invalidEmail: 'يرجى إدخال بريد إلكتروني صالح.',
@@ -27,5 +28,6 @@ export const AUTH_COPY = {
   rateLimited: getRoomErrorMessage('RATE_LIMITED'),
   connectionFailed: getRoomErrorMessage('CONNECTION_FAILED'),
   genericError: SYSTEM_COPY.unexpectedError,
+  adminMfaRequired: 'استخدم صفحة دخول الإدارة لإكمال التحقق الآمن.',
   resolvingSession: 'جاري التحقق من الحساب…',
 } as const;

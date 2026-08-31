@@ -9,6 +9,7 @@ import {
   TIMING_CHALLENGE_GAME_ID,
   WHO_WROTE_IT_GAME_ID,
 } from '@wanasatna/shared';
+import { sanitizeErrorName, sanitizeKnownErrorCode } from '../../../lib/ops-logger.js';
 import { getGameShellByRoomId, syncGameShell } from '../game.service.js';
 import { logGameShellDiagnostic } from '../game.diagnostics.js';
 import { ensureBaraAlSalafaMatchStateWithTimer } from '../plugins/bara-al-salafa/init-match.js';
@@ -40,7 +41,8 @@ async function abortBrokenMatch(io: Server, roomId: string, cause: string): Prom
     logGameShellDiagnostic('plugin-init-abort-failed', {
       roomId,
       cause,
-      error: abortError instanceof Error ? abortError.message : String(abortError),
+      errorName: sanitizeErrorName(abortError),
+      errorCode: sanitizeKnownErrorCode(abortError),
     });
   }
 }
@@ -127,7 +129,8 @@ export async function initializePluginOnPlaying(
   } catch (error) {
     logGameShellDiagnostic('plugin-init-failed', {
       roomId,
-      error: error instanceof Error ? error.message : String(error),
+      errorName: sanitizeErrorName(error),
+      errorCode: sanitizeKnownErrorCode(error),
     });
     await abortBrokenMatch(io, roomId, 'init-error');
   }
