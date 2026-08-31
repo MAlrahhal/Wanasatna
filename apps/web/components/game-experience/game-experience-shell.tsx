@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 import { Button } from '@/components/ui/button';
 import { useGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
@@ -48,6 +49,8 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
     return <>{children}</>;
   }
 
+  const showGameplayAds = meta.layoutMode === 'gameplay';
+
   const mobileControls = (
     <div className="flex items-center gap-1 lg:hidden">
       <Button
@@ -86,15 +89,41 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
       <GameExperienceHeader meta={meta} mobilePanelControls={mobileControls} />
 
       <div className="hidden min-h-0 flex-1 gap-2 lg:grid lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)_minmax(220px,260px)]">
-        <GameChatMockPanel className="max-h-[min(560px,calc(100vh-12rem))]" />
+        <div className="flex min-h-0 flex-col gap-3">
+          <GameChatMockPanel
+            className={cn(
+              'max-h-[min(560px,calc(100vh-12rem))]',
+              showGameplayAds && '2xl:max-h-[min(480px,calc(100vh-22rem))]',
+            )}
+          />
+          {showGameplayAds ? (
+            <AdPlaceholder
+              placement="game-chat-desktop"
+              format="vertical"
+              className="hidden h-[clamp(7rem,16vh,12rem)] shrink-0 2xl:flex"
+            />
+          ) : null}
+        </div>
         <div className="relative min-w-0">
           {children}
           {playerRecovery ? <GamePlayerRecoveryOverlay recovery={playerRecovery} /> : null}
         </div>
-        <GameLeaderboardPanel
-          entries={meta.leaderboardEntries}
-          className="max-h-[min(560px,calc(100vh-12rem))]"
-        />
+        <div className="flex min-h-0 flex-col gap-3">
+          <GameLeaderboardPanel
+            entries={meta.leaderboardEntries}
+            className={cn(
+              'max-h-[min(560px,calc(100vh-12rem))]',
+              showGameplayAds && '2xl:max-h-[min(480px,calc(100vh-22rem))]',
+            )}
+          />
+          {showGameplayAds ? (
+            <AdPlaceholder
+              placement="game-leaderboard-desktop"
+              format="vertical"
+              className="hidden h-[clamp(7rem,16vh,12rem)] shrink-0 2xl:flex"
+            />
+          ) : null}
+        </div>
       </div>
 
       <div className="relative min-w-0 flex-1 lg:hidden">

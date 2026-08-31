@@ -140,6 +140,11 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
     setExperienceMeta({
       gameName: IMPOSTER_DRAW_GAME_NAME,
       gameIcon: IMPOSTER_DRAW_GAME_ICON,
+      layoutMode: showFinalMatchResults
+        ? 'final-results'
+        : activeView.gamePhase === 'round-results'
+          ? 'round-results'
+          : 'gameplay',
       phaseLabel: activeView.isMatchSpectator ? 'مشاهدة' : activeView.phaseLabel,
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,

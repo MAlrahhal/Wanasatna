@@ -1,5 +1,6 @@
 'use client';
 
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
 import { PlayerAvatar } from '@/components/player/player-avatar';
@@ -348,6 +349,16 @@ export function MatchResultsScreen({
           totalRounds={totalRounds}
           playerCount={playerCount}
           highestScore={highestScore}
+        />
+
+        <div className="hidden grid-cols-2 gap-4 xl:grid">
+          <AdPlaceholder placement="final-results-left-desktop" format="horizontal" />
+          <AdPlaceholder placement="final-results-right-desktop" format="horizontal" />
+        </div>
+        <AdPlaceholder
+          placement="final-results-mobile"
+          format="horizontal"
+          className="xl:hidden"
         />
 
         <MatchActionsFooter

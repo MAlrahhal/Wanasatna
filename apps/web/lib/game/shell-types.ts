@@ -19,6 +19,7 @@ export type GameExperienceTimer = {
 export type GameExperienceMeta = {
   gameName: string;
   gameIcon?: ReactNode;
+  layoutMode?: 'gameplay' | 'round-results' | 'final-results';
   phaseLabel?: string;
   /** Optional public category label, e.g. "الفئة: أكلات". */
   categoryLabel?: string;

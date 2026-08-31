@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 import type { JudgeRevealEntry, JudgeRoundResultEntry } from '@wanasatna/shared';
 import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
@@ -157,6 +158,8 @@ export function JudgeRoundResultsScreen({
             })}
           </ul>
         </GameCard>
+
+        <AdPlaceholder placement="round-results" format="horizontal" />
 
         {continueLabel && onContinue ? (
           <div className="mx-auto w-full max-w-md space-y-2.5">

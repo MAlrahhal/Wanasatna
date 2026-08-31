@@ -154,6 +154,11 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     setExperienceMeta({
       gameName: 'برا السالفة',
       gameIcon: BARA_AL_SALAFA_GAME_ICON,
+      layoutMode: showFinalMatchResults
+        ? 'final-results'
+        : activeView.gamePhase === 'round-results'
+          ? 'round-results'
+          : 'gameplay',
       phaseLabel: activeView.phaseLabel,
       categoryLabel:
         activeView.isMatchSpectator && activeView.spectatorCivilianWord

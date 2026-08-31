@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 import type {
   WhoWroteItRevealEntry,
   WhoWroteItRoundResultEntry,
@@ -156,6 +157,8 @@ export function WhoWroteItRoundResultsScreen({
             })}
           </ul>
         </GameCard>
+
+        <AdPlaceholder placement="round-results" format="horizontal" />
 
         {continueLabel && onContinue ? (
           <div className="mx-auto w-full max-w-md space-y-2.5">

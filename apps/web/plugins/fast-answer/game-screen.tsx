@@ -84,6 +84,11 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
     setExperienceMeta({
       gameName: FAST_ANSWER_GAME_NAME,
       gameIcon: FAST_ANSWER_GAME_ICON,
+      layoutMode: showFinalMatchResults
+        ? 'final-results'
+        : activeView.gamePhase === 'round-results'
+          ? 'round-results'
+          : 'gameplay',
       phaseLabel: activeView.isMatchSpectator ? SYSTEM_COPY.spectatorTitle : activeView.phaseLabel,
       categoryLabel: activeView.categoryLabel
         ? `الفئة: ${activeView.categoryLabel}`

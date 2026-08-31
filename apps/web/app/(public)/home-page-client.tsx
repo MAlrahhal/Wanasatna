@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect } from 'react';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 import { HomeActiveRoomResume } from '@/components/public/active-room-banner';
 import { FeatureCard } from '@/components/public/feature-card';
 import { GamePreviewCard } from '@/components/public/game-cards';
@@ -107,6 +108,8 @@ export function HomePageClient() {
           <SystemStatus tone="error" {...presentRoomActionError(room.errorMessage)} />
         ) : null}
 
+        <AdPlaceholder placement="home-before-room-actions" format="horizontal" />
+
         <RoomActionCards
           createPlayerName={room.createPlayerName}
           joinPlayerName={room.joinPlayerName}
@@ -142,6 +145,8 @@ export function HomePageClient() {
             ))}
           </div>
         </section>
+
+        <AdPlaceholder placement="home-after-games" format="horizontal" />
 
         <section className="wanas-section-frame -mx-4 px-4 py-5 sm:-mx-6 sm:px-6 sm:py-8">
           <SectionHeader

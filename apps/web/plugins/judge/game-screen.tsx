@@ -94,6 +94,11 @@ export function JudgeGameScreen(_props: GamePluginScreenProps) {
     setExperienceMeta({
       gameName: JUDGE_GAME_NAME,
       gameIcon: JUDGE_GAME_ICON,
+      layoutMode: showFinalMatchResults
+        ? 'final-results'
+        : activeView.gamePhase === 'round-results'
+          ? 'round-results'
+          : 'gameplay',
       phaseLabel: activeView.isMatchSpectator ? SYSTEM_COPY.spectatorTitle : activeView.phaseLabel,
       centerLabel: activeView.judgeName ? `القاضي: ${activeView.judgeName}` : undefined,
       categoryLabel: activeView.categoryLabel

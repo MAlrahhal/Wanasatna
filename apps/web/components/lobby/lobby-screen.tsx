@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getDefaultPlayerAvatarId } from '@wanasatna/shared';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 import { useRoom } from '@/contexts/room-context';
 import { mockGameSettingsByGameId, mockLobbyGames } from '@/lib/lobby/mock-games';
 import { usePlayableGameAvailability } from '@/lib/games/use-game-availability';
@@ -198,7 +199,7 @@ export function LobbyScreen() {
             chatOpen
               ? 'border-wanas-border bg-wanas-surface fixed inset-x-0 bottom-0 z-40 flex max-h-[55dvh] flex-col rounded-t-2xl border-t p-3 shadow-[var(--wanas-shadow-panel)]'
               : 'hidden',
-            'xl:static xl:z-auto xl:order-3 xl:block xl:max-h-none xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none',
+            'xl:static xl:z-auto xl:order-3 xl:flex xl:max-h-[calc(100vh-12rem)] xl:flex-col xl:gap-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none',
           )}
           role={chatOpen ? 'dialog' : undefined}
           aria-modal={chatOpen ? true : undefined}
@@ -225,6 +226,11 @@ export function LobbyScreen() {
             </div>
           ) : null}
           <LobbyChat className="min-h-0" />
+          <AdPlaceholder
+            placement="lobby-chat-desktop"
+            format="vertical"
+            className="hidden h-[clamp(7rem,15vh,10rem)] shrink-0 xl:flex"
+          />
         </div>
 
         <div
@@ -254,7 +260,12 @@ export function LobbyScreen() {
           <LobbyStartGamePanel />
         </div>
 
-        <div className={cn('xl:order-1', mobileSection !== 'players' && 'hidden xl:block')}>
+        <div
+          className={cn(
+            'xl:order-1 xl:flex xl:max-h-[calc(100vh-12rem)] xl:min-h-0 xl:flex-col xl:gap-3',
+            mobileSection !== 'players' && 'hidden xl:flex',
+          )}
+        >
           <PlayersPanel
             players={players}
             currentPlayerId={player?.id}
@@ -265,8 +276,19 @@ export function LobbyScreen() {
             playerCap={room?.playerCap}
             onChangeAvatar={() => setAvatarPickerOpen(true)}
           />
+          <AdPlaceholder
+            placement="lobby-players-desktop"
+            format="vertical"
+            className="hidden h-[clamp(7rem,15vh,10rem)] shrink-0 xl:flex"
+          />
         </div>
       </div>
+
+      <AdPlaceholder
+        placement="lobby-mobile"
+        format="horizontal"
+        className="xl:hidden"
+      />
 
       {player ? (
         <AvatarPickerDialog

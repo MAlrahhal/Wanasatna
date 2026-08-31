@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
@@ -260,6 +261,8 @@ export function RoundResultsScreen({
         <RoundSummaryCards revealedWord={revealedWord} impostorPlayerName={impostorPlayerName} />
 
         <RoundPointsList roundResults={roundResults} currentPlayerId={currentPlayerId} />
+
+        <AdPlaceholder placement="round-results" format="horizontal" />
 
         <RoundTransitionFooter
           continueLabel={continueLabel}

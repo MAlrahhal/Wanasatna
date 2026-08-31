@@ -93,6 +93,11 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
     setExperienceMeta({
       gameName: TIMING_CHALLENGE_GAME_NAME,
       gameIcon: TIMING_CHALLENGE_GAME_ICON,
+      layoutMode: showFinalMatchResults
+        ? 'final-results'
+        : activeView.gamePhase === 'round-results'
+          ? 'round-results'
+          : 'gameplay',
       phaseLabel: activeView.isMatchSpectator ? 'مشاهدة' : activeView.phaseLabel,
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,

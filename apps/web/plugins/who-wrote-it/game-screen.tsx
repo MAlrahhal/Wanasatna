@@ -94,6 +94,11 @@ export function WhoWroteItGameScreen(_props: GamePluginScreenProps) {
     setExperienceMeta({
       gameName: WHO_WROTE_IT_GAME_NAME,
       gameIcon: WHO_WROTE_IT_GAME_ICON,
+      layoutMode: showFinalMatchResults
+        ? 'final-results'
+        : activeView.gamePhase === 'round-results'
+          ? 'round-results'
+          : 'gameplay',
       phaseLabel: activeView.isMatchSpectator ? SYSTEM_COPY.spectatorTitle : activeView.phaseLabel,
       categoryLabel: activeView.categoryLabel
         ? `الفئة: ${activeView.categoryLabel}`

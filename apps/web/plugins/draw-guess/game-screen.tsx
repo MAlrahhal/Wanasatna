@@ -89,6 +89,11 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
     setExperienceMeta({
       gameName: DRAW_GUESS_GAME_NAME,
       gameIcon: DRAW_GUESS_GAME_ICON,
+      layoutMode: showFinalMatchResults
+        ? 'final-results'
+        : activeView.gamePhase === 'round-results'
+          ? 'round-results'
+          : 'gameplay',
       phaseLabel: activeView.phaseLabel,
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,

@@ -160,6 +160,11 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
     setExperienceMeta({
       gameName: GUESSING_CHALLENGE_GAME_NAME,
       gameIcon: GUESSING_CHALLENGE_GAME_ICON,
+      layoutMode: showFinalMatchResults
+        ? 'final-results'
+        : activeView.gamePhase === 'round-results'
+          ? 'round-results'
+          : 'gameplay',
       phaseLabel: conciseGuessingChallengePhaseLabel(activeView),
       categoryLabel: activeView.categoryLabel
         ? `الفئة: ${activeView.categoryLabel}`
