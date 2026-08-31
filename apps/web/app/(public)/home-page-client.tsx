@@ -32,8 +32,15 @@ function scrollToRoomActionsIfHash() {
 export function HomePageClient() {
   const room = useRoomActions();
   const featuredGames = getFeaturedGames();
-  const hasFieldError = Boolean(room.fieldErrors.playerName || room.fieldErrors.joinCode);
-  const playerNameError = room.fieldErrors.playerName
+  const hasFieldError = Boolean(
+    room.fieldErrors.createPlayerName ||
+      room.fieldErrors.joinPlayerName ||
+      room.fieldErrors.joinCode,
+  );
+  const createPlayerNameError = room.fieldErrors.createPlayerName
+    ? (room.errorMessage ?? undefined)
+    : undefined;
+  const joinPlayerNameError = room.fieldErrors.joinPlayerName
     ? (room.errorMessage ?? undefined)
     : undefined;
   const joinCodeError = room.fieldErrors.joinCode ? (room.errorMessage ?? undefined) : undefined;
@@ -47,12 +54,12 @@ export function HomePageClient() {
   if (room.inviteFromLink) {
     return (
       <InviteJoinCard
-        playerName={room.playerName}
+        playerName={room.joinPlayerName}
         joinCode={room.joinCode}
-        onPlayerNameChange={room.handlePlayerNameChange}
+        onPlayerNameChange={room.handleJoinPlayerNameChange}
         onJoinRoom={room.handleJoinRoom}
         isJoining={room.isJoining}
-        playerNameError={playerNameError}
+        playerNameError={joinPlayerNameError}
         actionError={!hasFieldError ? (room.errorMessage ?? undefined) : undefined}
       />
     );
@@ -65,7 +72,7 @@ export function HomePageClient() {
           <div className="relative grid items-center gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-10">
             <div className="max-w-3xl">
               <h1 className="text-wanas-text-primary text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-[3.25rem]">
-                مكان واحد تلعب فيه مع أصحابك
+                لأن الوناسة ما تحلى إلا مع أصحابك
               </h1>
               <p className="text-wanas-text-secondary mt-3 max-w-xl text-base leading-8 sm:mt-5">
                 أنشئ غرفة، شارك الرمز، وابدؤوا اللعب خلال ثوانٍ — مباشرة من المتصفح وبدون تسجيل.
@@ -101,15 +108,18 @@ export function HomePageClient() {
         ) : null}
 
         <RoomActionCards
-          playerName={room.playerName}
+          createPlayerName={room.createPlayerName}
+          joinPlayerName={room.joinPlayerName}
           joinCode={room.joinCode}
-          onPlayerNameChange={room.handlePlayerNameChange}
+          onCreatePlayerNameChange={room.handleCreatePlayerNameChange}
+          onJoinPlayerNameChange={room.handleJoinPlayerNameChange}
           onJoinCodeChange={room.handleJoinCodeChange}
           onCreateRoom={room.handleCreateRoom}
           onJoinRoom={room.handleJoinRoom}
           isCreating={room.isCreating}
           isJoining={room.isJoining}
-          playerNameError={playerNameError}
+          createPlayerNameError={createPlayerNameError}
+          joinPlayerNameError={joinPlayerNameError}
           joinCodeError={joinCodeError}
         />
 

@@ -49,7 +49,7 @@ test('1-5 Home title, description, metadataBase, canonical, lang/RTL', () => {
 
   const homeClient = read('app/(public)/home-page-client.tsx');
   assert.match(homeClient, /<h1/);
-  assert.match(homeClient, /مكان واحد تلعب فيه مع أصحابك/);
+  assert.match(homeClient, /لأن الوناسة ما تحلى إلا مع أصحابك/);
 });
 
 test('6-12 robots and sitemap allow public, exclude private/runtime', () => {

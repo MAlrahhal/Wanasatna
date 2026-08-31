@@ -6,28 +6,34 @@ import { Field } from '@/components/ui/field';
 import { HOME_ROOM_ACTIONS_ID } from '@/lib/public/routes';
 
 type RoomActionCardsProps = {
-  playerName: string;
+  createPlayerName: string;
+  joinPlayerName: string;
   joinCode: string;
-  onPlayerNameChange: (value: string) => void;
+  onCreatePlayerNameChange: (value: string) => void;
+  onJoinPlayerNameChange: (value: string) => void;
   onJoinCodeChange: (value: string) => void;
   onCreateRoom: () => void;
   onJoinRoom: () => void;
   isCreating: boolean;
   isJoining: boolean;
-  playerNameError?: string;
+  createPlayerNameError?: string;
+  joinPlayerNameError?: string;
   joinCodeError?: string;
 };
 
 export function RoomActionCards({
-  playerName,
+  createPlayerName,
+  joinPlayerName,
   joinCode,
-  onPlayerNameChange,
+  onCreatePlayerNameChange,
+  onJoinPlayerNameChange,
   onJoinCodeChange,
   onCreateRoom,
   onJoinRoom,
   isCreating,
   isJoining,
-  playerNameError,
+  createPlayerNameError,
+  joinPlayerNameError,
   joinCodeError,
 }: RoomActionCardsProps) {
   const busy = isCreating || isJoining;
@@ -52,12 +58,12 @@ export function RoomActionCards({
             <Field
               id="create-name"
               label="اسمك"
-              value={playerName}
-              onChange={onPlayerNameChange}
+              value={createPlayerName}
+              onChange={onCreatePlayerNameChange}
               placeholder="اكتب اسمك"
               icon={<UserIcon />}
               disabled={busy}
-              error={playerNameError}
+              error={createPlayerNameError}
               autoComplete="nickname"
             />
             <div className="mt-auto">
@@ -78,7 +84,7 @@ export function RoomActionCards({
         <article className="wanas-panel flex flex-col border-t-2 border-t-wanas-border p-5 sm:p-6">
           <div className="mb-4 flex items-center gap-3">
             <span
-              className="flex size-10 items-center justify-center rounded-[var(--wanas-radius-control)] bg-wanas-surface-muted font-bold text-wanas-text-primary"
+              className="flex size-10 items-center justify-center rounded-[var(--wanas-radius-control)] bg-wanas-accent font-bold text-white shadow-[0_3px_0_var(--wanas-brand-navy)]"
               aria-hidden
             >
               #
@@ -92,12 +98,12 @@ export function RoomActionCards({
             <Field
               id="join-name"
               label="اسمك"
-              value={playerName}
-              onChange={onPlayerNameChange}
+              value={joinPlayerName}
+              onChange={onJoinPlayerNameChange}
               placeholder="اكتب اسمك"
               icon={<UserIcon />}
               disabled={busy}
-              error={playerNameError}
+              error={joinPlayerNameError}
               autoComplete="nickname"
             />
             <Field

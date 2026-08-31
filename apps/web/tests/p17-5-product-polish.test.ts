@@ -47,10 +47,22 @@ test('Home hero uses official logo, no lock icon, no hero divider', () => {
   assert.equal(existsSync(join(root, 'public/brand/wanasatna-logo.png')), true);
   assert.doesNotMatch(logo, />و</);
   assert.match(navbar, /PublicBrandLogo/);
-  assert.match(home, /مكان واحد تلعب فيه مع أصحابك/);
+  assert.match(home, /لأن الوناسة ما تحلى إلا مع أصحابك/);
   assert.match(home, /بدون تسجيل/);
   assert.doesNotMatch(home, /<svg[\s\S]*lock|M12 15v2|lock icon/i);
   assert.doesNotMatch(home, /section className="relative overflow-hidden border-b/);
+});
+
+test('Home Create and Join names stay independent and room icons share the accent treatment', () => {
+  const actions = read('lib/public/use-room-actions.ts');
+  const cards = read('components/public/room-action-cards.tsx');
+  assert.match(actions, /\[createPlayerName, setCreatePlayerName\] = useState\(''\)/);
+  assert.match(actions, /\[joinPlayerName, setJoinPlayerName\] = useState\(''\)/);
+  assert.match(actions, /const trimmedName = createPlayerName\.trim\(\)[\s\S]*manager\.create\(trimmedName\)/);
+  assert.match(actions, /const trimmedName = joinPlayerName\.trim\(\)[\s\S]*manager\.enterFromJoinForm\(trimmedCode, trimmedName\)/);
+  assert.match(cards, /id="create-name"[\s\S]*?value=\{createPlayerName\}[\s\S]*?onChange=\{onCreatePlayerNameChange\}/);
+  assert.match(cards, /id="join-name"[\s\S]*?value=\{joinPlayerName\}[\s\S]*?onChange=\{onJoinPlayerNameChange\}/);
+  assert.equal((cards.match(/bg-wanas-accent font-bold text-white shadow-/g) ?? []).length, 2);
 });
 
 test('/login redirects home and stays noindex', () => {

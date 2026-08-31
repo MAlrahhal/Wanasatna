@@ -10,7 +10,8 @@ import { getRoomSessionManager } from '@/lib/room-v2';
 import { getRoomSocket } from '@/lib/room/socket';
 
 type FieldErrors = {
-  playerName?: boolean;
+  createPlayerName?: boolean;
+  joinPlayerName?: boolean;
   joinCode?: boolean;
 };
 
@@ -36,14 +37,14 @@ function readInviteCode(searchParams: Pick<URLSearchParams, 'get'>): string {
 export function useRoomActions() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [playerName, setPlayerName] = useState('');
+  const [createPlayerName, setCreatePlayerName] = useState('');
+  const [joinPlayerName, setJoinPlayerName] = useState('');
   const [joinCode, setJoinCode] = useState(() => readInviteCode(searchParams));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const inFlightRef = useRef(false);
-  const nameEditedRef = useRef(false);
 
   const scrollToRoomActions = useCallback(() => {
     document.getElementById(HOME_ROOM_ACTIONS_ID)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -94,32 +95,32 @@ export function useRoomActions() {
       return;
     }
 
-    const trimmedName = playerName.trim();
+    const trimmedName = createPlayerName.trim();
 
     if (!trimmedName) {
       setErrorMessage('يرجى إدخال اسمك لإنشاء غرفة.');
-      setFieldErrors({ playerName: true });
+      setFieldErrors({ createPlayerName: true });
       scrollToRoomActions();
       return;
     }
 
     if (trimmedName.length < 2) {
       setErrorMessage('يجب أن يكون الاسم حرفين على الأقل.');
-      setFieldErrors({ playerName: true });
+      setFieldErrors({ createPlayerName: true });
       scrollToRoomActions();
       return;
     }
 
     if (trimmedName.length > 20) {
       setErrorMessage('يجب ألا يزيد الاسم عن 20 حرفاً.');
-      setFieldErrors({ playerName: true });
+      setFieldErrors({ createPlayerName: true });
       scrollToRoomActions();
       return;
     }
 
     if (playerNameContainsForbiddenChars(trimmedName)) {
       setErrorMessage('الاسم يحتوي على رموز غير مسموحة.');
-      setFieldErrors({ playerName: true });
+      setFieldErrors({ createPlayerName: true });
       scrollToRoomActions();
       return;
     }
@@ -170,7 +171,7 @@ export function useRoomActions() {
         resetSubmissionFlags(setIsCreating, setIsJoining);
       }
     })();
-  }, [isCreating, isJoining, playerName, router, scrollToRoomActions]);
+  }, [createPlayerName, isCreating, isJoining, router, scrollToRoomActions]);
 
   const handleJoinRoom = useCallback(() => {
     if (isCreating || isJoining || inFlightRef.current) {
@@ -179,7 +180,7 @@ export function useRoomActions() {
 
     const manager = getRoomSessionManager();
     const trimmedCode = manager.shouldSuppressInvitePrefill() ? '' : joinCode.trim();
-    const trimmedName = playerName.trim();
+    const trimmedName = joinPlayerName.trim();
     const nextFieldErrors: FieldErrors = {};
 
     if (!trimmedCode) {
@@ -189,7 +190,7 @@ export function useRoomActions() {
 
     if (!trimmedName) {
       setErrorMessage('يرجى إدخال اسمك للانضمام.');
-      nextFieldErrors.playerName = true;
+      nextFieldErrors.joinPlayerName = true;
     }
 
     if (Object.keys(nextFieldErrors).length > 0) {
@@ -200,21 +201,21 @@ export function useRoomActions() {
 
     if (trimmedName.length < 2) {
       setErrorMessage('يجب أن يكون الاسم حرفين على الأقل.');
-      setFieldErrors({ playerName: true });
+      setFieldErrors({ joinPlayerName: true });
       scrollToRoomActions();
       return;
     }
 
     if (trimmedName.length > 20) {
       setErrorMessage('يجب ألا يزيد الاسم عن 20 حرفاً.');
-      setFieldErrors({ playerName: true });
+      setFieldErrors({ joinPlayerName: true });
       scrollToRoomActions();
       return;
     }
 
     if (playerNameContainsForbiddenChars(trimmedName)) {
       setErrorMessage('الاسم يحتوي على رموز غير مسموحة.');
-      setFieldErrors({ playerName: true });
+      setFieldErrors({ joinPlayerName: true });
       scrollToRoomActions();
       return;
     }
@@ -266,18 +267,28 @@ export function useRoomActions() {
         resetSubmissionFlags(setIsCreating, setIsJoining);
       }
     })();
-  }, [isCreating, isJoining, joinCode, playerName, router, scrollToRoomActions]);
+  }, [isCreating, isJoining, joinCode, joinPlayerName, router, scrollToRoomActions]);
 
-  const handlePlayerNameChange = useCallback(
+  const handleCreatePlayerNameChange = useCallback(
     (value: string) => {
-      nameEditedRef.current = true;
-      setPlayerName(value);
-      if (fieldErrors.playerName) {
-        setFieldErrors((current) => ({ ...current, playerName: false }));
+      setCreatePlayerName(value);
+      if (fieldErrors.createPlayerName) {
+        setFieldErrors((current) => ({ ...current, createPlayerName: false }));
         setErrorMessage(null);
       }
     },
-    [fieldErrors.playerName],
+    [fieldErrors.createPlayerName],
+  );
+
+  const handleJoinPlayerNameChange = useCallback(
+    (value: string) => {
+      setJoinPlayerName(value);
+      if (fieldErrors.joinPlayerName) {
+        setFieldErrors((current) => ({ ...current, joinPlayerName: false }));
+        setErrorMessage(null);
+      }
+    },
+    [fieldErrors.joinPlayerName],
   );
 
   const handleJoinCodeChange = useCallback(
@@ -297,7 +308,8 @@ export function useRoomActions() {
   const visibleJoinCode = suppressInvitePrefill ? '' : joinCode;
 
   return {
-    playerName,
+    createPlayerName,
+    joinPlayerName,
     joinCode: visibleJoinCode,
     inviteFromLink:
       !suppressInvitePrefill && urlInviteCode !== '' && visibleJoinCode === urlInviteCode,
@@ -308,7 +320,8 @@ export function useRoomActions() {
     scrollToRoomActions,
     handleCreateRoom,
     handleJoinRoom,
-    handlePlayerNameChange,
+    handleCreatePlayerNameChange,
+    handleJoinPlayerNameChange,
     handleJoinCodeChange,
   };
 }
