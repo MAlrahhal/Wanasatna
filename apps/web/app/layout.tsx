@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import { AppProviders } from "@/components/app-providers";
 import { SkipToContent } from "@/components/public/skip-to-content";
 import { BRAND_NAME_AR } from "@/lib/public/brand";
@@ -70,6 +71,13 @@ export default function RootLayout({
       dir="rtl"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <Script
+        id="google-adsense"
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6489048987333106"
+        crossOrigin="anonymous"
+        strategy="beforeInteractive"
+      />
       <body className="relative flex min-h-full flex-col overflow-x-hidden">
         <div aria-hidden className="wanas-site-bg-pattern" />
         <div className="relative z-10 flex min-h-full flex-1 flex-col">
