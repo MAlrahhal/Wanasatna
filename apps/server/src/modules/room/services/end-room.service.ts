@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, RoomCloseReason } from '@prisma/client';
 import type { RoomActionResponse } from '@wanasatna/shared';
 import { prisma } from '../../../lib/prisma.js';
 import { deleteRoomWithRelations } from './room-cleanup.service.js';
@@ -31,7 +31,7 @@ export async function endRoomByHost(
           return serviceError('NOT_HOST', 'Only the current host can end the room.');
         }
 
-        await deleteRoomWithRelations(roomId, tx);
+        await deleteRoomWithRelations(roomId, tx, RoomCloseReason.HOST_ENDED);
         return { success: true as const, data: { roomId } };
       });
     } catch (error) {

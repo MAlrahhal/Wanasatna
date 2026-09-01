@@ -30,6 +30,7 @@
     "test:p14-a": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p14-a-admin.unit.test.ts",
     "test:p14-b": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p14-b-product-analytics.unit.test.ts",
     "test:p14-c": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p14-c-admin.unit.test.ts",
+    "test:admin-history-write": "cross-env WANASATNA_TEST_MODE=1 tsx tests/admin-history-write-path.unit.test.ts",
     "promote-admin": "tsx scripts/promote-admin.ts",
     "admin-mfa": "tsx scripts/admin-mfa.ts",
     "test:p12-b5": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p12-b5-socket-account.unit.test.ts",

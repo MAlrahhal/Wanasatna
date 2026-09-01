@@ -12,14 +12,14 @@ import {
   serviceError,
   type ServiceError,
 } from './shared-room.service.js';
-import {
-  isRetryableTransactionError,
-  lockRoomRow,
-  ROOM_TX_RETRY_LIMIT,
-} from './room-tx.js';
+import { isRetryableTransactionError, lockRoomRow, ROOM_TX_RETRY_LIMIT } from './room-tx.js';
 import { getGameShellByRoomId } from '../../game/game.service.js';
 import { recordProductEvent } from '../../analytics/product-event.service.js';
 import { isMarathonParticipationLocked } from '../../marathon/marathon.store.js';
+import {
+  ensureDurableRoomHistoryForLiveRoom,
+  recordRoomParticipation,
+} from './room-history-write.service.js';
 
 const ACTIVE_STATUSES = [PlayerStatus.CONNECTED, PlayerStatus.DISCONNECTED] as const;
 
@@ -71,6 +71,11 @@ async function joinRoomInLockedTx(
     return serviceError('ROOM_FULL', `الغرفة ممتلئة (الحد الأقصى ${room.playerCap} لاعبين).`);
   }
 
+  const historyId = room.historyId ?? (await ensureDurableRoomHistoryForLiveRoom(tx, roomId));
+  if (!historyId) {
+    return serviceError('ROOM_NOT_FOUND', 'Room not found.');
+  }
+
   const existingPlayer = await tx.player.findUnique({
     where: {
       roomId_name: {
@@ -93,15 +98,28 @@ async function joinRoomInLockedTx(
     });
   }
 
+  const joinedAt = new Date();
+  const joinedAsSpectator =
+    getGameShellByRoomId(roomId) !== null || isMarathonParticipationLocked(roomId);
   const player = await tx.player.create({
     data: {
       roomId,
       name: playerName,
       status: PlayerStatus.CONNECTED,
-      isSpectator: getGameShellByRoomId(roomId) !== null || isMarathonParticipationLocked(roomId),
+      isSpectator: joinedAsSpectator,
       reconnectTokenHash,
       userId: accountUserId || null,
+      joinedAt,
+      lastSeenAt: joinedAt,
     },
+  });
+
+  await recordRoomParticipation(tx, {
+    historyId,
+    playerId: player.id,
+    displayName: player.name,
+    joinedAt,
+    joinedAsSpectator,
   });
 
   return {

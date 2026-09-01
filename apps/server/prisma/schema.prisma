@@ -44,27 +44,97 @@ enum ProductEventType {
   ROOM_CLOSED
 }
 
+enum RoomCloseReason {
+  ROOM_EMPTY
+  HOST_ENDED
+  ADMIN_FORCE_CLOSED
+  STARTUP_RECONCILIATION
+}
+
 // ---------------------------------------------------------------------------
 // Models
 // ---------------------------------------------------------------------------
 
 model Room {
-  id              String        @id @default(cuid())
-  code            String        @unique
-  hostPlayerId    String        @unique
-  status          RoomStatus    @default(LOBBY)
-  isLocked        Boolean       @default(false)
-  playerCap       Int           @default(8)
-  gameSettings    Json?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id           String     @id @default(cuid())
+  code         String     @unique
+  hostPlayerId String     @unique
+  historyId    String?    @unique
+  status       RoomStatus @default(LOBBY)
+  isLocked     Boolean    @default(false)
+  playerCap    Int        @default(8)
+  gameSettings Json?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
-  hostPlayer      Player        @relation("RoomHost", fields: [hostPlayerId], references: [id], onDelete: Restrict)
-  players         Player[]      @relation("RoomPlayers")
-  matches         Match[]
-  messages        RoomMessage[]
+  hostPlayer Player        @relation("RoomHost", fields: [hostPlayerId], references: [id], onDelete: Restrict)
+  history    RoomHistory?  @relation("LiveRoomHistory", fields: [historyId], references: [id], onDelete: Restrict)
+  players    Player[]      @relation("RoomPlayers")
+  matches    Match[]
+  messages   RoomMessage[]
 
   @@index([status])
+}
+
+// Permanent room identity and lifecycle snapshots. This row survives live Room deletion.
+model RoomHistory {
+  id                  String           @id @default(cuid())
+  liveRoomId          String           @unique
+  roomCode            String
+  originalHostName    String?
+  currentHostPlayerId String
+  currentHostName     String
+  playerCap           Int
+  isLocked            Boolean
+  wasEverLocked       Boolean?
+  createdByAdmin      Boolean?
+  isComplete          Boolean          @default(true)
+  createdAt           DateTime
+  historyStartedAt    DateTime         @default(now())
+  closedAt            DateTime?
+  closeReason         RoomCloseReason?
+  updatedAt           DateTime         @updatedAt
+
+  liveRoom       Room?                      @relation("LiveRoomHistory")
+  participations RoomParticipationHistory[]
+  hostChanges    RoomHostHistory[]
+  matches        Match[]
+
+  @@index([createdAt])
+  @@index([closedAt])
+  @@index([roomCode])
+}
+
+model RoomParticipationHistory {
+  id                String    @id @default(cuid())
+  roomHistoryId     String
+  livePlayerId      String
+  displayName       String
+  joinedAt          DateTime
+  leftAt            DateTime?
+  joinedAsSpectator Boolean?
+  wasHost           Boolean?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  roomHistory RoomHistory @relation(fields: [roomHistoryId], references: [id], onDelete: Cascade)
+
+  @@unique([roomHistoryId, livePlayerId])
+  @@index([roomHistoryId, joinedAt])
+  @@index([displayName])
+}
+
+model RoomHostHistory {
+  id            String   @id @default(cuid())
+  roomHistoryId String
+  livePlayerId  String
+  displayName   String
+  assignedAt    DateTime
+
+  roomHistory RoomHistory @relation(fields: [roomHistoryId], references: [id], onDelete: Cascade)
+
+  @@unique([roomHistoryId, livePlayerId])
+  @@index([roomHistoryId, assignedAt])
 }
 
 model Player {
@@ -180,20 +250,23 @@ model AdminAuditLog {
 
 // Durable match history only. Live Game Shell / plugin runtime stay memory-only.
 model Match {
-  id        String      @id @default(cuid())
-  roomId    String?
-  roomCode  String
-  gameId    String
-  status    MatchStatus @default(ACTIVE)
-  startedAt DateTime    @default(now())
-  endedAt   DateTime?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id            String      @id @default(cuid())
+  roomId        String?
+  roomHistoryId String?
+  roomCode      String
+  gameId        String
+  status        MatchStatus @default(ACTIVE)
+  startedAt     DateTime    @default(now())
+  endedAt       DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   room         Room?              @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  roomHistory  RoomHistory?       @relation(fields: [roomHistoryId], references: [id], onDelete: Restrict)
   participants MatchParticipant[]
 
   @@index([roomId])
+  @@index([roomHistoryId])
   @@index([status])
   @@index([gameId])
   @@index([startedAt])

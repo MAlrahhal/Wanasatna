@@ -5,10 +5,11 @@ import { recordProductEvent } from '../../analytics/product-event.service.js';
 import { selectNextHostPlayer } from './host.service.js';
 import { deleteRoomWithRelations } from './room-cleanup.service.js';
 import {
-  isRetryableTransactionError,
-  lockRoomRow,
-  ROOM_TX_RETRY_LIMIT,
-} from './room-tx.js';
+  ensureDurableRoomHistoryForLiveRoom,
+  recordRoomHostTransfer,
+  recordRoomParticipationLeft,
+} from './room-history-write.service.js';
+import { isRetryableTransactionError, lockRoomRow, ROOM_TX_RETRY_LIMIT } from './room-tx.js';
 
 const ACTIVE_STATUSES = [PlayerStatus.CONNECTED, PlayerStatus.DISCONNECTED] as const;
 
@@ -112,6 +113,11 @@ async function runPermanentDepartureTx(
     };
   }
 
+  const historyId = await ensureDurableRoomHistoryForLiveRoom(tx, roomId);
+  if (!historyId) {
+    throw new Error('ROOM_HISTORY_MISSING');
+  }
+
   const claimWhere =
     kind === 'expiry'
       ? {
@@ -146,6 +152,8 @@ async function runPermanentDepartureTx(
           hostChanged: null,
         };
   }
+
+  await recordRoomParticipationLeft(tx, historyId, playerId, now);
 
   const remainingActive = await countActivePlayersInRoom(tx, roomId);
 
@@ -184,6 +192,12 @@ async function runPermanentDepartureTx(
       await tx.room.update({
         where: { id: roomId },
         data: { hostPlayerId: nextHost.id },
+      });
+      await recordRoomHostTransfer(tx, {
+        historyId,
+        playerId: nextHost.id,
+        displayName: nextHost.name,
+        assignedAt: now,
       });
       hostChanged = {
         roomId,

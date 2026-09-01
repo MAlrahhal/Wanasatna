@@ -1,22 +1,19 @@
-import { MatchStatus, Prisma } from '@prisma/client';
+import { MatchStatus, Prisma, RoomCloseReason } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
 import { recordProductEvent } from '../../analytics/product-event.service.js';
 import { countActivePlayers } from './shared-room.service.js';
-
-type RoomDeleteDb = {
-  room: {
-    delete: Prisma.TransactionClient['room']['delete'];
-  };
-  match: {
-    updateMany: Prisma.TransactionClient['match']['updateMany'];
-  };
-};
+import { closeDurableRoomHistory } from './room-history-write.service.js';
+import { lockRoomRow } from './room-tx.js';
 
 export async function deleteRoomWithRelations(
   roomId: string,
-  db: RoomDeleteDb = prisma,
+  db: Prisma.TransactionClient | typeof prisma = prisma,
+  closeReason: RoomCloseReason = RoomCloseReason.ROOM_EMPTY,
 ): Promise<void> {
-  const run = async (client: RoomDeleteDb) => {
+  const run = async (client: Prisma.TransactionClient) => {
+    const closedAt = new Date();
+    await closeDurableRoomHistory(client, roomId, closeReason, closedAt);
+
     await client.match.updateMany({
       where: {
         roomId,
@@ -24,7 +21,7 @@ export async function deleteRoomWithRelations(
       },
       data: {
         status: MatchStatus.ABORTED,
-        endedAt: new Date(),
+        endedAt: closedAt,
       },
     });
 
@@ -34,7 +31,10 @@ export async function deleteRoomWithRelations(
   };
 
   if (db === prisma) {
-    await prisma.$transaction(async (tx) => run(tx));
+    await prisma.$transaction(async (tx) => {
+      await lockRoomRow(tx, roomId);
+      await run(tx);
+    });
     await recordProductEvent({
       type: 'ROOM_CLOSED',
       roomId,
@@ -42,7 +42,7 @@ export async function deleteRoomWithRelations(
     return;
   }
 
-  await run(db);
+  await run(db as Prisma.TransactionClient);
 }
 
 export async function cleanupRoomIfEmpty(roomId: string): Promise<boolean> {

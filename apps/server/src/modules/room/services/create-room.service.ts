@@ -13,6 +13,7 @@ import { validateCreateRoomPayload } from '../room.validators.js';
 import { generateUniqueRoomCode, loadActiveRoomPlayers, mapRoomSession } from '../room.utils.js';
 import { generateReconnectToken, hashReconnectToken } from '../reconnect-token.js';
 import { recordProductEvent } from '../../analytics/product-event.service.js';
+import { createDurableRoomHistory } from './room-history-write.service.js';
 import { serviceError } from './shared-room.service.js';
 
 function logCreateRoomDiagnostic(
@@ -53,14 +54,27 @@ export async function createRoom(
     const code = await generateUniqueRoomCode();
     const roomId = randomUUID();
     const playerId = randomUUID();
+    const historyId = randomUUID();
     const reconnectToken = generateReconnectToken();
     const reconnectTokenHash = hashReconnectToken(reconnectToken);
     const playerCap = playerCapForCreatorRole(accountRole);
+    const createdAt = new Date();
 
     logCreateRoomDiagnostic('db-transaction-start');
     // Room/Player FKs are DEFERRABLE INITIALLY DEFERRED (migration).
     // Do NOT run SET CONSTRAINTS — Neon/PgBouncer pooled connections reject session SET.
     const room = await prisma.$transaction(async (tx) => {
+      await createDurableRoomHistory(tx, {
+        historyId,
+        roomId,
+        roomCode: code,
+        hostPlayerId: playerId,
+        hostDisplayName: validation.data.playerName,
+        playerCap,
+        createdByAdmin: accountRole === 'ADMIN',
+        createdAt,
+      });
+
       logCreateRoomDiagnostic('db-create-player');
       await tx.player.create({
         data: {
@@ -71,6 +85,8 @@ export async function createRoom(
           isSpectator: false,
           reconnectTokenHash,
           userId: accountUserId || null,
+          joinedAt: createdAt,
+          lastSeenAt: createdAt,
         },
       });
 
@@ -80,9 +96,11 @@ export async function createRoom(
           id: roomId,
           code,
           hostPlayerId: playerId,
+          historyId,
           status: RoomStatus.LOBBY,
           isLocked: false,
           playerCap,
+          createdAt,
         },
         include: { hostPlayer: true },
       });

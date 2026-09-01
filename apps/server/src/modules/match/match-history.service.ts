@@ -1,10 +1,7 @@
 import { MatchStatus, Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { opsLogger } from '../../lib/ops-logger.js';
-import type {
-  BeginPersistedMatchInput,
-  MatchParticipantResult,
-} from './match-history.types.js';
+import type { BeginPersistedMatchInput, MatchParticipantResult } from './match-history.types.js';
 
 type MatchWriteDb = {
   match: {
@@ -62,7 +59,7 @@ export async function beginPersistedMatch(
 
     const room = await db.room.findUnique({
       where: { id: roomId },
-      select: { code: true },
+      select: { code: true, historyId: true },
     });
 
     if (!room) {
@@ -78,6 +75,7 @@ export async function beginPersistedMatch(
     const match = await db.match.create({
       data: {
         roomId,
+        roomHistoryId: room.historyId,
         roomCode: room.code,
         gameId,
         status: MatchStatus.ACTIVE,
@@ -87,8 +85,7 @@ export async function beginPersistedMatch(
             return {
               playerId: player ? player.id : null,
               userId: player?.userId ?? null,
-              displayName:
-                player?.name ?? input.displayNameByPlayerId?.[playerId] ?? 'لاعب',
+              displayName: player?.name ?? input.displayNameByPlayerId?.[playerId] ?? 'لاعب',
             };
           }),
         },

@@ -1,6 +1,8 @@
 import { PlayerStatus, Prisma, type Player, type Room, RoomStatus } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
 import type { RoomActionResponse, RoomUpdatedPayload } from '@wanasatna/shared';
+import { setDurableRoomLockState } from './room-history-write.service.js';
+import { lockRoomRow } from './room-tx.js';
 
 export type ServiceError = Extract<RoomActionResponse<never>, { success: false }>;
 
@@ -111,44 +113,45 @@ export async function assertRoomJoinable(room: Room): Promise<ServiceError | nul
 }
 
 async function setRoomLocked(
-  hostPlayerId: string,
+  hostPlayerId: string | null,
   roomId: string,
   isLocked: boolean,
 ): Promise<RoomActionResponse<RoomUpdatedPayload>> {
-  const roomResult = await findRoomById(roomId);
+  return prisma.$transaction(async (tx) => {
+    if (!(await lockRoomRow(tx, roomId))) {
+      return serviceError('ROOM_NOT_FOUND', 'Room not found.');
+    }
 
-  if (isServiceError(roomResult)) {
-    return roomResult;
-  }
+    const room = await tx.room.findUnique({ where: { id: roomId } });
+    if (!room) {
+      return serviceError('ROOM_NOT_FOUND', 'Room not found.');
+    }
 
-  const hostError = assertHost(roomResult, hostPlayerId);
+    if (hostPlayerId) {
+      const hostError = assertHost(room, hostPlayerId);
+      if (hostError) {
+        return hostError;
+      }
+    }
 
-  if (hostError) {
-    return hostError;
-  }
+    const updatedRoom =
+      room.isLocked === isLocked
+        ? room
+        : await tx.room.update({
+            where: { id: roomId },
+            data: { isLocked },
+          });
 
-  if (roomResult.isLocked === isLocked) {
+    await setDurableRoomLockState(tx, roomId, isLocked);
+
     return {
       success: true,
       data: {
-        roomId: roomResult.id,
-        isLocked,
+        roomId: updatedRoom.id,
+        isLocked: updatedRoom.isLocked,
       },
     };
-  }
-
-  const updatedRoom = await prisma.room.update({
-    where: { id: roomId },
-    data: { isLocked },
   });
-
-  return {
-    success: true,
-    data: {
-      roomId: updatedRoom.id,
-      isLocked: updatedRoom.isLocked,
-    },
-  };
 }
 
 export async function lockRoom(
@@ -170,35 +173,8 @@ export async function setRoomLockedAsAdmin(
   roomId: string,
   isLocked: boolean,
 ): Promise<RoomActionResponse<RoomUpdatedPayload>> {
-  const roomResult = await findRoomById(roomId);
-
-  if (isServiceError(roomResult)) {
-    return roomResult;
-  }
-
-  if (roomResult.isLocked === isLocked) {
-    return {
-      success: true,
-      data: {
-        roomId: roomResult.id,
-        isLocked,
-      },
-    };
-  }
-
   try {
-    const updatedRoom = await prisma.room.update({
-      where: { id: roomId },
-      data: { isLocked },
-    });
-
-    return {
-      success: true,
-      data: {
-        roomId: updatedRoom.id,
-        isLocked: updatedRoom.isLocked,
-      },
-    };
+    return await setRoomLocked(null, roomId, isLocked);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
       return serviceError('ROOM_NOT_FOUND', 'Room not found.');

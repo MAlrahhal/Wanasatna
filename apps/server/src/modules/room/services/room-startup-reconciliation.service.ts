@@ -1,9 +1,11 @@
-import { PlayerStatus, Prisma } from '@prisma/client';
+import { PlayerStatus, Prisma, RoomCloseReason } from '@prisma/client';
 import { prisma } from '../../../lib/prisma.js';
 import { abortAllActiveMatches } from '../../match/match-history.service.js';
 import { deleteRoomWithRelations } from './room-cleanup.service.js';
+import { ensureDurableHistoryForAllLiveRooms } from './room-history-write.service.js';
 
 export type RoomStartupReconciliationSummary = {
+  roomHistoriesEnsured: number;
   connectedSeatsReconciled: number;
   orphanRoomsRemoved: number;
   activeMatchesAborted: number;
@@ -46,7 +48,7 @@ export async function deleteOrphanRooms(): Promise<number> {
 
   for (const room of orphanRooms) {
     try {
-      await deleteRoomWithRelations(room.id);
+      await deleteRoomWithRelations(room.id, prisma, RoomCloseReason.STARTUP_RECONCILIATION);
       removed += 1;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
@@ -60,16 +62,23 @@ export async function deleteOrphanRooms(): Promise<number> {
 }
 
 export async function reconcilePersistedRoomLifecycle(): Promise<RoomStartupReconciliationSummary> {
+  const roomHistoriesEnsured = await ensureDurableHistoryForAllLiveRooms();
   const activeMatchesAborted = await abortAllActiveMatches();
   const connectedSeatsReconciled = await reconcileStaleConnectedPlayers();
   const orphanRoomsRemoved = await deleteOrphanRooms();
 
   console.info('[room-lifecycle]', {
     stage: 'startup-reconciliation',
+    roomHistoriesEnsured,
     activeMatchesAborted,
     connectedSeatsReconciled,
     orphanRoomsRemoved,
   });
 
-  return { activeMatchesAborted, connectedSeatsReconciled, orphanRoomsRemoved };
+  return {
+    roomHistoriesEnsured,
+    activeMatchesAborted,
+    connectedSeatsReconciled,
+    orphanRoomsRemoved,
+  };
 }

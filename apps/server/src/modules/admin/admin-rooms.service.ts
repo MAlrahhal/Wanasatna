@@ -1,4 +1,4 @@
-import { PlayerStatus, Prisma, RoomStatus } from '@prisma/client';
+import { PlayerStatus, Prisma, RoomCloseReason, RoomStatus } from '@prisma/client';
 import type {
   AdminActionResponse,
   AdminForceCloseRoomData,
@@ -321,7 +321,7 @@ export async function adminForceCloseRoom(
           return { alreadyClosed: true };
         }
 
-        await deleteRoomWithRelations(roomId, tx);
+        await deleteRoomWithRelations(roomId, tx, RoomCloseReason.ADMIN_FORCE_CLOSED);
         return { alreadyClosed: false };
       });
 
