@@ -73,6 +73,10 @@ test('Room History list has URL-driven filters, deterministic pagination control
   assert.match(source, /ADMIN_COPY\.emptyRoomHistory/);
   assert.match(source, /ADMIN_COPY\.previousPage/);
   assert.match(source, /ADMIN_COPY\.nextPage/);
+  assert.match(source, /RoomStateBadge/);
+  assert.match(source, /CloseReasonBadge/);
+  assert.match(source, /min-w-\[1120px\]/);
+  assert.match(source, /max-w-\[1680px\]/);
 });
 
 test('Room History detail shows coverage, hosts, participants, Match links, and empty states', () => {
@@ -91,6 +95,15 @@ test('Room History detail shows coverage, hosts, participants, Match links, and 
   assert.match(source, /noParticipants/);
   assert.match(source, /noRoomMatches/);
   assert.match(source, /roomHistoryMissing/);
+  assert.match(source, /formatRoomDuration/);
+  assert.match(source, /SummaryStat/);
+  assert.match(source, /RoomStateBadge/);
+  assert.match(source, /CloseReasonBadge/);
+  assert.match(source, /ParticipantRoleBadges/);
+  assert.match(source, /MatchStatusBadge/);
+  assert.match(source, /xl:grid-cols-2/);
+  assert.match(source, /<details/);
+  assert.match(source, /معرّف سجل الغرفة/);
 });
 
 test('Admin clients keep a strict safe-field boundary and add no Spectate action', () => {

@@ -3,7 +3,12 @@
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { PLAYABLE_GAME_IDS, type AdminRoomHistoryData } from '@wanasatna/shared';
+import {
+  PLAYABLE_GAME_IDS,
+  type AdminRoomHistoryData,
+  type AdminRoomHistoryListItem,
+  type AdminRoomHistoryState,
+} from '@wanasatna/shared';
 import { fetchAdminRoomHistory, type AdminRoomHistoryQuery } from '@/lib/admin/api';
 import { ADMIN_COPY, ADMIN_ROOM_CLOSE_REASON_LABEL } from '@/lib/admin/copy';
 import { adminGameTitle, formatAdminDateTime } from '@/lib/admin/format';
@@ -34,6 +39,31 @@ function CoverageBadge({ complete }: { complete: boolean }) {
       }
     >
       {complete ? ADMIN_COPY.completeHistory : ADMIN_COPY.partialHistory}
+    </span>
+  );
+}
+
+function RoomStateBadge({ state }: { state: AdminRoomHistoryState }) {
+  return (
+    <span
+      className={
+        state === 'OPEN'
+          ? 'bg-wanas-success-surface text-wanas-success-dark inline-flex rounded-full px-2 py-0.5 text-xs font-semibold'
+          : 'bg-wanas-surface-muted text-wanas-text-secondary inline-flex rounded-full px-2 py-0.5 text-xs font-semibold'
+      }
+    >
+      {state === 'OPEN' ? ADMIN_COPY.historicalOpen : ADMIN_COPY.historicalClosed}
+    </span>
+  );
+}
+
+function CloseReasonBadge({ reason }: { reason: AdminRoomHistoryListItem['closeReason'] }) {
+  if (!reason) {
+    return <span className="text-wanas-text-muted">—</span>;
+  }
+  return (
+    <span className="bg-wanas-surface-soft text-wanas-text-secondary inline-flex max-w-52 rounded-full px-2.5 py-1 text-xs font-semibold leading-5">
+      {ADMIN_ROOM_CLOSE_REASON_LABEL[reason]}
     </span>
   );
 }
@@ -114,7 +144,7 @@ export function AdminRoomHistoryClient() {
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
   return (
-    <div>
+    <div className="mx-auto max-w-[1680px]">
       <div>
         <h1 className="text-wanas-text-primary text-2xl font-bold">
           {ADMIN_COPY.roomHistoryTitle}
@@ -252,50 +282,62 @@ export function AdminRoomHistoryClient() {
       {data && data.rooms.length > 0 ? (
         <>
           <div className="border-wanas-border mt-8 hidden overflow-x-auto rounded-2xl border lg:block">
-            <table className="w-full min-w-[1240px] text-right text-sm">
+            <table className="w-full min-w-[1120px] text-right text-sm">
               <thead className="bg-wanas-surface-soft text-wanas-text-muted">
                 <tr>
-                  <th className="px-3 py-3 font-semibold">الرمز</th>
-                  <th className="px-3 py-3 font-semibold">{ADMIN_COPY.originalHost}</th>
-                  <th className="px-3 py-3 font-semibold">{ADMIN_COPY.finalHost}</th>
-                  <th className="px-3 py-3 font-semibold">أُنشئت</th>
-                  <th className="px-3 py-3 font-semibold">{ADMIN_COPY.closedAt}</th>
-                  <th className="px-3 py-3 font-semibold">{ADMIN_COPY.closeReason}</th>
-                  <th className="px-3 py-3 font-semibold">المشاركون</th>
-                  <th className="px-3 py-3 font-semibold">المباريات</th>
-                  <th className="px-3 py-3 font-semibold">{ADMIN_COPY.capacity}</th>
-                  <th className="px-3 py-3 font-semibold">القفل النهائي</th>
-                  <th className="px-3 py-3 font-semibold">التغطية</th>
+                  <th className="px-4 py-3 font-semibold">الغرفة</th>
+                  <th className="px-4 py-3 font-semibold">المضيفون</th>
+                  <th className="px-4 py-3 font-semibold">دورة الحياة</th>
+                  <th className="px-4 py-3 font-semibold">{ADMIN_COPY.closeReason}</th>
+                  <th className="px-4 py-3 text-center font-semibold">المشاركون</th>
+                  <th className="px-4 py-3 text-center font-semibold">المباريات</th>
+                  <th className="px-4 py-3 font-semibold">السعة والقفل</th>
+                  <th className="px-4 py-3 font-semibold">التغطية</th>
                 </tr>
               </thead>
               <tbody>
                 {data.rooms.map((room) => (
-                  <tr key={room.id} className="border-wanas-border border-t align-top">
-                    <td className="px-3 py-3 font-semibold">
-                      <Link href={adminRoomHistoryPath(room.id)} className="font-mono underline">
+                  <tr
+                    key={room.id}
+                    className="border-wanas-border hover:bg-wanas-surface-soft border-t align-top"
+                  >
+                    <td className="px-4 py-3">
+                      <Link
+                        href={adminRoomHistoryPath(room.id)}
+                        className="font-mono text-base font-bold tracking-wide underline"
+                      >
                         {room.roomCode}
                       </Link>
+                      <div className="mt-2">
+                        <RoomStateBadge state={room.state} />
+                      </div>
                     </td>
-                    <td className="px-3 py-3">{room.originalHostName ?? ADMIN_COPY.unknown}</td>
-                    <td className="px-3 py-3">{room.currentHostName}</td>
-                    <td className="whitespace-nowrap px-3 py-3">
-                      {formatAdminDateTime(room.createdAt)}
+                    <td className="min-w-48 px-4 py-3">
+                      <p className="font-semibold">{room.originalHostName ?? ADMIN_COPY.unknown}</p>
+                      <p className="text-wanas-text-muted mt-1 text-xs">← {room.currentHostName}</p>
                     </td>
-                    <td className="whitespace-nowrap px-3 py-3">
-                      {room.closedAt
-                        ? formatAdminDateTime(room.closedAt)
-                        : ADMIN_COPY.historicalOpen}
+                    <td className="min-w-48 px-4 py-3">
+                      <p className="whitespace-nowrap">{formatAdminDateTime(room.createdAt)}</p>
+                      <p className="text-wanas-text-muted mt-1 whitespace-nowrap text-xs">
+                        {room.closedAt ? formatAdminDateTime(room.closedAt) : 'لم تُغلق'}
+                      </p>
                     </td>
-                    <td className="px-3 py-3">
-                      {room.closeReason ? ADMIN_ROOM_CLOSE_REASON_LABEL[room.closeReason] : '—'}
+                    <td className="px-4 py-3">
+                      <CloseReasonBadge reason={room.closeReason} />
                     </td>
-                    <td className="px-3 py-3 tabular-nums">{room.participantCount}</td>
-                    <td className="px-3 py-3 tabular-nums">{room.matchCount}</td>
-                    <td className="px-3 py-3 tabular-nums">{room.playerCap}</td>
-                    <td className="px-3 py-3">
-                      {room.isLocked ? ADMIN_COPY.locked : ADMIN_COPY.open}
+                    <td className="px-4 py-3 text-center text-base font-semibold tabular-nums">
+                      {room.participantCount}
                     </td>
-                    <td className="px-3 py-3">
+                    <td className="px-4 py-3 text-center text-base font-semibold tabular-nums">
+                      {room.matchCount}
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="font-semibold tabular-nums">{room.playerCap}</p>
+                      <p className="text-wanas-text-muted mt-1 text-xs">
+                        {room.isLocked ? ADMIN_COPY.locked : ADMIN_COPY.open}
+                      </p>
+                    </td>
+                    <td className="px-4 py-3">
                       <CoverageBadge complete={room.isComplete} />
                     </td>
                   </tr>
@@ -311,17 +353,36 @@ export function AdminRoomHistoryClient() {
                 href={adminRoomHistoryPath(room.id)}
                 className="border-wanas-border bg-wanas-surface block rounded-2xl border p-4 text-sm"
               >
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="font-mono text-lg font-bold">{room.roomCode}</p>
-                  <CoverageBadge complete={room.isComplete} />
+                  <div className="flex flex-wrap gap-1.5">
+                    <RoomStateBadge state={room.state} />
+                    <CoverageBadge complete={room.isComplete} />
+                  </div>
                 </div>
-                <p className="mt-2">
-                  {room.originalHostName ?? ADMIN_COPY.unknown} ← {room.currentHostName}
-                </p>
-                <p className="text-wanas-text-muted mt-2">
-                  {room.participantCount} مشارك · {room.matchCount} مباراة ·{' '}
-                  {room.state === 'OPEN' ? ADMIN_COPY.historicalOpen : ADMIN_COPY.historicalClosed}
-                </p>
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-wanas-text-muted text-xs">المضيفون</p>
+                    <p className="mt-1 font-semibold">
+                      {room.originalHostName ?? ADMIN_COPY.unknown} ← {room.currentHostName}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-wanas-text-muted text-xs">أُنشئت</p>
+                    <p className="mt-1">{formatAdminDateTime(room.createdAt)}</p>
+                  </div>
+                </div>
+                <div className="text-wanas-text-muted border-wanas-border mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t pt-3 text-xs">
+                  <span>{room.participantCount} مشارك</span>
+                  <span>{room.matchCount} مباراة</span>
+                  <span>السعة {room.playerCap}</span>
+                  <span>{room.isLocked ? ADMIN_COPY.locked : ADMIN_COPY.open}</span>
+                </div>
+                {room.closeReason ? (
+                  <div className="mt-3">
+                    <CloseReasonBadge reason={room.closeReason} />
+                  </div>
+                ) : null}
               </Link>
             ))}
           </div>
