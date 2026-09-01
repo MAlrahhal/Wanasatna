@@ -50,6 +50,18 @@ assert.equal(count(gameShell, 'placement="game-'), 2);
 assert.match(gameShell, /meta\.layoutMode === 'gameplay'/);
 assert.match(gameShell, /placement="game-chat-desktop"[\s\S]*?hidden[\s\S]*?2xl:flex/);
 assert.match(gameShell, /placement="game-leaderboard-desktop"[\s\S]*?hidden[\s\S]*?2xl:flex/);
+assert.match(gameShell, /chat: 'round-results-right-desktop'/);
+assert.match(gameShell, /leaderboard: 'round-results-left-desktop'/);
+assert.match(gameShell, /chat: 'final-results-right-desktop'/);
+assert.match(gameShell, /leaderboard: 'final-results-left-desktop'/);
+assert.match(
+  gameShell,
+  /<GameChatMockPanel[\s\S]*?placement=\{resultSideAds\.chat\}[\s\S]*?hidden[\s\S]*?2xl:flex/,
+);
+assert.match(
+  gameShell,
+  /<GameLeaderboardPanel[\s\S]*?placement=\{resultSideAds\.leaderboard\}[\s\S]*?hidden[\s\S]*?2xl:flex/,
+);
 const mobileGameShell = gameShell.slice(
   gameShell.indexOf('<div className="relative min-w-0 flex-1 lg:hidden">'),
 );
@@ -57,7 +69,17 @@ assert.doesNotMatch(mobileGameShell, /placement="game-/);
 
 for (const file of roundResultFiles) {
   const source = read(file);
-  assert.equal(count(source, 'placement="round-results"'), 1, file);
+  assert.equal(count(source, 'placement="round-results-'), 2, file);
+  assert.match(
+    source,
+    /placement="round-results-center"[\s\S]*?className="hidden lg:flex"/,
+    file,
+  );
+  assert.match(
+    source,
+    /placement="round-results-mobile"[\s\S]*?className="lg:hidden"/,
+    file,
+  );
 }
 
 for (const file of gameScreenFiles) {
@@ -67,10 +89,15 @@ for (const file of gameScreenFiles) {
 }
 
 const finalResults = read('plugins/bara-al-salafa/match-results-screen.tsx');
-assert.equal(count(finalResults, 'placement="final-results-'), 3);
-assert.match(finalResults, /final-results-left-desktop/);
-assert.match(finalResults, /final-results-right-desktop/);
-assert.match(finalResults, /placement="final-results-mobile"[\s\S]*?xl:hidden/);
+assert.equal(count(finalResults, 'placement="final-results-'), 2);
+assert.match(
+  finalResults,
+  /placement="final-results-center"[\s\S]*?className="hidden lg:flex"/,
+);
+assert.match(
+  finalResults,
+  /placement="final-results-mobile"[\s\S]*?className="lg:hidden"/,
+);
 
 const placementSources = [
   placeholder,

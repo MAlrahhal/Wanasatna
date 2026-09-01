@@ -168,7 +168,16 @@ export function DrawGuessRoundResultsScreen({
           </ul>
         </GameCard>
 
-        <AdPlaceholder placement="round-results" format="horizontal" />
+        <AdPlaceholder
+          placement="round-results-center"
+          format="horizontal"
+          className="hidden lg:flex"
+        />
+        <AdPlaceholder
+          placement="round-results-mobile"
+          format="horizontal"
+          className="lg:hidden"
+        />
 
         {continueLabel && onContinue ? (
           <div className="mx-auto w-full max-w-md space-y-3">

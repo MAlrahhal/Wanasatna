@@ -351,14 +351,15 @@ export function MatchResultsScreen({
           highestScore={highestScore}
         />
 
-        <div className="hidden grid-cols-2 gap-4 xl:grid">
-          <AdPlaceholder placement="final-results-left-desktop" format="horizontal" />
-          <AdPlaceholder placement="final-results-right-desktop" format="horizontal" />
-        </div>
+        <AdPlaceholder
+          placement="final-results-center"
+          format="horizontal"
+          className="hidden lg:flex"
+        />
         <AdPlaceholder
           placement="final-results-mobile"
           format="horizontal"
-          className="xl:hidden"
+          className="lg:hidden"
         />
 
         <MatchActionsFooter

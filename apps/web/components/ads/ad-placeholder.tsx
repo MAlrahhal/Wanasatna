@@ -12,7 +12,9 @@ const formatClassNames = {
 } as const;
 
 export function AdPlaceholder({ placement, format, className }: AdPlaceholderProps) {
-  // TEMPORARY: Render in production for visual QA; restore the production guard after inspection.
+  if (process.env.NODE_ENV === 'production') {
+    return null;
+  }
 
   return (
     <aside

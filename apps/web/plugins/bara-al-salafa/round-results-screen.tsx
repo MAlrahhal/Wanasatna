@@ -262,7 +262,16 @@ export function RoundResultsScreen({
 
         <RoundPointsList roundResults={roundResults} currentPlayerId={currentPlayerId} />
 
-        <AdPlaceholder placement="round-results" format="horizontal" />
+        <AdPlaceholder
+          placement="round-results-center"
+          format="horizontal"
+          className="hidden lg:flex"
+        />
+        <AdPlaceholder
+          placement="round-results-mobile"
+          format="horizontal"
+          className="lg:hidden"
+        />
 
         <RoundTransitionFooter
           continueLabel={continueLabel}

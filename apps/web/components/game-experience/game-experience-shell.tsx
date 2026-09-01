@@ -50,6 +50,18 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
   }
 
   const showGameplayAds = meta.layoutMode === 'gameplay';
+  const resultSideAds =
+    meta.layoutMode === 'round-results'
+      ? {
+          chat: 'round-results-right-desktop',
+          leaderboard: 'round-results-left-desktop',
+        }
+      : meta.layoutMode === 'final-results'
+        ? {
+            chat: 'final-results-right-desktop',
+            leaderboard: 'final-results-left-desktop',
+          }
+        : null;
 
   const mobileControls = (
     <div className="flex items-center gap-1 lg:hidden">
@@ -93,12 +105,20 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
           <GameChatMockPanel
             className={cn(
               'max-h-[min(560px,calc(100vh-12rem))]',
-              showGameplayAds && '2xl:max-h-[min(480px,calc(100vh-22rem))]',
+              (showGameplayAds || resultSideAds) &&
+                '2xl:max-h-[min(480px,calc(100vh-22rem))]',
             )}
           />
           {showGameplayAds ? (
             <AdPlaceholder
               placement="game-chat-desktop"
+              format="vertical"
+              className="hidden h-[clamp(7rem,16vh,12rem)] shrink-0 2xl:flex"
+            />
+          ) : null}
+          {resultSideAds ? (
+            <AdPlaceholder
+              placement={resultSideAds.chat}
               format="vertical"
               className="hidden h-[clamp(7rem,16vh,12rem)] shrink-0 2xl:flex"
             />
@@ -113,12 +133,20 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
             entries={meta.leaderboardEntries}
             className={cn(
               'max-h-[min(560px,calc(100vh-12rem))]',
-              showGameplayAds && '2xl:max-h-[min(480px,calc(100vh-22rem))]',
+              (showGameplayAds || resultSideAds) &&
+                '2xl:max-h-[min(480px,calc(100vh-22rem))]',
             )}
           />
           {showGameplayAds ? (
             <AdPlaceholder
               placement="game-leaderboard-desktop"
+              format="vertical"
+              className="hidden h-[clamp(7rem,16vh,12rem)] shrink-0 2xl:flex"
+            />
+          ) : null}
+          {resultSideAds ? (
+            <AdPlaceholder
+              placement={resultSideAds.leaderboard}
               format="vertical"
               className="hidden h-[clamp(7rem,16vh,12rem)] shrink-0 2xl:flex"
             />
