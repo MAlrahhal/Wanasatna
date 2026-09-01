@@ -39,7 +39,7 @@ test('rooms route is a real Admin view', () => {
   assert.ok(roomsNav);
   assert.equal(roomsNav.placeholder, false);
   assert.equal(roomsNav.href, ADMIN_ROUTES.rooms);
-  assert.equal(ADMIN_COPY.roomsTitle, 'الغرف الحالية');
+  assert.equal(ADMIN_COPY.roomsTitle, 'الغرف المباشرة');
   assert.equal(ADMIN_COPY.emptyRooms, 'لا توجد غرف نشطة حالياً');
 });
 
@@ -96,10 +96,16 @@ test('no private account data, 20-player, or game settings in rooms UI', () => {
     'app/admin/rooms/[roomId]/page.tsx',
   ];
   for (const file of files) {
-    assert.doesNotMatch(read(file), /passwordHash|tokenHash|reconnectToken|ADMIN_EMAILS|userId|20-player|premium/i);
+    assert.doesNotMatch(
+      read(file),
+      /passwordHash|tokenHash|reconnectToken|ADMIN_EMAILS|userId|20-player|premium/i,
+    );
   }
   const copy = read('lib/admin/copy.ts');
-  assert.doesNotMatch(copy, /passwordHash|tokenHash|reconnectToken|ADMIN_EMAILS|20-player|premium/i);
+  assert.doesNotMatch(
+    copy,
+    /passwordHash|tokenHash|reconnectToken|ADMIN_EMAILS|20-player|premium/i,
+  );
   const api = read('lib/admin/api.ts');
   assert.doesNotMatch(api, /passwordHash|tokenHash|reconnectToken|ADMIN_EMAILS|20-player|premium/i);
   const pickRoom = api.slice(

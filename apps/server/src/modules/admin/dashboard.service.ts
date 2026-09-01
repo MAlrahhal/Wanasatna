@@ -70,6 +70,7 @@ export async function getAdminDashboard(): Promise<AdminDashboardData> {
         id: true,
         code: true,
         createdAt: true,
+        status: true,
         isLocked: true,
         playerCap: true,
         hostPlayer: { select: { name: true } },
@@ -131,8 +132,9 @@ export async function getAdminDashboard(): Promise<AdminDashboardData> {
   }
 
   const liveRooms: AdminLiveRoom[] = liveRoomRows.map((room) => {
-    const connectedCount = room.players.filter((player) => player.status === PlayerStatus.CONNECTED)
-      .length;
+    const connectedCount = room.players.filter(
+      (player) => player.status === PlayerStatus.CONNECTED,
+    ).length;
     const disconnectedCount = room.players.filter(
       (player) => player.status === PlayerStatus.DISCONNECTED,
     ).length;
@@ -150,6 +152,7 @@ export async function getAdminDashboard(): Promise<AdminDashboardData> {
       spectatorCount,
       hostDisplayName: room.hostPlayer.name,
       playerCap: room.playerCap,
+      status: room.status === RoomStatus.PLAYING ? 'PLAYING' : 'LOBBY',
       activity: shell ? 'IN_GAME' : 'LOBBY',
       gameId: shell?.gameId ?? null,
       gamePhase: shell?.phase ?? null,

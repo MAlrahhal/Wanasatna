@@ -11,6 +11,8 @@ import type {
   AdminHistoryData,
   AdminMatchDetails,
   AdminMeData,
+  AdminRoomHistoryData,
+  AdminRoomHistoryDetails,
   AdminSystemData,
   AdminUserDetails,
   AdminUsersData,
@@ -28,6 +30,7 @@ import {
   listAdminRooms,
 } from './admin-rooms.service.js';
 import { getAdminMatchById, listAdminHistory } from './admin-history.service.js';
+import { getAdminRoomHistoryById, listAdminRoomHistory } from './admin-room-history.service.js';
 import { getAdminAnalytics } from './admin-analytics.service.js';
 import { getAdminSystemSnapshot } from './admin-system.service.js';
 import { getAdminUserById, listAdminUsers } from './admin-users.service.js';
@@ -134,10 +137,61 @@ adminRouter.get('/dashboard', requireAdmin, async (_req, res) => {
   }
 });
 
-adminRouter.get('/rooms', requireAdmin, async (_req, res) => {
+adminRouter.get('/rooms', requireAdmin, async (req, res) => {
   try {
-    const data = await listAdminRooms();
+    const data = await listAdminRooms({
+      q: req.query.q,
+      locked: req.query.locked,
+      page: req.query.page,
+    });
     res.status(200).json({ success: true, data } satisfies AdminActionResponse<typeof data>);
+  } catch (error) {
+    if (isPrismaError(error)) {
+      sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_LOAD_FAILED);
+      return;
+    }
+    sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_LOAD_FAILED);
+  }
+});
+
+adminRouter.get('/room-history', requireAdmin, async (req, res) => {
+  try {
+    const data = await listAdminRoomHistory({
+      roomCode: req.query.roomCode,
+      participant: req.query.participant,
+      host: req.query.host,
+      gameId: req.query.gameId,
+      createdFrom: req.query.createdFrom,
+      createdTo: req.query.createdTo,
+      state: req.query.state,
+      page: req.query.page,
+    });
+    res
+      .status(200)
+      .json({ success: true, data } satisfies AdminActionResponse<AdminRoomHistoryData>);
+  } catch (error) {
+    if (isPrismaError(error)) {
+      sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_LOAD_FAILED);
+      return;
+    }
+    sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_LOAD_FAILED);
+  }
+});
+
+adminRouter.get('/room-history/:historyId', requireAdmin, async (req, res) => {
+  const historyId = typeof req.params.historyId === 'string' ? req.params.historyId.trim() : '';
+  if (!historyId || historyId.length > 64) {
+    sendAdminJsonError(res, 400, 'VALIDATION_ERROR', 'معرّف سجل الغرفة غير صالح.');
+    return;
+  }
+
+  try {
+    const result = await getAdminRoomHistoryById(historyId);
+    if (!result.success) {
+      sendAdminJsonError(res, 404, result.error.code, result.error.message);
+      return;
+    }
+    res.status(200).json(result satisfies AdminActionResponse<AdminRoomHistoryDetails>);
   } catch (error) {
     if (isPrismaError(error)) {
       sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_LOAD_FAILED);

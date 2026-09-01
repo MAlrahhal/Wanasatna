@@ -14,6 +14,11 @@ function isNavActive(id: string, pathname: string): boolean {
   if (id === 'rooms') {
     return pathname === ADMIN_ROUTES.rooms || pathname.startsWith(`${ADMIN_ROUTES.rooms}/`);
   }
+  if (id === 'roomHistory') {
+    return (
+      pathname === ADMIN_ROUTES.roomHistory || pathname.startsWith(`${ADMIN_ROUTES.roomHistory}/`)
+    );
+  }
   if (id === 'users') {
     return pathname === ADMIN_ROUTES.users || pathname.startsWith(`${ADMIN_ROUTES.users}/`);
   }
@@ -100,8 +105,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   if (status === 'loading' || gate === 'loading' || gate === 'unauthenticated') {
     return (
-      <main id="main-content" tabIndex={-1} className="flex flex-1 items-center justify-center px-4 py-10 outline-none">
-        <p className="text-sm text-wanas-text-muted">{ADMIN_COPY.resolving}</p>
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="flex flex-1 items-center justify-center px-4 py-10 outline-none"
+      >
+        <p className="text-wanas-text-muted text-sm">{ADMIN_COPY.resolving}</p>
       </main>
     );
   }
@@ -113,7 +122,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         tabIndex={-1}
         className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10 outline-none"
       >
-        <p role="alert" className="text-center text-sm font-semibold text-wanas-error">
+        <p role="alert" className="text-wanas-error text-center text-sm font-semibold">
           {ADMIN_COPY.accessDenied}
         </p>
       </main>
@@ -122,12 +131,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-full flex-1 flex-col md:flex-row">
-      <header className="flex items-center justify-between border-b border-wanas-border bg-wanas-surface px-4 py-3 md:hidden">
-        <p className="text-sm font-bold text-wanas-text-primary">{ADMIN_COPY.panelTitle}</p>
+      <header className="border-wanas-border bg-wanas-surface flex items-center justify-between border-b px-4 py-3 md:hidden">
+        <p className="text-wanas-text-primary text-sm font-bold">{ADMIN_COPY.panelTitle}</p>
         <button
           ref={mobileNavToggleRef}
           type="button"
-          className="rounded-xl border border-wanas-border px-3 py-2 text-sm font-semibold text-wanas-text-primary"
+          className="border-wanas-border text-wanas-text-primary rounded-xl border px-3 py-2 text-sm font-semibold"
           aria-expanded={mobileNavOpen}
           aria-controls="admin-mobile-nav"
           onClick={() => setMobileNavOpen((open) => !open)}
@@ -143,10 +152,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
           mobileNavOpen ? 'block border-b' : 'hidden md:flex',
         )}
       >
-        <div className="hidden border-b border-wanas-border px-4 py-5 md:block">
-          <p className="text-base font-bold text-wanas-text-primary">{ADMIN_COPY.panelTitle}</p>
+        <div className="border-wanas-border hidden border-b px-4 py-5 md:block">
+          <p className="text-wanas-text-primary text-base font-bold">{ADMIN_COPY.panelTitle}</p>
           {adminUser ? (
-            <p className="mt-2 text-xs text-wanas-text-muted">{adminUser.preferredDisplayName}</p>
+            <p className="text-wanas-text-muted mt-2 text-xs">{adminUser.preferredDisplayName}</p>
           ) : null}
         </div>
         <nav aria-label={ADMIN_COPY.navLabel} className="flex flex-col gap-1 p-3">
@@ -154,7 +163,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             item.placeholder ? (
               <span
                 key={item.id}
-                className="rounded-xl px-3 py-2 text-sm font-semibold text-wanas-text-muted"
+                className="text-wanas-text-muted rounded-xl px-3 py-2 text-sm font-semibold"
               >
                 {item.label}
               </span>
@@ -182,14 +191,16 @@ export function AdminShell({ children }: { children: ReactNode }) {
             onClick={() => {
               void handleLogout();
             }}
-            className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-wanas-border text-sm font-semibold text-wanas-text-primary hover:bg-wanas-surface-soft"
+            className="border-wanas-border text-wanas-text-primary hover:bg-wanas-surface-soft inline-flex h-11 w-full items-center justify-center rounded-xl border text-sm font-semibold"
           >
             {ADMIN_COPY.logout}
           </button>
         </div>
       </aside>
 
-      <main id="main-content" tabIndex={-1} className="flex-1 px-4 py-8 outline-none sm:px-8">{children}</main>
+      <main id="main-content" tabIndex={-1} className="flex-1 px-4 py-8 outline-none sm:px-8">
+        {children}
+      </main>
     </div>
   );
 }

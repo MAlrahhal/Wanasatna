@@ -20,6 +20,8 @@ export const ADMIN_DASHBOARD_POLL_MS = 12_000;
 export const ADMIN_USERS_PAGE_SIZE = 25;
 export const ADMIN_USER_MATCH_HISTORY_LIMIT = 20;
 export const ADMIN_HISTORY_PAGE_SIZE = 25;
+export const ADMIN_LIVE_ROOMS_PAGE_SIZE = 25;
+export const ADMIN_ROOM_HISTORY_PAGE_SIZE = 25;
 export const ADMIN_SEARCH_QUERY_MAX_LENGTH = 80;
 export const ADMIN_SYSTEM_POLL_MS = 25_000;
 export const ADMIN_ANALYTICS_POLL_MS = 60_000;
@@ -68,6 +70,7 @@ export type AdminAuditData = {
 export type AdminAnalyticsRange = (typeof ADMIN_ANALYTICS_RANGES)[number];
 
 export type AdminRoomActivity = 'LOBBY' | 'IN_GAME';
+export type AdminRoomStatus = 'LOBBY' | 'PLAYING';
 
 export type AdminMatchStatus = 'ACTIVE' | 'COMPLETED' | 'ABORTED';
 
@@ -95,6 +98,7 @@ export type AdminLiveRoom = {
   spectatorCount: number;
   hostDisplayName: string;
   playerCap: number;
+  status: AdminRoomStatus;
   activity: AdminRoomActivity;
   gameId: string | null;
   gamePhase: GamePhase | null;
@@ -144,6 +148,7 @@ export type AdminErrorCode =
   | 'PLAYER_NOT_FOUND'
   | 'USER_NOT_FOUND'
   | 'MATCH_NOT_FOUND'
+  | 'ROOM_HISTORY_NOT_FOUND'
   | 'INTERNAL_ERROR';
 
 export type AdminActionResponse<T> =
@@ -161,11 +166,73 @@ export type AdminRoomPlayer = {
 };
 
 export type AdminRoomDetails = AdminLiveRoom & {
+  historyId: string | null;
   players: AdminRoomPlayer[];
 };
 
 export type AdminRoomsData = {
-  rooms: AdminRoomDetails[];
+  rooms: AdminLiveRoom[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export type AdminRoomCloseReason =
+  'ROOM_EMPTY' | 'HOST_ENDED' | 'ADMIN_FORCE_CLOSED' | 'STARTUP_RECONCILIATION';
+
+export type AdminRoomHistoryState = 'OPEN' | 'CLOSED';
+
+export type AdminRoomHistoryListItem = {
+  id: string;
+  roomCode: string;
+  originalHostName: string | null;
+  currentHostName: string;
+  createdAt: string;
+  historyStartedAt: string;
+  closedAt: string | null;
+  closeReason: AdminRoomCloseReason | null;
+  participantCount: number;
+  matchCount: number;
+  playerCap: number;
+  isLocked: boolean;
+  isComplete: boolean;
+  state: AdminRoomHistoryState;
+};
+
+export type AdminRoomHistoryData = {
+  rooms: AdminRoomHistoryListItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export type AdminRoomHistoryParticipant = {
+  id: string;
+  displayName: string;
+  joinedAt: string;
+  leftAt: string | null;
+  joinedAsSpectator: boolean | null;
+  wasHost: boolean | null;
+};
+
+export type AdminRoomHostAssignment = {
+  id: string;
+  displayName: string;
+  assignedAt: string;
+};
+
+export type AdminRoomHistoryMatch = AdminHistoryMatchListItem & {
+  winnerDisplayNames: string[];
+};
+
+export type AdminRoomHistoryDetails = AdminRoomHistoryListItem & {
+  liveRoomId: string;
+  isCurrentlyLive: boolean;
+  wasEverLocked: boolean | null;
+  createdByAdmin: boolean | null;
+  participants: AdminRoomHistoryParticipant[];
+  hostAssignments: AdminRoomHostAssignment[];
+  matches: AdminRoomHistoryMatch[];
 };
 
 export type AdminRoomLockData = {

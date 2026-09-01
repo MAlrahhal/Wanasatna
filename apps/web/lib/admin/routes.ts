@@ -4,6 +4,7 @@ export const ADMIN_ROUTES = {
   system: '/admin/system',
   analytics: '/admin/analytics',
   rooms: '/admin/rooms',
+  roomHistory: '/admin/room-history',
   users: '/admin/users',
   games: '/admin/games',
   history: '/admin/history',
@@ -11,6 +12,10 @@ export const ADMIN_ROUTES = {
 
 export function adminRoomPath(roomId: string): string {
   return `${ADMIN_ROUTES.rooms}/${roomId}`;
+}
+
+export function adminRoomHistoryPath(historyId: string): string {
+  return `${ADMIN_ROUTES.roomHistory}/${historyId}`;
 }
 
 export function adminUserPath(userId: string): string {
@@ -25,8 +30,14 @@ export const ADMIN_NAV_ITEMS = [
   { id: 'home', label: 'الرئيسية', href: ADMIN_ROUTES.root, placeholder: false },
   { id: 'system', label: 'حالة النظام', href: ADMIN_ROUTES.system, placeholder: false },
   { id: 'analytics', label: 'التحليلات', href: ADMIN_ROUTES.analytics, placeholder: false },
-  { id: 'rooms', label: 'الغرف', href: ADMIN_ROUTES.rooms, placeholder: false },
+  { id: 'rooms', label: 'الغرف المباشرة', href: ADMIN_ROUTES.rooms, placeholder: false },
+  {
+    id: 'roomHistory',
+    label: 'سجل الغرف',
+    href: ADMIN_ROUTES.roomHistory,
+    placeholder: false,
+  },
   { id: 'users', label: 'المستخدمون', href: ADMIN_ROUTES.users, placeholder: false },
   { id: 'games', label: 'الألعاب', href: ADMIN_ROUTES.games, placeholder: false },
-  { id: 'log', label: 'السجل', href: ADMIN_ROUTES.history, placeholder: false },
+  { id: 'log', label: 'سجل المباريات', href: ADMIN_ROUTES.history, placeholder: false },
 ] as const;

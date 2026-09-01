@@ -9,6 +9,7 @@ import type {
   AdminRoomPlayer,
   AdminRoomsData,
 } from '@wanasatna/shared';
+import { ADMIN_LIVE_ROOMS_PAGE_SIZE, ADMIN_SEARCH_QUERY_MAX_LENGTH } from '@wanasatna/shared';
 import { prisma } from '../../lib/prisma.js';
 import { getSocketServer } from '../../lib/socket-server.js';
 import { cleanupGameShellRuntime } from '../game/game.lifecycle.js';
@@ -43,8 +44,13 @@ type AdminRoomRow = {
   createdAt: Date;
   isLocked: boolean;
   playerCap: number;
+  status: RoomStatus;
+  historyId: string | null;
   hostPlayerId: string;
   hostPlayer: { name: string };
+};
+
+type AdminRoomDetailRow = AdminRoomRow & {
   players: Array<{
     id: string;
     name: string;
@@ -53,14 +59,20 @@ type AdminRoomRow = {
   }>;
 };
 
-const ROOM_DETAIL_SELECT = {
+const ROOM_LIST_SELECT = {
   id: true,
   code: true,
   createdAt: true,
   isLocked: true,
   playerCap: true,
+  status: true,
+  historyId: true,
   hostPlayerId: true,
   hostPlayer: { select: { name: true } },
+} satisfies Prisma.RoomSelect;
+
+const ROOM_DETAIL_SELECT = {
+  ...ROOM_LIST_SELECT,
   players: {
     where: { status: { in: [...SEAT_STATUSES] } },
     select: {
@@ -70,13 +82,13 @@ const ROOM_DETAIL_SELECT = {
       isSpectator: true,
     },
   },
-};
+} satisfies Prisma.RoomSelect;
 
 function toIso(value: Date): string {
   return value.toISOString();
 }
 
-function mapPlayers(row: AdminRoomRow): AdminRoomPlayer[] {
+function mapPlayers(row: AdminRoomDetailRow): AdminRoomPlayer[] {
   return row.players.map((player) => ({
     id: player.id,
     displayName: player.name,
@@ -86,30 +98,44 @@ function mapPlayers(row: AdminRoomRow): AdminRoomPlayer[] {
   }));
 }
 
-function mapRoomDetails(row: AdminRoomRow): AdminRoomDetails {
-  const players = mapPlayers(row);
-  const connectedCount = players.filter((player) => player.status === 'CONNECTED').length;
-  const disconnectedCount = players.filter((player) => player.status === 'DISCONNECTED').length;
-  const spectatorCount = players.filter((player) => player.isSpectator).length;
+type AdminRoomCounts = {
+  playerCount: number;
+  connectedCount: number;
+  disconnectedCount: number;
+  spectatorCount: number;
+};
+
+function mapLiveRoom(row: AdminRoomRow, counts: AdminRoomCounts): AdminLiveRoom {
   const shell = getGameShellByRoomId(row.id);
 
-  const live: AdminLiveRoom = {
+  return {
     id: row.id,
     code: row.code,
     createdAt: toIso(row.createdAt),
     isLocked: row.isLocked,
-    playerCount: players.length,
-    connectedCount,
-    disconnectedCount,
-    spectatorCount,
+    ...counts,
     hostDisplayName: row.hostPlayer.name,
     playerCap: row.playerCap,
+    status: row.status === RoomStatus.PLAYING ? 'PLAYING' : 'LOBBY',
     activity: shell ? 'IN_GAME' : 'LOBBY',
     gameId: shell?.gameId ?? null,
     gamePhase: shell?.phase ?? null,
   };
+}
 
-  return { ...live, players };
+function mapRoomDetails(row: AdminRoomDetailRow): AdminRoomDetails {
+  const players = mapPlayers(row);
+  const connectedCount = players.filter((player) => player.status === 'CONNECTED').length;
+  const disconnectedCount = players.filter((player) => player.status === 'DISCONNECTED').length;
+  const spectatorCount = players.filter((player) => player.isSpectator).length;
+  const live = mapLiveRoom(row, {
+    playerCount: players.length,
+    connectedCount,
+    disconnectedCount,
+    spectatorCount,
+  });
+
+  return { ...live, historyId: row.historyId, players };
 }
 
 function cleanupClosedRoomMemory(roomId: string): void {
@@ -146,14 +172,120 @@ function mapRoomActionError(code: string): AdminActionResponse<never> {
   return fail('INTERNAL_ERROR', ADMIN_ROOM_ACTION_FAILED);
 }
 
-export async function listAdminRooms(): Promise<AdminRoomsData> {
-  const rows = await prisma.room.findMany({
-    where: { status: { not: RoomStatus.CLOSED } },
-    orderBy: { createdAt: 'desc' },
-    select: ROOM_DETAIL_SELECT,
-  });
+function parsePage(raw: unknown): number {
+  const page = typeof raw === 'string' || typeof raw === 'number' ? Number(raw) : 1;
+  return Number.isInteger(page) && page > 0 ? Math.min(page, 10_000) : 1;
+}
 
-  return { rooms: rows.map((row) => mapRoomDetails(row)) };
+function normalizeSearch(raw: unknown): string | null {
+  if (typeof raw !== 'string') {
+    return null;
+  }
+  const value = raw.trim();
+  return value ? value.slice(0, ADMIN_SEARCH_QUERY_MAX_LENGTH) : null;
+}
+
+function parseLocked(raw: unknown): boolean | undefined {
+  if (raw === 'true' || raw === true) {
+    return true;
+  }
+  if (raw === 'false' || raw === false) {
+    return false;
+  }
+  return undefined;
+}
+
+export function buildAdminLiveRoomsWhere(query: {
+  q?: unknown;
+  locked?: unknown;
+}): Prisma.RoomWhereInput {
+  const search = normalizeSearch(query.q);
+  const isLocked = parseLocked(query.locked);
+
+  return {
+    status: { not: RoomStatus.CLOSED },
+    ...(typeof isLocked === 'boolean' ? { isLocked } : {}),
+    ...(search
+      ? {
+          OR: [
+            { code: { contains: search, mode: 'insensitive' as const } },
+            {
+              players: {
+                some: {
+                  name: { contains: search, mode: 'insensitive' as const },
+                  status: { in: [...SEAT_STATUSES] },
+                },
+              },
+            },
+          ],
+        }
+      : {}),
+  };
+}
+
+export async function listAdminRooms(
+  query: { q?: unknown; locked?: unknown; page?: unknown } = {},
+): Promise<AdminRoomsData> {
+  const page = parsePage(query.page);
+  const pageSize = ADMIN_LIVE_ROOMS_PAGE_SIZE;
+  const where = buildAdminLiveRoomsWhere(query);
+  const [total, rows] = await Promise.all([
+    prisma.room.count({ where }),
+    prisma.room.findMany({
+      where,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select: ROOM_LIST_SELECT,
+    }),
+  ]);
+
+  const grouped = rows.length
+    ? await prisma.player.groupBy({
+        by: ['roomId', 'status', 'isSpectator'],
+        where: {
+          roomId: { in: rows.map((room) => room.id) },
+          status: { in: [...SEAT_STATUSES] },
+        },
+        _count: { _all: true },
+      })
+    : [];
+  const counts = new Map<string, AdminRoomCounts>();
+  for (const group of grouped) {
+    const value = counts.get(group.roomId) ?? {
+      playerCount: 0,
+      connectedCount: 0,
+      disconnectedCount: 0,
+      spectatorCount: 0,
+    };
+    value.playerCount += group._count._all;
+    if (group.status === PlayerStatus.CONNECTED) {
+      value.connectedCount += group._count._all;
+    } else if (group.status === PlayerStatus.DISCONNECTED) {
+      value.disconnectedCount += group._count._all;
+    }
+    if (group.isSpectator) {
+      value.spectatorCount += group._count._all;
+    }
+    counts.set(group.roomId, value);
+  }
+
+  return {
+    rooms: rows.map((room) =>
+      mapLiveRoom(
+        room,
+        counts.get(room.id) ?? {
+          playerCount: 0,
+          connectedCount: 0,
+          disconnectedCount: 0,
+          spectatorCount: 0,
+        },
+      ),
+    ),
+    total,
+    page,
+    pageSize,
+  };
 }
 
 export async function getAdminRoomById(

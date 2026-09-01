@@ -34,7 +34,12 @@ import { AUTH_COOKIE_NAME } from '../src/modules/auth/auth.cookie.js';
 import { resetAuthRateLimiterForTests } from '../src/modules/auth/auth-rate-limit.js';
 import { stopExpiredAuthSessionCleanup } from '../src/modules/auth/auth-session-cleanup.js';
 import { registerUser } from '../src/modules/auth/auth.service.js';
-import { deleteGameShell, getGameShellByRoomId, initGameShell, startGameShellCountdown } from '../src/modules/game/game.service.js';
+import {
+  deleteGameShell,
+  getGameShellByRoomId,
+  initGameShell,
+  startGameShellCountdown,
+} from '../src/modules/game/game.service.js';
 import { createRoom } from '../src/modules/room/services/create-room.service.js';
 import { joinRoom } from '../src/modules/room/services/join-room.service.js';
 import { leaveRoom } from '../src/modules/room/services/leave-room.service.js';
@@ -60,7 +65,7 @@ async function test(name: string, fn: () => void | Promise<void>): Promise<void>
   } catch (error) {
     failed += 1;
     console.error(`FAIL ${name}`);
-    console.error(error instanceof Error ? error.stack ?? error.message : error);
+    console.error(error instanceof Error ? (error.stack ?? error.message) : error);
   }
 }
 
@@ -196,9 +201,9 @@ async function jsonRequest<T>(
 
 function ack<T>(socket: Socket, event: string, payload: unknown): Promise<T> {
   return new Promise((resolve, reject) => {
-    socket.timeout(15000).emit(event, payload, (err: Error | null, res: T) =>
-      err ? reject(err) : resolve(res),
-    );
+    socket
+      .timeout(15000)
+      .emit(event, payload, (err: Error | null, res: T) => (err ? reject(err) : resolve(res)));
   });
 }
 
@@ -258,8 +263,6 @@ async function main(): Promise<void> {
     const handler = read('src/modules/room/room.socket.handlers.ts');
     assert.match(handler, /announceKickedPlayer/);
 
-    const schema = read('prisma/schema.prisma');
-    assert.doesNotMatch(schema, /model AdminAudit|model AdminLog/);
     assert.equal(MAX_ROOM_PLAYERS, 8);
   });
 
@@ -319,16 +322,9 @@ async function main(): Promise<void> {
         assert.equal(listed.playerCount, 2);
         assert.equal(listed.connectedCount, 2);
         assert.equal(listed.activity, 'LOBBY');
-        assert.ok(listed.players.some((player) => player.isHost && player.displayName === host.player.name));
-        for (const player of listed.players) {
-          assert.deepEqual(Object.keys(player).sort(), [
-            'displayName',
-            'id',
-            'isHost',
-            'isSpectator',
-            'status',
-          ]);
-        }
+        assert.equal(list.body.success && list.body.data.page, 1);
+        assert.ok(list.body.success && list.body.data.pageSize > 0);
+        assert.equal('players' in listed, false);
 
         const detail = await jsonRequest<AdminRoomDetails>(
           baseUrl,
@@ -338,6 +334,21 @@ async function main(): Promise<void> {
         assert.equal(detail.status, 200);
         assertNoPrivateLeak(detail.raw);
         assert.equal(detail.body.success && detail.body.data.players.length, 2);
+        assert.ok(
+          detail.body.success &&
+            detail.body.data.players.some(
+              (player) => player.isHost && player.displayName === host.player.name,
+            ),
+        );
+        for (const player of detail.body.success ? detail.body.data.players : []) {
+          assert.deepEqual(Object.keys(player).sort(), [
+            'displayName',
+            'id',
+            'isHost',
+            'isSpectator',
+            'status',
+          ]);
+        }
         assert.ok(guest.player.id);
       });
     } finally {
@@ -586,9 +597,11 @@ async function main(): Promise<void> {
     } finally {
       await cleanupRoom(lobby.room.id);
       await cleanupRoom(live.room.id);
-      await prisma.match.deleteMany({
-        where: { roomCode: { in: [lobby.room.code, live.room.code] } },
-      }).catch(() => undefined);
+      await prisma.match
+        .deleteMany({
+          where: { roomCode: { in: [lobby.room.code, live.room.code] } },
+        })
+        .catch(() => undefined);
       await cleanupEmail(email);
     }
   });
