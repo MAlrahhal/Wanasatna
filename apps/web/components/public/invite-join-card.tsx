@@ -1,11 +1,13 @@
 'use client';
 
 import { UserIcon } from '@/components/public/public-field';
+import { RoomResumePanel } from '@/components/public/active-room-banner';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { SystemStatus } from '@/components/ui/system-status';
 import { HOME_ROOM_ACTIONS_ID } from '@/lib/public/routes';
 import { presentRoomActionError } from '@/lib/ui/system-copy';
+import type { ActiveRoomSession } from '@/lib/room-v2';
 
 function LinkIcon() {
   return (
@@ -43,6 +45,8 @@ type InviteJoinCardProps = {
   isJoining: boolean;
   playerNameError?: string;
   actionError?: string;
+  resumeClaim?: ActiveRoomSession | null;
+  onResumeClaim?: () => void;
 };
 
 export function InviteJoinCard({
@@ -53,6 +57,8 @@ export function InviteJoinCard({
   isJoining,
   playerNameError,
   actionError,
+  resumeClaim = null,
+  onResumeClaim,
 }: InviteJoinCardProps) {
   return (
     <main className="flex items-start justify-center px-4 py-6 sm:min-h-[calc(100vh-5rem)] sm:items-center sm:py-10">
@@ -60,6 +66,11 @@ export function InviteJoinCard({
         {actionError && !isJoining ? (
           <div className="mb-4">
             <SystemStatus tone="error" {...presentRoomActionError(actionError)} />
+          </div>
+        ) : null}
+        {resumeClaim && onResumeClaim ? (
+          <div className="mb-4">
+            <RoomResumePanel claim={resumeClaim} busy={isJoining} onResume={onResumeClaim} />
           </div>
         ) : null}
         <article className="wanas-panel border border-wanas-accent p-4 shadow-[0_0_0_1px_rgba(0,210,255,0.25)] sm:p-8">

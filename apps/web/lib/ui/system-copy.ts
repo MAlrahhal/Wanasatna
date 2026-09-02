@@ -6,6 +6,8 @@ export const SYSTEM_COPY = {
   reconnecting: 'جاري إعادة الاتصال…',
   recovered: 'تمت إعادة الاتصال.',
   genericError: 'حدث خطأ',
+  rateLimitedTitle: 'تعذر تنفيذ الطلب',
+  rateLimited: 'تم إرسال عدة طلبات خلال فترة قصيرة. يرجى الانتظار قليلًا ثم المحاولة مرة أخرى.',
   unexpectedError: 'حدث خطأ غير متوقع. حاول مرة أخرى.',
   gameLoadFailed: 'تعذر تحميل اللعبة.',
   gameLoadFailedHelper: 'تحقق من اتصالك وحاول مرة ثانية.',
@@ -108,6 +110,13 @@ export function presentRoomActionError(message: string | null | undefined): {
     return {
       title: SYSTEM_COPY.gameLoadFailed,
       description: SYSTEM_COPY.gameLoadFailedHelper,
+    };
+  }
+
+  if (safe === SYSTEM_COPY.rateLimited) {
+    return {
+      title: SYSTEM_COPY.rateLimitedTitle,
+      description: SYSTEM_COPY.rateLimited,
     };
   }
 

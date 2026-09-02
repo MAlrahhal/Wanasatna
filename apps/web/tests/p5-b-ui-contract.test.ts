@@ -65,10 +65,16 @@ test('home has no light-theme form island regression', () => {
 test('active-room resume is visible with consistent copy', () => {
   const banner = read('components/public/active-room-banner.tsx');
   const home = read('app/(public)/home-page-client.tsx');
-  assert.match(banner, /العودة إلى الغرفة/);
-  assert.match(banner, /رمز الغرفة/);
+  const hook = read('lib/public/use-room-actions.ts');
+  assert.match(banner, /لديك غرفة مفتوحة/);
+  assert.match(banner, /يمكنك العودة إلى الغرفة/);
+  assert.match(banner, /العودة كـ/);
+  assert.match(banner, /enterFromJoinForm/);
   assert.match(banner, /HomeActiveRoomResume/);
   assert.match(home, /<HomeActiveRoomResume/);
+  assert.match(home, /handleResumeClaim/);
+  assert.match(hook, /handleResumeClaim/);
+  assert.match(hook, /enterFromJoinForm\(resumeClaim\.roomCode, resumeClaim\.playerName\)/);
   assert.doesNotMatch(banner, /العودة للغرفة/);
 });
 

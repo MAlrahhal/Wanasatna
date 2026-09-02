@@ -62,6 +62,8 @@ export function HomePageClient() {
         isJoining={room.isJoining}
         playerNameError={joinPlayerNameError}
         actionError={!hasFieldError ? (room.errorMessage ?? undefined) : undefined}
+        resumeClaim={room.resumeClaim}
+        onResumeClaim={room.handleResumeClaim}
       />
     );
   }
@@ -102,7 +104,11 @@ export function HomePageClient() {
       </section>
 
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 sm:gap-10 sm:px-6 sm:py-12 lg:gap-12">
-        <HomeActiveRoomResume />
+        <HomeActiveRoomResume
+          claim={room.resumeClaim}
+          busy={room.isJoining}
+          onResume={room.handleResumeClaim}
+        />
 
         {room.errorMessage && !hasFieldError && !room.isCreating && !room.isJoining ? (
           <SystemStatus tone="error" {...presentRoomActionError(room.errorMessage)} />

@@ -7,6 +7,7 @@ import type {
   AuthSessionData,
 } from '@wanasatna/shared';
 import { env } from '../../config/env.js';
+import { RATE_LIMITED_USER_MESSAGE } from '../../lib/abuse-limiter.js';
 import { getHttpClientIp } from '../../lib/client-ip.js';
 import {
   checkLoginRateLimit,
@@ -61,7 +62,7 @@ function statusForAuthError(code: AuthErrorCode): number {
 
 authRouter.post('/register', createRequirePublicRegistration(env.nodeEnv), async (req, res) => {
   if (!consumeAuthRateLimit(getHttpClientIp(req), 'register')) {
-    sendAuthError(res, 429, 'RATE_LIMITED', 'طلبات كثيرة بسرعة، انتظر شوي وحاول مرة ثانية.');
+    sendAuthError(res, 429, 'RATE_LIMITED', RATE_LIMITED_USER_MESSAGE);
     return;
   }
 
@@ -101,7 +102,7 @@ authRouter.post('/login', async (req, res) => {
 
   if (!rateLimit.allowed) {
     res.setHeader('Retry-After', String(rateLimit.retryAfterSeconds));
-    sendAuthError(res, 429, 'RATE_LIMITED', 'طلبات كثيرة بسرعة، انتظر شوي وحاول مرة ثانية.');
+    sendAuthError(res, 429, 'RATE_LIMITED', RATE_LIMITED_USER_MESSAGE);
     return;
   }
 
@@ -168,7 +169,7 @@ authRouter.post('/mfa/verify', async (req, res) => {
       await auditAdminMfaRateLimit(challengeUserId, validation.data.method, requestId);
     }
     res.setHeader('Retry-After', String(rateLimit.retryAfterSeconds));
-    sendAuthError(res, 429, 'RATE_LIMITED', 'طلبات كثيرة بسرعة، انتظر شوي وحاول مرة ثانية.');
+    sendAuthError(res, 429, 'RATE_LIMITED', RATE_LIMITED_USER_MESSAGE);
     return;
   }
 

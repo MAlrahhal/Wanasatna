@@ -18,11 +18,14 @@ export {
 } from '@/lib/room-v2/manager';
 export {
   RECONNECT_CLAIMS_STORAGE_KEY,
+  findUniqueReconnectClaim,
+  listReconnectClaims,
   readReconnectClaim,
   removeReconnectClaim,
   removeReconnectClaimForSession,
   writeReconnectClaim,
 } from '@/lib/room-v2/reconnect-claims';
+export { discoverResumableRoomSession, notifyResumeDiscovery } from '@/lib/room-v2/discover-claim';
 export {
   canAutoResumeWithExplicitName,
   isTerminalResumeFailure,

@@ -2,7 +2,7 @@ import type { Socket } from 'socket.io';
 import { getClientIp } from './client-ip.js';
 
 export const RATE_LIMITED_USER_MESSAGE =
-  'طلبات كثيرة بسرعة، انتظر شوي وحاول مرة ثانية.';
+  'تم إرسال عدة طلبات خلال فترة قصيرة. يرجى الانتظار قليلًا ثم المحاولة مرة أخرى.';
 
 export const ROOM_ENTRY_IN_PROGRESS_USER_MESSAGE =
   'يتم الدخول للغرفة الآن، حاول مرة ثانية.';

@@ -1,61 +1,93 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { buildLobbyUrl } from '@/lib/room/session';
+import { usePathname, useRouter } from 'next/navigation';
+import { useCallback, useState, useSyncExternalStore } from 'react';
 import { isRoomRoute } from '@/lib/room/navigation-guard';
-import { readPersistedActiveRoomSession } from '@/lib/room-v2';
+import {
+  getRoomSessionManager,
+  isTerminalResumeFailure,
+  notifyResumeDiscovery,
+  type ActiveRoomSession,
+} from '@/lib/room-v2';
+import {
+  getResumeDiscoverySnapshot,
+  subscribeResumeDiscovery,
+} from '@/lib/room-v2/discover-claim';
 import { cn } from '@/lib/utils';
 
-function useActiveRoomCode() {
-  const pathname = usePathname();
-  const [roomCode, setRoomCode] = useState<string | null>(null);
-
-  useEffect(() => {
-    const session = readPersistedActiveRoomSession();
-    setRoomCode(session?.roomCode ?? null);
-  }, [pathname]);
-
-  return roomCode;
-}
-
-const resumeLinkClassName = cn(
-  'inline-flex h-9 min-h-9 items-center justify-center rounded-[var(--wanas-radius-control)] border border-wanas-accent bg-wanas-accent px-4 text-xs font-semibold text-white',
-  'hover:border-wanas-accent-hover hover:bg-wanas-accent-hover',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/45 focus-visible:ring-offset-2',
-);
-
-export function ActiveRoomBanner() {
-  const pathname = usePathname();
-  const roomCode = useActiveRoomCode();
-
-  if (!roomCode || isRoomRoute(pathname)) {
-    return null;
-  }
-
-  return (
-    <div role="status" className="border-b border-wanas-border bg-wanas-surface-soft px-4 py-2.5">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-medium text-wanas-text-secondary">
-          لديك غرفة نشطة
-          <span dir="ltr" className="ms-2 font-mono font-bold tracking-[0.18em] text-wanas-text-primary">
-            {roomCode}
-          </span>
-        </p>
-        <Link href={buildLobbyUrl(roomCode)} className={resumeLinkClassName}>
-          العودة إلى الغرفة
-        </Link>
-      </div>
-    </div>
+export function useDiscoverableReconnectClaim(roomCode?: string | null) {
+  return useSyncExternalStore(
+    subscribeResumeDiscovery,
+    () => getResumeDiscoverySnapshot(roomCode ?? null),
+    () => null,
   );
 }
 
-export function HomeActiveRoomResume() {
-  const roomCode = useActiveRoomCode();
+async function resumeClaimAndOpenLobby(
+  claim: ActiveRoomSession,
+  router: { push: (href: string) => void },
+): Promise<{ ok: true } | { ok: false; message: string; hide: boolean }> {
+  const manager = getRoomSessionManager();
+  manager.clearExplicitLeaveHome();
+  const result = await manager.enterFromJoinForm(claim.roomCode, claim.playerName);
 
-  if (!roomCode) {
-    return null;
+  if (!result.success) {
+    notifyResumeDiscovery();
+    return {
+      ok: false,
+      message: result.error.message,
+      hide: isTerminalResumeFailure(result.error.code),
+    };
+  }
+
+  const lobbyUrl = `/lobby?code=${encodeURIComponent(result.data.roomCode)}`;
+  if (manager.hasExplicitlyLeftRoomThisRuntime()) {
+    window.location.assign(lobbyUrl);
+    return { ok: true };
+  }
+
+  window.history.replaceState(window.history.state, '', lobbyUrl);
+  router.push(lobbyUrl);
+  return { ok: true };
+}
+
+const resumeButtonClassName = cn(
+  'inline-flex h-9 min-h-9 items-center justify-center rounded-[var(--wanas-radius-control)] border border-wanas-accent bg-wanas-accent px-4 text-xs font-semibold text-white',
+  'hover:border-wanas-accent-hover hover:bg-wanas-accent-hover',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/45 focus-visible:ring-offset-2',
+  'disabled:pointer-events-none disabled:opacity-60',
+);
+
+export function RoomResumePanel({
+  claim,
+  compact = false,
+  busy = false,
+  onResume,
+}: {
+  claim: ActiveRoomSession;
+  compact?: boolean;
+  busy?: boolean;
+  onResume: () => void;
+}) {
+  const name = claim.playerName.trim();
+
+  if (compact) {
+    return (
+      <div role="status" className="border-b border-wanas-border bg-wanas-surface-soft px-4 py-2.5">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-medium text-wanas-text-secondary">
+            لديك غرفة مفتوحة
+            <span dir="ltr" className="ms-2 font-mono font-bold tracking-[0.18em] text-wanas-text-primary">
+              {claim.roomCode}
+            </span>
+            <span className="ms-2 text-wanas-text-muted">باسم {name}</span>
+          </p>
+          <button type="button" className={resumeButtonClassName} onClick={onResume} disabled={busy}>
+            {busy ? 'جاري العودة…' : `العودة كـ ${name}`}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -64,17 +96,84 @@ export function HomeActiveRoomResume() {
       className="wanas-panel flex flex-col gap-3 border-t-2 border-t-wanas-accent p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
     >
       <div className="min-w-0">
-        <p className="text-sm font-bold text-wanas-text-primary">لديك غرفة نشطة</p>
+        <p className="text-sm font-bold text-wanas-text-primary">لديك غرفة مفتوحة</p>
         <p className="mt-1 text-xs text-wanas-text-muted">
-          رمز الغرفة{' '}
+          يمكنك العودة إلى الغرفة{' '}
           <span dir="ltr" className="font-mono text-sm font-bold tracking-[0.18em] text-wanas-text-primary">
-            {roomCode}
-          </span>
+            {claim.roomCode}
+          </span>{' '}
+          باسم {name}
         </p>
       </div>
-      <Link href={buildLobbyUrl(roomCode)} className={cn(resumeLinkClassName, 'h-11 min-h-11 px-5 text-sm')}>
-        العودة إلى الغرفة
-      </Link>
+      <button
+        type="button"
+        className={cn(resumeButtonClassName, 'h-11 min-h-11 px-5 text-sm')}
+        onClick={onResume}
+        disabled={busy}
+      >
+        {busy ? 'جاري العودة…' : `العودة كـ ${name}`}
+      </button>
     </aside>
   );
+}
+
+export function ActiveRoomBanner() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const claim = useDiscoverableReconnectClaim();
+  const [busy, setBusy] = useState(false);
+
+  const onResume = useCallback(() => {
+    if (!claim || busy) {
+      return;
+    }
+
+    setBusy(true);
+    void resumeClaimAndOpenLobby(claim, router).then((result) => {
+      if (!result.ok) {
+        setBusy(false);
+      }
+    });
+  }, [busy, claim, router]);
+
+  if (!claim || isRoomRoute(pathname) || pathname === '/') {
+    return null;
+  }
+
+  return <RoomResumePanel claim={claim} compact busy={busy} onResume={onResume} />;
+}
+
+export function HomeActiveRoomResume({
+  claim,
+  busy,
+  onResume,
+}: {
+  claim?: ActiveRoomSession | null;
+  busy?: boolean;
+  onResume?: () => void;
+}) {
+  const router = useRouter();
+  const localClaim = useDiscoverableReconnectClaim();
+  const [localBusy, setLocalBusy] = useState(false);
+  const resolved = claim === undefined ? localClaim : claim;
+
+  const resume =
+    onResume ??
+    (() => {
+      if (!resolved || localBusy) {
+        return;
+      }
+      setLocalBusy(true);
+      void resumeClaimAndOpenLobby(resolved, router).then((result) => {
+        if (!result.ok) {
+          setLocalBusy(false);
+        }
+      });
+    });
+
+  if (!resolved) {
+    return null;
+  }
+
+  return <RoomResumePanel claim={resolved} busy={busy ?? localBusy} onResume={resume} />;
 }

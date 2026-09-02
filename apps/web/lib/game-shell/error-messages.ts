@@ -28,7 +28,7 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   TEAM_FULL: 'هذا الفريق ممتلئ.',
   INVALID_TEAM_ASSIGNMENT: 'توزيع الفرق غير مكتمل أو غير صالح.',
   PLAYER_NOT_ELIGIBLE: 'هذا اللاعب غير مؤهل لتوزيع الفرق.',
-  RATE_LIMITED: 'طلبات كثيرة بسرعة، انتظر شوي وحاول مرة ثانية.',
+  RATE_LIMITED: getRoomErrorMessage('RATE_LIMITED'),
   CONNECTION_FAILED: getRoomErrorMessage('CONNECTION_FAILED'),
 };
 

@@ -8,8 +8,11 @@ import {
   RECONNECT_CLAIMS_STORAGE_KEY,
   canAutoResumeWithExplicitName,
   clearPersistedActiveRoomSession,
+  discoverResumableRoomSession,
+  findUniqueReconnectClaim,
   getRoomSessionManager,
   isTerminalResumeFailure,
+  listReconnectClaims,
   purgeLegacyRoomStorage,
   readPersistedActiveRoomSession,
   readReconnectClaim,
@@ -22,6 +25,7 @@ import {
   type ActiveRoomSession,
   __resetRoomSessionManagerForTests,
 } from '../lib/room-v2/index';
+import { getResumeDiscoverySnapshot, notifyResumeDiscovery } from '../lib/room-v2/discover-claim';
 
 class MemoryStorage {
   private store = new Map<string, string>();
@@ -332,6 +336,107 @@ test('incomplete claim is not persisted', () => {
   localStorage.clear();
   writeReconnectClaim({ ...sample, reconnectToken: '' });
   assert.equal(readReconnectClaim('123456', 'خلود'), null);
+});
+
+test('cold start: unique claim is discoverable after sessionStorage is cleared', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writePersistedActiveRoomSession(sample);
+  sessionStorage.removeItem(ACTIVE_ROOM_SESSION_KEY);
+  assert.equal(readPersistedActiveRoomSession(), null);
+  const discovered = discoverResumableRoomSession();
+  assert.ok(discovered);
+  assert.equal(discovered?.playerId, 'player-1');
+  assert.equal(discovered?.playerName, 'خلود');
+  assert.equal(discovered?.roomCode, '123456');
+  assert.deepEqual(findUniqueReconnectClaim('123456'), sample);
+});
+
+test('cold start: unique claim for a room code is the same host/player identity', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writeReconnectClaim(sample);
+  const claim = findUniqueReconnectClaim('123456');
+  assert.equal(claim?.playerId, sample.playerId);
+  assert.equal(resolveExplicitJoinIntent(claim, '123456', 'خلود'), 'reconnect');
+  assert.equal(selectExplicitJoinReconnectIdentity(null, claim, '123456', 'خلود')?.playerId, 'player-1');
+});
+
+test('cold start: different name still JOINs and does not use the old claim', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writeReconnectClaim(sample);
+  assert.equal(
+    selectExplicitJoinReconnectIdentity(null, readReconnectClaim('123456', 'سارة'), '123456', 'سارة'),
+    null,
+  );
+  assert.equal(resolveExplicitJoinIntent(sample, '123456', 'سارة'), 'join');
+});
+
+test('cold start: incomplete/invalid claim is not resumable', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writeReconnectClaim({ ...sample, reconnectToken: '' });
+  assert.equal(listReconnectClaims().length, 0);
+  assert.equal(findUniqueReconnectClaim('123456'), null);
+  assert.equal(discoverResumableRoomSession('123456'), null);
+});
+
+test('cold start: expired claim is not discoverable after terminal cleanup', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writePersistedActiveRoomSession(sample);
+  assert.equal(isTerminalResumeFailure('RECONNECT_EXPIRED'), true);
+  removeReconnectClaimForSession(sample);
+  clearPersistedActiveRoomSession();
+  assert.equal(discoverResumableRoomSession('123456'), null);
+  assert.equal(findUniqueReconnectClaim('123456'), null);
+});
+
+test('cold start: two names in the same room are not auto-picked', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writeReconnectClaim(sample);
+  writeReconnectClaim({ ...sample, playerId: 'player-9', playerName: 'سارة', reconnectToken: 'token-9' });
+  assert.equal(findUniqueReconnectClaim('123456'), null);
+  assert.equal(discoverResumableRoomSession('123456'), null);
+});
+
+test('cold start: two rooms without a code are not auto-picked', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writeReconnectClaim(sample);
+  writeReconnectClaim(other);
+  assert.equal(findUniqueReconnectClaim(), null);
+  assert.equal(discoverResumableRoomSession(), null);
+  assert.deepEqual(findUniqueReconnectClaim('123456'), sample);
+});
+
+test('cold start: /lobby?code= discovers the matching unique claim', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  writeReconnectClaim(sample);
+  writeReconnectClaim(other);
+  assert.deepEqual(discoverResumableRoomSession('123456'), sample);
+  assert.equal(discoverResumableRoomSession('000000'), null);
+});
+
+test('cold start: snapshot cache is hydration-safe and stable until claims change', () => {
+  sessionStorage.clear();
+  localStorage.clear();
+  notifyResumeDiscovery();
+  assert.equal(getResumeDiscoverySnapshot(), null);
+
+  writeReconnectClaim(sample);
+  notifyResumeDiscovery();
+  const first = getResumeDiscoverySnapshot();
+  const second = getResumeDiscoverySnapshot();
+  assert.equal(first, second);
+  assert.equal(first?.playerId, 'player-1');
+
+  removeReconnectClaimForSession(sample);
+  notifyResumeDiscovery();
+  assert.equal(getResumeDiscoverySnapshot(), null);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

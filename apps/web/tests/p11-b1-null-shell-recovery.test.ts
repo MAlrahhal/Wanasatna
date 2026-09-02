@@ -315,7 +315,7 @@ test('7. RATE_LIMITED does not redirect Lobby', () => {
   const pendingRateLimit = sync(createPendingShellSyncView(), {
     success: false,
     code: 'RATE_LIMITED',
-    message: 'طلبات كثيرة بسرعة، انتظر شوي وحاول مرة ثانية.',
+    message: SYSTEM_COPY.rateLimited,
   });
   assert.equal(pendingRateLimit.status, 'error');
   assert.equal(shouldRecoverGameRouteToLobby('/game', pendingRateLimit.status), false);
@@ -327,7 +327,7 @@ test('7. RATE_LIMITED does not redirect Lobby', () => {
     response: {
       success: false,
       code: 'RATE_LIMITED',
-      message: 'طلبات كثيرة بسرعة، انتظر شوي وحاول مرة ثانية.',
+      message: SYSTEM_COPY.rateLimited,
     },
   });
   assert.equal(rateLimitedWhileLive.status, 'ready');

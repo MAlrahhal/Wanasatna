@@ -17,7 +17,7 @@ const ERROR_MESSAGES: Record<RoomErrorCode, string> = {
   MATCH_IN_PROGRESS: 'هناك مباراة جارية حاليًا. يمكنك الانضمام عند انتهاء المباراة.',
   ROOM_CODE_GENERATION_FAILED: 'تعذر إنشاء رمز الغرفة. حاول مرة أخرى.',
   CONNECTION_FAILED: 'تعذر الاتصال. حاول مرة أخرى.',
-  RATE_LIMITED: 'طلبات كثيرة بسرعة، انتظر شوي وحاول مرة ثانية.',
+  RATE_LIMITED: SYSTEM_COPY.rateLimited,
   ROOM_ENTRY_IN_PROGRESS: 'يتم الدخول للغرفة الآن، حاول مرة ثانية.',
   INTERNAL_ERROR: SYSTEM_COPY.unexpectedError,
 };

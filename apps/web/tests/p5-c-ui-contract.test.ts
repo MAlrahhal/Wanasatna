@@ -39,6 +39,7 @@ test('error mapping: missing, full, locked, kicked, generic fallback', () => {
   assert.match(errors, /ROOM_FULL:\s*SYSTEM_COPY\.roomFull/);
   assert.match(errors, /ROOM_LOCKED:\s*SYSTEM_COPY\.roomLocked/);
   assert.match(errors, /INTERNAL_ERROR:\s*SYSTEM_COPY\.unexpectedError/);
+  assert.match(errors, /RATE_LIMITED:\s*SYSTEM_COPY\.rateLimited/);
   assert.doesNotMatch(errors, /Game Shell|socket hang|Prisma/);
 
   assert.equal(presentRoomActionError(SYSTEM_COPY.roomMissing).title, SYSTEM_COPY.roomMissing);
@@ -49,6 +50,8 @@ test('error mapping: missing, full, locked, kicked, generic fallback', () => {
   assert.equal(presentRoomActionError(SYSTEM_COPY.kickedTitle).description, SYSTEM_COPY.kickedHelper);
   assert.equal(presentRoomActionError('PrismaClientKnownRequestError').title, SYSTEM_COPY.genericError);
   assert.equal(presentRoomActionError('PrismaClientKnownRequestError').description, SYSTEM_COPY.unexpectedError);
+  assert.equal(presentRoomActionError(SYSTEM_COPY.rateLimited).title, SYSTEM_COPY.rateLimitedTitle);
+  assert.equal(presentRoomActionError(SYSTEM_COPY.rateLimited).description, SYSTEM_COPY.rateLimited);
   assert.equal(toSafeUserErrorMessage('INTERNAL_ERROR'), SYSTEM_COPY.unexpectedError);
   assert.equal(toSafeUserErrorMessage('socket hang up'), SYSTEM_COPY.unexpectedError);
   assert.equal(toSafeUserErrorMessage('websocket error'), SYSTEM_COPY.unexpectedError);

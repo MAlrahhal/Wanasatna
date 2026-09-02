@@ -1,12 +1,13 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { playerNameContainsForbiddenChars } from '@wanasatna/shared';
 import { replaceHomeClean } from '@/lib/public/home-url';
 import { HOME_ROOM_ACTIONS_ID } from '@/lib/public/routes';
 import { getRuntimeId, recordContinuity } from '@/lib/room-v2/continuity';
-import { getRoomSessionManager } from '@/lib/room-v2';
+import { getRoomSessionManager, notifyResumeDiscovery } from '@/lib/room-v2';
+import { getResumeDiscoverySnapshot, subscribeResumeDiscovery } from '@/lib/room-v2/discover-claim';
 import { getRoomSocket } from '@/lib/room/socket';
 
 type FieldErrors = {
@@ -72,6 +73,12 @@ export function useRoomActions() {
     const code = readInviteCode(searchParams);
     setJoinCode(code);
   }, [searchParams, router]);
+
+  const resumeClaim = useSyncExternalStore(
+    subscribeResumeDiscovery,
+    () => getResumeDiscoverySnapshot(readInviteCode(searchParams) || null),
+    () => null,
+  );
 
   useEffect(() => {
     recordContinuity('HOME_READY', {
@@ -269,6 +276,49 @@ export function useRoomActions() {
     })();
   }, [isCreating, isJoining, joinCode, joinPlayerName, router, scrollToRoomActions]);
 
+  const handleResumeClaim = useCallback(() => {
+    if (!resumeClaim || isCreating || isJoining || inFlightRef.current) {
+      return;
+    }
+
+    setErrorMessage(null);
+    setFieldErrors({});
+    inFlightRef.current = true;
+    setIsJoining(true);
+
+    void (async () => {
+      const manager = getRoomSessionManager();
+      try {
+        manager.clearExplicitLeaveHome();
+        const result = await manager.enterFromJoinForm(resumeClaim.roomCode, resumeClaim.playerName);
+        if (!result.success) {
+          setErrorMessage(result.error.message);
+          notifyResumeDiscovery();
+          return;
+        }
+
+        manager.clearExplicitLeaveHome();
+        const lobbyUrl = `/lobby?code=${encodeURIComponent(result.data.roomCode)}`;
+        if (
+          typeof window !== 'undefined' &&
+          manager.hasExplicitlyLeftRoomThisRuntime()
+        ) {
+          window.location.assign(lobbyUrl);
+          return;
+        }
+        if (typeof window !== 'undefined') {
+          window.history.replaceState(window.history.state, '', lobbyUrl);
+        }
+        router.push(lobbyUrl);
+      } catch {
+        setErrorMessage('تعذر العودة إلى الغرفة. حاول مرة أخرى.');
+      } finally {
+        inFlightRef.current = false;
+        resetSubmissionFlags(setIsCreating, setIsJoining);
+      }
+    })();
+  }, [isCreating, isJoining, resumeClaim, router]);
+
   const handleCreatePlayerNameChange = useCallback(
     (value: string) => {
       setCreatePlayerName(value);
@@ -317,9 +367,11 @@ export function useRoomActions() {
     fieldErrors,
     isCreating,
     isJoining,
+    resumeClaim,
     scrollToRoomActions,
     handleCreateRoom,
     handleJoinRoom,
+    handleResumeClaim,
     handleCreatePlayerNameChange,
     handleJoinPlayerNameChange,
     handleJoinCodeChange,

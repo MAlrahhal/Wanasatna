@@ -37,7 +37,7 @@ export function GameShellScreen() {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 p-4 md:p-6">
       {errorMessage ? (
-        <SystemStatus tone="error" title="حدث خطأ" description={errorMessage} />
+        <SystemStatus tone="error" {...presentRoomActionError(errorMessage)} />
       ) : null}
 
       <header className="rounded-[var(--wanas-radius-card)] border border-wanas-border bg-wanas-surface p-4 shadow-sm">

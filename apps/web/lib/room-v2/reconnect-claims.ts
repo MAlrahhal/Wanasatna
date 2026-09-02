@@ -113,6 +113,31 @@ export function removeReconnectClaim(roomCode: string, playerName: string): void
   writeClaimMap(map);
 }
 
+export function listReconnectClaims(): ActiveRoomSession[] {
+  return Object.values(readClaimMap());
+}
+
+/**
+ * Cold-start discovery: only when exactly one complete claim matches.
+ * Pass a room code to scope to that room; omit it to require a single claim in the browser.
+ * Never picks among multiple names in the same room.
+ */
+export function findUniqueReconnectClaim(roomCode?: string | null): ActiveRoomSession | null {
+  const expected = roomCode ? canonicalizeJoinRoomCode(roomCode) : '';
+  const matches = listReconnectClaims().filter((claim) => {
+    if (!expected) {
+      return true;
+    }
+    return canonicalizeJoinRoomCode(claim.roomCode) === expected;
+  });
+
+  if (matches.length !== 1) {
+    return null;
+  }
+
+  return matches[0] ?? null;
+}
+
 export function removeReconnectClaimForSession(
   session: Pick<ActiveRoomSession, 'roomCode' | 'playerName'> | null | undefined,
 ): void {
