@@ -68,16 +68,13 @@ export function InviteJoinCard({
             <SystemStatus tone="error" {...presentRoomActionError(actionError)} />
           </div>
         ) : null}
-        {resumeClaims.length > 0 && onResumeClaim ? (
-          <div className="mb-4 flex flex-col gap-3">
-            {resumeClaims.map((claim) => (
-              <RoomResumePanel
-                key={`${claim.roomId}:${claim.playerId}`}
-                claim={claim}
-                busy={isJoining}
-                onResume={() => onResumeClaim(claim)}
-              />
-            ))}
+        {resumeClaims[0] && onResumeClaim ? (
+          <div className="mb-4">
+            <RoomResumePanel
+              claim={resumeClaims[0]}
+              busy={isJoining}
+              onResume={() => onResumeClaim(resumeClaims[0]!)}
+            />
           </div>
         ) : null}
         <article className="wanas-panel border border-wanas-accent p-4 shadow-[0_0_0_1px_rgba(0,210,255,0.25)] sm:p-8">

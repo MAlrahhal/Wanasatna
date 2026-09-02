@@ -4,7 +4,26 @@ import type { ActiveRoomSession } from '@/lib/room-v2/types';
 /** Versioned Room V2 reconnect claims. Must NOT use the legacy `wanasatna:reconnect:` prefix. */
 export const RECONNECT_CLAIMS_STORAGE_KEY = 'wanasatna:v2:reconnect-claims' as const;
 
-type ReconnectClaimMap = Record<string, ActiveRoomSession>;
+type StoredReconnectClaim = ActiveRoomSession & { updatedAt?: number };
+type ReconnectClaimMap = Record<string, StoredReconnectClaim>;
+
+let claimWriteClock = 0;
+
+function nextClaimUpdatedAt(): number {
+  const now = Date.now();
+  claimWriteClock = Math.max(claimWriteClock + 1, now);
+  return claimWriteClock;
+}
+
+function toPublicClaim(value: StoredReconnectClaim): ActiveRoomSession {
+  return {
+    roomId: value.roomId,
+    roomCode: value.roomCode,
+    playerId: value.playerId,
+    playerName: value.playerName,
+    reconnectToken: value.reconnectToken,
+  };
+}
 
 function isBrowser(): boolean {
   return typeof window !== 'undefined';
@@ -47,16 +66,22 @@ function readClaimMap(): ReconnectClaimMap {
     }
 
     const next: ReconnectClaimMap = {};
-    for (const [key, value] of Object.entries(parsed as Record<string, Partial<ActiveRoomSession>>)) {
-      if (isCompleteClaim(value)) {
-        next[key] = {
-          roomId: value.roomId,
-          roomCode: value.roomCode,
-          playerId: value.playerId,
-          playerName: value.playerName,
-          reconnectToken: value.reconnectToken,
-        };
+    for (const [key, value] of Object.entries(parsed as Record<string, Partial<StoredReconnectClaim>>)) {
+      if (!isCompleteClaim(value)) {
+        continue;
       }
+
+      const stampedAt = (value as StoredReconnectClaim).updatedAt;
+      const updatedAt =
+        typeof stampedAt === 'number' && Number.isFinite(stampedAt) ? stampedAt : undefined;
+      next[key] = {
+        roomId: value.roomId,
+        roomCode: value.roomCode,
+        playerId: value.playerId,
+        playerName: value.playerName,
+        reconnectToken: value.reconnectToken,
+        ...(updatedAt !== undefined ? { updatedAt } : {}),
+      };
     }
     return next;
   } catch {
@@ -86,20 +111,21 @@ export function writeReconnectClaim(session: ActiveRoomSession): void {
     return;
   }
 
-  const map = readClaimMap();
-  map[claimKey(session.roomCode, session.playerName)] = {
-    roomId: session.roomId,
-    roomCode: session.roomCode,
-    playerId: session.playerId,
-    playerName: session.playerName,
-    reconnectToken: session.reconnectToken,
-  };
-  writeClaimMap(map);
+  writeClaimMap({
+    [claimKey(session.roomCode, session.playerName)]: {
+      roomId: session.roomId,
+      roomCode: session.roomCode,
+      playerId: session.playerId,
+      playerName: session.playerName,
+      reconnectToken: session.reconnectToken,
+      updatedAt: nextClaimUpdatedAt(),
+    },
+  });
 }
 
 export function readReconnectClaim(roomCode: string, playerName: string): ActiveRoomSession | null {
   const claim = readClaimMap()[claimKey(roomCode, playerName)];
-  return claim ?? null;
+  return claim ? toPublicClaim(claim) : null;
 }
 
 export function removeReconnectClaim(roomCode: string, playerName: string): void {
@@ -114,7 +140,19 @@ export function removeReconnectClaim(roomCode: string, playerName: string): void
 }
 
 export function listReconnectClaims(): ActiveRoomSession[] {
-  return Object.values(readClaimMap());
+  return Object.values(readClaimMap()).map(toPublicClaim);
+}
+
+export function listReconnectClaimsNewestFirst(): ActiveRoomSession[] {
+  return Object.values(readClaimMap())
+    .map((claim, index) => ({ claim, index, updatedAt: claim.updatedAt ?? 0 }))
+    .sort((left, right) => {
+      if (left.updatedAt !== right.updatedAt) {
+        return right.updatedAt - left.updatedAt;
+      }
+      return right.index - left.index;
+    })
+    .map((entry) => toPublicClaim(entry.claim));
 }
 
 /**

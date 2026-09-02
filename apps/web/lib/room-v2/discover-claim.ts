@@ -1,5 +1,5 @@
 import { canonicalizeJoinRoomCode } from '@/lib/room-v2/join-intent';
-import { listReconnectClaims } from '@/lib/room-v2/reconnect-claims';
+import { listReconnectClaimsNewestFirst } from '@/lib/room-v2/reconnect-claims';
 import { readPersistedActiveRoomSession } from '@/lib/room-v2/storage';
 import type { ActiveRoomSession } from '@/lib/room-v2/types';
 
@@ -41,42 +41,38 @@ function isLiveTabSession(claim: ActiveRoomSession, live: ActiveRoomSession | nu
   );
 }
 
-function compareClaims(left: ActiveRoomSession, right: ActiveRoomSession): number {
-  const byCode = canonicalizeJoinRoomCode(left.roomCode).localeCompare(
-    canonicalizeJoinRoomCode(right.roomCode),
-  );
-  if (byCode !== 0) {
-    return byCode;
-  }
-  return left.playerName.trim().localeCompare(right.playerName.trim(), 'ar');
-}
-
 /**
- * Persistent claims that may be offered as explicit recovery.
- * Excludes the identity this tab already holds. Does not auto-pick.
+ * At most one recovery claim: the newest matching seat this tab is not already in.
+ * Historical rooms stay in localStorage for exact-name Join, but are not offered here.
  */
 export function listDiscoverableReconnectClaims(roomCode?: string | null): ActiveRoomSession[] {
   const expected = roomCode ? canonicalizeJoinRoomCode(roomCode) : '';
   const live = readPersistedActiveRoomSession();
+  const newestFirst = listReconnectClaimsNewestFirst();
 
-  return listReconnectClaims()
-    .filter((claim) => {
-      if (expected && canonicalizeJoinRoomCode(claim.roomCode) !== expected) {
-        return false;
-      }
-      return !isLiveTabSession(claim, live);
-    })
-    .sort(compareClaims);
+  if (expected) {
+    const latestForRoom = newestFirst.find(
+      (claim) => canonicalizeJoinRoomCode(claim.roomCode) === expected,
+    );
+    if (!latestForRoom || isLiveTabSession(latestForRoom, live)) {
+      return [];
+    }
+    return [latestForRoom];
+  }
+
+  const latest = newestFirst[0];
+  if (!latest || isLiveTabSession(latest, live)) {
+    return [];
+  }
+
+  return [latest];
 }
 
 /**
- * Cold-start recovery for a single unambiguous claim.
- * Homepage with no code uses this when exactly one discoverable claim exists.
- * Never auto-picks among multiple names/rooms.
+ * Homepage / invite recovery: newest usable claim only.
  */
 export function discoverResumableRoomSession(roomCode?: string | null): ActiveRoomSession | null {
-  const matches = listDiscoverableReconnectClaims(roomCode);
-  return matches.length === 1 ? (matches[0] ?? null) : null;
+  return listDiscoverableReconnectClaims(roomCode)[0] ?? null;
 }
 
 export function getResumeDiscoveryListSnapshot(roomCode?: string | null): ActiveRoomSession[] {
@@ -98,8 +94,7 @@ export function getResumeDiscoveryListSnapshot(roomCode?: string | null): Active
 }
 
 export function getResumeDiscoverySnapshot(roomCode?: string | null): ActiveRoomSession | null {
-  const list = getResumeDiscoveryListSnapshot(roomCode);
-  return list.length === 1 ? (list[0] ?? null) : null;
+  return getResumeDiscoveryListSnapshot(roomCode)[0] ?? null;
 }
 
 export function subscribeResumeDiscovery(onStoreChange: () => void): () => void {

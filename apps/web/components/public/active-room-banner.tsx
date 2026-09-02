@@ -153,29 +153,10 @@ export function HomeActiveRoomResume({
   busy?: boolean;
   onResume: (claim: ActiveRoomSession) => void;
 }) {
-  if (claims.length === 0) {
+  const claim = claims[0];
+  if (!claim) {
     return null;
   }
 
-  if (claims.length === 1) {
-    const claim = claims[0]!;
-    return <RoomResumePanel claim={claim} busy={busy} onResume={() => onResume(claim)} />;
-  }
-
-  return (
-    <aside
-      role="status"
-      className="flex flex-col gap-3"
-    >
-      <p className="text-sm font-bold text-wanas-text-primary">لديك غرف مفتوحة</p>
-      {claims.map((claim) => (
-        <RoomResumePanel
-          key={`${claim.roomId}:${claim.playerId}`}
-          claim={claim}
-          busy={busy}
-          onResume={() => onResume(claim)}
-        />
-      ))}
-    </aside>
-  );
+  return <RoomResumePanel claim={claim} busy={busy} onResume={() => onResume(claim)} />;
 }
