@@ -28,6 +28,9 @@ function isNavActive(id: string, pathname: string): boolean {
   if (id === 'log') {
     return pathname === ADMIN_ROUTES.history || pathname.startsWith(`${ADMIN_ROUTES.history}/`);
   }
+  if (id === 'auditLogs') {
+    return pathname === ADMIN_ROUTES.auditLogs || pathname.startsWith(`${ADMIN_ROUTES.auditLogs}/`);
+  }
   if (id === 'system') {
     return pathname === ADMIN_ROUTES.system;
   }

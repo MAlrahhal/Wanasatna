@@ -1,6 +1,8 @@
 import type {
   AdminActionResponse,
   AdminAnalyticsData,
+  AdminAuditData,
+  AdminAuditEntry,
   AdminDashboardData,
   AdminForceCloseRoomData,
   AdminGameAvailability,
@@ -30,6 +32,7 @@ import type {
   AuthActionResponse,
   PublicUser,
 } from '@wanasatna/shared';
+import { ADMIN_AUDIT_ACTIONS } from '@wanasatna/shared';
 import { getServerUrl } from '@/lib/config/server-url';
 
 export type AdminMeResult = { ok: true; user: PublicUser } | { ok: false; status: number };
@@ -1197,6 +1200,98 @@ export async function fetchAdminAnalytics(range = '7d'): Promise<AdminAnalyticsR
       return { ok: false, status: response.status || 500 };
     }
     return { ok: true, data };
+  } catch {
+    return { ok: false, status: 0 };
+  }
+}
+
+function pickSafeAuditMetadata(value: unknown): AdminAuditEntry['metadata'] {
+  if (value === null) {
+    return null;
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  const safe: NonNullable<AdminAuditEntry['metadata']> = {};
+  for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
+    if (/password|secret|token|hash/i.test(key)) {
+      continue;
+    }
+    if (
+      typeof item === 'string' ||
+      typeof item === 'number' ||
+      typeof item === 'boolean' ||
+      item === null
+    ) {
+      safe[key] = item;
+    }
+  }
+  return Object.keys(safe).length > 0 ? safe : null;
+}
+
+function pickSafeAuditEntry(value: unknown): AdminAuditEntry | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const record = value as Record<string, unknown>;
+  const action =
+    typeof record.action === 'string' &&
+    (ADMIN_AUDIT_ACTIONS as readonly string[]).includes(record.action)
+      ? (record.action as AdminAuditEntry['action'])
+      : null;
+  if (
+    typeof record.id !== 'string' ||
+    typeof record.occurredAt !== 'string' ||
+    !action ||
+    (record.actorUserId !== null && typeof record.actorUserId !== 'string') ||
+    (record.targetType !== null && typeof record.targetType !== 'string') ||
+    (record.targetId !== null && typeof record.targetId !== 'string') ||
+    (record.outcome !== 'SUCCESS' && record.outcome !== 'FAILURE') ||
+    (record.requestId !== null && typeof record.requestId !== 'string')
+  ) {
+    return null;
+  }
+  return {
+    id: record.id,
+    occurredAt: record.occurredAt,
+    actorUserId: record.actorUserId,
+    action,
+    targetType: record.targetType,
+    targetId: record.targetId,
+    outcome: record.outcome,
+    requestId: record.requestId,
+    metadata: pickSafeAuditMetadata(record.metadata),
+  };
+}
+
+export type AdminAuditResult = { ok: true; data: AdminAuditData } | { ok: false; status: number };
+
+export async function fetchAdminAuditLogs(page = 1): Promise<AdminAuditResult> {
+  try {
+    const params = new URLSearchParams();
+    if (page > 1) {
+      params.set('page', String(page));
+    }
+    const suffix = params.toString() ? `?${params.toString()}` : '';
+    const response = await fetch(adminUrl(`/audit${suffix}`), {
+      method: 'GET',
+      credentials: 'include',
+    });
+    const body = (await response.json()) as AdminActionResponse<AdminAuditData>;
+    if (!response.ok || !body.success || !body.data || !Array.isArray(body.data.entries)) {
+      return { ok: false, status: response.status || 500 };
+    }
+    return {
+      ok: true,
+      data: {
+        page: body.data.page,
+        pageSize: body.data.pageSize,
+        total: body.data.total,
+        entries: body.data.entries
+          .map(pickSafeAuditEntry)
+          .filter((entry): entry is AdminAuditEntry => entry !== null),
+      },
+    };
   } catch {
     return { ok: false, status: 0 };
   }

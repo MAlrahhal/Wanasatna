@@ -9,6 +9,7 @@ export function formatAdminDateTime(value: string): string {
   return date.toLocaleString('ar', {
     dateStyle: 'short',
     timeStyle: 'short',
+    timeZone: 'Asia/Riyadh',
   });
 }
 
