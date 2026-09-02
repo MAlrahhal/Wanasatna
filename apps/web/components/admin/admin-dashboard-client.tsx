@@ -6,6 +6,7 @@ import { ADMIN_DASHBOARD_POLL_MS } from '@wanasatna/shared';
 import { fetchAdminDashboard } from '@/lib/admin/api';
 import { ADMIN_COPY, ADMIN_MATCH_STATUS_LABEL } from '@/lib/admin/copy';
 import { adminGameTitle, formatAdminDateTime } from '@/lib/admin/format';
+import { AdminAnalyticsClient } from '@/components/admin/admin-analytics-client';
 
 function SummaryCard({ label, value }: { label: string; value: number }) {
   return (
@@ -68,6 +69,7 @@ export function AdminDashboardClient() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async poll
     void load();
 
     const timer = window.setInterval(() => {
@@ -82,82 +84,83 @@ export function AdminDashboardClient() {
     };
   }, [load]);
 
-  if (loading && !data) {
-    return <p className="mt-8 text-sm text-wanas-text-muted">{ADMIN_COPY.resolving}</p>;
-  }
-
-  if (error && !data) {
-    return (
-      <div className="mt-8 space-y-3 rounded-2xl border border-wanas-error-border bg-wanas-error-surface p-4">
-        <p role="alert" className="text-sm font-semibold text-wanas-error">
-          {ADMIN_COPY.loadFailed}
-        </p>
-        <button
-          type="button"
-          onClick={() => {
-            setLoading(true);
-            void load();
-          }}
-          className="inline-flex h-10 items-center justify-center rounded-xl border border-wanas-border bg-wanas-surface px-4 text-sm font-semibold"
-        >
-          {ADMIN_COPY.retry}
-        </button>
-      </div>
-    );
-  }
-
-  if (!data) {
-    return null;
-  }
-
-  const { summary } = data;
+  const summary = data?.summary;
+  const lockedRooms = data?.liveRooms.filter((room) => room.isLocked).length ?? 0;
 
   return (
     <div className="mt-8 space-y-10">
-      <div className="flex items-center justify-end">
-        <button
-          type="button"
-          onClick={() => {
-            void load();
-          }}
-          className="inline-flex h-10 items-center justify-center rounded-xl border border-wanas-border px-4 text-sm font-semibold text-wanas-text-primary hover:bg-wanas-surface-soft"
-        >
-          {ADMIN_COPY.refresh}
-        </button>
-      </div>
+      <section>
+        <AdminAnalyticsClient embedded />
+      </section>
 
-      {error ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-wanas-error-border bg-wanas-error-surface px-4 py-3">
+      {loading && !data ? (
+        <p className="text-sm text-wanas-text-muted">{ADMIN_COPY.resolving}</p>
+      ) : null}
+
+      {error && !data ? (
+        <div className="space-y-3 rounded-2xl border border-wanas-error-border bg-wanas-error-surface p-4">
           <p role="alert" className="text-sm font-semibold text-wanas-error">
             {ADMIN_COPY.loadFailed}
           </p>
           <button
             type="button"
             onClick={() => {
+              setLoading(true);
               void load();
             }}
-            className="text-sm font-semibold text-wanas-text-primary underline"
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-wanas-border bg-wanas-surface px-4 text-sm font-semibold"
           >
             {ADMIN_COPY.retry}
           </button>
         </div>
       ) : null}
 
-      <section>
-        <h2 className="mb-3 text-lg font-bold text-wanas-text-primary">{ADMIN_COPY.summary}</h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-          <SummaryCard label={ADMIN_COPY.registeredUsers} value={summary.registeredUsers} />
-          <SummaryCard label={ADMIN_COPY.currentRooms} value={summary.currentRooms} />
-          <SummaryCard label={ADMIN_COPY.currentSeats} value={summary.currentSeats} />
-          <SummaryCard label={ADMIN_COPY.connectedPlayers} value={summary.connectedPlayers} />
-          <SummaryCard label={ADMIN_COPY.disconnectedPlayers} value={summary.disconnectedPlayers} />
-          <SummaryCard label={ADMIN_COPY.spectators} value={summary.spectators} />
-          <SummaryCard label={ADMIN_COPY.completedMatches} value={summary.completedMatches} />
-          <SummaryCard label={ADMIN_COPY.abortedMatches} value={summary.abortedMatches} />
-          <SummaryCard label={ADMIN_COPY.matchesToday} value={summary.matchesStartedTodayUtc} />
-          <SummaryCard label={ADMIN_COPY.roomsWithLiveGame} value={summary.roomsWithLiveGame} />
-        </div>
-      </section>
+      {data && summary ? (
+        <>
+          {error ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-wanas-error-border bg-wanas-error-surface px-4 py-3">
+              <p role="alert" className="text-sm font-semibold text-wanas-error">
+                {ADMIN_COPY.loadFailed}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  void load();
+                }}
+                className="text-sm font-semibold text-wanas-text-primary underline"
+              >
+                {ADMIN_COPY.retry}
+              </button>
+            </div>
+          ) : null}
+
+          <section>
+            <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <h2 className="text-lg font-bold text-wanas-text-primary">{ADMIN_COPY.summary}</h2>
+                <p className="mt-1 text-xs text-wanas-text-muted">
+                  لقطة تشغيلية مباشرة، وليست ضمن السلاسل التاريخية.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  void load();
+                }}
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-wanas-border px-4 text-sm font-semibold text-wanas-text-primary hover:bg-wanas-surface-soft"
+              >
+                {ADMIN_COPY.refresh}
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
+              <SummaryCard label={ADMIN_COPY.currentRooms} value={summary.currentRooms} />
+              <SummaryCard label={ADMIN_COPY.connectedPlayers} value={summary.connectedPlayers} />
+              <SummaryCard label={ADMIN_COPY.spectators} value={summary.spectators} />
+              <SummaryCard label={ADMIN_COPY.locked} value={lockedRooms} />
+              <SummaryCard label={ADMIN_COPY.roomsWithLiveGame} value={summary.roomsWithLiveGame} />
+              <SummaryCard label={ADMIN_COPY.currentSeats} value={summary.currentSeats} />
+            </div>
+          </section>
 
       <section>
         <h2 className="mb-3 text-lg font-bold text-wanas-text-primary">{ADMIN_COPY.liveRooms}</h2>
@@ -307,6 +310,8 @@ export function AdminDashboardClient() {
           </ul>
         )}
       </section>
+        </>
+      ) : null}
     </div>
   );
 }

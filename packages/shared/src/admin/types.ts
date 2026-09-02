@@ -367,6 +367,10 @@ export type AdminAnalyticsGameUsage = {
   completed: number;
   aborted: number;
   completionRate: number | null;
+  matchShare: number;
+  lastPlayedAt: string | null;
+  averageParticipants: number | null;
+  averageDurationSeconds: number | null;
 };
 
 export type AdminAnalyticsParticipation = {
@@ -382,6 +386,45 @@ export type AdminAnalyticsDailyPoint = {
   matchesAborted: number;
 };
 
+export type AdminAnalyticsActivityPoint = {
+  bucket: string;
+  label: string;
+  matchesStarted: number;
+  matchesCompleted: number;
+  matchesAborted: number;
+};
+
+export type AdminAnalyticsMatchSizePoint = {
+  size: number;
+  matchCount: number;
+};
+
+export type AdminAnalyticsDuration = {
+  averageSeconds: number | null;
+  measuredMatchCount: number;
+};
+
+export type AdminRoomHistoryCloseReasonPoint = {
+  reason: AdminRoomCloseReason;
+  roomCount: number;
+};
+
+export type AdminAnalyticsRoomActivityPoint = {
+  date: string;
+  roomsCreated: number;
+};
+
+export type AdminRoomHistoryAnalytics = {
+  coverageStartedAt: string | null;
+  isPartialForRange: boolean;
+  roomsCreated: number | null;
+  averageDurationSeconds: number | null;
+  measuredRoomCount: number;
+  averageParticipants: number | null;
+  closeReasons: AdminRoomHistoryCloseReasonPoint[];
+  activity: AdminAnalyticsRoomActivityPoint[];
+};
+
 export type AdminAnalyticsData = {
   range: AdminAnalyticsRange;
   from: string | null;
@@ -390,4 +433,9 @@ export type AdminAnalyticsData = {
   participation: AdminAnalyticsParticipation;
   games: AdminAnalyticsGameUsage[];
   daily: AdminAnalyticsDailyPoint[];
+  activity: AdminAnalyticsActivityPoint[];
+  matchSizeDistribution: AdminAnalyticsMatchSizePoint[];
+  duration: AdminAnalyticsDuration;
+  startsBySaudiHour: number[];
+  roomHistory: AdminRoomHistoryAnalytics;
 };

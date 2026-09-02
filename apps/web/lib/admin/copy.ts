@@ -164,7 +164,7 @@ export const ADMIN_COPY = {
   range7d: 'آخر 7 أيام',
   range30d: 'آخر 30 يوم',
   rangeAll: 'كل الوقت',
-  rangeUtcNote: 'التجميع حسب التوقيت العالمي (UTC).',
+  rangeUtcNote: 'التجميع حسب توقيت السعودية (Asia/Riyadh).',
   roomsCreated: 'الغرف المنشأة',
   joinCount: 'مرات الانضمام',
   spectatorJoins: 'دخول المتفرجين',

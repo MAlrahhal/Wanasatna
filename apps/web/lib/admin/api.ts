@@ -974,7 +974,11 @@ function pickSafeAnalyticsGame(value: unknown): AdminAnalyticsData['games'][numb
     typeof record.started !== 'number' ||
     typeof record.completed !== 'number' ||
     typeof record.aborted !== 'number' ||
-    (record.completionRate !== null && typeof record.completionRate !== 'number')
+    (record.completionRate !== null && typeof record.completionRate !== 'number') ||
+    typeof record.matchShare !== 'number' ||
+    (record.lastPlayedAt !== null && typeof record.lastPlayedAt !== 'string') ||
+    (record.averageParticipants !== null && typeof record.averageParticipants !== 'number') ||
+    (record.averageDurationSeconds !== null && typeof record.averageDurationSeconds !== 'number')
   ) {
     return null;
   }
@@ -984,6 +988,10 @@ function pickSafeAnalyticsGame(value: unknown): AdminAnalyticsData['games'][numb
     completed: record.completed,
     aborted: record.aborted,
     completionRate: asFiniteNumber(record.completionRate),
+    matchShare: record.matchShare,
+    lastPlayedAt: record.lastPlayedAt as string | null,
+    averageParticipants: asFiniteNumber(record.averageParticipants),
+    averageDurationSeconds: asFiniteNumber(record.averageDurationSeconds),
   };
 }
 
@@ -1010,6 +1018,76 @@ function pickSafeDailyPoint(value: unknown): AdminAnalyticsData['daily'][number]
   };
 }
 
+function pickSafeActivityPoint(value: unknown): AdminAnalyticsData['activity'][number] | null {
+  if (!value || typeof value !== 'object') return null;
+  const record = value as Record<string, unknown>;
+  if (
+    typeof record.bucket !== 'string' ||
+    typeof record.label !== 'string' ||
+    typeof record.matchesStarted !== 'number' ||
+    typeof record.matchesCompleted !== 'number' ||
+    typeof record.matchesAborted !== 'number'
+  ) return null;
+  return {
+    bucket: record.bucket,
+    label: record.label,
+    matchesStarted: record.matchesStarted,
+    matchesCompleted: record.matchesCompleted,
+    matchesAborted: record.matchesAborted,
+  };
+}
+
+function pickSafeMatchSize(value: unknown): AdminAnalyticsData['matchSizeDistribution'][number] | null {
+  if (!value || typeof value !== 'object') return null;
+  const record = value as Record<string, unknown>;
+  return typeof record.size === 'number' && typeof record.matchCount === 'number'
+    ? { size: record.size, matchCount: record.matchCount }
+    : null;
+}
+
+function pickSafeRoomActivity(value: unknown): AdminAnalyticsData['roomHistory']['activity'][number] | null {
+  if (!value || typeof value !== 'object') return null;
+  const record = value as Record<string, unknown>;
+  return typeof record.date === 'string' && typeof record.roomsCreated === 'number'
+    ? { date: record.date, roomsCreated: record.roomsCreated }
+    : null;
+}
+
+function pickSafeRoomHistory(value: unknown): AdminAnalyticsData['roomHistory'] | null {
+  if (!value || typeof value !== 'object') return null;
+  const record = value as Record<string, unknown>;
+  if (
+    (record.coverageStartedAt !== null && typeof record.coverageStartedAt !== 'string') ||
+    typeof record.isPartialForRange !== 'boolean' ||
+    (record.roomsCreated !== null && typeof record.roomsCreated !== 'number') ||
+    (record.averageDurationSeconds !== null && typeof record.averageDurationSeconds !== 'number') ||
+    typeof record.measuredRoomCount !== 'number' ||
+    (record.averageParticipants !== null && typeof record.averageParticipants !== 'number') ||
+    !Array.isArray(record.closeReasons) ||
+    !Array.isArray(record.activity)
+  ) return null;
+  const closeReasons = record.closeReasons.flatMap((item) => {
+    if (!item || typeof item !== 'object') return [];
+    const row = item as Record<string, unknown>;
+    return (
+      (row.reason === 'ROOM_EMPTY' || row.reason === 'HOST_ENDED' || row.reason === 'ADMIN_FORCE_CLOSED' || row.reason === 'STARTUP_RECONCILIATION') &&
+      typeof row.roomCount === 'number'
+    ) ? [{ reason: row.reason, roomCount: row.roomCount } as AdminAnalyticsData['roomHistory']['closeReasons'][number]] : [];
+  });
+  return {
+    coverageStartedAt: record.coverageStartedAt as string | null,
+    isPartialForRange: record.isPartialForRange,
+    roomsCreated: record.roomsCreated as number | null,
+    averageDurationSeconds: asFiniteNumber(record.averageDurationSeconds),
+    measuredRoomCount: record.measuredRoomCount,
+    averageParticipants: asFiniteNumber(record.averageParticipants),
+    closeReasons,
+    activity: record.activity
+      .map(pickSafeRoomActivity)
+      .filter((row): row is AdminAnalyticsData['roomHistory']['activity'][number] => row !== null),
+  };
+}
+
 function pickSafeAnalytics(value: unknown): AdminAnalyticsData | null {
   if (!value || typeof value !== 'object') {
     return null;
@@ -1023,6 +1101,10 @@ function pickSafeAnalytics(value: unknown): AdminAnalyticsData | null {
     record.participation && typeof record.participation === 'object'
       ? (record.participation as Record<string, unknown>)
       : null;
+  const duration = record.duration && typeof record.duration === 'object'
+    ? (record.duration as Record<string, unknown>)
+    : null;
+  const roomHistory = pickSafeRoomHistory(record.roomHistory);
   if (
     (record.range !== '24h' &&
       record.range !== '7d' &&
@@ -1032,8 +1114,13 @@ function pickSafeAnalytics(value: unknown): AdminAnalyticsData | null {
     typeof record.to !== 'string' ||
     !overview ||
     !participation ||
+    !duration ||
+    !roomHistory ||
     !Array.isArray(record.games) ||
     !Array.isArray(record.daily) ||
+    !Array.isArray(record.activity) ||
+    !Array.isArray(record.matchSizeDistribution) ||
+    !Array.isArray(record.startsBySaudiHour) ||
     typeof overview.roomsCreated !== 'number' ||
     typeof overview.roomsJoined !== 'number' ||
     typeof overview.spectatorsJoined !== 'number' ||
@@ -1046,7 +1133,11 @@ function pickSafeAnalytics(value: unknown): AdminAnalyticsData | null {
     (overview.completionRate !== null && typeof overview.completionRate !== 'number') ||
     typeof participation.totalParticipations !== 'number' ||
     (participation.averageParticipants !== null &&
-      typeof participation.averageParticipants !== 'number')
+      typeof participation.averageParticipants !== 'number') ||
+    (duration.averageSeconds !== null && typeof duration.averageSeconds !== 'number') ||
+    typeof duration.measuredMatchCount !== 'number' ||
+    record.startsBySaudiHour.length !== 24 ||
+    record.startsBySaudiHour.some((hour) => typeof hour !== 'number')
   ) {
     return null;
   }
@@ -1077,6 +1168,18 @@ function pickSafeAnalytics(value: unknown): AdminAnalyticsData | null {
     daily: record.daily
       .map(pickSafeDailyPoint)
       .filter((row): row is AdminAnalyticsData['daily'][number] => row !== null),
+    activity: record.activity
+      .map(pickSafeActivityPoint)
+      .filter((row): row is AdminAnalyticsData['activity'][number] => row !== null),
+    matchSizeDistribution: record.matchSizeDistribution
+      .map(pickSafeMatchSize)
+      .filter((row): row is AdminAnalyticsData['matchSizeDistribution'][number] => row !== null),
+    duration: {
+      averageSeconds: asFiniteNumber(duration.averageSeconds),
+      measuredMatchCount: duration.measuredMatchCount,
+    },
+    startsBySaudiHour: record.startsBySaudiHour,
+    roomHistory,
   };
 }
 

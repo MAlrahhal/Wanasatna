@@ -7,7 +7,7 @@ import { createServer } from 'node:http';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { MatchStatus, ProductEventType } from '@prisma/client';
+import { MatchStatus, ProductEventType, RoomCloseReason } from '@prisma/client';
 import {
   ADMIN_ANALYTICS_DEFAULT_RANGE,
   ADMIN_DASHBOARD_GAME_IDS,
@@ -26,7 +26,16 @@ import { resetAuthRateLimiterForTests } from '../src/modules/auth/auth-rate-limi
 import { registerUser } from '../src/modules/auth/auth.service.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const MS_DAY = 24 * 60 * 60 * 1000;
+const MS_HOUR = 60 * 60 * 1000;
+const MS_DAY = 24 * MS_HOUR;
+
+function riyadhDateKey(value: Date): string {
+  return new Date(value.getTime() + 3 * MS_HOUR).toISOString().slice(0, 10);
+}
+
+function riyadhHour(value: Date): number {
+  return Number(new Date(value.getTime() + 3 * MS_HOUR).toISOString().slice(11, 13));
+}
 
 let passed = 0;
 let failed = 0;
@@ -361,8 +370,20 @@ async function main(): Promise<void> {
         after24.participation.totalParticipations / after24.overview.matchesStarted,
       );
 
+      assert.equal(after24.startsBySaudiHour.length, 24);
+      assert.equal(
+        after24.startsBySaudiHour[riyadhHour(now)],
+        before24.startsBySaudiHour[riyadhHour(now)] + 3,
+      );
+      assert.ok(after24.activity.length >= 24);
+      assert.equal(who.matchShare, who.started / after24.overview.matchesStarted);
+      assert.equal(typeof after24.duration.measuredMatchCount, 'number');
+      assert.equal(typeof after24.roomHistory.isPartialForRange, 'boolean');
+      assert.ok(Array.isArray(after24.matchSizeDistribution));
+      assert.ok(after24.roomHistory.activity.length >= 1);
+
       assert.ok(after7.daily.length >= 7);
-      const todayKey = now.toISOString().slice(0, 10);
+      const todayKey = riyadhDateKey(now);
       const todayRow = after7.daily.find((row) => row.date === todayKey);
       assert.ok(todayRow);
       const todayBefore = before7.daily.find((row) => row.date === todayKey);
@@ -382,6 +403,101 @@ async function main(): Promise<void> {
     } finally {
       await prisma.match.deleteMany({ where: { id: { in: matchIds } } });
       await prisma.productEvent.deleteMany({ where: { id: { in: eventIds } } });
+    }
+  });
+
+  await test('unique participants, valid duration only, room history coverage', async () => {
+    const now = new Date();
+    const before = await getAdminAnalytics('24h', now);
+    const matchIds: string[] = [];
+    const historyIds: string[] = [];
+
+    const valid = await prisma.match.create({
+      data: {
+        roomCode: '999992',
+        gameId: 'draw-guess',
+        status: MatchStatus.COMPLETED,
+        startedAt: now,
+        endedAt: new Date(now.getTime() + 30_000),
+        participants: {
+          create: [
+            { displayName: 'dup-name', userId: null, playerId: null },
+            { displayName: 'dup-name', userId: null, playerId: null },
+          ],
+        },
+      },
+    });
+    const invalidDuration = await prisma.match.create({
+      data: {
+        roomCode: '999992',
+        gameId: 'draw-guess',
+        status: MatchStatus.ABORTED,
+        startedAt: now,
+        endedAt: new Date(now.getTime() - 5_000),
+      },
+    });
+    matchIds.push(valid.id, invalidDuration.id);
+
+    const history = await prisma.roomHistory.create({
+      data: {
+        liveRoomId: `analytics-room-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`,
+        roomCode: '999992',
+        currentHostPlayerId: 'host-1',
+        currentHostName: 'مضيف',
+        playerCap: 8,
+        isLocked: false,
+        createdAt: now,
+        historyStartedAt: now,
+        closedAt: new Date(now.getTime() + 60_000),
+        closeReason: RoomCloseReason.HOST_ENDED,
+        participations: {
+          create: [
+            {
+              livePlayerId: 'player-1',
+              displayName: 'لاعب',
+              joinedAt: now,
+              joinedAsSpectator: false,
+            },
+            {
+              livePlayerId: 'spec-1',
+              displayName: 'متفرج',
+              joinedAt: now,
+              joinedAsSpectator: true,
+            },
+          ],
+        },
+      },
+    });
+    historyIds.push(history.id);
+
+    try {
+      const after = await getAdminAnalytics('24h', now);
+      assert.equal(
+        after.participation.totalParticipations,
+        before.participation.totalParticipations + 1,
+      );
+      assert.equal(after.overview.matchesStarted, before.overview.matchesStarted + 2);
+      assert.equal(after.duration.measuredMatchCount, before.duration.measuredMatchCount + 1);
+      assert.ok(after.duration.averageSeconds !== null);
+      const sizeSum = (rows: AdminAnalyticsData['matchSizeDistribution']) =>
+        rows.reduce((sum, row) => sum + row.matchCount, 0);
+      assert.equal(sizeSum(after.matchSizeDistribution), sizeSum(before.matchSizeDistribution) + 2);
+      assert.equal(
+        after.roomHistory.roomsCreated,
+        (before.roomHistory.roomsCreated ?? 0) + 1,
+      );
+      const hostEnded = after.roomHistory.closeReasons.find(
+        (row) => row.reason === 'HOST_ENDED',
+      );
+      const hostEndedBefore = before.roomHistory.closeReasons.find(
+        (row) => row.reason === 'HOST_ENDED',
+      );
+      assert.ok(hostEnded);
+      assert.equal(hostEnded.roomCount, (hostEndedBefore?.roomCount ?? 0) + 1);
+      assert.ok(after.roomHistory.activity.some((row) => row.date === riyadhDateKey(now)));
+    } finally {
+      await prisma.match.deleteMany({ where: { id: { in: matchIds } } });
+      await prisma.roomHistory.deleteMany({ where: { id: { in: historyIds } } });
     }
   });
 
