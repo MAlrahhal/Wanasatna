@@ -58,16 +58,25 @@ function MetricCard({
   label,
   value,
   detail,
+  emphasis = 'primary',
 }: {
   label: string;
   value: string | number;
   detail?: string;
+  emphasis?: 'primary' | 'secondary';
 }) {
   return (
-    <article className="rounded-2xl border border-wanas-border bg-wanas-surface p-4">
+    <article className="rounded-2xl border border-wanas-border bg-wanas-surface p-3">
       <p className="text-xs font-semibold text-wanas-text-muted">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-wanas-text-primary">{value}</p>
-      {detail ? <p className="mt-1 text-xs text-wanas-text-muted">{detail}</p> : null}
+      <p
+        className={cn(
+          'mt-0.5 font-bold text-wanas-text-primary',
+          emphasis === 'primary' ? 'text-2xl' : 'text-xl',
+        )}
+      >
+        {value}
+      </p>
+      {detail ? <p className="mt-0.5 text-xs text-wanas-text-muted">{detail}</p> : null}
     </article>
   );
 }
@@ -75,9 +84,69 @@ function MetricCard({
 function Bar({ value, max }: { value: number; max: number }) {
   const width = max <= 0 || value <= 0 ? '0%' : `${Math.max(3, Math.round((value / max) * 100))}%`;
   return (
-    <span className="block h-2 rounded-full bg-wanas-surface-soft">
-      <span className="block h-2 rounded-full bg-wanas-text-primary" style={{ width }} />
+    <span className="block h-1.5 rounded-full bg-wanas-surface-soft">
+      <span className="block h-1.5 rounded-full bg-wanas-text-primary" style={{ width }} />
     </span>
+  );
+}
+
+function hourTickClass(hour: number, forCount: boolean): string {
+  if (hour % 6 === 0) {
+    return forCount ? 'hidden sm:block' : 'block';
+  }
+  if (hour % 3 === 0) {
+    return 'hidden sm:block';
+  }
+  if (hour % 2 === 0) {
+    return 'hidden xl:block';
+  }
+  return 'hidden 2xl:block';
+}
+
+function HourlyActivity({ counts }: { counts: number[] }) {
+  const maxHour = Math.max(0, ...counts);
+
+  return (
+    <div className="min-w-0 overflow-hidden">
+      <div className="flex h-[4.5rem] items-end gap-px sm:h-[4.75rem] sm:gap-0.5">
+        {counts.map((count, hour) => (
+          <div
+            key={hour}
+            className="flex min-w-0 flex-1 flex-col justify-end"
+            title={`${String(hour).padStart(2, '0')}:00 · ${count}`}
+            aria-label={`الساعة ${hour}: ${count}`}
+          >
+            <div className="flex h-full items-end rounded-sm bg-wanas-surface-soft px-px">
+              <span
+                className="w-full rounded-sm bg-wanas-text-primary"
+                style={{
+                  height: maxHour
+                    ? `${Math.max(count ? 6 : 0, Math.round((count / maxHour) * 100))}%`
+                    : '0%',
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-1 flex gap-px sm:gap-0.5">
+        {counts.map((count, hour) => (
+          <div key={hour} className="min-w-0 flex-1 text-center text-[10px] leading-4 sm:text-xs">
+            <p className={cn('truncate tabular-nums text-wanas-text-muted', hourTickClass(hour, false))}>
+              {hour}
+            </p>
+            <p
+              className={cn(
+                'truncate font-semibold tabular-nums text-wanas-text-secondary',
+                hourTickClass(hour, true),
+              )}
+            >
+              {count}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -114,7 +183,6 @@ function AnalyticsContent({ data }: { data: AdminAnalyticsData }) {
   const topGame = data.games.find((game) => game.started > 0) ?? null;
   const maxGameMatches = Math.max(0, ...data.games.map((game) => game.started));
   const maxActivity = Math.max(0, ...data.activity.map((point) => point.matchesStarted));
-  const maxHour = Math.max(0, ...data.startsBySaudiHour);
   const groupedSizes = Array.from({ length: 9 }, (_, index) => index + 1).map((size) => ({
     size,
     matchCount: data.matchSizeDistribution
@@ -128,27 +196,20 @@ function AnalyticsContent({ data }: { data: AdminAnalyticsData }) {
     data.overview.roomsJoined === 0;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
       {emptyPeriod ? (
         <p className="text-sm text-wanas-text-muted">{ADMIN_COPY.emptyPeriod}</p>
       ) : null}
 
       <section>
-        <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+        <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
           <h2 className="text-lg font-bold text-wanas-text-primary">{ADMIN_COPY.overview}</h2>
           <p className="text-xs text-wanas-text-muted">
             المباريات حسب وقت البدء، من {data.from ? formatDate(data.from) : 'بداية البيانات'} إلى{' '}
             {formatDate(data.to)}
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <MetricCard
-            label={ADMIN_COPY.roomsCreated}
-            value={formatNumber(data.roomHistory.roomsCreated)}
-            detail={
-              data.roomHistory.coverageStartedAt ? 'من سجل الغرف الدائم' : 'سجل الغرف غير متاح'
-            }
-          />
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard
             label={ADMIN_COPY.matchesStarted}
             value={data.overview.matchesStarted}
@@ -164,6 +225,21 @@ function AnalyticsContent({ data }: { data: AdminAnalyticsData }) {
             value={formatNumber(data.participation.averageParticipants)}
           />
           <MetricCard
+            label="أكثر لعبة لعباً"
+            value={topGame ? (ADMIN_GAME_TITLES[topGame.gameId] ?? topGame.gameId) : 'لا توجد بيانات'}
+            detail={
+              topGame ? `${topGame.started} مباراة · ${formatPercent(topGame.matchShare)}` : undefined
+            }
+          />
+          <MetricCard
+            label={ADMIN_COPY.roomsCreated}
+            value={formatNumber(data.roomHistory.roomsCreated)}
+            detail={
+              data.roomHistory.coverageStartedAt ? 'من سجل الغرف الدائم' : 'سجل الغرف غير متاح'
+            }
+            emphasis="secondary"
+          />
+          <MetricCard
             label="متوسط مدة المباراة"
             value={formatDuration(data.duration.averageSeconds)}
             detail={
@@ -171,28 +247,22 @@ function AnalyticsContent({ data }: { data: AdminAnalyticsData }) {
                 ? `من ${data.duration.measuredMatchCount} مباراة ذات وقت مكتمل`
                 : undefined
             }
-          />
-          <MetricCard
-            label="أكثر لعبة لعباً"
-            value={topGame ? (ADMIN_GAME_TITLES[topGame.gameId] ?? topGame.gameId) : 'لا توجد بيانات'}
-            detail={
-              topGame ? `${topGame.started} مباراة · ${formatPercent(topGame.matchShare)}` : undefined
-            }
+            emphasis="secondary"
           />
         </div>
       </section>
 
-      <div className="grid min-w-0 gap-6 xl:grid-cols-2">
-        <section className="rounded-2xl border border-wanas-border bg-wanas-surface p-4">
+      <div className="grid min-w-0 gap-4 xl:grid-cols-2">
+        <section className="rounded-2xl border border-wanas-border bg-wanas-surface p-3 sm:p-4">
           <h2 className="text-lg font-bold text-wanas-text-primary">{ADMIN_COPY.gameUsage}</h2>
-          <p className="mt-1 text-xs text-wanas-text-muted">
+          <p className="mt-0.5 text-xs text-wanas-text-muted">
             عدد المباريات وحصتها من جميع المباريات في الفترة.
           </p>
-          <div className="mt-4 space-y-3">
+          <div className="mt-3 space-y-2">
             {data.games.map((game) => (
               <div
                 key={game.gameId}
-                className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 text-sm"
+                className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-0.5 text-sm"
               >
                 <p className="font-semibold text-wanas-text-primary">
                   {ADMIN_GAME_TITLES[game.gameId] ?? game.gameId}
@@ -208,15 +278,15 @@ function AnalyticsContent({ data }: { data: AdminAnalyticsData }) {
           </div>
         </section>
 
-        <section className="min-w-0 rounded-2xl border border-wanas-border bg-wanas-surface p-4">
+        <section className="min-w-0 rounded-2xl border border-wanas-border bg-wanas-surface p-3 sm:p-4">
           <h2 className="text-lg font-bold text-wanas-text-primary">{ADMIN_COPY.activity}</h2>
-          <p className="mt-1 text-xs text-wanas-text-muted">
+          <p className="mt-0.5 text-xs text-wanas-text-muted">
             بدأت / مكتملة / ملغاة. الإلغاء يعتمد على حالة المباراة ABORTED، وليس وقت النهاية.
           </p>
           {data.activity.length === 0 ? (
-            <p className="mt-4 text-sm text-wanas-text-muted">لا تتوفر سلسلة زمنية لهذه الفترة.</p>
+            <p className="mt-3 text-sm text-wanas-text-muted">لا تتوفر سلسلة زمنية لهذه الفترة.</p>
           ) : (
-            <div className="mt-4 max-h-80 space-y-2 overflow-y-auto pe-1">
+            <div className="mt-3 max-h-72 space-y-1.5 overflow-y-auto pe-1">
               {data.activity.map((point) => (
                 <div
                   key={point.bucket}
@@ -234,16 +304,16 @@ function AnalyticsContent({ data }: { data: AdminAnalyticsData }) {
         </section>
       </div>
 
-      <div className="grid min-w-0 gap-6 xl:grid-cols-2">
-        <section className="rounded-2xl border border-wanas-border bg-wanas-surface p-4">
+      <div className="grid min-w-0 gap-4 xl:grid-cols-2">
+        <section className="rounded-2xl border border-wanas-border bg-wanas-surface p-3 sm:p-4">
           <h2 className="text-lg font-bold text-wanas-text-primary">{ADMIN_COPY.participation}</h2>
-          <p className="mt-1 text-xs text-wanas-text-muted">عدد اللاعبين الفريدين داخل كل مباراة.</p>
-          <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-5">
+          <p className="mt-0.5 text-xs text-wanas-text-muted">عدد اللاعبين الفريدين داخل كل مباراة.</p>
+          <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
             {groupedSizes.map((point) => (
-              <div key={point.size} className="rounded-xl bg-wanas-surface-soft p-3 text-center">
+              <div key={point.size} className="rounded-xl bg-wanas-surface-soft px-2 py-2 text-center">
                 <p className="text-xs text-wanas-text-muted">{point.size === 9 ? '9+' : point.size}</p>
-                <p className="mt-1 text-lg font-bold">{point.matchCount}</p>
-                <div className="mx-auto mt-2 w-full">
+                <p className="mt-0.5 text-lg font-bold">{point.matchCount}</p>
+                <div className="mx-auto mt-1.5 w-full">
                   <Bar value={point.matchCount} max={maxSize} />
                 </div>
               </div>
@@ -251,36 +321,19 @@ function AnalyticsContent({ data }: { data: AdminAnalyticsData }) {
           </div>
         </section>
 
-        <section className="min-w-0 rounded-2xl border border-wanas-border bg-wanas-surface p-4">
+        <section className="min-w-0 rounded-2xl border border-wanas-border bg-wanas-surface p-3 sm:p-4">
           <h2 className="text-lg font-bold text-wanas-text-primary">متى يكون الموقع نشطاً؟</h2>
-          <p className="mt-1 text-xs text-wanas-text-muted">
+          <p className="mt-0.5 text-xs text-wanas-text-muted">
             بداية المباريات حسب ساعة السعودية (Asia/Riyadh).
           </p>
-          <div className="mt-4 overflow-x-auto">
-            <div className="grid min-w-[36rem] grid-cols-6 gap-2 sm:grid-cols-8 lg:grid-cols-12">
-              {data.startsBySaudiHour.map((count, hour) => (
-                <div key={hour} className="text-center text-xs">
-                  <div className="flex h-20 items-end rounded-lg bg-wanas-surface-soft p-1">
-                    <span
-                      className="w-full rounded bg-wanas-text-primary"
-                      style={{
-                        height: maxHour
-                          ? `${Math.max(count ? 8 : 0, Math.round((count / maxHour) * 100))}%`
-                          : '0%',
-                      }}
-                    />
-                  </div>
-                  <p className="mt-1 text-wanas-text-muted">{hour}</p>
-                  <p className="font-semibold">{count}</p>
-                </div>
-              ))}
-            </div>
+          <div className="mt-3">
+            <HourlyActivity counts={data.startsBySaudiHour} />
           </div>
         </section>
       </div>
 
       <section>
-        <h2 className="mb-3 text-lg font-bold text-wanas-text-primary">رؤى حسب اللعبة</h2>
+        <h2 className="mb-2 text-lg font-bold text-wanas-text-primary">رؤى حسب اللعبة</h2>
         <div className="overflow-x-auto rounded-2xl border border-wanas-border bg-wanas-surface">
           <table className="w-full min-w-[800px] text-right text-sm">
             <thead className="bg-wanas-surface-soft text-wanas-text-muted">
@@ -296,14 +349,14 @@ function AnalyticsContent({ data }: { data: AdminAnalyticsData }) {
             <tbody>
               {data.games.map((game) => (
                 <tr key={game.gameId} className="border-t border-wanas-border">
-                  <td className="px-3 py-3 font-semibold">
+                  <td className="px-3 py-2 font-semibold">
                     {ADMIN_GAME_TITLES[game.gameId] ?? game.gameId}
                   </td>
-                  <td className="px-3 py-3">{game.started}</td>
-                  <td className="px-3 py-3">{formatPercent(game.matchShare)}</td>
-                  <td className="px-3 py-3">{formatDate(game.lastPlayedAt)}</td>
-                  <td className="px-3 py-3">{formatNumber(game.averageParticipants)}</td>
-                  <td className="px-3 py-3">{formatDuration(game.averageDurationSeconds)}</td>
+                  <td className="px-3 py-2">{game.started}</td>
+                  <td className="px-3 py-2">{formatPercent(game.matchShare)}</td>
+                  <td className="px-3 py-2">{formatDate(game.lastPlayedAt)}</td>
+                  <td className="px-3 py-2">{formatNumber(game.averageParticipants)}</td>
+                  <td className="px-3 py-2">{formatDuration(game.averageDurationSeconds)}</td>
                 </tr>
               ))}
             </tbody>
@@ -311,11 +364,11 @@ function AnalyticsContent({ data }: { data: AdminAnalyticsData }) {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-wanas-border bg-wanas-surface p-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+      <section className="rounded-2xl border border-wanas-border bg-wanas-surface p-3 sm:p-4">
+        <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <h2 className="text-lg font-bold text-wanas-text-primary">إحصاءات سجل الغرف</h2>
-            <p className="mt-1 text-xs text-wanas-text-muted">
+            <p className="mt-0.5 text-xs text-wanas-text-muted">
               إحصاءات الغرف متاحة منذ بدء تسجيل سجل الغرف الدائم
               {data.roomHistory.coverageStartedAt
                 ? `: ${formatDate(data.roomHistory.coverageStartedAt)}`
@@ -329,13 +382,14 @@ function AnalyticsContent({ data }: { data: AdminAnalyticsData }) {
           ) : null}
         </div>
         {!data.roomHistory.coverageStartedAt ? (
-          <p className="mt-4 text-sm text-wanas-text-muted">لا تتوفر بيانات الغرف لهذه الفترة.</p>
+          <p className="mt-3 text-sm text-wanas-text-muted">لا تتوفر بيانات الغرف لهذه الفترة.</p>
         ) : (
           <>
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
               <MetricCard
                 label={ADMIN_COPY.roomsCreated}
                 value={formatNumber(data.roomHistory.roomsCreated)}
+                emphasis="secondary"
               />
               <MetricCard
                 label="متوسط مدة الغرفة"
@@ -345,17 +399,19 @@ function AnalyticsContent({ data }: { data: AdminAnalyticsData }) {
                     ? `من ${data.roomHistory.measuredRoomCount} غرفة مغلقة`
                     : undefined
                 }
+                emphasis="secondary"
               />
               <MetricCard
                 label="متوسط المشاركين في الغرفة"
                 value={formatNumber(data.roomHistory.averageParticipants)}
+                emphasis="secondary"
               />
             </div>
-            <div className="mt-5 grid min-w-0 gap-5 lg:grid-cols-2">
+            <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-2">
               <div className="min-w-0">
                 <h3 className="text-sm font-bold">الغرف المنشأة بمرور الوقت</h3>
                 {data.roomHistory.activity.length ? (
-                  <div className="mt-3 space-y-2">
+                  <div className="mt-2 space-y-1.5">
                     {data.roomHistory.activity.map((point) => (
                       <div
                         key={point.date}
@@ -374,14 +430,14 @@ function AnalyticsContent({ data }: { data: AdminAnalyticsData }) {
                     ))}
                   </div>
                 ) : (
-                  <p className="mt-3 text-sm text-wanas-text-muted">
+                  <p className="mt-2 text-sm text-wanas-text-muted">
                     لا تتوفر سلسلة زمنية لهذه الفترة.
                   </p>
                 )}
               </div>
               <div>
                 <h3 className="text-sm font-bold">{ADMIN_COPY.closeReason}</h3>
-                <div className="mt-3 space-y-2">
+                <div className="mt-2 space-y-1.5">
                   {data.roomHistory.closeReasons.map((point) => (
                     <div
                       key={point.reason}
@@ -462,7 +518,12 @@ export function AdminAnalyticsClient({ embedded = false }: { embedded?: boolean 
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <TitleTag className="text-2xl font-bold text-wanas-text-primary">
+          <TitleTag
+            className={cn(
+              'font-bold text-wanas-text-primary',
+              embedded ? 'text-xl' : 'text-2xl',
+            )}
+          >
             {ADMIN_COPY.analyticsTitle}
           </TitleTag>
           <p className="mt-1 text-xs text-wanas-text-muted">{ADMIN_COPY.rangeUtcNote}</p>
@@ -475,7 +536,7 @@ export function AdminAnalyticsClient({ embedded = false }: { embedded?: boolean 
           {ADMIN_COPY.refresh}
         </button>
       </div>
-      <div className="mt-4">
+      <div className="mt-3">
         <RangePicker
           range={range}
           onChange={(nextRange) => {
@@ -485,10 +546,10 @@ export function AdminAnalyticsClient({ embedded = false }: { embedded?: boolean 
         />
       </div>
       {loading && !data ? (
-        <p className="mt-8 text-sm text-wanas-text-muted">{ADMIN_COPY.resolving}</p>
+        <p className="mt-6 text-sm text-wanas-text-muted">{ADMIN_COPY.resolving}</p>
       ) : null}
       {error && !data ? (
-        <div className="mt-8 space-y-3 rounded-2xl border border-wanas-error-border bg-wanas-error-surface p-4">
+        <div className="mt-6 space-y-3 rounded-2xl border border-wanas-error-border bg-wanas-error-surface p-4">
           <p role="alert" className="text-sm font-semibold text-wanas-error">
             {ADMIN_COPY.loadFailed}
           </p>
@@ -505,7 +566,7 @@ export function AdminAnalyticsClient({ embedded = false }: { embedded?: boolean 
         </div>
       ) : null}
       {data ? (
-        <div className="mt-8">
+        <div className="mt-5">
           {error ? (
             <p role="alert" className="mb-4 text-sm font-semibold text-wanas-error">
               {ADMIN_COPY.loadFailed}

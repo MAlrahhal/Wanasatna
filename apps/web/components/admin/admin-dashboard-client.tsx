@@ -10,9 +10,9 @@ import { AdminAnalyticsClient } from '@/components/admin/admin-analytics-client'
 
 function SummaryCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-wanas-border bg-wanas-surface p-4">
+    <div className="rounded-2xl border border-wanas-border bg-wanas-surface p-3">
       <p className="text-xs font-semibold text-wanas-text-muted">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-wanas-text-primary">{value}</p>
+      <p className="mt-0.5 text-2xl font-bold text-wanas-text-primary">{value}</p>
     </div>
   );
 }
@@ -88,7 +88,7 @@ export function AdminDashboardClient() {
   const lockedRooms = data?.liveRooms.filter((room) => room.isLocked).length ?? 0;
 
   return (
-    <div className="mt-8 space-y-10">
+    <div className="mt-5 space-y-6">
       <section>
         <AdminAnalyticsClient embedded />
       </section>
@@ -135,7 +135,7 @@ export function AdminDashboardClient() {
           ) : null}
 
           <section>
-            <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+            <div className="mb-2 flex flex-wrap items-end justify-between gap-2">
               <div>
                 <h2 className="text-lg font-bold text-wanas-text-primary">{ADMIN_COPY.summary}</h2>
                 <p className="mt-1 text-xs text-wanas-text-muted">
@@ -152,7 +152,7 @@ export function AdminDashboardClient() {
                 {ADMIN_COPY.refresh}
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
+            <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3 xl:grid-cols-6">
               <SummaryCard label={ADMIN_COPY.currentRooms} value={summary.currentRooms} />
               <SummaryCard label={ADMIN_COPY.connectedPlayers} value={summary.connectedPlayers} />
               <SummaryCard label={ADMIN_COPY.spectators} value={summary.spectators} />
@@ -163,9 +163,9 @@ export function AdminDashboardClient() {
           </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-bold text-wanas-text-primary">{ADMIN_COPY.liveRooms}</h2>
+        <h2 className="mb-2 text-lg font-bold text-wanas-text-primary">{ADMIN_COPY.liveRooms}</h2>
         {data.liveRooms.length === 0 ? (
-          <p className="rounded-2xl border border-wanas-border bg-wanas-surface px-4 py-6 text-sm text-wanas-text-muted">
+          <p className="rounded-2xl border border-wanas-border bg-wanas-surface px-4 py-4 text-sm text-wanas-text-muted">
             {ADMIN_COPY.emptyRooms}
           </p>
         ) : (
@@ -228,9 +228,9 @@ export function AdminDashboardClient() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-bold text-wanas-text-primary">{ADMIN_COPY.recentMatches}</h2>
+        <h2 className="mb-2 text-lg font-bold text-wanas-text-primary">{ADMIN_COPY.recentMatches}</h2>
         {data.recentMatches.length === 0 ? (
-          <p className="rounded-2xl border border-wanas-border bg-wanas-surface px-4 py-6 text-sm text-wanas-text-muted">
+          <p className="rounded-2xl border border-wanas-border bg-wanas-surface px-4 py-4 text-sm text-wanas-text-muted">
             {ADMIN_COPY.emptyMatches}
           </p>
         ) : (
@@ -268,12 +268,12 @@ export function AdminDashboardClient() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-bold text-wanas-text-primary">{ADMIN_COPY.games}</h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <h2 className="mb-2 text-lg font-bold text-wanas-text-primary">{ADMIN_COPY.games}</h2>
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
           {data.gameUsage.map((usage) => (
             <article
               key={usage.gameId}
-              className="rounded-2xl border border-wanas-border bg-wanas-surface p-4 text-sm"
+              className="rounded-2xl border border-wanas-border bg-wanas-surface p-3 text-sm"
             >
               <p className="font-bold text-wanas-text-primary">{adminGameTitle(usage.gameId)}</p>
               <p className="mt-2 text-wanas-text-secondary">
@@ -291,9 +291,9 @@ export function AdminDashboardClient() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-lg font-bold text-wanas-text-primary">{ADMIN_COPY.recentUsers}</h2>
+        <h2 className="mb-2 text-lg font-bold text-wanas-text-primary">{ADMIN_COPY.recentUsers}</h2>
         {data.recentUsers.length === 0 ? (
-          <p className="rounded-2xl border border-wanas-border bg-wanas-surface px-4 py-6 text-sm text-wanas-text-muted">
+          <p className="rounded-2xl border border-wanas-border bg-wanas-surface px-4 py-4 text-sm text-wanas-text-muted">
             {ADMIN_COPY.emptyUsers}
           </p>
         ) : (
