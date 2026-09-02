@@ -67,14 +67,17 @@ test('active-room resume is visible with consistent copy', () => {
   const home = read('app/(public)/home-page-client.tsx');
   const hook = read('lib/public/use-room-actions.ts');
   assert.match(banner, /لديك غرفة مفتوحة/);
+  assert.match(banner, /لديك غرف مفتوحة/);
   assert.match(banner, /يمكنك العودة إلى الغرفة/);
   assert.match(banner, /العودة كـ/);
   assert.match(banner, /enterFromJoinForm/);
   assert.match(banner, /HomeActiveRoomResume/);
   assert.match(home, /<HomeActiveRoomResume/);
+  assert.match(home, /claims=\{room\.resumeClaims\}/);
   assert.match(home, /handleResumeClaim/);
   assert.match(hook, /handleResumeClaim/);
-  assert.match(hook, /enterFromJoinForm\(resumeClaim\.roomCode, resumeClaim\.playerName\)/);
+  assert.match(hook, /getResumeDiscoveryListSnapshot\(readInviteCode\(searchParams\) \|\| null\)/);
+  assert.match(hook, /enterFromJoinForm\(claim\.roomCode, claim\.playerName\)/);
   assert.doesNotMatch(banner, /العودة للغرفة/);
 });
 

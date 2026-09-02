@@ -45,8 +45,8 @@ type InviteJoinCardProps = {
   isJoining: boolean;
   playerNameError?: string;
   actionError?: string;
-  resumeClaim?: ActiveRoomSession | null;
-  onResumeClaim?: () => void;
+  resumeClaims?: ActiveRoomSession[];
+  onResumeClaim?: (claim: ActiveRoomSession) => void;
 };
 
 export function InviteJoinCard({
@@ -57,7 +57,7 @@ export function InviteJoinCard({
   isJoining,
   playerNameError,
   actionError,
-  resumeClaim = null,
+  resumeClaims = [],
   onResumeClaim,
 }: InviteJoinCardProps) {
   return (
@@ -68,9 +68,16 @@ export function InviteJoinCard({
             <SystemStatus tone="error" {...presentRoomActionError(actionError)} />
           </div>
         ) : null}
-        {resumeClaim && onResumeClaim ? (
-          <div className="mb-4">
-            <RoomResumePanel claim={resumeClaim} busy={isJoining} onResume={onResumeClaim} />
+        {resumeClaims.length > 0 && onResumeClaim ? (
+          <div className="mb-4 flex flex-col gap-3">
+            {resumeClaims.map((claim) => (
+              <RoomResumePanel
+                key={`${claim.roomId}:${claim.playerId}`}
+                claim={claim}
+                busy={isJoining}
+                onResume={() => onResumeClaim(claim)}
+              />
+            ))}
           </div>
         ) : null}
         <article className="wanas-panel border border-wanas-accent p-4 shadow-[0_0_0_1px_rgba(0,210,255,0.25)] sm:p-8">

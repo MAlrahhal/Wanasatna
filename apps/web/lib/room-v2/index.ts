@@ -25,7 +25,11 @@ export {
   removeReconnectClaimForSession,
   writeReconnectClaim,
 } from '@/lib/room-v2/reconnect-claims';
-export { discoverResumableRoomSession, notifyResumeDiscovery } from '@/lib/room-v2/discover-claim';
+export {
+  discoverResumableRoomSession,
+  listDiscoverableReconnectClaims,
+  notifyResumeDiscovery,
+} from '@/lib/room-v2/discover-claim';
 export {
   canAutoResumeWithExplicitName,
   isTerminalResumeFailure,

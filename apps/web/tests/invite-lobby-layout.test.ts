@@ -70,7 +70,7 @@ test('?code= activates dedicated invite UI and reuses Join', () => {
   assert.match(invite, /تم تزويدك برمز الغرفة عبر رابط الدعوة\./);
   assert.match(invite, /onJoinRoom/);
   assert.match(invite, /RoomResumePanel/);
-  assert.match(invite, /resumeClaim/);
+  assert.match(invite, /resumeClaims/);
   assert.doesNotMatch(invite, /إنشاء غرفة/);
   assert.doesNotMatch(invite, /onCreateRoom/);
   assert.doesNotMatch(invite, /onJoinCodeChange/);
@@ -176,8 +176,8 @@ test('cold lobby invite does not silently resume a persistent claim by room code
   assert.match(bootstrap, /router\.replace\(`\/\?code=\$\{encodeURIComponent\(urlRoomCode\)\}`\)/);
   assert.match(invite, /RoomResumePanel/);
   assert.match(invite, /onJoinRoom/);
-  assert.match(hook, /getResumeDiscoverySnapshot\(readInviteCode\(searchParams\) \|\| null\)/);
-  assert.match(hook, /enterFromJoinForm\(resumeClaim\.roomCode, resumeClaim\.playerName\)/);
+  assert.match(hook, /getResumeDiscoveryListSnapshot\(readInviteCode\(searchParams\) \|\| null\)/);
+  assert.match(hook, /enterFromJoinForm\(claim\.roomCode, claim\.playerName\)/);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

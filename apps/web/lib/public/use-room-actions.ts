@@ -6,8 +6,12 @@ import { playerNameContainsForbiddenChars } from '@wanasatna/shared';
 import { replaceHomeClean } from '@/lib/public/home-url';
 import { HOME_ROOM_ACTIONS_ID } from '@/lib/public/routes';
 import { getRuntimeId, recordContinuity } from '@/lib/room-v2/continuity';
-import { getRoomSessionManager, notifyResumeDiscovery } from '@/lib/room-v2';
-import { getResumeDiscoverySnapshot, subscribeResumeDiscovery } from '@/lib/room-v2/discover-claim';
+import { getRoomSessionManager, notifyResumeDiscovery, type ActiveRoomSession } from '@/lib/room-v2';
+import {
+  EMPTY_RESUME_CLAIMS,
+  getResumeDiscoveryListSnapshot,
+  subscribeResumeDiscovery,
+} from '@/lib/room-v2/discover-claim';
 import { getRoomSocket } from '@/lib/room/socket';
 
 type FieldErrors = {
@@ -74,10 +78,10 @@ export function useRoomActions() {
     setJoinCode(code);
   }, [searchParams, router]);
 
-  const resumeClaim = useSyncExternalStore(
+  const resumeClaims = useSyncExternalStore(
     subscribeResumeDiscovery,
-    () => getResumeDiscoverySnapshot(readInviteCode(searchParams) || null),
-    () => null,
+    () => getResumeDiscoveryListSnapshot(readInviteCode(searchParams) || null),
+    () => EMPTY_RESUME_CLAIMS,
   );
 
   useEffect(() => {
@@ -247,9 +251,11 @@ export function useRoomActions() {
         const result = await manager.enterFromJoinForm(trimmedCode, trimmedName);
         if (!result.success) {
           setErrorMessage(result.error.message);
+          notifyResumeDiscovery();
           return;
         }
 
+        notifyResumeDiscovery();
         manager.clearExplicitLeaveHome();
         const lobbyUrl = `/lobby?code=${encodeURIComponent(result.data.roomCode)}`;
         // After Explicit Leave in this runtime, App Router soft-nav can revive the
@@ -276,8 +282,8 @@ export function useRoomActions() {
     })();
   }, [isCreating, isJoining, joinCode, joinPlayerName, router, scrollToRoomActions]);
 
-  const handleResumeClaim = useCallback(() => {
-    if (!resumeClaim || isCreating || isJoining || inFlightRef.current) {
+  const handleResumeClaim = useCallback((claim: ActiveRoomSession) => {
+    if (!claim || isCreating || isJoining || inFlightRef.current) {
       return;
     }
 
@@ -290,13 +296,14 @@ export function useRoomActions() {
       const manager = getRoomSessionManager();
       try {
         manager.clearExplicitLeaveHome();
-        const result = await manager.enterFromJoinForm(resumeClaim.roomCode, resumeClaim.playerName);
+        const result = await manager.enterFromJoinForm(claim.roomCode, claim.playerName);
         if (!result.success) {
           setErrorMessage(result.error.message);
           notifyResumeDiscovery();
           return;
         }
 
+        notifyResumeDiscovery();
         manager.clearExplicitLeaveHome();
         const lobbyUrl = `/lobby?code=${encodeURIComponent(result.data.roomCode)}`;
         if (
@@ -317,7 +324,7 @@ export function useRoomActions() {
         resetSubmissionFlags(setIsCreating, setIsJoining);
       }
     })();
-  }, [isCreating, isJoining, resumeClaim, router]);
+  }, [isCreating, isJoining, router]);
 
   const handleCreatePlayerNameChange = useCallback(
     (value: string) => {
@@ -367,7 +374,7 @@ export function useRoomActions() {
     fieldErrors,
     isCreating,
     isJoining,
-    resumeClaim,
+    resumeClaims,
     scrollToRoomActions,
     handleCreateRoom,
     handleJoinRoom,

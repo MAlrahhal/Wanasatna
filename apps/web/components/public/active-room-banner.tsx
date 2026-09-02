@@ -40,6 +40,7 @@ async function resumeClaimAndOpenLobby(
     };
   }
 
+  notifyResumeDiscovery();
   const lobbyUrl = `/lobby?code=${encodeURIComponent(result.data.roomCode)}`;
   if (manager.hasExplicitlyLeftRoomThisRuntime()) {
     window.location.assign(lobbyUrl);
@@ -144,36 +145,37 @@ export function ActiveRoomBanner() {
 }
 
 export function HomeActiveRoomResume({
-  claim,
-  busy,
+  claims,
+  busy = false,
   onResume,
 }: {
-  claim?: ActiveRoomSession | null;
+  claims: ActiveRoomSession[];
   busy?: boolean;
-  onResume?: () => void;
+  onResume: (claim: ActiveRoomSession) => void;
 }) {
-  const router = useRouter();
-  const localClaim = useDiscoverableReconnectClaim();
-  const [localBusy, setLocalBusy] = useState(false);
-  const resolved = claim === undefined ? localClaim : claim;
-
-  const resume =
-    onResume ??
-    (() => {
-      if (!resolved || localBusy) {
-        return;
-      }
-      setLocalBusy(true);
-      void resumeClaimAndOpenLobby(resolved, router).then((result) => {
-        if (!result.ok) {
-          setLocalBusy(false);
-        }
-      });
-    });
-
-  if (!resolved) {
+  if (claims.length === 0) {
     return null;
   }
 
-  return <RoomResumePanel claim={resolved} busy={busy ?? localBusy} onResume={resume} />;
+  if (claims.length === 1) {
+    const claim = claims[0]!;
+    return <RoomResumePanel claim={claim} busy={busy} onResume={() => onResume(claim)} />;
+  }
+
+  return (
+    <aside
+      role="status"
+      className="flex flex-col gap-3"
+    >
+      <p className="text-sm font-bold text-wanas-text-primary">لديك غرف مفتوحة</p>
+      {claims.map((claim) => (
+        <RoomResumePanel
+          key={`${claim.roomId}:${claim.playerId}`}
+          claim={claim}
+          busy={busy}
+          onResume={() => onResume(claim)}
+        />
+      ))}
+    </aside>
+  );
 }
