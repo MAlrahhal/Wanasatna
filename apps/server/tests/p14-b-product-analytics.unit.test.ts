@@ -17,12 +17,14 @@ import {
 import { deleteGameShell, initGameShell } from '../src/modules/game/game.service.js';
 import { completePersistedMatch } from '../src/modules/match/match-history.service.js';
 import { createRoom } from '../src/modules/room/services/create-room.service.js';
+import { endRoomByHost } from '../src/modules/room/services/end-room.service.js';
 import { joinRoom } from '../src/modules/room/services/join-room.service.js';
 import {
   handlePlayerDisconnect,
   leaveRoom,
 } from '../src/modules/room/services/leave-room.service.js';
 import { reconnectPlayer } from '../src/modules/room/services/reconnect.service.js';
+import { cleanupRoomIfEmpty } from '../src/modules/room/services/room-cleanup.service.js';
 import { MAX_ROOM_PLAYERS } from '../src/modules/room/room.utils.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -117,6 +119,7 @@ async function main(): Promise<void> {
       'cors',
       'dotenv',
       'express',
+      'otpauth',
       'prisma',
       'socket.io',
       'zod',
@@ -209,6 +212,25 @@ async function main(): Promise<void> {
       ProductEventType.ROOM_CREATED,
       ProductEventType.ROOM_CLOSED,
     ]);
+    await cleanupRoom(host.room.id);
+  });
+
+  await test('6b host end room → ROOM_CLOSED exactly once', async () => {
+    const host = await mustCreate(uniqueName('مضيف'));
+    const ended = await endRoomByHost(host.room.id, host.player.id);
+    assert.equal(ended.success, true);
+
+    let rows = await eventsFor(host.room.id);
+    assert.deepEqual(typesOf(rows), [
+      ProductEventType.ROOM_CREATED,
+      ProductEventType.ROOM_CLOSED,
+    ]);
+    assert.equal(rows.filter((row) => row.type === ProductEventType.ROOM_CLOSED).length, 1);
+
+    const cleaned = await cleanupRoomIfEmpty(host.room.id);
+    assert.equal(cleaned, true);
+    rows = await eventsFor(host.room.id);
+    assert.equal(rows.filter((row) => row.type === ProductEventType.ROOM_CLOSED).length, 1);
     await cleanupRoom(host.room.id);
   });
 

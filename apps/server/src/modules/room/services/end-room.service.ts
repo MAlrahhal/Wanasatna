@@ -1,6 +1,7 @@
 import { Prisma, RoomCloseReason } from '@prisma/client';
 import type { RoomActionResponse } from '@wanasatna/shared';
 import { prisma } from '../../../lib/prisma.js';
+import { recordProductEvent } from '../../analytics/product-event.service.js';
 import { deleteRoomWithRelations } from './room-cleanup.service.js';
 import { isRetryableTransactionError, lockRoomRow, ROOM_TX_RETRY_LIMIT } from './room-tx.js';
 import { serviceError } from './shared-room.service.js';
@@ -15,7 +16,7 @@ export async function endRoomByHost(
 
   for (let attempt = 0; attempt < ROOM_TX_RETRY_LIMIT; attempt += 1) {
     try {
-      return await prisma.$transaction(async (tx) => {
+      const outcome = await prisma.$transaction(async (tx) => {
         if (!(await lockRoomRow(tx, roomId))) {
           return serviceError('ROOM_NOT_FOUND', 'Room not found.');
         }
@@ -34,6 +35,15 @@ export async function endRoomByHost(
         await deleteRoomWithRelations(roomId, tx, RoomCloseReason.HOST_ENDED);
         return { success: true as const, data: { roomId } };
       });
+
+      if (outcome.success) {
+        await recordProductEvent({
+          type: 'ROOM_CLOSED',
+          roomId,
+        });
+      }
+
+      return outcome;
     } catch (error) {
       lastError = error;
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {

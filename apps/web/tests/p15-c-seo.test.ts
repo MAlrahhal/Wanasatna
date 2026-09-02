@@ -236,7 +236,10 @@ test('legal pages are public, indexable, and match current product behavior', ()
   assert.match(privacy, /Railway/);
   assert.match(privacy, /Neon/);
   assert.match(privacy, /Discord/);
-  assert.match(privacy, /لا تستخدم وناستنا حاليًا حزمة إعلانات/);
+  assert.match(privacy, /Google AdSense/);
+  assert.match(privacy, /ملفات تعريف الارتباط/);
+  assert.match(privacy, /لا تتضمن وناستنا حاليًا منصة إدارة موافقة مستقلة داخل التطبيق/);
+  assert.doesNotMatch(privacy, /تستخدم وناستنا منصة إدارة الموافقة من Google/);
   assert.doesNotMatch(privacy, /index: false|noindex/);
 
   assert.match(terms, /قبول الشروط/);

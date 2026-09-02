@@ -82,6 +82,7 @@ async function main(): Promise<void> {
       'cors',
       'dotenv',
       'express',
+      'otpauth',
       'prisma',
       'socket.io',
       'zod',
