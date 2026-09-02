@@ -9,6 +9,7 @@ import {
   WHO_WROTE_IT_SUBMIT_OWNER_GUESS_EVENT,
   WHO_WROTE_IT_SYNC_EVENT,
 } from '@wanasatna/shared';
+import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
 
@@ -35,6 +36,7 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const hasViewRef = useRef(false);
   const roundIdRef = useRef<string | null>(null);
+  const syncGateRef = useRef(new AckGenerationGate());
 
   const applyView = useCallback((nextView: WhoWroteItPlayerView) => {
     hasViewRef.current = true;
@@ -51,7 +53,11 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
       setErrorMessage(null);
     }
 
-    const result = await fetchPlayerView();
+    const result = await runLatestAck(syncGateRef.current, fetchPlayerView);
+
+    if (result === undefined) {
+      return;
+    }
 
     if (result.view) {
       applyView(result.view);
@@ -66,6 +72,7 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
 
   useEffect(() => {
     if (!enabled) {
+      syncGateRef.current.invalidate();
       hasViewRef.current = false;
       roundIdRef.current = null;
       setView(null);
@@ -73,15 +80,8 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
       setIsLoading(false);
       setActionError(null);
       setIsSubmittingAction(false);
-      return;
     }
-
-    void syncView();
-  }, [enabled, syncView]);
-
-  useEffect(() => {
-    roundIdRef.current = view?.roundId ?? null;
-  }, [view?.roundId]);
+  }, [enabled]);
 
   useEffect(() => {
     if (!enabled) {
@@ -95,11 +95,16 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
     };
 
     socket.on(WHO_WROTE_IT_PHASE_CHANGED_EVENT, onPhaseChanged);
+    void syncView();
 
     return () => {
       socket.off(WHO_WROTE_IT_PHASE_CHANGED_EVENT, onPhaseChanged);
     };
   }, [enabled, syncView]);
+
+  useEffect(() => {
+    roundIdRef.current = view?.roundId ?? null;
+  }, [view?.roundId]);
 
 
   const submitAnswer = useCallback(

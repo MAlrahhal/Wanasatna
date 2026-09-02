@@ -14,6 +14,7 @@ import {
   BARA_AL_SALAFA_SUBMIT_VOTE_EVENT,
   BARA_AL_SALAFA_SYNC_EVENT,
 } from '@wanasatna/shared';
+import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
 
@@ -39,6 +40,7 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const hasViewRef = useRef(false);
+  const syncGateRef = useRef(new AckGenerationGate());
 
   // Background re-syncs (real phase changes) must never
   // flip the screen back to a loading/error state: loading and errors only
@@ -52,7 +54,11 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
       setErrorMessage(null);
     }
 
-    const result = await fetchPlayerView();
+    const result = await runLatestAck(syncGateRef.current, fetchPlayerView);
+
+    if (result === undefined) {
+      return;
+    }
 
     if (result.view) {
       hasViewRef.current = true;
@@ -69,17 +75,15 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
 
   useEffect(() => {
     if (!enabled) {
+      syncGateRef.current.invalidate();
       hasViewRef.current = false;
       setView(null);
       setErrorMessage(null);
       setIsLoading(false);
       setActionError(null);
       setIsSubmittingAction(false);
-      return;
     }
-
-    void syncView();
-  }, [enabled, syncView]);
+  }, [enabled]);
 
   useEffect(() => {
     if (!enabled) {
@@ -93,6 +97,7 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
     };
 
     socket.on(BARA_AL_SALAFA_PHASE_CHANGED_EVENT, onPhaseChanged);
+    void syncView();
 
     return () => {
       socket.off(BARA_AL_SALAFA_PHASE_CHANGED_EVENT, onPhaseChanged);

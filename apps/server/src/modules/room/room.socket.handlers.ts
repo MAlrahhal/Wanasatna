@@ -36,8 +36,8 @@ import { opsLogger, sanitizeErrorName, sanitizeKnownErrorCode } from '../../lib/
 import { announcePermanentPlayerRemoval } from './services/disconnected-player-expiry.service.js';
 import { announceKickedPlayer, announceRoomClosed } from './room-socket-announce.js';
 import { endRoomByHost } from './services/end-room.service.js';
+import { applySocketDisconnectPresence } from './services/presence-disconnect.service.js';
 import {
-  handlePlayerDisconnect,
   kickPlayer,
   lockRoom,
   unlockRoom,
@@ -697,24 +697,22 @@ export function registerDisconnectHandler(io: Server, socket: Socket): void {
     socket.data.roomId = undefined;
 
     try {
-      const remainingSockets = await io.in(getPlayerChannel(playerId)).fetchSockets();
-      const hasOtherActiveSocket = remainingSockets.some(
-        (entry) =>
-          entry.id !== socket.id &&
-          entry.data.playerId === playerId &&
-          entry.data.roomId === roomId,
-      );
+      const presence = await applySocketDisconnectPresence(io, playerId, roomId, socket.id);
 
-      if (hasOtherActiveSocket) {
+      if (presence !== 'disconnected') {
         console.info('[room-presence]', {
-          stage: 'disconnect-ignored-other-socket',
+          stage:
+            presence === 'restored'
+              ? 'disconnect-restored-after-rebind'
+              : 'disconnect-ignored-other-socket',
           roomId,
           playerId,
         });
+        await broadcastRoomPlayersSnapshot(io, roomId);
+        await evaluatePlayerRecovery(io, roomId);
         return;
       }
 
-      await handlePlayerDisconnect(playerId, roomId);
       console.info('[room-presence]', {
         stage: 'marked-disconnected',
         roomId,

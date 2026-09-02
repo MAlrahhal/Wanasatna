@@ -19,6 +19,7 @@
     "test:unit": "tsx tests/unit.test.ts && tsx tests/graceful-shutdown.unit.test.ts",
     "test:room-chat": "tsx tests/room-chat.unit.test.ts",
     "test:p12-b2": "tsx tests/p12-b2-room-lifecycle.unit.test.ts",
+    "test:presence-reconnect": "tsx tests/presence-reconnect-race.unit.test.ts",
     "test:p12-b3": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p12-b3-auth.unit.test.ts",
     "test:p13-a": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p13-a-admin.unit.test.ts",
     "test:p13-b": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p13-b-admin.unit.test.ts",

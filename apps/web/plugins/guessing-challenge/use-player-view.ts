@@ -17,6 +17,7 @@ import {
   GUESSING_CHALLENGE_USE_RED_CARD_EVENT,
   GUESSING_CHALLENGE_USE_YELLOW_CARD_EVENT,
 } from '@wanasatna/shared';
+import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
 import { clearGcLooks, setGcLook } from './real3d/look-runtime';
@@ -57,6 +58,7 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
   const [guessFeedback, setGuessFeedback] = useState<string | null>(null);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const hasViewRef = useRef(false);
+  const syncGateRef = useRef(new AckGenerationGate());
 
   const syncView = useCallback(async () => {
     const isInitialLoad = !hasViewRef.current;
@@ -66,7 +68,11 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
       setErrorMessage(null);
     }
 
-    const result = await fetchPlayerView();
+    const result = await runLatestAck(syncGateRef.current, fetchPlayerView);
+
+    if (result === undefined) {
+      return;
+    }
 
     if (result.view) {
       hasViewRef.current = true;
@@ -84,6 +90,7 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
 
   useEffect(() => {
     if (!enabled) {
+      syncGateRef.current.invalidate();
       hasViewRef.current = false;
       clearGcLooks();
       setView(null);
@@ -92,19 +99,8 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
       setActionError(null);
       setGuessFeedback(null);
       setIsSubmittingAction(false);
-      return;
     }
-
-    void syncView();
-  }, [enabled, syncView]);
-
-  useEffect(() => {
-    if (!enabled || !view) {
-      return;
-    }
-
-    setGuessFeedback(null);
-  }, [enabled, view?.gamePhase, view?.roundId, view?.turnId]);
+  }, [enabled]);
 
   useEffect(() => {
     if (!enabled) {
@@ -129,11 +125,21 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
 
     socket.on(GUESSING_CHALLENGE_PHASE_CHANGED_EVENT, onPhaseChanged);
     socket.on(GUESSING_CHALLENGE_LOOK_UPDATE_EVENT, onLookUpdate);
+    void syncView();
+
     return () => {
       socket.off(GUESSING_CHALLENGE_PHASE_CHANGED_EVENT, onPhaseChanged);
       socket.off(GUESSING_CHALLENGE_LOOK_UPDATE_EVENT, onLookUpdate);
     };
   }, [enabled, syncView]);
+
+  useEffect(() => {
+    if (!enabled || !view) {
+      return;
+    }
+
+    setGuessFeedback(null);
+  }, [enabled, view?.gamePhase, view?.roundId, view?.turnId]);
 
   const runAction = useCallback(
     async (event: string, payload?: unknown) => {

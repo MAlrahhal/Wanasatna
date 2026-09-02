@@ -199,8 +199,13 @@ export async function handlePlayerDisconnect(
     return;
   }
 
-  await prisma.player.update({
-    where: { id: playerId },
+  await prisma.player.updateMany({
+    where: {
+      id: playerId,
+      roomId,
+      status: PlayerStatus.CONNECTED,
+      lastSeenAt: playerResult.lastSeenAt,
+    },
     data: {
       status: PlayerStatus.DISCONNECTED,
       lastSeenAt: new Date(),

@@ -18,6 +18,7 @@ import {
   DRAW_GUESS_SYNC_EVENT,
   DRAW_GUESS_UNDO_EVENT,
 } from '@wanasatna/shared';
+import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
 import type { DrawingCanvasHandle } from './drawing-canvas';
@@ -47,6 +48,7 @@ export function useDrawGuessPlayerView(
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const hasViewRef = useRef(false);
   const turnIdRef = useRef<string | null>(null);
+  const syncGateRef = useRef(new AckGenerationGate());
 
   const syncView = useCallback(async () => {
     const isInitialLoad = !hasViewRef.current;
@@ -56,7 +58,11 @@ export function useDrawGuessPlayerView(
       setErrorMessage(null);
     }
 
-    const result = await fetchPlayerView();
+    const result = await runLatestAck(syncGateRef.current, fetchPlayerView);
+
+    if (result === undefined) {
+      return;
+    }
 
     if (result.view) {
       hasViewRef.current = true;
@@ -74,6 +80,7 @@ export function useDrawGuessPlayerView(
 
   useEffect(() => {
     if (!enabled) {
+      syncGateRef.current.invalidate();
       hasViewRef.current = false;
       turnIdRef.current = null;
       setView(null);
@@ -82,15 +89,8 @@ export function useDrawGuessPlayerView(
       setActionError(null);
       setGuessFeedback(null);
       setIsSubmittingAction(false);
-      return;
     }
-
-    void syncView();
-  }, [enabled, syncView]);
-
-  useEffect(() => {
-    turnIdRef.current = view?.turnId ?? null;
-  }, [view?.turnId]);
+  }, [enabled]);
 
   useEffect(() => {
     if (!enabled) {
@@ -139,6 +139,7 @@ export function useDrawGuessPlayerView(
     socket.on(DRAW_GUESS_PHASE_CHANGED_EVENT, onPhaseChanged);
     socket.on(DRAW_GUESS_CANVAS_UPDATED_EVENT, onCanvasUpdated);
     socket.on(DRAW_GUESS_STROKE_POINTS_EVENT, onStrokePoints);
+    void syncView();
 
     return () => {
       socket.off(DRAW_GUESS_PHASE_CHANGED_EVENT, onPhaseChanged);
@@ -146,6 +147,10 @@ export function useDrawGuessPlayerView(
       socket.off(DRAW_GUESS_STROKE_POINTS_EVENT, onStrokePoints);
     };
   }, [canvasRef, enabled, syncView]);
+
+  useEffect(() => {
+    turnIdRef.current = view?.turnId ?? null;
+  }, [view?.turnId]);
 
   const submitGuess = useCallback(
     async (guess: string) => {

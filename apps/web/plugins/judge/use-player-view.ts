@@ -9,6 +9,7 @@ import {
   JUDGE_SUBMIT_ANSWER_EVENT,
   JUDGE_SYNC_EVENT,
 } from '@wanasatna/shared';
+import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
 
@@ -32,6 +33,7 @@ export function useJudgePlayerView(enabled: boolean) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const hasViewRef = useRef(false);
+  const syncGateRef = useRef(new AckGenerationGate());
 
   const syncView = useCallback(async () => {
     const isInitialLoad = !hasViewRef.current;
@@ -41,7 +43,11 @@ export function useJudgePlayerView(enabled: boolean) {
       setErrorMessage(null);
     }
 
-    const result = await fetchPlayerView();
+    const result = await runLatestAck(syncGateRef.current, fetchPlayerView);
+
+    if (result === undefined) {
+      return;
+    }
 
     if (result.view) {
       hasViewRef.current = true;
@@ -58,17 +64,15 @@ export function useJudgePlayerView(enabled: boolean) {
 
   useEffect(() => {
     if (!enabled) {
+      syncGateRef.current.invalidate();
       hasViewRef.current = false;
       setView(null);
       setErrorMessage(null);
       setIsLoading(false);
       setActionError(null);
       setIsSubmittingAction(false);
-      return;
     }
-
-    void syncView();
-  }, [enabled, syncView]);
+  }, [enabled]);
 
   useEffect(() => {
     if (!enabled) {
@@ -81,6 +85,8 @@ export function useJudgePlayerView(enabled: boolean) {
     };
 
     socket.on(JUDGE_PHASE_CHANGED_EVENT, onPhaseChanged);
+    void syncView();
+
     return () => {
       socket.off(JUDGE_PHASE_CHANGED_EVENT, onPhaseChanged);
     };

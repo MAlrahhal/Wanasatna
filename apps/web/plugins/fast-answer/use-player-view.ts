@@ -8,6 +8,7 @@ import {
   FAST_ANSWER_SUBMIT_ANSWER_EVENT,
   FAST_ANSWER_SYNC_EVENT,
 } from '@wanasatna/shared';
+import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
 
@@ -44,6 +45,7 @@ export function useFastAnswerPlayerView(enabled: boolean) {
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const hasViewRef = useRef(false);
   const roundIdRef = useRef<string | null>(null);
+  const syncGateRef = useRef(new AckGenerationGate());
 
   const syncView = useCallback(async () => {
     const isInitialLoad = !hasViewRef.current;
@@ -53,7 +55,11 @@ export function useFastAnswerPlayerView(enabled: boolean) {
       setErrorMessage(null);
     }
 
-    const result = await fetchPlayerView();
+    const result = await runLatestAck(syncGateRef.current, fetchPlayerView);
+
+    if (result === undefined) {
+      return;
+    }
 
     if (result.view) {
       hasViewRef.current = true;
@@ -71,6 +77,7 @@ export function useFastAnswerPlayerView(enabled: boolean) {
 
   useEffect(() => {
     if (!enabled) {
+      syncGateRef.current.invalidate();
       hasViewRef.current = false;
       roundIdRef.current = null;
       setView(null);
@@ -79,15 +86,8 @@ export function useFastAnswerPlayerView(enabled: boolean) {
       setActionError(null);
       setIncorrectFeedback(null);
       setIsSubmittingAction(false);
-      return;
     }
-
-    void syncView();
-  }, [enabled, syncView]);
-
-  useEffect(() => {
-    roundIdRef.current = view?.roundId ?? null;
-  }, [view?.roundId]);
+  }, [enabled]);
 
   useEffect(() => {
     if (!enabled) {
@@ -101,11 +101,16 @@ export function useFastAnswerPlayerView(enabled: boolean) {
     };
 
     socket.on(FAST_ANSWER_PHASE_CHANGED_EVENT, onPhaseChanged);
+    void syncView();
 
     return () => {
       socket.off(FAST_ANSWER_PHASE_CHANGED_EVENT, onPhaseChanged);
     };
   }, [enabled, syncView]);
+
+  useEffect(() => {
+    roundIdRef.current = view?.roundId ?? null;
+  }, [view?.roundId]);
 
 
   const submitAnswer = useCallback(

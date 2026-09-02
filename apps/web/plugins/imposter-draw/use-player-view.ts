@@ -20,6 +20,7 @@ import {
   IMPOSTER_DRAW_SYNC_EVENT,
   IMPOSTER_DRAW_UNDO_EVENT,
 } from '@wanasatna/shared';
+import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
 
@@ -49,6 +50,7 @@ export function useImposterDrawPlayerView(
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const hasViewRef = useRef(false);
   const turnIdRef = useRef<string | null>(null);
+  const syncGateRef = useRef(new AckGenerationGate());
 
   const syncView = useCallback(async () => {
     const isInitialLoad = !hasViewRef.current;
@@ -58,7 +60,11 @@ export function useImposterDrawPlayerView(
       setErrorMessage(null);
     }
 
-    const result = await fetchPlayerView();
+    const result = await runLatestAck(syncGateRef.current, fetchPlayerView);
+
+    if (result === undefined) {
+      return;
+    }
 
     if (result.view) {
       hasViewRef.current = true;
@@ -76,6 +82,7 @@ export function useImposterDrawPlayerView(
 
   useEffect(() => {
     if (!enabled) {
+      syncGateRef.current.invalidate();
       hasViewRef.current = false;
       turnIdRef.current = null;
       setView(null);
@@ -83,15 +90,8 @@ export function useImposterDrawPlayerView(
       setIsLoading(false);
       setActionError(null);
       setIsSubmittingAction(false);
-      return;
     }
-
-    void syncView();
-  }, [enabled, syncView]);
-
-  useEffect(() => {
-    turnIdRef.current = view?.turnId ?? null;
-  }, [view?.turnId]);
+  }, [enabled]);
 
   useEffect(() => {
     if (!enabled) {
@@ -143,6 +143,7 @@ export function useImposterDrawPlayerView(
     socket.on(IMPOSTER_DRAW_PHASE_CHANGED_EVENT, onPhaseChanged);
     socket.on(IMPOSTER_DRAW_CANVAS_UPDATED_EVENT, onCanvasUpdated);
     socket.on(IMPOSTER_DRAW_STROKE_POINTS_EVENT, onStrokePoints);
+    void syncView();
 
     return () => {
       socket.off(IMPOSTER_DRAW_PHASE_CHANGED_EVENT, onPhaseChanged);
@@ -150,6 +151,10 @@ export function useImposterDrawPlayerView(
       socket.off(IMPOSTER_DRAW_STROKE_POINTS_EVENT, onStrokePoints);
     };
   }, [canvasRef, enabled, syncView]);
+
+  useEffect(() => {
+    turnIdRef.current = view?.turnId ?? null;
+  }, [view?.turnId]);
 
 
   const submitRoleUnderstood = useCallback(async () => {
