@@ -108,26 +108,28 @@ function HourlyActivity({ counts }: { counts: number[] }) {
 
   return (
     <div className="min-w-0 overflow-hidden">
-      <div className="flex h-[4.5rem] items-end gap-px sm:h-[4.75rem] sm:gap-0.5">
-        {counts.map((count, hour) => (
-          <div
-            key={hour}
-            className="flex min-w-0 flex-1 flex-col justify-end"
-            title={`${String(hour).padStart(2, '0')}:00 · ${count}`}
-            aria-label={`الساعة ${hour}: ${count}`}
-          >
-            <div className="flex h-full items-end rounded-sm bg-wanas-surface-soft px-px">
-              <span
-                className="w-full rounded-sm bg-wanas-text-primary"
-                style={{
-                  height: maxHour
-                    ? `${Math.max(count ? 6 : 0, Math.round((count / maxHour) * 100))}%`
-                    : '0%',
-                }}
-              />
+      <div className="flex h-20 items-stretch gap-px sm:gap-0.5">
+        {counts.map((count, hour) => {
+          const percent =
+            maxHour > 0 && count > 0
+              ? Math.max(8, Math.round((count / maxHour) * 100))
+              : 0;
+          return (
+            <div
+              key={hour}
+              className="flex h-full min-w-0 flex-1 items-end"
+              title={`${String(hour).padStart(2, '0')}:00 · ${count}`}
+              aria-label={`الساعة ${hour}: ${count}`}
+            >
+              <div className="flex h-full w-full items-end overflow-hidden rounded-sm bg-wanas-surface-soft">
+                <span
+                  className="block w-full rounded-sm bg-wanas-text-primary"
+                  style={{ height: `${percent}%` }}
+                />
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       <div className="mt-1 flex gap-px sm:gap-0.5">
         {counts.map((count, hour) => (
