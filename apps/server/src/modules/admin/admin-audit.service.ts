@@ -74,6 +74,10 @@ const AUDIT_POLICIES: Record<
     targetType: 'ROOM',
     metadata: { alreadyClosed: allowBoolean },
   },
+  ROOM_SPECTATE: {
+    targetType: 'ROOM',
+    metadata: {},
+  },
 };
 
 type AuditClient = Pick<Prisma.TransactionClient, 'adminAuditLog'>;

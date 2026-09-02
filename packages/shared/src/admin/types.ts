@@ -1,5 +1,8 @@
 import type { UserRole } from '../auth/types.js';
 import type { GamePhase } from '../game/enums.js';
+import type { MarathonState } from '../game/marathon.js';
+import type { GameShellState } from '../game/state.js';
+import type { PregameTeamSnapshot } from '../game/teams/types.js';
 
 export const ADMIN_DASHBOARD_GAME_IDS = [
   'bara-al-salafa',
@@ -41,6 +44,7 @@ export const ADMIN_AUDIT_ACTIONS = [
   'ROOM_UNLOCK',
   'ROOM_KICK',
   'ROOM_FORCE_CLOSE',
+  'ROOM_SPECTATE',
 ] as const;
 
 export type AdminAuditAction = (typeof ADMIN_AUDIT_ACTIONS)[number];
@@ -149,6 +153,7 @@ export type AdminErrorCode =
   | 'USER_NOT_FOUND'
   | 'MATCH_NOT_FOUND'
   | 'ROOM_HISTORY_NOT_FOUND'
+  | 'ROOM_CLOSED'
   | 'INTERNAL_ERROR';
 
 export type AdminActionResponse<T> =
@@ -168,6 +173,19 @@ export type AdminRoomPlayer = {
 export type AdminRoomDetails = AdminLiveRoom & {
   historyId: string | null;
   players: AdminRoomPlayer[];
+};
+
+export type AdminSpectatePluginView = {
+  gameId: string;
+  view: Record<string, unknown>;
+};
+
+export type AdminSpectateData = {
+  room: AdminRoomDetails;
+  shell: GameShellState | null;
+  marathon: MarathonState | null;
+  teams: PregameTeamSnapshot | null;
+  pluginView: AdminSpectatePluginView | null;
 };
 
 export type AdminRoomsData = {

@@ -13,7 +13,7 @@ import {
 } from '@/lib/admin/api';
 import { ADMIN_COPY } from '@/lib/admin/copy';
 import { adminGameTitle, formatAdminDateTime } from '@/lib/admin/format';
-import { ADMIN_ROUTES, adminRoomHistoryPath } from '@/lib/admin/routes';
+import { ADMIN_ROUTES, adminRoomHistoryPath, adminRoomSpectatePath } from '@/lib/admin/routes';
 
 export function AdminRoomDetailClient() {
   const params = useParams<{ roomId: string }>();
@@ -263,6 +263,12 @@ export function AdminRoomDetailClient() {
       </section>
 
       <div className="flex flex-col gap-2 sm:flex-row">
+        <Link
+          href={adminRoomSpectatePath(room.id)}
+          className="border-wanas-border hover:bg-wanas-surface-soft inline-flex h-11 items-center justify-center rounded-xl border px-4 text-sm font-semibold"
+        >
+          {ADMIN_COPY.spectateLive}
+        </Link>
         <button
           type="button"
           disabled={pending}

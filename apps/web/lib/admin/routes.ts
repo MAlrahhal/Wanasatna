@@ -15,6 +15,10 @@ export function adminRoomPath(roomId: string): string {
   return `${ADMIN_ROUTES.rooms}/${roomId}`;
 }
 
+export function adminRoomSpectatePath(roomId: string): string {
+  return `${ADMIN_ROUTES.rooms}/${roomId}/spectate`;
+}
+
 export function adminRoomHistoryPath(historyId: string): string {
   return `${ADMIN_ROUTES.roomHistory}/${historyId}`;
 }

@@ -71,6 +71,8 @@ export async function announceRoomClosed(
     }
     socket.data.playerId = undefined;
     socket.data.roomId = undefined;
+    socket.data.adminSpectate = false;
+    socket.data.adminSpectateRoomId = undefined;
   }
 
   clearRoomPlayerAvatars(roomId);

@@ -31,10 +31,12 @@ test('Admin navigation clearly separates Live Rooms, Room History, and Match His
   assert.equal(ADMIN_ROUTES.rooms, '/admin/rooms');
   assert.equal(ADMIN_ROUTES.roomHistory, '/admin/room-history');
   assert.equal(ADMIN_ROUTES.history, '/admin/history');
+  assert.equal(ADMIN_ROUTES.auditLogs, '/admin/audit-logs');
   assert.equal(adminRoomHistoryPath('history-1'), '/admin/room-history/history-1');
   assert.equal(ADMIN_NAV_ITEMS.find((item) => item.id === 'rooms')?.label, 'الغرف المباشرة');
   assert.equal(ADMIN_NAV_ITEMS.find((item) => item.id === 'roomHistory')?.label, 'سجل الغرف');
   assert.equal(ADMIN_NAV_ITEMS.find((item) => item.id === 'log')?.label, 'سجل المباريات');
+  assert.equal(ADMIN_NAV_ITEMS.find((item) => item.id === 'auditLogs')?.label, 'سجل التدقيق');
 });
 
 test('Live Rooms UI uses URL filters, server pagination, polling, and safe summaries', () => {
@@ -106,12 +108,12 @@ test('Room History detail shows coverage, hosts, participants, Match links, and 
   assert.match(source, /معرّف سجل الغرفة/);
 });
 
-test('Admin clients keep a strict safe-field boundary and add no Spectate action', () => {
+test('Admin history and audit clients keep a strict safe-field boundary and add no Spectate action', () => {
   const files = [
     'lib/admin/api.ts',
-    'components/admin/admin-rooms-client.tsx',
     'components/admin/admin-room-history-client.tsx',
     'components/admin/admin-room-history-detail-client.tsx',
+    'components/admin/admin-audit-logs-client.tsx',
   ];
   for (const file of files) {
     const source = read(file);

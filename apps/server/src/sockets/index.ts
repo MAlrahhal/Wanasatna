@@ -8,6 +8,7 @@ import { attachOptionalSocketAuth } from '../modules/auth/socket-auth.js';
 import { startExpiredAuthSessionCleanup } from '../modules/auth/auth-session-cleanup.js';
 import { registerGameSockets } from '../modules/game/game.socket.js';
 import { registerRoomSockets } from '../modules/room/room.socket.js';
+import { registerAdminSpectateSockets } from '../modules/admin/admin-spectate.socket.js';
 import { startDisconnectedPlayerExpirySweep } from '../modules/room/services/disconnected-player-expiry.service.js';
 import { setSocketServer } from '../lib/socket-server.js';
 
@@ -49,6 +50,7 @@ export function createSocketServer(httpServer: HttpServer): SocketIOServer {
 
   registerRoomSockets(io);
   registerGameSockets(io);
+  registerAdminSpectateSockets(io);
   startDisconnectedPlayerExpirySweep(io);
   startExpiredAuthSessionCleanup();
   startAbuseLimiterCleanup();

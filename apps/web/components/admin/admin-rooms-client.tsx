@@ -11,7 +11,7 @@ import {
 import { fetchAdminRooms } from '@/lib/admin/api';
 import { ADMIN_COPY } from '@/lib/admin/copy';
 import { adminGameTitle, formatAdminDateTime } from '@/lib/admin/format';
-import { adminRoomPath } from '@/lib/admin/routes';
+import { adminRoomPath, adminRoomSpectatePath } from '@/lib/admin/routes';
 
 function pageFromQuery(value: string | null): number {
   const page = Number(value ?? '1');
@@ -199,7 +199,7 @@ export function AdminRoomsClient() {
       {data && data.rooms.length > 0 ? (
         <>
           <div className="border-wanas-border mt-8 hidden overflow-x-auto rounded-2xl border md:block">
-            <table className="w-full min-w-[980px] text-right text-sm">
+            <table className="w-full min-w-[1080px] text-right text-sm">
               <thead className="bg-wanas-surface-soft text-wanas-text-muted">
                 <tr>
                   <th className="px-3 py-3 font-semibold">الرمز</th>
@@ -210,6 +210,7 @@ export function AdminRoomsClient() {
                   <th className="px-3 py-3 font-semibold">الحضور</th>
                   <th className="px-3 py-3 font-semibold">القفل</th>
                   <th className="px-3 py-3 font-semibold">أُنشئت</th>
+                  <th className="px-3 py-3 font-semibold">إجراءات</th>
                 </tr>
               </thead>
               <tbody>
@@ -240,6 +241,11 @@ export function AdminRoomsClient() {
                     <td className="text-wanas-text-secondary whitespace-nowrap px-3 py-3">
                       {formatAdminDateTime(room.createdAt)}
                     </td>
+                    <td className="px-3 py-3">
+                      <Link href={adminRoomSpectatePath(room.id)} className="font-semibold underline">
+                        {ADMIN_COPY.spectateLive}
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -248,10 +254,9 @@ export function AdminRoomsClient() {
 
           <div className="mt-8 space-y-3 md:hidden">
             {data.rooms.map((room) => (
-              <Link
+              <article
                 key={room.id}
-                href={adminRoomPath(room.id)}
-                className="border-wanas-border bg-wanas-surface block rounded-2xl border p-4 text-sm"
+                className="border-wanas-border bg-wanas-surface rounded-2xl border p-4 text-sm"
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-mono text-lg font-bold">{room.code}</p>
@@ -265,7 +270,15 @@ export function AdminRoomsClient() {
                   {room.playerCount} / {room.playerCap} ·{' '}
                   {room.isLocked ? ADMIN_COPY.locked : ADMIN_COPY.open}
                 </p>
-              </Link>
+                <div className="mt-3 flex flex-wrap gap-3">
+                  <Link href={adminRoomPath(room.id)} className="font-semibold underline">
+                    {ADMIN_COPY.openRoom}
+                  </Link>
+                  <Link href={adminRoomSpectatePath(room.id)} className="font-semibold underline">
+                    {ADMIN_COPY.spectateLive}
+                  </Link>
+                </div>
+              </article>
             ))}
           </div>
 

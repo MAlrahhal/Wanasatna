@@ -35,6 +35,7 @@ test('rooms route is a real Admin view', () => {
   assert.equal(adminRoomPath('abc'), '/admin/rooms/abc');
   assert.equal(existsSync(join(root, 'app/admin/rooms/page.tsx')), true);
   assert.equal(existsSync(join(root, 'app/admin/rooms/[roomId]/page.tsx')), true);
+  assert.equal(existsSync(join(root, 'app/admin/rooms/[roomId]/spectate/page.tsx')), true);
   const roomsNav = ADMIN_NAV_ITEMS.find((item) => item.id === 'rooms');
   assert.ok(roomsNav);
   assert.equal(roomsNav.placeholder, false);
@@ -62,6 +63,10 @@ test('rooms list and details reuse 12s poll and show Room fields', () => {
   assert.match(detail, /ADMIN_COPY\.kickConfirm/);
   assert.match(detail, /سيتم إغلاق الغرفة \{room\.code\}/);
   assert.match(detail, /ADMIN_COPY\.closeConfirmCta/);
+  assert.match(list, /ADMIN_COPY\.spectateLive/);
+  assert.match(detail, /ADMIN_COPY\.spectateLive/);
+  assert.match(list, /adminRoomSpectatePath/);
+  assert.match(detail, /adminRoomSpectatePath/);
 });
 
 test('dangerous actions require confirmation; close copy includes Room code', () => {
@@ -94,6 +99,7 @@ test('no private account data, 20-player, or game settings in rooms UI', () => {
     'components/admin/admin-room-detail-client.tsx',
     'app/admin/rooms/page.tsx',
     'app/admin/rooms/[roomId]/page.tsx',
+    'app/admin/rooms/[roomId]/spectate/page.tsx',
   ];
   for (const file of files) {
     assert.doesNotMatch(
