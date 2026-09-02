@@ -46,14 +46,20 @@ function conciseGuessingChallengePhaseLabel(view: GuessingChallengePlayerView): 
   return 'التخمين';
 }
 
-function GuessingChallengeSpectatorPlaying({ view }: { view: GuessingChallengePlayerView }) {
+export function GuessingChallengeSpectatorPlaying({
+  view,
+  showSpectatorNotice = true,
+}: {
+  view: GuessingChallengePlayerView;
+  showSpectatorNotice?: boolean;
+}) {
   const [side, setSide] = useState<'blue' | 'red'>('blue');
   const identity = side === 'blue' ? view.spectatorBlueIdentity : view.spectatorRedIdentity;
   const sideLabel = side === 'blue' ? 'الفريق الأزرق' : 'الفريق الأحمر';
 
   return (
     <GameScreen ariaLabel="مشاهدة تحدي التخمين" maxWidth="4xl" className="min-w-0 gap-3 sm:gap-4">
-      <SpectatorNotice />
+      {showSpectatorNotice ? <SpectatorNotice /> : null}
       <div className="flex flex-wrap justify-center gap-2">
         <Button
           type="button"

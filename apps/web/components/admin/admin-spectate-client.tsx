@@ -2,13 +2,12 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Socket } from 'socket.io-client';
 import type {
   AdminActionResponse,
   AdminRoomDetails,
   AdminSpectateData,
-  DrawStroke,
   GameShellState,
 } from '@wanasatna/shared';
 import {
@@ -34,11 +33,16 @@ import {
   TIMING_CHALLENGE_PHASE_CHANGED_EVENT,
   WHO_WROTE_IT_PHASE_CHANGED_EVENT,
 } from '@wanasatna/shared';
+import { AdminSpectateLiveView } from '@/components/admin/admin-spectate-live-view';
+import { GameLeaderboardPanel } from '@/components/game-experience/game-leaderboard-panel';
+import { PlayerAvatar } from '@/components/player/player-avatar';
 import { ADMIN_COPY } from '@/lib/admin/copy';
 import { adminGameTitle } from '@/lib/admin/format';
 import { ADMIN_ROUTES, adminRoomPath } from '@/lib/admin/routes';
 import { createAdminSpectateSocket } from '@/lib/admin/spectate-socket';
-import { DrawingCanvas } from '@/plugins/draw-guess/drawing-canvas';
+import { mapLockedMatchLeaderboard } from '@/lib/game/map-locked-match-leaderboard';
+import type { LobbyPlayer } from '@/lib/lobby/types';
+import { cn } from '@/lib/utils';
 
 const LIVE_SYNC_EVENTS = [
   ROOM_UPDATED_EVENT,
@@ -81,130 +85,177 @@ function emitAck<T>(socket: Socket, event: string, payload?: unknown): Promise<A
   });
 }
 
-function textValue(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value : null;
+function toLobbyPlayers(room: AdminRoomDetails): LobbyPlayer[] {
+  return room.players.map((player) => ({
+    id: player.id,
+    name: player.displayName,
+    isHost: player.isHost,
+    isSpectator: player.isSpectator,
+    isConnected: player.status === 'CONNECTED',
+  }));
 }
 
-function numberValue(value: unknown): number | null {
-  return typeof value === 'number' && Number.isFinite(value) ? value : null;
-}
-
-function asStrokes(value: unknown): DrawStroke[] | null {
-  if (!Array.isArray(value) || value.length === 0) {
-    return null;
-  }
-  const strokes: DrawStroke[] = [];
-  for (const item of value) {
-    if (!item || typeof item !== 'object') {
-      return null;
-    }
-    const stroke = item as DrawStroke;
-    if (typeof stroke.id !== 'string' || !Array.isArray(stroke.points)) {
-      return null;
-    }
-    strokes.push(stroke);
-  }
-  return strokes;
-}
-
-function Scoreboard({ view }: { view: Record<string, unknown> }) {
-  const rows = [view.leaderboard, view.resultsLeaderboard].find((value) => Array.isArray(value) && value.length > 0);
-  if (!Array.isArray(rows) || rows.length === 0) {
-    return null;
-  }
-
+function CompactChip({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <section className="border-wanas-border bg-wanas-surface rounded-2xl border p-4">
-      <h2 className="mb-3 text-lg font-bold">{ADMIN_COPY.spectateScoreboard}</h2>
-      <ul className="space-y-2 text-sm">
-        {rows.map((row, index) => {
-          if (!row || typeof row !== 'object') {
-            return null;
-          }
-          const entry = row as Record<string, unknown>;
-          const name = textValue(entry.name) ?? textValue(entry.playerName) ?? 'لاعب';
-          const score = entry.score ?? entry.points ?? entry.total ?? '—';
-          return (
-            <li key={textValue(entry.playerId) ?? `${name}-${index}`} className="flex justify-between gap-3">
-              <span>{name}</span>
-              <span className="tabular-nums">{String(score)}</span>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
+    <span
+      className={cn(
+        'bg-wanas-surface-soft inline-flex max-w-full truncate rounded-full px-2.5 py-1 text-[11px] font-semibold',
+        className,
+      )}
+    >
+      {children}
+    </span>
   );
 }
 
-function PluginViewPanel({
-  gameId,
-  view,
-}: {
-  gameId: string;
-  view: Record<string, unknown>;
-}) {
-  const phaseLabel = textValue(view.phaseLabel);
-  const instruction = textValue(view.instruction);
-  const question = textValue(view.question) ?? textValue(view.prompt);
-  const category = textValue(view.categoryLabel) ?? textValue(view.categoryName);
-  const round = numberValue(view.currentRound);
-  const total = numberValue(view.totalRounds);
-  const strokes = asStrokes(view.strokes);
+function CompactRoomPanel({ data }: { data: AdminSpectateData }) {
+  const { room, shell, marathon, teams, pluginView } = data;
+  const lobbyPlayers = useMemo(() => toLobbyPlayers(room), [room]);
+  const scoreboard = useMemo(
+    () =>
+      mapLockedMatchLeaderboard(
+        pluginView?.view as Parameters<typeof mapLockedMatchLeaderboard>[0],
+        '',
+        lobbyPlayers,
+      ),
+    [lobbyPlayers, pluginView],
+  );
+
+  const teamNames = useMemo(() => {
+    if (!teams?.assignments.length) {
+      return null;
+    }
+    const names = new Map(room.players.map((player) => [player.id, player.displayName]));
+    const blue = teams.assignments
+      .filter((row) => row.teamId === 'blue')
+      .map((row) => names.get(row.playerId) ?? 'لاعب');
+    const red = teams.assignments
+      .filter((row) => row.teamId === 'red')
+      .map((row) => names.get(row.playerId) ?? 'لاعب');
+    return { blue, red };
+  }, [room.players, teams]);
 
   return (
-    <div className="space-y-4">
-      <section className="border-wanas-border bg-wanas-surface rounded-2xl border p-4 text-sm">
-        <p className="font-semibold">{adminGameTitle(gameId)}</p>
-        {phaseLabel ? <p className="text-wanas-text-secondary mt-1">{phaseLabel}</p> : null}
-        {round && total ? (
-          <p className="text-wanas-text-muted mt-1">
-            الجولة {round} / {total}
+    <aside className="min-w-0 space-y-3 lg:sticky lg:top-4">
+      <section className="border-wanas-border bg-wanas-surface rounded-2xl border p-3">
+        <h2 className="mb-2 text-xs font-semibold text-[color:var(--wanas-game-text-secondary)]">
+          {ADMIN_COPY.players}
+        </h2>
+        <ul className="max-h-72 space-y-1.5 overflow-y-auto">
+          {room.players.map((player) => (
+            <li
+              key={player.id}
+              className="border-wanas-border flex items-center gap-2 rounded-xl border px-2 py-1.5"
+            >
+              <PlayerAvatar
+                playerId={player.id}
+                playerName={player.displayName}
+                className="size-8"
+                sizes="32px"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">{player.displayName}</p>
+                <p className="text-wanas-text-muted text-[11px]">
+                  {player.status === 'CONNECTED' ? ADMIN_COPY.connected : ADMIN_COPY.disconnected}
+                </p>
+              </div>
+              {player.isHost ? (
+                <span className="text-wanas-text-muted shrink-0 text-[10px] font-semibold">
+                  {ADMIN_COPY.host}
+                </span>
+              ) : null}
+              {player.isSpectator ? (
+                <span className="text-wanas-text-muted shrink-0 text-[10px] font-semibold">
+                  {ADMIN_COPY.spectator}
+                </span>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {teamNames ? (
+        <section className="border-wanas-border bg-wanas-surface rounded-2xl border p-3 text-xs">
+          <p className="mb-2 font-semibold">الفِرق</p>
+          <p className="text-wanas-text-secondary">الأزرق: {teamNames.blue.join('، ') || '—'}</p>
+          <p className="text-wanas-text-secondary mt-1">الأحمر: {teamNames.red.join('، ') || '—'}</p>
+        </section>
+      ) : null}
+
+      {scoreboard.length > 0 ? (
+        <GameLeaderboardPanel entries={scoreboard} className="max-h-72" />
+      ) : null}
+
+      <section className="border-wanas-border bg-wanas-surface space-y-1 rounded-2xl border p-3 text-xs">
+        <p>
+          <span className="text-wanas-text-muted">{ADMIN_COPY.host}: </span>
+          {room.hostDisplayName}
+        </p>
+        <p>
+          <span className="text-wanas-text-muted">{ADMIN_COPY.capacity}: </span>
+          {room.playerCount} / {room.playerCap}
+        </p>
+        <p>
+          {room.connectedCount} {ADMIN_COPY.connected} · {room.spectatorCount} {ADMIN_COPY.spectators}
+        </p>
+        {shell ? <ShellSummary shell={shell} /> : null}
+        {marathon ? (
+          <p className="text-wanas-text-secondary">
+            ماراثون · اللعبة {marathon.currentGameIndex + 1} / {marathon.gamePlan.length}
           </p>
         ) : null}
-        {category ? <p className="text-wanas-text-muted mt-1">{category}</p> : null}
-        {instruction ? <p className="mt-2">{instruction}</p> : null}
-        {question ? <p className="mt-2 font-semibold">{question}</p> : null}
+        <Link href={adminRoomPath(room.id)} className="inline-block pt-1 font-semibold underline">
+          {ADMIN_COPY.roomDetails}
+        </Link>
       </section>
-      {strokes ? (
-        <div className="border-wanas-border bg-wanas-surface pointer-events-none overflow-hidden rounded-2xl border">
-          <DrawingCanvas strokes={strokes} readOnly className="w-full" />
-        </div>
-      ) : null}
-      <Scoreboard view={view} />
-    </div>
-  );
-}
-
-function RoomRoster({ room }: { room: AdminRoomDetails }) {
-  return (
-    <section>
-      <h2 className="mb-3 text-lg font-bold">{ADMIN_COPY.players}</h2>
-      <ul className="divide-wanas-border border-wanas-border bg-wanas-surface divide-y overflow-hidden rounded-2xl border">
-        {room.players.map((player) => (
-          <li key={player.id} className="px-4 py-3 text-sm">
-            <p className="font-semibold">
-              {player.displayName}
-              {player.isHost ? (
-                <span className="text-wanas-text-muted ms-2 text-xs">{ADMIN_COPY.host}</span>
-              ) : null}
-            </p>
-            <p className="text-wanas-text-muted">
-              {player.status === 'CONNECTED' ? ADMIN_COPY.connected : ADMIN_COPY.disconnected}
-              {player.isSpectator ? ` · ${ADMIN_COPY.spectator}` : ''}
-            </p>
-          </li>
-        ))}
-      </ul>
-    </section>
+    </aside>
   );
 }
 
 function ShellSummary({ shell }: { shell: GameShellState }) {
   return (
-    <p className="text-wanas-text-secondary text-sm">
+    <p className="text-wanas-text-secondary">
       {adminGameTitle(shell.gameId)} · {shell.phase}
       {shell.countdownRemainingSeconds != null ? ` · ${shell.countdownRemainingSeconds}ث` : ''}
     </p>
+  );
+}
+
+function SpectateHeader({
+  data,
+  connected,
+}: {
+  data: AdminSpectateData;
+  connected: boolean;
+}) {
+  const { room } = data;
+  const statusLabel = room.activity === 'IN_GAME' ? ADMIN_COPY.inGame : ADMIN_COPY.lobby;
+  const gameLabel = adminGameTitle(room.gameId ?? data.shell?.gameId);
+
+  return (
+    <header className="border-wanas-border bg-wanas-surface flex flex-wrap items-center gap-2 rounded-2xl border px-3 py-2">
+      <p className="bg-wanas-surface-soft inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold">
+        {ADMIN_COPY.spectateBanner}
+      </p>
+      <p className="text-sm font-bold tracking-wide">{room.code}</p>
+      <CompactChip>{statusLabel}</CompactChip>
+      {gameLabel !== '—' ? <CompactChip>{gameLabel}</CompactChip> : null}
+      <CompactChip className={connected ? 'text-wanas-success-dark' : 'text-wanas-error'}>
+        {connected ? ADMIN_COPY.spectateConnectionLive : ADMIN_COPY.spectateConnectionLost}
+      </CompactChip>
+      <CompactChip>
+        {room.playerCount} {ADMIN_COPY.players} · {room.spectatorCount} {ADMIN_COPY.spectators}
+      </CompactChip>
+      <p className="text-wanas-text-muted hidden text-[11px] sm:inline">{ADMIN_COPY.spectateReadOnly}</p>
+      <div className="ms-auto flex flex-wrap gap-2">
+        <Link
+          href={ADMIN_ROUTES.rooms}
+          className="border-wanas-border inline-flex h-8 items-center rounded-lg border px-3 text-xs font-semibold"
+        >
+          {ADMIN_COPY.spectateBackToAdmin}
+        </Link>
+      </div>
+    </header>
   );
 }
 
@@ -306,7 +357,7 @@ export function AdminSpectateClient() {
 
   if (status === 'error' && !data) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-3 overflow-x-hidden">
         <p role="alert" className="text-wanas-error text-sm font-semibold">
           {errorMessage ?? ADMIN_COPY.spectateUnavailable}
         </p>
@@ -319,11 +370,11 @@ export function AdminSpectateClient() {
 
   if (status === 'closed') {
     return (
-      <div className="space-y-4">
+      <div className="-mt-4 space-y-3 overflow-x-hidden">
         <p className="bg-wanas-surface-soft inline-flex rounded-full px-3 py-1 text-xs font-semibold">
           {ADMIN_COPY.spectateBanner}
         </p>
-        <h1 className="text-2xl font-bold">{ADMIN_COPY.spectateClosed}</h1>
+        <h1 className="text-xl font-bold">{ADMIN_COPY.spectateClosed}</h1>
         <p className="text-wanas-text-secondary text-sm">{errorMessage ?? ADMIN_COPY.spectateClosedHint}</p>
         <Link
           href={ADMIN_ROUTES.rooms}
@@ -339,97 +390,15 @@ export function AdminSpectateClient() {
     return null;
   }
 
-  const { room, shell, marathon, pluginView } = data;
-  const activityLabel =
-    room.activity === 'IN_GAME'
-      ? `${ADMIN_COPY.inGame}${room.gameId ? ` · ${adminGameTitle(room.gameId)}` : ''}`
-      : ADMIN_COPY.lobby;
-
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="bg-wanas-surface-soft inline-flex rounded-full px-3 py-1 text-xs font-semibold">
-          {ADMIN_COPY.spectateBanner}
-        </p>
-        <p
-          className={
-            connected
-              ? 'text-wanas-success-dark text-xs font-semibold'
-              : 'text-wanas-error text-xs font-semibold'
-          }
-        >
-          {connected ? ADMIN_COPY.spectateConnectionLive : ADMIN_COPY.spectateConnectionLost}
-        </p>
+    <div className="-mt-4 flex min-h-0 flex-col gap-3 overflow-x-hidden">
+      <SpectateHeader data={data} connected={connected} />
+      <div className="grid min-h-0 gap-3 lg:grid-cols-[minmax(0,1fr)_17.5rem] lg:items-start">
+        <div className="min-w-0">
+          <AdminSpectateLiveView data={data} />
+        </div>
+        <CompactRoomPanel data={data} />
       </div>
-
-      <div>
-        <Link href={ADMIN_ROUTES.rooms} className="text-wanas-text-secondary text-sm font-semibold underline">
-          {ADMIN_COPY.spectateBackToAdmin}
-        </Link>
-        <Link href={adminRoomPath(room.id)} className="text-wanas-text-secondary ms-4 text-sm font-semibold underline">
-          {ADMIN_COPY.roomDetails}
-        </Link>
-        <h1 className="mt-3 text-2xl font-bold">{ADMIN_COPY.spectateTitle}</h1>
-        <p className="mt-1 text-lg font-semibold tracking-wide">{room.code}</p>
-        <p className="text-wanas-text-muted mt-2 text-sm">{ADMIN_COPY.spectateReadOnly}</p>
-      </div>
-
-      <section className="border-wanas-border bg-wanas-surface rounded-2xl border p-4 text-sm">
-        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div>
-            <dt className="text-wanas-text-muted">{ADMIN_COPY.host}</dt>
-            <dd>{room.hostDisplayName}</dd>
-          </div>
-          <div>
-            <dt className="text-wanas-text-muted">الحالة الحالية</dt>
-            <dd>{room.status === 'PLAYING' ? ADMIN_COPY.inGame : ADMIN_COPY.lobby}</dd>
-          </div>
-          <div>
-            <dt className="text-wanas-text-muted">النشاط</dt>
-            <dd>{activityLabel}</dd>
-          </div>
-          <div>
-            <dt className="text-wanas-text-muted">{ADMIN_COPY.capacity}</dt>
-            <dd>
-              {room.playerCount} / {room.playerCap}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-wanas-text-muted">الحضور</dt>
-            <dd>
-              {room.connectedCount} {ADMIN_COPY.connected} · {room.disconnectedCount}{' '}
-              {ADMIN_COPY.disconnected} · {room.spectatorCount} {ADMIN_COPY.spectators}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-wanas-text-muted">القفل</dt>
-            <dd>{room.isLocked ? ADMIN_COPY.locked : ADMIN_COPY.open}</dd>
-          </div>
-        </dl>
-        {shell ? <div className="mt-3">{<ShellSummary shell={shell} />}</div> : null}
-        {marathon ? (
-          <p className="text-wanas-text-secondary mt-2 text-sm">
-            ماراثون · {marathon.status} · اللعبة {marathon.currentGameIndex + 1} / {marathon.gamePlan.length}
-          </p>
-        ) : null}
-      </section>
-
-      <RoomRoster room={room} />
-
-      {pluginView ? (
-        <PluginViewPanel gameId={pluginView.gameId} view={pluginView.view} />
-      ) : shell ? (
-        <p className="text-wanas-text-muted text-sm">{ADMIN_COPY.spectateNoRuntime}</p>
-      ) : (
-        <p className="text-wanas-text-muted text-sm">{ADMIN_COPY.spectateLobbyState}</p>
-      )}
-
-      <Link
-        href={ADMIN_ROUTES.rooms}
-        className="border-wanas-border inline-flex h-11 items-center rounded-xl border px-4 text-sm font-semibold"
-      >
-        {ADMIN_COPY.spectateBackToAdmin}
-      </Link>
     </div>
   );
 }

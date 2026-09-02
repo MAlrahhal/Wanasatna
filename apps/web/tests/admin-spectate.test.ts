@@ -43,7 +43,12 @@ test('spectate route and live-room CTA exist', () => {
 
 test('client uses isolated admin socket and read-only events only', () => {
   const client = read('components/admin/admin-spectate-client.tsx');
+  const live = read('components/admin/admin-spectate-live-view.tsx');
   const socket = read('lib/admin/spectate-socket.ts');
+  const page = read('app/admin/rooms/[roomId]/spectate/page.tsx');
+  const shell = read('components/admin/admin-shell-client.tsx');
+  assert.match(page, /AdminShell/);
+  assert.match(shell, /fetchAdminMe/);
   assert.match(socket, /createAdminSpectateSocket/);
   assert.doesNotMatch(socket, /getRoomSocket|RoomSessionManager|join-room/);
   assert.match(client, /createAdminSpectateSocket/);
@@ -54,13 +59,44 @@ test('client uses isolated admin socket and read-only events only', () => {
   assert.match(client, /ADMIN_COPY\.spectateReadOnly/);
   assert.match(client, /ADMIN_COPY\.spectateClosed/);
   assert.match(client, /ROOM_CLOSED_EVENT/);
-  assert.match(client, /pointer-events-none/);
-  assert.match(client, /readOnly/);
+  assert.doesNotMatch(client, /setPlayerId|playerId:\s*roomId/);
   assert.doesNotMatch(client, /getRoomSocket|join-room|game-shell-set-ready|room-chat-send/);
+  assert.doesNotMatch(live, /getRoomSocket|join-room|game-shell-set-ready|room-chat-send/);
   assert.doesNotMatch(
     client,
     /passwordHash|tokenHash|encryptedSecret|ipAddress|reconnectToken|ADMIN_EMAILS/i,
   );
+});
+
+test('spectate presentation reuses spectator game screens in a compact layout', () => {
+  const client = read('components/admin/admin-spectate-client.tsx');
+  const live = read('components/admin/admin-spectate-live-view.tsx');
+  assert.match(client, /overflow-x-hidden/);
+  assert.match(client, /lg:grid-cols-\[minmax\(0,1fr\)_17\.5rem\]/);
+  assert.match(client, /AdminSpectateLiveView/);
+  assert.match(client, /PlayerAvatar/);
+  assert.match(client, /GameLeaderboardPanel/);
+  assert.match(live, /FastAnswerQuestionScreen/);
+  assert.match(live, /canSubmit=\{false\}/);
+  assert.match(live, /GameHeader/);
+  assert.match(live, /readOnly/);
+  assert.match(live, /pointer-events-none/);
+  assert.match(live, /FAST_ANSWER_GAME_ID/);
+  assert.match(live, /BARA_AL_SALAFA_GAME_ID/);
+  assert.match(live, /DRAW_GUESS_GAME_ID/);
+  assert.match(live, /IMPOSTER_DRAW_GAME_ID/);
+  assert.match(live, /TIMING_CHALLENGE_GAME_ID/);
+  assert.match(live, /JUDGE_GAME_ID/);
+  assert.match(live, /WHO_WROTE_IT_GAME_ID/);
+  assert.match(live, /GUESSING_CHALLENGE_GAME_ID/);
+  assert.match(live, /WaitingSpectatorScreen/);
+  assert.match(live, /DrawingCanvas/);
+  assert.match(live, /JudgeAnsweringScreen/);
+  assert.match(live, /WhoWroteItAnsweringScreen/);
+  assert.match(live, /GuessingChallengeSpectatorPlaying/);
+  assert.match(live, /MatchResultsScreen/);
+  assert.doesNotMatch(live, /onContinue=/);
+  assert.doesNotMatch(live, /usePlayerView|useFastAnswerPlayerView|useGuessingChallengePlayerView/);
 });
 
 test('live rooms expose spectate without treating history as live', () => {
