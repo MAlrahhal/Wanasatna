@@ -120,6 +120,7 @@ async function main(): Promise<void> {
     assert.match(disconnectFn, /PlayerStatus\.DISCONNECTED/);
     assert.doesNotMatch(disconnectFn, /permanentlyDepartPlayer/);
     assert.doesNotMatch(disconnectFn, /PlayerStatus\.LEFT/);
+    assert.doesNotMatch(disconnectFn, /transferHost/);
 
     const schema = read('prisma/schema.prisma');
     assert.match(schema, /model AuthSession \{/);
@@ -401,7 +402,7 @@ async function main(): Promise<void> {
     await cleanupRoom(host.room.id);
   });
 
-  await test('27 temporary disconnect does not transfer host or delete Room', async () => {
+  await test('27 presence disconnect write does not transfer host or delete Room', async () => {
     const host = await mustCreate(uniqueName('مضيف'));
     const guest = await mustJoin(host.room.code, uniqueName('ضيف'));
     await handlePlayerDisconnect(host.player.id, host.room.id);

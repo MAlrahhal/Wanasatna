@@ -92,7 +92,11 @@ async function main(): Promise<void> {
     const handlers = read('src/modules/room/room.socket.handlers.ts');
     assert.match(handlers, /applySocketDisconnectPresence/);
     assert.match(handlers, /disconnect-restored-after-rebind/);
+    assert.match(handlers, /transferHostIfCurrentHostDisconnected/);
     assert.match(handlers, /GAME_SHELL_STATE_EVENT/);
+
+    const presenceHelper = read('src/modules/room/services/presence-disconnect.service.ts');
+    assert.doesNotMatch(presenceHelper, /transferHost/);
 
     const reconnect = read('src/modules/room/services/reconnect.service.ts');
     assert.doesNotMatch(reconnect, /createDurableRoomHistory/);
@@ -216,6 +220,35 @@ async function main(): Promise<void> {
 
     const roster = await loadActiveRoomPlayers(guest.room.id, host.player.id);
     assert.equal(roster.find((entry) => entry.id === guest.player.id)?.status, 'CONNECTED');
+
+    await cleanupRoom(host.room.id);
+  });
+
+  await test('host rebound restores CONNECTED and leaves host ownership unchanged', async () => {
+    const host = await mustCreate(uniqueName('مضيف'));
+    const guest = await mustJoin(host.room.code, uniqueName('ضيف'));
+
+    const outcome = await applySocketDisconnectPresence(
+      mockIo([
+        [],
+        [
+          {
+            id: 'new-socket',
+            data: { playerId: host.player.id, roomId: host.room.id },
+          },
+        ],
+      ]),
+      host.player.id,
+      host.room.id,
+      'old-socket',
+    );
+    assert.equal(outcome, 'restored');
+
+    const player = await prisma.player.findUnique({ where: { id: host.player.id } });
+    assert.equal(player?.status, PlayerStatus.CONNECTED);
+    const room = await prisma.room.findUnique({ where: { id: host.room.id } });
+    assert.equal(room?.hostPlayerId, host.player.id);
+    assert.equal(guest.player.id !== room?.hostPlayerId, true);
 
     await cleanupRoom(host.room.id);
   });

@@ -786,7 +786,7 @@ async function main(): Promise<void> {
     await disconnectAll(all);
   });
 
-  await runTest('28 host disconnect keeps host identity until leave/expire', async () => {
+  await runTest('28 host disconnect transfers host to a connected player', async () => {
     const host = await createHost('مضيف');
     const b = await joinPlayer(host.roomCode, 'لاعب-ب');
     await waitForRosterConvergence([host, b], 2, 'pair');
@@ -796,15 +796,18 @@ async function main(): Promise<void> {
       async () => {
         const players = await syncRoom(b);
         const hostRow = players.find((p) => p.id === host.id);
-        return hostRow?.status === 'DISCONNECTED' && hostRow.isHost ? true : null;
+        const nextHost = players.find((p) => p.isHost);
+        return hostRow?.status === 'DISCONNECTED' && nextHost?.id === b.id ? true : null;
       },
       5000,
-      'host disconnected still host',
+      'disconnected host is no longer host',
       100,
     );
 
     const players = await syncRoom(b);
-    assert.equal(players.find((p) => p.isHost)?.id, host.id);
+    assert.equal(players.find((p) => p.id === host.id)?.status, 'DISCONNECTED');
+    assert.equal(players.find((p) => p.id === host.id)?.isHost, false);
+    assert.equal(players.find((p) => p.isHost)?.id, b.id);
     assert.equal(players.filter((p) => p.isHost).length, 1);
     await disconnectAll([b]);
   });
@@ -960,10 +963,12 @@ async function main(): Promise<void> {
     await waitFor(
       async () => {
         const players = await syncRoom(b);
-        return players.find((p) => p.id === host.id)?.status === 'DISCONNECTED' ? true : null;
+        const hostRow = players.find((p) => p.id === host.id);
+        const nextHost = players.find((p) => p.isHost);
+        return hostRow?.status === 'DISCONNECTED' && nextHost?.id === b.id ? true : null;
       },
       5000,
-      'host disconnected',
+      'host disconnected and transferred',
       50,
     );
     await sleep(700);
@@ -971,12 +976,14 @@ async function main(): Promise<void> {
     const duringWindow = await syncRoom(b);
     const hostRow = duringWindow.find((p) => p.id === host.id);
     assert.equal(hostRow?.status, 'DISCONNECTED');
-    assert.equal(hostRow?.isHost, true);
+    assert.equal(hostRow?.isHost, false);
+    assert.equal(duringWindow.find((p) => p.isHost)?.id, b.id);
 
     await reconnectClient(host);
     const restored = await syncRoom(host);
     assert.equal(restored.find((p) => p.id === host.id)?.status, 'CONNECTED');
-    assert.equal(restored.find((p) => p.isHost)?.id, host.id);
+    assert.equal(restored.find((p) => p.id === host.id)?.isHost, false);
+    assert.equal(restored.find((p) => p.isHost)?.id, b.id);
     await disconnectAll([host, b]);
   });
 
