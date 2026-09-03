@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Tajawal } from "next/font/google";
 import Script from "next/script";
 import { AppProviders } from "@/components/app-providers";
 import { SkipToContent } from "@/components/public/skip-to-content";
@@ -7,9 +7,10 @@ import { BRAND_NAME_AR } from "@/lib/public/brand";
 import { HOME_DESCRIPTION, HOME_TITLE, SITE_ORIGIN, TITLE_TEMPLATE } from "@/lib/public/seo";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const tajawal = Tajawal({
+  variable: "--font-tajawal",
+  subsets: ["arabic", "latin"],
+  weight: ["400", "500", "700", "800"],
 });
 
 const geistMono = Geist_Mono({
@@ -72,7 +73,7 @@ export default function RootLayout({
     <html
       lang="ar"
       dir="rtl"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${tajawal.variable} ${geistMono.variable} h-full antialiased`}
     >
       <Script
         id="google-adsense"

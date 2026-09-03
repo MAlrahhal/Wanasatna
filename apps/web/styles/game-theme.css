@@ -4,7 +4,7 @@
  * Rules:
  * - Flat Deep Space surfaces with subtle texture
  * - Cyan is reserved for interaction and focus
- * - IBM Plex Sans Arabic via .font-game
+ * - Tajawal via the global --font-sans stack; .font-game keeps live-game tokens
  * - All live games must wrap gameplay in GameExperienceShell
  */
 :root {
@@ -64,7 +64,7 @@
 }
 
 .font-game {
-  font-family: var(--font-ibm-plex-arabic), var(--font-geist-sans), sans-serif;
+  font-family: var(--font-tajawal), var(--font-sans), sans-serif;
   --wanas-accent: var(--wanas-game-accent);
   --wanas-accent-hover: var(--wanas-game-accent-hover);
   --wanas-accent-soft: var(--wanas-game-accent-soft);

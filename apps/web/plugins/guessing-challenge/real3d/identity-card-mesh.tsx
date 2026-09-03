@@ -17,15 +17,15 @@ export type IdentityCardMeshProps = {
   testId?: string;
 };
 
-/** Prefer game Arabic face when available (IBM Plex via --font-ibm-plex-arabic). */
+/** Prefer the global Arabic face (Tajawal via --font-tajawal). */
 function resolveFontStack(): string {
   if (typeof document === 'undefined') {
-    return '"IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif';
+    return 'Tajawal, "Segoe UI", Tahoma, Arial, sans-serif';
   }
   const cssFont = getComputedStyle(document.documentElement)
-    .getPropertyValue('--font-ibm-plex-arabic')
+    .getPropertyValue('--font-tajawal')
     .trim();
-  const family = cssFont || '"IBM Plex Sans Arabic"';
+  const family = cssFont || 'Tajawal';
   return `${family}, "Segoe UI", Tahoma, Arial, sans-serif`;
 }
 
