@@ -103,10 +103,10 @@ export function RoundCategoryPanel({
       : gameId === WHO_WROTE_IT_GAME_ID
         ? 'تُقفل الفئة عند بدء المباراة وتستخدم لكل الجولات الثلاث'
         : gameId === JUDGE_GAME_ID
-        ? 'تُقفل الفئة عند بدء المباراة، ويأخذ كل لاعب دور القاضي مرة واحدة'
-        : gameId === GUESSING_CHALLENGE_GAME_ID
-          ? 'تُقفل الفئة عند بدء المباراة وتستخدم لكل الجولات الأربع'
-          : 'سيتم استخدام هذه الفئة فقط للجولة القادمة، ويمكن تغييرها قبل كل جولة جديدة';
+          ? 'تُقفل الفئة عند بدء المباراة، ويأخذ كل لاعب دور القاضي مرة واحدة'
+          : gameId === GUESSING_CHALLENGE_GAME_ID
+            ? 'تُقفل الفئة عند بدء المباراة وتستخدم لكل الجولات الأربع'
+            : null;
 
   return (
     <section
@@ -141,7 +141,9 @@ export function RoundCategoryPanel({
         ))}
       </div>
 
-      <p className="mt-2 text-[11px] leading-4 text-wanas-text-muted">{footer}</p>
+      {footer ? (
+        <p className="mt-2 text-[11px] leading-4 text-wanas-text-muted">{footer}</p>
+      ) : null}
     </section>
   );
 }

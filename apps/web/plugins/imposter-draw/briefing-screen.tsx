@@ -66,17 +66,21 @@ export function ImposterDrawBriefingScreen({
             </>
           ) : (
             <>
-              <p className="text-xs font-medium text-wanas-text-muted">احفظ الصورة جيداً</p>
-              {referenceImage ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={referenceImage.imageUrl}
-                  alt={referenceImage.label}
-                  className="mx-auto mt-4 max-h-64 w-full max-w-md rounded-2xl border border-[color:var(--wanas-game-card-border)] object-contain"
-                />
+              <p className="text-xs font-medium text-wanas-text-muted">دورك</p>
+              <p className="mt-3 text-3xl font-bold text-wanas-primary-dark sm:text-4xl">
+                أنت جزء من الرسمة
+              </p>
+              {referenceImage?.label ? (
+                <div className="mx-auto mt-5 w-full max-w-sm">
+                  <div className="rounded-[1.35rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-structural-bg)] px-4 py-8 shadow-[var(--wanas-game-shadow)] sm:px-8 sm:py-10">
+                    <p className="text-3xl font-bold leading-tight tracking-tight text-wanas-text-primary sm:text-4xl">
+                      {referenceImage.label}
+                    </p>
+                  </div>
+                </div>
               ) : null}
               <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-wanas-text-secondary">
-                سترسم من الذاكرة. لن تظهر الصورة مرة أخرى خلال الجولة.
+                احفظ الموضوع جيداً، ثم ارسم من الذاكرة.
               </p>
             </>
           )}
