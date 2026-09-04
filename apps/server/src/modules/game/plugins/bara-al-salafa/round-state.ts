@@ -10,7 +10,6 @@ import {
   BARA_AL_SALAFA_GAME_ID,
   BARA_AL_SALAFA_QUESTION_TURN_DURATION_SECONDS,
   BARA_AL_SALAFA_VOTING_DURATION_SECONDS,
-  pickRandomWordFromCategories,
 } from '@wanasatna/shared';
 import {
   resolveConfigurableInteractiveSeconds,
@@ -19,6 +18,11 @@ import {
   timedPhaseDurations,
 } from '../../../../config/test-timers.js';
 import { timedPhaseClock } from '../../runtime/phase-deadline.js';
+import { pickWordWithAntiRepetition } from '../../runtime/content-selection.js';
+import {
+  ROOM_CONTENT_HISTORY_KEY,
+  ROOM_CONTENT_HISTORY_LIMIT,
+} from '../../runtime/room-content-history.js';
 import { effectiveGameSettings } from '../../effective-game-settings.js';
 
 export function resolveTotalRounds(roomId?: string): number {
@@ -70,11 +74,16 @@ export function createRoundState(
     throw new Error('No connected players available.');
   }
 
-  const wordEntry = pickRandomWordFromCategories(
+  const lockedCategoryId = enabledCategoryIds?.length === 1 ? enabledCategoryIds[0] : null;
+  const wordEntry = pickWordWithAntiRepetition({
     bundle,
-    enabledCategoryIds ?? settings.enabledCategories,
+    enabledCategoryIds: enabledCategoryIds ?? settings.enabledCategories,
+    lockedCategoryId,
     usedWordTexts,
-  );
+    roomId,
+    historyKey: ROOM_CONTENT_HISTORY_KEY.BARA_AL_SALAFA,
+    historyLimit: ROOM_CONTENT_HISTORY_LIMIT[ROOM_CONTENT_HISTORY_KEY.BARA_AL_SALAFA],
+  });
 
   if (!wordEntry) {
     throw new Error('No words available for the selected categories.');

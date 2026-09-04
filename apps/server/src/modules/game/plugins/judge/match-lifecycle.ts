@@ -114,6 +114,7 @@ function startNextRound(
     resolved.judgePlayerId,
     Date.now(),
     match.answerSeconds,
+    roomId,
   );
 
   const nextMatch: JudgeMatchState = {

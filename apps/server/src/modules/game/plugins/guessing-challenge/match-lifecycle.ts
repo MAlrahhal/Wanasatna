@@ -77,6 +77,7 @@ function startNextRound(
     match.recentIdentityIds,
     Date.now(),
     match.turnSeconds,
+    roomId,
   );
 
   const nextMatch: GuessingChallengeMatchState = {

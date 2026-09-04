@@ -117,9 +117,10 @@ export function createRoundState(
   judgePlayerId: string,
   now = Date.now(),
   answeringSeconds = timedPhaseDurations.judgeAnswering(),
+  roomId?: string,
 ): { round: JudgeRoundState; usedRoundCategoryIds: string[] } {
   const roundCategoryId = pickRoundCategoryId(matchCategoryId, usedRoundCategoryIds);
-  const prompt = pickJudgePrompt(roundCategoryId, recentPromptIds);
+  const prompt = pickJudgePrompt(roundCategoryId, recentPromptIds, roomId);
 
   const nextUsed =
     matchCategoryId === JUDGE_RANDOM_CATEGORY_ID
@@ -171,6 +172,7 @@ export function createMatchState(
     judgePlayerId,
     Date.now(),
     durations.answerSeconds,
+    roomId,
   );
 
   return {

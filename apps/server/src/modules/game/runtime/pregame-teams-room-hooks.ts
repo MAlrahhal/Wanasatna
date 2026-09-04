@@ -7,6 +7,7 @@ import { handleGuessingChallengePermanentLeave } from '../plugins/guessing-chall
 import { handleJudgePermanentLeave } from '../plugins/judge/match-lifecycle.js';
 import { cleanupPluginMatchState } from './cleanup-plugin-match.js';
 import { clearPlayerRecoveryForTeardown } from './player-recovery.js';
+import { clearRoomContentHistory } from './room-content-history.js';
 import {
   clearTeamsForRoom,
   loadEligibleLobbyPlayerIds,
@@ -60,4 +61,5 @@ export function onRoomDeleted(io: Server, roomId: string): void {
 
   clearTeamsForRoom(roomId);
   clearMarathonState(roomId);
+  clearRoomContentHistory(roomId);
 }

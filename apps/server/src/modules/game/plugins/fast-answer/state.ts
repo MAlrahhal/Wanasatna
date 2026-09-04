@@ -78,9 +78,10 @@ export function createRoundState(
   recentQuestionIds: readonly string[],
   roundTimeSeconds: number,
   now = Date.now(),
+  roomId?: string,
 ): { round: FastAnswerRoundState; usedRoundCategoryIds: string[] } {
   const roundCategoryId = pickRoundCategoryId(matchCategoryId, usedRoundCategoryIds);
-  const question = pickFastAnswerQuestion(roundCategoryId, recentQuestionIds);
+  const question = pickFastAnswerQuestion(roundCategoryId, recentQuestionIds, roomId);
   const deadlineAtMs = now + roundTimeSeconds * 1000;
 
   const nextUsed =
@@ -124,6 +125,8 @@ export function createMatchState(
     [],
     [],
     roundTimeSeconds,
+    Date.now(),
+    roomId,
   );
 
   return {

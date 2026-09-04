@@ -79,6 +79,8 @@ function startNextRound(
     match.usedRoundCategoryIds,
     match.recentQuestionIds,
     match.roundTimeSeconds,
+    Date.now(),
+    roomId,
   );
   const nextMatch: FastAnswerMatchState = {
     ...match,

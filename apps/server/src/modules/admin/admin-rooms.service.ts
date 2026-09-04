@@ -15,6 +15,7 @@ import { getSocketServer } from '../../lib/socket-server.js';
 import { cleanupGameShellRuntime } from '../game/game.lifecycle.js';
 import { deleteGameShell, getGameShellByRoomId } from '../game/game.service.js';
 import { cleanupPluginMatchState } from '../game/runtime/cleanup-plugin-match.js';
+import { clearRoomContentHistory } from '../game/runtime/room-content-history.js';
 import { clearTeamsForRoom } from '../game/runtime/pregame-teams.service.js';
 import {
   announceAdminRoomClosed,
@@ -146,6 +147,7 @@ function cleanupClosedRoomMemory(roomId: string): void {
     deleteGameShell(roomId);
   }
   clearTeamsForRoom(roomId);
+  clearRoomContentHistory(roomId);
 }
 
 function isPrismaNotFound(error: unknown): boolean {

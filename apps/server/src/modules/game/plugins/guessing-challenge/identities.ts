@@ -7,6 +7,13 @@ import {
 } from '@wanasatna/shared';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { getRoomRoundCategory } from '../../runtime/round-category-store.js';
+import { contentKeyFromText, pickWithLayeredHistory } from '../../runtime/content-selection.js';
+import {
+  ROOM_CONTENT_HISTORY_KEY,
+  ROOM_CONTENT_HISTORY_LIMIT,
+  getRoomContentHistory,
+  recordRoomContentHistory,
+} from '../../runtime/room-content-history.js';
 import { isCorrectAnswer } from '../fast-answer/answers.js';
 
 export const GUESSING_CHALLENGE_RANDOM_CATEGORY_ID = 'random';
@@ -31,16 +38,6 @@ export function questionToIdentity(question: GameContentQuestion): GuessingChall
     imageUrl: null,
     acceptedAnswers: question.acceptedAnswers,
   };
-}
-
-function shuffleInPlace<T>(items: T[]): T[] {
-  for (let index = items.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    const current = items[index]!;
-    items[index] = items[swapIndex]!;
-    items[swapIndex] = current;
-  }
-  return items;
 }
 
 function loadContent() {
@@ -123,24 +120,90 @@ export function pickRoundCategoryId(
   );
 }
 
+function identityMatchKeys(identity: GuessingChallengeIdentitySecret): string[] {
+  return [identity.id, contentKeyFromText(identity.value)];
+}
+
+function matchUsedKeysFromIdentities(
+  pool: readonly GuessingChallengeIdentitySecret[],
+  recentIdentityIds: readonly string[],
+): Set<string> {
+  const recent = new Set(recentIdentityIds);
+  const keys = new Set<string>(recentIdentityIds);
+
+  for (const identity of pool) {
+    if (recent.has(identity.id)) {
+      keys.add(contentKeyFromText(identity.value));
+    }
+  }
+
+  const content = getLoadedGameContent(GUESSING_CHALLENGE_GAME_ID);
+  for (const question of content?.bundle.questions ?? []) {
+    if (recent.has(question.id)) {
+      keys.add(contentKeyFromText(question.question.trim()));
+    }
+  }
+
+  return keys;
+}
+
 export function pickTwoIdentities(
   pool: readonly GuessingChallengeIdentitySecret[],
   recentIdentityIds: readonly string[],
+  roomId?: string,
 ): [GuessingChallengeIdentitySecret, GuessingChallengeIdentitySecret] {
   if (pool.length < 2) {
     throw new Error('Need at least two identities.');
   }
 
-  const recent = new Set(recentIdentityIds);
-  const fresh = pool.filter((identity) => !recent.has(identity.id));
-  const preferred = shuffleInPlace([...fresh]);
-  const fallback = shuffleInPlace(pool.filter((identity) => recent.has(identity.id)));
-  const ordered = [...preferred, ...fallback];
-  const first = ordered[0]!;
-  const second = ordered.find((identity) => identity.id !== first.id);
+  const matchUsedKeys = matchUsedKeysFromIdentities(pool, recentIdentityIds);
+  const roomRecent = roomId
+    ? getRoomContentHistory(roomId, ROOM_CONTENT_HISTORY_KEY.GUESSING_CHALLENGE)
+    : [];
+
+  const first = pickWithLayeredHistory({
+    items: pool,
+    matchKeysOf: identityMatchKeys,
+    roomKeyOf: (identity) => identity.id,
+    matchUsedKeys,
+    roomRecentOldestFirst: roomRecent,
+  });
+
+  if (!first) {
+    throw new Error('Failed to pick two distinct identities.');
+  }
+
+  const firstCanonical = contentKeyFromText(first.value);
+  const remaining = pool.filter(
+    (identity) =>
+      identity.id !== first.id && contentKeyFromText(identity.value) !== firstCanonical,
+  );
+
+  const second = pickWithLayeredHistory({
+    items: remaining,
+    matchKeysOf: identityMatchKeys,
+    roomKeyOf: (identity) => identity.id,
+    matchUsedKeys,
+    roomRecentOldestFirst: roomRecent,
+  });
 
   if (!second) {
     throw new Error('Failed to pick two distinct identities.');
+  }
+
+  if (roomId) {
+    recordRoomContentHistory(
+      roomId,
+      ROOM_CONTENT_HISTORY_KEY.GUESSING_CHALLENGE,
+      first.id,
+      ROOM_CONTENT_HISTORY_LIMIT[ROOM_CONTENT_HISTORY_KEY.GUESSING_CHALLENGE],
+    );
+    recordRoomContentHistory(
+      roomId,
+      ROOM_CONTENT_HISTORY_KEY.GUESSING_CHALLENGE,
+      second.id,
+      ROOM_CONTENT_HISTORY_LIMIT[ROOM_CONTENT_HISTORY_KEY.GUESSING_CHALLENGE],
+    );
   }
 
   return [first, second];
@@ -165,37 +228,45 @@ export function pickReplacementIdentity(
     ownIdentityValue?: string;
     usedIdentityIds: readonly string[];
     recentIdentityIds?: readonly string[];
+    roomId?: string;
   },
 ): GuessingChallengeIdentitySecret | null {
-  const used = new Set([
-    ...options.usedIdentityIds,
-    ...(options.recentIdentityIds ?? []),
-  ]);
-  const candidates = pool.filter(
+  const hardExcluded = pool.filter(
     (identity) =>
       identity.id !== options.currentOpponentId &&
       identity.id !== options.ownIdentityId &&
       identity.value !== options.currentOpponentValue &&
-      identity.value !== options.ownIdentityValue &&
-      !used.has(identity.id),
-  );
-
-  const fallback = pool.filter(
-    (identity) =>
-      identity.id !== options.currentOpponentId && identity.id !== options.ownIdentityId,
-  ).filter(
-    (identity) =>
-      identity.value !== options.currentOpponentValue &&
       identity.value !== options.ownIdentityValue,
   );
 
-  const source = candidates.length > 0 ? candidates : fallback;
-
-  if (source.length === 0) {
+  if (hardExcluded.length === 0) {
     return null;
   }
 
-  return source[Math.floor(Math.random() * source.length)] ?? null;
+  const recentIdentityIds = [
+    ...options.usedIdentityIds,
+    ...(options.recentIdentityIds ?? []),
+  ];
+  const replacement = pickWithLayeredHistory({
+    items: hardExcluded,
+    matchKeysOf: identityMatchKeys,
+    roomKeyOf: (identity) => identity.id,
+    matchUsedKeys: matchUsedKeysFromIdentities(pool, recentIdentityIds),
+    roomRecentOldestFirst: options.roomId
+      ? getRoomContentHistory(options.roomId, ROOM_CONTENT_HISTORY_KEY.GUESSING_CHALLENGE)
+      : [],
+  });
+
+  if (replacement && options.roomId) {
+    recordRoomContentHistory(
+      options.roomId,
+      ROOM_CONTENT_HISTORY_KEY.GUESSING_CHALLENGE,
+      replacement.id,
+      ROOM_CONTENT_HISTORY_LIMIT[ROOM_CONTENT_HISTORY_KEY.GUESSING_CHALLENGE],
+    );
+  }
+
+  return replacement;
 }
 
 export function identityMatchesGuess(

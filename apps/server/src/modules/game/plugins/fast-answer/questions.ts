@@ -1,6 +1,13 @@
 import type { GameContentQuestion } from '@wanasatna/shared';
 import { FAST_ANSWER_GAME_ID } from '@wanasatna/shared';
 import { getLoadedGameContent } from '../../../content/index.js';
+import { contentKeyFromText, pickWithLayeredHistory } from '../../runtime/content-selection.js';
+import {
+  ROOM_CONTENT_HISTORY_KEY,
+  ROOM_CONTENT_HISTORY_LIMIT,
+  getRoomContentHistory,
+  recordRoomContentHistory,
+} from '../../runtime/room-content-history.js';
 import { getRoomRoundCategory } from '../../runtime/round-category-store.js';
 
 export const FAST_ANSWER_RANDOM_CATEGORY_ID = 'random';
@@ -113,9 +120,28 @@ export function pickRoundCategoryId(
   );
 }
 
+function questionMatchKeys(question: GameContentQuestion): string[] {
+  return [question.id, contentKeyFromText(question.question)];
+}
+
+function matchUsedKeysFromQuestions(
+  questions: readonly GameContentQuestion[],
+  recentQuestionIds: readonly string[],
+): Set<string> {
+  const recent = new Set(recentQuestionIds);
+  const keys = new Set<string>(recentQuestionIds);
+  for (const question of questions) {
+    if (recent.has(question.id)) {
+      keys.add(contentKeyFromText(question.question));
+    }
+  }
+  return keys;
+}
+
 export function pickFastAnswerQuestion(
   categoryId: string,
   recentQuestionIds: readonly string[],
+  roomId?: string,
 ): GameContentQuestion {
   const content = getLoadedGameContent(FAST_ANSWER_GAME_ID);
 
@@ -130,14 +156,27 @@ export function pickFastAnswerQuestion(
     throw new Error('No questions available for the selected Fast Answer category.');
   }
 
-  const recent = new Set(recentQuestionIds);
-  const fresh = inCategory.filter((question) => !recent.has(question.id));
-  const pool = fresh.length > 0 ? fresh : inCategory;
-  const index = Math.floor(Math.random() * pool.length);
-  const picked = pool[index];
+  const picked = pickWithLayeredHistory({
+    items: inCategory,
+    matchKeysOf: questionMatchKeys,
+    roomKeyOf: (question) => question.id,
+    matchUsedKeys: matchUsedKeysFromQuestions(questions, recentQuestionIds),
+    roomRecentOldestFirst: roomId
+      ? getRoomContentHistory(roomId, ROOM_CONTENT_HISTORY_KEY.FAST_ANSWER)
+      : [],
+  });
 
   if (!picked) {
     throw new Error('Failed to pick a Fast Answer question.');
+  }
+
+  if (roomId) {
+    recordRoomContentHistory(
+      roomId,
+      ROOM_CONTENT_HISTORY_KEY.FAST_ANSWER,
+      picked.id,
+      ROOM_CONTENT_HISTORY_LIMIT[ROOM_CONTENT_HISTORY_KEY.FAST_ANSWER],
+    );
   }
 
   return picked;

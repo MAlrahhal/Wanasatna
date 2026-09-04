@@ -33,6 +33,8 @@ import { clearWhoWroteItPhaseTimerRuntime } from '../plugins/who-wrote-it/phase-
 import { deleteWhoWroteItState } from '../plugins/who-wrote-it/store.js';
 
 export function cleanupPluginMatchState(roomId: string, gameId: string | null): void {
+  // Match teardown (abort, rematch, marathon game switch) must not clear
+  // room content history. That map is removed only in onRoomDeleted.
   clearRoomRoundCategory(roomId);
 
   if (gameId === BARA_AL_SALAFA_GAME_ID) {

@@ -11,6 +11,7 @@ import {
   pluginStateEvent,
   validateGameStartContent,
 } from '@wanasatna/shared';
+import { resolveEnabledCategoryFilter } from '../../runtime/round-category-store.js';
 import { createMatchState } from './state.js';
 
 const metadata = {
@@ -51,7 +52,13 @@ export function buildBaraAlSalafaPluginDefinition(
       return { success: true };
     },
     createInitialState: (context, _pluginSettings) =>
-      createMatchState(context.players, bundle, settings, undefined, context.roomId),
+      createMatchState(
+        context.players,
+        bundle,
+        settings,
+        resolveEnabledCategoryFilter(context.roomId),
+        context.roomId,
+      ),
     serializeState: (state) => state,
     deserializeState: (payload) => payload as BaraAlSalafaMatchState,
     lifecycle: {},

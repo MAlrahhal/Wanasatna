@@ -1,6 +1,13 @@
 import type { GameContentWord } from '@wanasatna/shared';
 import { JUDGE_GAME_ID } from '@wanasatna/shared';
 import { getLoadedGameContent } from '../../../content/index.js';
+import { contentKeyFromText, pickWithLayeredHistory } from '../../runtime/content-selection.js';
+import {
+  ROOM_CONTENT_HISTORY_KEY,
+  ROOM_CONTENT_HISTORY_LIMIT,
+  getRoomContentHistory,
+  recordRoomContentHistory,
+} from '../../runtime/room-content-history.js';
 import { getRoomRoundCategory } from '../../runtime/round-category-store.js';
 
 export const JUDGE_RANDOM_CATEGORY_ID = 'random';
@@ -96,9 +103,28 @@ export function pickRoundCategoryId(
   );
 }
 
+function promptMatchKeys(prompt: GameContentWord): string[] {
+  return [prompt.id, contentKeyFromText(prompt.text)];
+}
+
+function matchUsedKeysFromPrompts(
+  prompts: readonly GameContentWord[],
+  recentPromptIds: readonly string[],
+): Set<string> {
+  const recent = new Set(recentPromptIds);
+  const keys = new Set<string>(recentPromptIds);
+  for (const prompt of prompts) {
+    if (recent.has(prompt.id)) {
+      keys.add(contentKeyFromText(prompt.text));
+    }
+  }
+  return keys;
+}
+
 export function pickJudgePrompt(
   categoryId: string,
   recentPromptIds: readonly string[],
+  roomId?: string,
 ): GameContentWord {
   const content = getLoadedGameContent(JUDGE_GAME_ID);
 
@@ -113,14 +139,27 @@ export function pickJudgePrompt(
     throw new Error('No prompts available for the selected Judge category.');
   }
 
-  const recent = new Set(recentPromptIds);
-  const fresh = inCategory.filter((prompt) => !recent.has(prompt.id));
-  const pool = fresh.length > 0 ? fresh : inCategory;
-  const index = Math.floor(Math.random() * pool.length);
-  const picked = pool[index];
+  const picked = pickWithLayeredHistory({
+    items: inCategory,
+    matchKeysOf: promptMatchKeys,
+    roomKeyOf: (prompt) => prompt.id,
+    matchUsedKeys: matchUsedKeysFromPrompts(prompts, recentPromptIds),
+    roomRecentOldestFirst: roomId
+      ? getRoomContentHistory(roomId, ROOM_CONTENT_HISTORY_KEY.JUDGE)
+      : [],
+  });
 
   if (!picked) {
     throw new Error('Failed to pick a Judge prompt.');
+  }
+
+  if (roomId) {
+    recordRoomContentHistory(
+      roomId,
+      ROOM_CONTENT_HISTORY_KEY.JUDGE,
+      picked.id,
+      ROOM_CONTENT_HISTORY_LIMIT[ROOM_CONTENT_HISTORY_KEY.JUDGE],
+    );
   }
 
   return picked;

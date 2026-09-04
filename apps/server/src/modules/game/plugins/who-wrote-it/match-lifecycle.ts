@@ -121,6 +121,7 @@ function startNextRound(
     match.recentQuestionIds,
     Date.now(),
     match.answerSeconds,
+    roomId,
   );
   const nextMatch: WhoWroteItMatchState = {
     ...match,

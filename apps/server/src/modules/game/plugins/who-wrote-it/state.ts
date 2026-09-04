@@ -106,9 +106,10 @@ export function createRoundState(
   recentQuestionIds: readonly string[],
   now = Date.now(),
   answeringSeconds = timedPhaseDurations.whoWroteItAnswering(),
+  roomId?: string,
 ): { round: WhoWroteItRoundState; usedRoundCategoryIds: string[] } {
   const roundCategoryId = pickRoundCategoryId(matchCategoryId, usedRoundCategoryIds);
-  const prompt = pickWhoWroteItPrompt(roundCategoryId, recentQuestionIds);
+  const prompt = pickWhoWroteItPrompt(roundCategoryId, recentQuestionIds, roomId);
 
   const nextUsed =
     matchCategoryId === WHO_WROTE_IT_RANDOM_CATEGORY_ID
@@ -153,6 +154,7 @@ export function createMatchState(
     [],
     Date.now(),
     durations.answerSeconds,
+    roomId,
   );
 
   return {

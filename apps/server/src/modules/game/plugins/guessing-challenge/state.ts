@@ -256,10 +256,11 @@ export function createRoundState(
   recentIdentityIds: readonly string[],
   now = Date.now(),
   turnSeconds = timedPhaseDurations.guessingChallengeTurn(),
+  roomId?: string,
 ): { round: GuessingChallengeRoundState; usedRoundCategoryIds: string[] } {
   const categoryId = pickRoundCategoryId(matchCategoryId, usedRoundCategoryIds);
   const identities = getIdentitiesForCategory(categoryId);
-  const [identityBlue, identityRed] = pickTwoIdentities(identities, recentIdentityIds);
+  const [identityBlue, identityRed] = pickTwoIdentities(identities, recentIdentityIds, roomId);
 
   if (!Object.values(teamByPlayerId).includes('blue') || !Object.values(teamByPlayerId).includes('red')) {
     throw new Error('Guessing Challenge requires both teams.');
@@ -335,6 +336,7 @@ export function createMatchState(
     [],
     Date.now(),
     turnSeconds,
+    roomId,
   );
 
   return {
@@ -608,6 +610,7 @@ function activateYellowCard(
 function activateRedCard(
   match: GuessingChallengeMatchState,
   teamId: GuessingChallengeTeamId,
+  roomId?: string,
 ): { ok: true; match: GuessingChallengeMatchState } | { ok: false; message: string } {
   const cards = match.teamCards[teamId];
   if (!cards || cards.redUsed) {
@@ -630,6 +633,7 @@ function activateRedCard(
     ownIdentityValue: ownIdentity.value,
     usedIdentityIds: match.round.usedIdentityIds,
     recentIdentityIds: match.recentIdentityIds,
+    roomId,
   });
 
   if (!replacement) {
@@ -661,10 +665,11 @@ function activateSpecialCard(
   match: GuessingChallengeMatchState,
   teamId: GuessingChallengeTeamId,
   card: GuessingChallengeSpecialCard,
+  roomId?: string,
 ) {
   return card === 'yellow'
     ? activateYellowCard(match, teamId)
-    : activateRedCard(match, teamId);
+    : activateRedCard(match, teamId, roomId);
 }
 
 /**
@@ -770,7 +775,7 @@ export function confirmSpecialCard(
     return { ok: true, activated: false, match: nextMatch };
   }
 
-  const activated = activateSpecialCard(match, teamId, card);
+  const activated = activateSpecialCard(match, teamId, card, shell.roomId);
 
   if (!activated.ok) {
     return { ok: false, message: activated.message, match };
@@ -810,7 +815,7 @@ export function reconcilePendingCardConfirm(
     return { changed: false, activated: false, match };
   }
 
-  const activated = activateSpecialCard(match, confirm.teamId, confirm.card);
+  const activated = activateSpecialCard(match, confirm.teamId, confirm.card, shell.roomId);
   if (!activated.ok) {
     return {
       changed: true,
