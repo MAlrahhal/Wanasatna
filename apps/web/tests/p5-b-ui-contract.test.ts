@@ -76,6 +76,7 @@ test('active-room resume is visible with consistent copy', () => {
   assert.match(home, /handleResumeClaim/);
   assert.match(hook, /handleResumeClaim/);
   assert.match(hook, /getResumeDiscoveryListSnapshot\(readInviteCode\(searchParams\) \|\| null\)/);
+  assert.match(hook, /useVerifiedResumeClaims/);
   assert.match(hook, /enterFromJoinForm\(claim\.roomCode, claim\.playerName\)/);
   assert.doesNotMatch(banner, /لديك غرف مفتوحة/);
   assert.doesNotMatch(banner, /العودة للغرفة/);

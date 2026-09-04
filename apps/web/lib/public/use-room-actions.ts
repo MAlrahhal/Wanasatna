@@ -12,6 +12,7 @@ import {
   getResumeDiscoveryListSnapshot,
   subscribeResumeDiscovery,
 } from '@/lib/room-v2/discover-claim';
+import { useVerifiedResumeClaims } from '@/lib/room-v2/use-verified-resume-claims';
 import { getRoomSocket } from '@/lib/room/socket';
 
 type FieldErrors = {
@@ -78,11 +79,12 @@ export function useRoomActions() {
     setJoinCode(code);
   }, [searchParams, router]);
 
-  const resumeClaims = useSyncExternalStore(
+  const discoveredResumeClaims = useSyncExternalStore(
     subscribeResumeDiscovery,
     () => getResumeDiscoveryListSnapshot(readInviteCode(searchParams) || null),
     () => EMPTY_RESUME_CLAIMS,
   );
+  const resumeClaims = useVerifiedResumeClaims(discoveredResumeClaims);
 
   useEffect(() => {
     recordContinuity('HOME_READY', {

@@ -2,122 +2,332 @@
   {
     "id": "animals-1",
     "text": "أسد",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Lion"
+    ]
   },
   {
     "id": "animals-2",
     "text": "نمر",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Tiger"
+    ]
   },
   {
     "id": "animals-3",
     "text": "فيل",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Elephant"
+    ]
   },
   {
     "id": "animals-4",
     "text": "زرافة",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Giraffe"
+    ]
   },
   {
     "id": "animals-5",
     "text": "قرد",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Monkey"
+    ]
   },
   {
     "id": "animals-6",
     "text": "دب",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Bear"
+    ]
   },
   {
     "id": "animals-7",
     "text": "ذئب",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Wolf",
+      "ذيب"
+    ]
   },
   {
     "id": "animals-8",
     "text": "ثعلب",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Fox"
+    ]
   },
   {
     "id": "animals-9",
     "text": "أرنب",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Rabbit"
+    ]
   },
   {
     "id": "animals-10",
     "text": "جمل",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Camel"
+    ]
   },
   {
     "id": "animals-11",
     "text": "حصان",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Horse"
+    ]
   },
   {
     "id": "animals-12",
-    "text": "بقرة",
-    "categoryId": "animals"
+    "text": "تمساح",
+    "categoryId": "animals",
+    "aliases": [
+      "Crocodile"
+    ]
   },
   {
     "id": "animals-13",
-    "text": "خروف",
-    "categoryId": "animals"
+    "text": "ثعبان",
+    "categoryId": "animals",
+    "aliases": [
+      "Snake",
+      "حية"
+    ]
   },
   {
     "id": "animals-14",
-    "text": "ماعز",
-    "categoryId": "animals"
+    "text": "بطريق",
+    "categoryId": "animals",
+    "aliases": [
+      "Penguin"
+    ]
   },
   {
     "id": "animals-15",
-    "text": "كلب",
-    "categoryId": "animals"
+    "text": "دلفين",
+    "categoryId": "animals",
+    "aliases": [
+      "Dolphin",
+      "دولفين"
+    ]
   },
   {
     "id": "animals-16",
-    "text": "قطة",
-    "categoryId": "animals"
+    "text": "أخطبوط",
+    "categoryId": "animals",
+    "aliases": [
+      "Octopus"
+    ]
   },
   {
     "id": "animals-17",
-    "text": "تمساح",
-    "categoryId": "animals"
+    "text": "سلحفاة",
+    "categoryId": "animals",
+    "aliases": [
+      "Turtle"
+    ]
   },
   {
     "id": "animals-18",
-    "text": "ثعبان",
-    "categoryId": "animals"
+    "text": "كنغر",
+    "categoryId": "animals",
+    "aliases": [
+      "Kangaroo",
+      "كنجارو"
+    ]
   },
   {
     "id": "animals-19",
-    "text": "بطريق",
-    "categoryId": "animals"
+    "text": "باندا",
+    "categoryId": "animals",
+    "aliases": [
+      "Panda"
+    ]
   },
   {
     "id": "animals-20",
-    "text": "دلفين",
-    "categoryId": "animals"
+    "text": "حوت أزرق",
+    "categoryId": "animals",
+    "aliases": [
+      "الحوت الأزرق",
+      "Blue whale"
+    ]
+  },
+  {
+    "id": "animals-owl",
+    "text": "بومة",
+    "categoryId": "animals",
+    "aliases": [
+      "Owl"
+    ]
+  },
+  {
+    "id": "animals-hedgehog",
+    "text": "قنفذ",
+    "categoryId": "animals",
+    "aliases": [
+      "Hedgehog"
+    ]
+  },
+  {
+    "id": "animals-peacock",
+    "text": "طاووس",
+    "categoryId": "animals",
+    "aliases": [
+      "Peacock"
+    ]
+  },
+  {
+    "id": "animals-hippo",
+    "text": "فرس النهر",
+    "categoryId": "animals",
+    "aliases": [
+      "Hippo",
+      "Hippopotamus"
+    ]
+  },
+  {
+    "id": "animals-rhino",
+    "text": "وحيد القرن",
+    "categoryId": "animals",
+    "aliases": [
+      "Rhino",
+      "Rhinoceros"
+    ]
+  },
+  {
+    "id": "animals-bat",
+    "text": "خفاش",
+    "categoryId": "animals",
+    "aliases": [
+      "Bat",
+      "وطواط"
+    ]
+  },
+  {
+    "id": "animals-falcon",
+    "text": "صقر",
+    "categoryId": "animals",
+    "aliases": [
+      "Falcon"
+    ]
+  },
+  {
+    "id": "animals-hyena",
+    "text": "ضبع",
+    "categoryId": "animals",
+    "aliases": [
+      "Hyena"
+    ]
+  },
+  {
+    "id": "animals-hamster",
+    "text": "هامستر",
+    "categoryId": "animals",
+    "aliases": [
+      "Hamster"
+    ]
+  },
+  {
+    "id": "animals-gazelle",
+    "text": "غزال",
+    "categoryId": "animals",
+    "aliases": [
+      "Gazelle"
+    ]
+  },
+  {
+    "id": "animals-cheetah",
+    "text": "فهد",
+    "categoryId": "animals",
+    "aliases": [
+      "Cheetah",
+      "الشيتا"
+    ]
+  },
+  {
+    "id": "animals-parrot",
+    "text": "ببغاء",
+    "categoryId": "animals",
+    "aliases": [
+      "Parrot"
+    ]
+  },
+  {
+    "id": "animals-frog",
+    "text": "ضفدع",
+    "categoryId": "animals",
+    "aliases": [
+      "Frog"
+    ]
+  },
+  {
+    "id": "animals-bee",
+    "text": "نحلة",
+    "categoryId": "animals",
+    "aliases": [
+      "Bee"
+    ]
+  },
+  {
+    "id": "animals-butterfly",
+    "text": "فراشة",
+    "categoryId": "animals",
+    "aliases": [
+      "Butterfly"
+    ]
+  },
+  {
+    "id": "animals-ant",
+    "text": "نملة",
+    "categoryId": "animals",
+    "aliases": [
+      "Ant"
+    ]
   },
   {
     "id": "food-1",
     "text": "بيتزا",
-    "categoryId": "food"
+    "categoryId": "food",
+    "aliases": [
+      "Pizza"
+    ]
   },
   {
     "id": "food-2",
     "text": "برغر",
-    "categoryId": "food"
+    "categoryId": "food",
+    "aliases": [
+      "برجر",
+      "Burger"
+    ]
   },
   {
     "id": "food-3",
     "text": "شاورما",
-    "categoryId": "food"
+    "categoryId": "food",
+    "aliases": [
+      "Shawarma"
+    ]
   },
   {
     "id": "food-4",
     "text": "كبسة",
-    "categoryId": "food"
+    "categoryId": "food",
+    "aliases": [
+      "Kabsa"
+    ]
   },
   {
     "id": "food-5",
@@ -127,7 +337,10 @@
   {
     "id": "food-6",
     "text": "فلافل",
-    "categoryId": "food"
+    "categoryId": "food",
+    "aliases": [
+      "طعمية"
+    ]
   },
   {
     "id": "food-7",
@@ -141,462 +354,1475 @@
   },
   {
     "id": "food-9",
-    "text": "بقلاوة",
-    "categoryId": "food"
+    "text": "سوشي",
+    "categoryId": "food",
+    "aliases": [
+      "Sushi"
+    ]
   },
   {
     "id": "food-10",
-    "text": "سوشي",
-    "categoryId": "food"
+    "text": "آيس كريم",
+    "categoryId": "food",
+    "aliases": [
+      "مثلجات",
+      "Ice cream"
+    ]
   },
   {
     "id": "food-11",
-    "text": "باستا",
-    "categoryId": "food"
+    "text": "دونات",
+    "categoryId": "food",
+    "aliases": [
+      "دونت",
+      "Donut",
+      "Doughnut"
+    ]
   },
   {
     "id": "food-12",
-    "text": "بشاميل",
-    "categoryId": "food"
+    "text": "بان كيك",
+    "categoryId": "food",
+    "aliases": [
+      "Pancake",
+      "Pancakes"
+    ]
   },
   {
     "id": "food-13",
-    "text": "آيس كريم",
-    "categoryId": "food"
+    "text": "وافل",
+    "categoryId": "food",
+    "aliases": [
+      "Waffle",
+      "Waffles"
+    ]
   },
   {
     "id": "food-14",
-    "text": "فشار",
-    "categoryId": "food"
+    "text": "سمبوسة",
+    "categoryId": "food",
+    "aliases": [
+      "سمبوسك",
+      "Samosa"
+    ]
   },
   {
     "id": "food-15",
-    "text": "دونات",
-    "categoryId": "food"
+    "text": "تشيز كيك",
+    "categoryId": "food",
+    "aliases": [
+      "Cheesecake",
+      "Cheese cake"
+    ]
   },
   {
     "id": "food-16",
-    "text": "بان كيك",
-    "categoryId": "food"
+    "text": "بطيخ",
+    "categoryId": "food",
+    "aliases": [
+      "حبحب"
+    ]
   },
   {
     "id": "food-17",
-    "text": "وافل",
-    "categoryId": "food"
+    "text": "أناناس",
+    "categoryId": "food",
+    "aliases": [
+      "Pineapple"
+    ]
   },
   {
     "id": "food-18",
-    "text": "كب كيك",
-    "categoryId": "food"
+    "text": "فراولة",
+    "categoryId": "food",
+    "aliases": [
+      "Strawberry"
+    ]
   },
   {
     "id": "food-19",
-    "text": "سمبوسة",
-    "categoryId": "food"
+    "text": "فشار",
+    "categoryId": "food",
+    "aliases": [
+      "بوشار",
+      "Popcorn"
+    ]
   },
   {
     "id": "food-20",
-    "text": "تشيز كيك",
+    "text": "شوكولاتة",
     "categoryId": "food"
+  },
+  {
+    "id": "food-harees",
+    "text": "هريس",
+    "categoryId": "food",
+    "aliases": [
+      "Harees"
+    ]
+  },
+  {
+    "id": "food-masoub",
+    "text": "معصوب",
+    "categoryId": "food",
+    "aliases": [
+      "Masoub"
+    ]
+  },
+  {
+    "id": "food-dates",
+    "text": "تمر",
+    "categoryId": "food",
+    "aliases": [
+      "Dates"
+    ]
+  },
+  {
+    "id": "food-mutabbaq",
+    "text": "مطبق",
+    "categoryId": "food",
+    "aliases": [
+      "Mutabbaq"
+    ]
+  },
+  {
+    "id": "food-mansaf",
+    "text": "منسف",
+    "categoryId": "food",
+    "aliases": [
+      "Mansaf"
+    ]
+  },
+  {
+    "id": "food-kibbeh",
+    "text": "كبة",
+    "categoryId": "food",
+    "aliases": [
+      "Kibbeh"
+    ]
+  },
+  {
+    "id": "food-maqluba",
+    "text": "مقلوبة",
+    "categoryId": "food",
+    "aliases": [
+      "Maqluba",
+      "Maklouba"
+    ]
+  },
+  {
+    "id": "food-om-ali",
+    "text": "أم علي",
+    "categoryId": "food",
+    "aliases": [
+      "Om Ali",
+      "Umm Ali"
+    ]
+  },
+  {
+    "id": "food-qatayef",
+    "text": "قطايف",
+    "categoryId": "food",
+    "aliases": [
+      "Qatayef",
+      "Katayef"
+    ]
+  },
+  {
+    "id": "food-awameh",
+    "text": "عوامة",
+    "categoryId": "food",
+    "aliases": [
+      "Awameh",
+      "Awama"
+    ]
+  },
+  {
+    "id": "food-muhallabia",
+    "text": "مهلبية",
+    "categoryId": "food",
+    "aliases": [
+      "Muhallabia",
+      "Mahalabia"
+    ]
+  },
+  {
+    "id": "food-lentil-soup",
+    "text": "شوربة عدس",
+    "categoryId": "food",
+    "aliases": [
+      "شوربة العدس",
+      "عدس",
+      "Lentil soup"
+    ]
   },
   {
     "id": "countries-1",
     "text": "السعودية",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "المملكة العربية السعودية",
+      "Saudi Arabia"
+    ]
   },
   {
     "id": "countries-2",
     "text": "الأردن",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "Jordan"
+    ]
   },
   {
     "id": "countries-3",
     "text": "مصر",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "Egypt"
+    ]
   },
   {
     "id": "countries-4",
     "text": "الإمارات",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "الإمارات العربية المتحدة",
+      "UAE",
+      "United Arab Emirates"
+    ]
   },
   {
     "id": "countries-5",
     "text": "الكويت",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "Kuwait"
+    ]
   },
   {
     "id": "countries-6",
     "text": "قطر",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "Qatar"
+    ]
   },
   {
     "id": "countries-7",
     "text": "البحرين",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "Bahrain"
+    ]
   },
   {
     "id": "countries-8",
     "text": "عُمان",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "سلطنة عمان",
+      "Oman"
+    ]
   },
   {
     "id": "countries-9",
     "text": "المغرب",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "Morocco"
+    ]
   },
   {
     "id": "countries-10",
     "text": "تركيا",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "Turkey"
+    ]
   },
   {
     "id": "countries-11",
     "text": "اليابان",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "Japan"
+    ]
   },
   {
     "id": "countries-12",
     "text": "الصين",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "China"
+    ]
   },
   {
     "id": "countries-13",
     "text": "الهند",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "India"
+    ]
   },
   {
     "id": "countries-14",
     "text": "فرنسا",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "France"
+    ]
   },
   {
     "id": "countries-15",
     "text": "إيطاليا",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "Italy"
+    ]
   },
   {
     "id": "countries-16",
     "text": "إسبانيا",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "Spain"
+    ]
   },
   {
     "id": "countries-17",
     "text": "ألمانيا",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "Germany"
+    ]
   },
   {
     "id": "countries-18",
     "text": "بريطانيا",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "بريطانيا العظمى",
+      "المملكة المتحدة",
+      "UK",
+      "United Kingdom",
+      "Great Britain"
+    ]
   },
   {
     "id": "countries-19",
     "text": "أمريكا",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "الولايات المتحدة",
+      "USA",
+      "US",
+      "United States",
+      "United States of America"
+    ]
   },
   {
     "id": "countries-20",
     "text": "البرازيل",
-    "categoryId": "countries"
+    "categoryId": "countries",
+    "aliases": [
+      "Brazil"
+    ]
+  },
+  {
+    "id": "countries-canada",
+    "text": "كندا",
+    "categoryId": "countries",
+    "aliases": [
+      "Canada"
+    ]
+  },
+  {
+    "id": "countries-australia",
+    "text": "أستراليا",
+    "categoryId": "countries",
+    "aliases": [
+      "Australia"
+    ]
+  },
+  {
+    "id": "countries-mexico",
+    "text": "المكسيك",
+    "categoryId": "countries",
+    "aliases": [
+      "Mexico"
+    ]
+  },
+  {
+    "id": "countries-greece",
+    "text": "اليونان",
+    "categoryId": "countries",
+    "aliases": [
+      "Greece"
+    ]
+  },
+  {
+    "id": "countries-portugal",
+    "text": "البرتغال",
+    "categoryId": "countries",
+    "aliases": [
+      "Portugal"
+    ]
+  },
+  {
+    "id": "countries-south-korea",
+    "text": "كوريا الجنوبية",
+    "categoryId": "countries",
+    "aliases": [
+      "South Korea"
+    ]
+  },
+  {
+    "id": "countries-singapore",
+    "text": "سنغافورة",
+    "categoryId": "countries",
+    "aliases": [
+      "Singapore"
+    ]
+  },
+  {
+    "id": "countries-argentina",
+    "text": "الأرجنتين",
+    "categoryId": "countries",
+    "aliases": [
+      "Argentina"
+    ]
+  },
+  {
+    "id": "countries-iraq",
+    "text": "العراق",
+    "categoryId": "countries",
+    "aliases": [
+      "Iraq"
+    ]
+  },
+  {
+    "id": "countries-lebanon",
+    "text": "لبنان",
+    "categoryId": "countries",
+    "aliases": [
+      "Lebanon"
+    ]
+  },
+  {
+    "id": "countries-syria",
+    "text": "سوريا",
+    "categoryId": "countries",
+    "aliases": [
+      "سورية",
+      "Syria"
+    ]
+  },
+  {
+    "id": "countries-yemen",
+    "text": "اليمن",
+    "categoryId": "countries",
+    "aliases": [
+      "Yemen"
+    ]
+  },
+  {
+    "id": "countries-sudan",
+    "text": "السودان",
+    "categoryId": "countries",
+    "aliases": [
+      "Sudan"
+    ]
+  },
+  {
+    "id": "countries-pakistan",
+    "text": "باكستان",
+    "categoryId": "countries",
+    "aliases": [
+      "Pakistan"
+    ]
+  },
+  {
+    "id": "countries-russia",
+    "text": "روسيا",
+    "categoryId": "countries",
+    "aliases": [
+      "Russia"
+    ]
+  },
+  {
+    "id": "countries-tunisia",
+    "text": "تونس",
+    "categoryId": "countries",
+    "aliases": [
+      "Tunisia"
+    ]
+  },
+  {
+    "id": "countries-algeria",
+    "text": "الجزائر",
+    "categoryId": "countries",
+    "aliases": [
+      "الجزاير",
+      "Algeria"
+    ]
+  },
+  {
+    "id": "countries-palestine",
+    "text": "فلسطين",
+    "categoryId": "countries",
+    "aliases": [
+      "Palestine"
+    ]
+  },
+  {
+    "id": "countries-sweden",
+    "text": "السويد",
+    "categoryId": "countries",
+    "aliases": [
+      "Sweden"
+    ]
+  },
+  {
+    "id": "countries-switzerland",
+    "text": "سويسرا",
+    "categoryId": "countries",
+    "aliases": [
+      "Switzerland"
+    ]
   },
   {
     "id": "football-1",
     "text": "كريستيانو رونالدو",
-    "categoryId": "football"
+    "categoryId": "football",
+    "aliases": [
+      "رونالدو",
+      "كريستيانو",
+      "Cristiano Ronaldo",
+      "CR7"
+    ]
   },
   {
     "id": "football-2",
     "text": "ليونيل ميسي",
-    "categoryId": "football"
+    "categoryId": "football",
+    "aliases": [
+      "ليونيل",
+      "ميسي",
+      "Lionel Messi"
+    ]
   },
   {
     "id": "football-3",
     "text": "نيمار",
-    "categoryId": "football"
+    "categoryId": "football",
+    "aliases": [
+      "Neymar"
+    ]
   },
   {
     "id": "football-4",
     "text": "كيليان مبابي",
-    "categoryId": "football"
+    "categoryId": "football",
+    "aliases": [
+      "كيليان",
+      "مبابي",
+      "Kylian Mbappe",
+      "Kylian Mbappé"
+    ]
   },
   {
     "id": "football-5",
     "text": "محمد صلاح",
-    "categoryId": "football"
+    "categoryId": "football",
+    "aliases": [
+      "صلاح",
+      "Mohamed Salah"
+    ]
   },
   {
     "id": "football-6",
     "text": "كريم بنزيما",
-    "categoryId": "football"
+    "categoryId": "football",
+    "aliases": [
+      "بنزيما",
+      "Karim Benzema"
+    ]
   },
   {
     "id": "football-7",
     "text": "لوكا مودريتش",
-    "categoryId": "football"
+    "categoryId": "football",
+    "aliases": [
+      "مودريتش",
+      "Luka Modric",
+      "Luka Modrić"
+    ]
   },
   {
     "id": "football-8",
     "text": "روبرت ليفاندوفسكي",
-    "categoryId": "football"
+    "categoryId": "football",
+    "aliases": [
+      "ليفاندوفسكي",
+      "Robert Lewandowski"
+    ]
   },
   {
     "id": "football-9",
     "text": "إيرلينغ هالاند",
-    "categoryId": "football"
+    "categoryId": "football",
+    "aliases": [
+      "هالاند",
+      "Erling Haaland"
+    ]
   },
   {
     "id": "football-10",
     "text": "فينيسيوس جونيور",
-    "categoryId": "football"
+    "categoryId": "football",
+    "aliases": [
+      "فينيسيوس",
+      "Vinicius Junior",
+      "Vinícius Júnior"
+    ]
   },
   {
     "id": "football-11",
     "text": "رونالدينيو",
-    "categoryId": "football"
+    "categoryId": "football",
+    "aliases": [
+      "رونالدينهو",
+      "Ronaldinho"
+    ]
   },
   {
     "id": "football-12",
     "text": "زين الدين زيدان",
-    "categoryId": "football"
+    "categoryId": "football",
+    "aliases": [
+      "زيدان",
+      "Zinedine Zidane"
+    ]
   },
   {
     "id": "football-13",
     "text": "ديفيد بيكهام",
-    "categoryId": "football"
+    "categoryId": "football",
+    "aliases": [
+      "بيكهام",
+      "David Beckham"
+    ]
   },
   {
     "id": "football-14",
-    "text": "تييري هنري",
-    "categoryId": "football"
+    "text": "أندريس إنييستا",
+    "categoryId": "football",
+    "aliases": [
+      "إنييستا",
+      "Iniesta",
+      "Andrés Iniesta"
+    ]
   },
   {
     "id": "football-15",
-    "text": "أندريس إنييستا",
-    "categoryId": "football"
+    "text": "تشافي",
+    "categoryId": "football",
+    "aliases": [
+      "Xavi"
+    ]
   },
   {
     "id": "football-16",
-    "text": "تشافي",
-    "categoryId": "football"
+    "text": "سيرجيو راموس",
+    "categoryId": "football",
+    "aliases": [
+      "راموس",
+      "Sergio Ramos"
+    ]
   },
   {
     "id": "football-17",
-    "text": "سيرجيو راموس",
-    "categoryId": "football"
+    "text": "بوفون",
+    "categoryId": "football",
+    "aliases": [
+      "جانلويجي بوفون",
+      "Gianluigi Buffon"
+    ]
   },
   {
     "id": "football-18",
-    "text": "بوفون",
-    "categoryId": "football"
+    "text": "رونالدو نازاريو",
+    "categoryId": "football",
+    "aliases": [
+      "رونالدو البرازيلي",
+      "Ronaldo Nazário"
+    ]
   },
   {
     "id": "football-19",
-    "text": "رونالدو نازاريو",
-    "categoryId": "football"
+    "text": "بيليه",
+    "categoryId": "football",
+    "aliases": [
+      "Pelé"
+    ]
   },
   {
     "id": "football-20",
-    "text": "بيليه",
-    "categoryId": "football"
+    "text": "مارادونا",
+    "categoryId": "football",
+    "aliases": [
+      "دييغو مارادونا",
+      "Diego Maradona"
+    ]
+  },
+  {
+    "id": "football-kaka",
+    "text": "كاكا",
+    "categoryId": "football",
+    "aliases": [
+      "Kaká"
+    ]
+  },
+  {
+    "id": "football-neuer",
+    "text": "مانويل نوير",
+    "categoryId": "football",
+    "aliases": [
+      "نوير",
+      "Manuel Neuer"
+    ]
+  },
+  {
+    "id": "football-de-bruyne",
+    "text": "كيفن دي بروين",
+    "categoryId": "football",
+    "aliases": [
+      "دي بروين",
+      "Kevin De Bruyne"
+    ]
+  },
+  {
+    "id": "football-van-dijk",
+    "text": "فيرجيل فان دايك",
+    "categoryId": "football",
+    "aliases": [
+      "فان دايك",
+      "Virgil van Dijk"
+    ]
+  },
+  {
+    "id": "football-bellingham",
+    "text": "جود بيلينغهام",
+    "categoryId": "football",
+    "aliases": [
+      "جود بيلينجهام",
+      "بيلينغهام",
+      "بيلينجهام",
+      "Jude Bellingham"
+    ]
+  },
+  {
+    "id": "football-ibrahimovic",
+    "text": "زلاتان إبراهيموفيتش",
+    "categoryId": "football",
+    "aliases": [
+      "إبراهيموفيتش",
+      "زلاتان",
+      "Zlatan Ibrahimovic",
+      "Zlatan"
+    ]
+  },
+  {
+    "id": "football-henry",
+    "text": "تييري هنري",
+    "categoryId": "football",
+    "aliases": [
+      "هنري",
+      "Thierry Henry"
+    ]
+  },
+  {
+    "id": "football-kante",
+    "text": "نغولو كانتي",
+    "categoryId": "football",
+    "aliases": [
+      "كانتي",
+      "N'Golo Kante",
+      "N'Golo Kanté"
+    ]
+  },
+  {
+    "id": "football-mahrez",
+    "text": "رياض محرز",
+    "categoryId": "football",
+    "aliases": [
+      "محرز",
+      "Riyad Mahrez"
+    ]
+  },
+  {
+    "id": "football-mane",
+    "text": "ساديو ماني",
+    "categoryId": "football",
+    "aliases": [
+      "ماني",
+      "Sadio Mane",
+      "Sadio Mané"
+    ]
+  },
+  {
+    "id": "football-hakimi",
+    "text": "أشرف حكيمي",
+    "categoryId": "football",
+    "aliases": [
+      "حكيمي",
+      "Achraf Hakimi"
+    ]
+  },
+  {
+    "id": "football-dawsari",
+    "text": "سالم الدوسري",
+    "categoryId": "football",
+    "aliases": [
+      "سالم",
+      "Salem Al-Dawsari"
+    ]
+  },
+  {
+    "id": "football-son",
+    "text": "سون هيونغ مين",
+    "categoryId": "football",
+    "aliases": [
+      "سون",
+      "Son Heung-min"
+    ]
+  },
+  {
+    "id": "football-suarez",
+    "text": "لويس سواريز",
+    "categoryId": "football",
+    "aliases": [
+      "سواريز",
+      "Luis Suarez",
+      "Luis Suárez"
+    ]
+  },
+  {
+    "id": "football-aguero",
+    "text": "سيرجيو أغويرو",
+    "categoryId": "football",
+    "aliases": [
+      "أغويرو",
+      "Aguero",
+      "Sergio Aguero",
+      "Sergio Agüero"
+    ]
+  },
+  {
+    "id": "football-kroos",
+    "text": "توني كروس",
+    "categoryId": "football",
+    "aliases": [
+      "كروس",
+      "Toni Kroos"
+    ]
+  },
+  {
+    "id": "football-griezmann",
+    "text": "أنطوان غريزمان",
+    "categoryId": "football",
+    "aliases": [
+      "غريزمان",
+      "Griezmann",
+      "Antoine Griezmann"
+    ]
+  },
+  {
+    "id": "football-kane",
+    "text": "هاري كين",
+    "categoryId": "football",
+    "aliases": [
+      "كين",
+      "Harry Kane"
+    ]
+  },
+  {
+    "id": "football-di-maria",
+    "text": "أنخيل دي ماريا",
+    "categoryId": "football",
+    "aliases": [
+      "دي ماريا",
+      "Ángel Di María",
+      "Di Maria"
+    ]
+  },
+  {
+    "id": "football-rooney",
+    "text": "واين روني",
+    "categoryId": "football",
+    "aliases": [
+      "روني",
+      "Wayne Rooney"
+    ]
   },
   {
     "id": "series-1",
     "text": "Breaking Bad",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "بريكنق باد",
+      "بريكنغ باد"
+    ]
   },
   {
     "id": "series-2",
     "text": "Game of Thrones",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "Game",
+      "جيم أوف ثرونز"
+    ]
   },
   {
     "id": "series-3",
     "text": "Prison Break",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "بريزن بريك"
+    ]
   },
   {
     "id": "series-4",
     "text": "The Walking Dead",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "ذا ووكينغ ديد",
+      "ذا ووكينج ديد"
+    ]
   },
   {
     "id": "series-5",
     "text": "Peaky Blinders",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "بيكي بلايندرز"
+    ]
   },
   {
     "id": "series-6",
     "text": "Stranger Things",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "Stranger",
+      "سترينجر ثينقز",
+      "سترينجر ثينجز"
+    ]
   },
   {
     "id": "series-7",
-    "text": "Money Heist",
-    "categoryId": "series"
+    "text": "La Casa de Papel",
+    "categoryId": "series",
+    "aliases": [
+      "Money Heist",
+      "لا كاسا دي بابيل",
+      "لاكاسا دي بابيل"
+    ]
   },
   {
     "id": "series-8",
     "text": "The Boys",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "ذا بويز"
+    ]
   },
   {
     "id": "series-9",
     "text": "Dexter",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "ديكستر"
+    ]
   },
   {
     "id": "series-10",
     "text": "Sherlock",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "شيرلوك"
+    ]
   },
   {
     "id": "series-11",
     "text": "The Last of Us",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "ذا لاست أوف أس"
+    ]
   },
   {
     "id": "series-12",
     "text": "Squid Game",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "سكويد جيم",
+      "لعبة الحبار",
+      "الحبار"
+    ]
   },
   {
     "id": "series-13",
     "text": "Better Call Saul",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "بيتر كول سول"
+    ]
   },
   {
     "id": "series-14",
     "text": "Vikings",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "فايكنغز",
+      "فايكنجز"
+    ]
   },
   {
     "id": "series-15",
     "text": "Lost",
-    "categoryId": "series"
-  },
-  {
-    "id": "series-16",
-    "text": "The Witcher",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "لوست",
+      "ضياع"
+    ]
   },
   {
     "id": "series-17",
     "text": "House of the Dragon",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "هاوس أوف ذا دراغون",
+      "هاوس أوف ذا دراجون"
+    ]
   },
   {
     "id": "series-18",
     "text": "The Sopranos",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "ذا سوبرانوز",
+      "سوبرانوز"
+    ]
   },
   {
     "id": "series-19",
     "text": "Narcos",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "ناركوس"
+    ]
   },
   {
     "id": "series-20",
     "text": "Suits",
-    "categoryId": "series"
+    "categoryId": "series",
+    "aliases": [
+      "سوتس"
+    ]
+  },
+  {
+    "id": "series-friends",
+    "text": "Friends",
+    "categoryId": "series",
+    "aliases": [
+      "فريندز",
+      "أصدقاء"
+    ]
+  },
+  {
+    "id": "series-office",
+    "text": "The Office",
+    "categoryId": "series",
+    "aliases": [
+      "ذا أوفيس",
+      "المكتب"
+    ]
+  },
+  {
+    "id": "series-himym",
+    "text": "How I Met Your Mother",
+    "categoryId": "series",
+    "aliases": [
+      "هاو آي مت يور ماذر",
+      "كيف قابلت أمك"
+    ]
+  },
+  {
+    "id": "series-the-wire",
+    "text": "The Wire",
+    "categoryId": "series",
+    "aliases": [
+      "ذا واير",
+      "واير"
+    ]
+  },
+  {
+    "id": "series-big-bang",
+    "text": "The Big Bang Theory",
+    "categoryId": "series",
+    "aliases": [
+      "ذا بيغ بانغ ثيوري",
+      "بيغ بانغ ثيوري"
+    ]
+  },
+  {
+    "id": "series-vampire-diaries",
+    "text": "The Vampire Diaries",
+    "categoryId": "series",
+    "aliases": [
+      "ذا فامباير دايريز",
+      "فامباير دايريز"
+    ]
+  },
+  {
+    "id": "series-you",
+    "text": "You",
+    "categoryId": "series",
+    "aliases": [
+      "يو",
+      "أنت"
+    ]
+  },
+  {
+    "id": "series-the-100",
+    "text": "The 100",
+    "categoryId": "series",
+    "aliases": [
+      "ذا هندرد",
+      "ذا 100"
+    ]
+  },
+  {
+    "id": "series-blacklist",
+    "text": "The Blacklist",
+    "categoryId": "series",
+    "aliases": [
+      "ذا بلاك ليست",
+      "بلاك ليست"
+    ]
+  },
+  {
+    "id": "series-mentalist",
+    "text": "The Mentalist",
+    "categoryId": "series",
+    "aliases": [
+      "ذا منتاليست",
+      "منتاليست"
+    ]
+  },
+  {
+    "id": "series-chernobyl",
+    "text": "Chernobyl",
+    "categoryId": "series",
+    "aliases": [
+      "تشيرنوبل",
+      "تشيرنوبيل"
+    ]
   },
   {
     "id": "games-1",
     "text": "Minecraft",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "Mine craft",
+      "ماينكرافت",
+      "ماين كرافت"
+    ]
   },
   {
     "id": "games-2",
     "text": "Fortnite",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "فورتنايت"
+    ]
   },
   {
     "id": "games-3",
     "text": "PUBG",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "ببجي",
+      "PlayerUnknown's Battlegrounds"
+    ]
   },
   {
     "id": "games-4",
-    "text": "GTA V",
-    "categoryId": "games"
+    "text": "GTA",
+    "categoryId": "games",
+    "aliases": [
+      "GTA 5",
+      "GTA V",
+      "قراند 5",
+      "Grand Theft Auto V"
+    ]
   },
   {
     "id": "games-5",
     "text": "Call of Duty",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "كول أوف ديوتي",
+      "COD"
+    ]
   },
   {
     "id": "games-6",
     "text": "FIFA",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "EA Sports FC",
+      "EA FC",
+      "فيفا"
+    ]
   },
   {
     "id": "games-7",
     "text": "Rocket League",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "روكيت ليق",
+      "روكيت ليغ"
+    ]
   },
   {
     "id": "games-8",
     "text": "Valorant",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "فالورانت"
+    ]
   },
   {
     "id": "games-9",
     "text": "League of Legends",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "LoL"
+    ]
   },
   {
     "id": "games-10",
     "text": "Counter-Strike",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "كاونتر سترايك",
+      "CS",
+      "CS2"
+    ]
   },
   {
     "id": "games-11",
     "text": "Overwatch",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "أوفرواتش"
+    ]
   },
   {
     "id": "games-12",
     "text": "Marvel Rivals",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "مارفل رايفلز",
+      "مارفل ريفالز"
+    ]
   },
   {
     "id": "games-13",
     "text": "Among Us",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "امونغ اس"
+    ]
   },
   {
     "id": "games-14",
     "text": "The Last of Us",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "ذا لاست أوف أس"
+    ]
   },
   {
     "id": "games-15",
     "text": "Red Dead Redemption 2",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "ريد ديد 2",
+      "RDR2"
+    ]
   },
   {
     "id": "games-16",
     "text": "Resident Evil",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "ريزدنت إيفل",
+      "رزدنت ايفل",
+      "RE"
+    ]
   },
   {
     "id": "games-17",
-    "text": "Assassin’s Creed",
-    "categoryId": "games"
+    "text": "Assassin's Creed",
+    "categoryId": "games",
+    "aliases": [
+      "اساسنز كريد",
+      "Assassin"
+    ]
   },
   {
     "id": "games-18",
     "text": "God of War",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "قاد أوف وور",
+      "جاد أوف وور"
+    ]
   },
   {
     "id": "games-19",
     "text": "Elden Ring",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "إلدن رينغ",
+      "الدن رينق"
+    ]
   },
   {
     "id": "games-20",
     "text": "Spider-Man",
-    "categoryId": "games"
+    "categoryId": "games",
+    "aliases": [
+      "Marvel's Spider-Man",
+      "سبايدرمان"
+    ]
+  },
+  {
+    "id": "games-mario",
+    "text": "Super Mario",
+    "categoryId": "games",
+    "aliases": [
+      "Mario",
+      "ماريو"
+    ]
+  },
+  {
+    "id": "games-zelda",
+    "text": "The Legend of Zelda",
+    "categoryId": "games",
+    "aliases": [
+      "Zelda",
+      "زيلدا"
+    ]
+  },
+  {
+    "id": "games-pokemon",
+    "text": "Pokémon",
+    "categoryId": "games",
+    "aliases": [
+      "Pokemon",
+      "بوكيمون"
+    ]
+  },
+  {
+    "id": "games-roblox",
+    "text": "Roblox",
+    "categoryId": "games",
+    "aliases": [
+      "روبلوكس"
+    ]
+  },
+  {
+    "id": "games-free-fire",
+    "text": "Free Fire",
+    "categoryId": "games",
+    "aliases": [
+      "فري فاير"
+    ]
+  },
+  {
+    "id": "games-clash-clans",
+    "text": "Clash of Clans",
+    "categoryId": "games",
+    "aliases": [
+      "كلاش أوف كلانس"
+    ]
+  },
+  {
+    "id": "games-genshin",
+    "text": "Genshin Impact",
+    "categoryId": "games",
+    "aliases": [
+      "جينشن"
+    ]
+  },
+  {
+    "id": "games-tekken",
+    "text": "Tekken",
+    "categoryId": "games",
+    "aliases": [
+      "تيكن"
+    ]
+  },
+  {
+    "id": "games-efootball",
+    "text": "PES",
+    "categoryId": "games",
+    "aliases": [
+      "eFootball",
+      "بيس"
+    ]
+  },
+  {
+    "id": "games-sims",
+    "text": "The Sims",
+    "categoryId": "games",
+    "aliases": [
+      "ذا سيمز"
+    ]
+  },
+  {
+    "id": "games-dark-souls",
+    "text": "Dark Souls",
+    "categoryId": "games",
+    "aliases": [
+      "دارك سولز"
+    ]
+  },
+  {
+    "id": "games-clash-royale",
+    "text": "Clash Royale",
+    "categoryId": "games",
+    "aliases": [
+      "كلاش رويال"
+    ]
+  },
+  {
+    "id": "games-candy-crush",
+    "text": "Candy Crush",
+    "categoryId": "games",
+    "aliases": [
+      "كاندي كراش"
+    ]
+  },
+  {
+    "id": "games-subway",
+    "text": "Subway Surfers",
+    "categoryId": "games",
+    "aliases": [
+      "سبواي سيرفرز"
+    ]
   }
 ]

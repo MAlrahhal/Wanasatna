@@ -16,7 +16,7 @@
     "test:security-batch1": "tsx tests/security-batch1.unit.test.ts",
     "test:security-batch2": "tsx tests/security-batch2.unit.test.ts",
     "test:security-batch3": "cross-env WANASATNA_TEST_MODE=1 ADMIN_TOTP_ENCRYPTION_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef tsx tests/security-batch3-mfa.integration.test.ts && tsx tests/security-batch3-audit.unit.test.ts",
-    "test:unit": "tsx tests/unit.test.ts && tsx tests/graceful-shutdown.unit.test.ts",
+    "test:unit": "tsx tests/unit.test.ts && tsx tests/graceful-shutdown.unit.test.ts && tsx tests/room-returnability.unit.test.ts",
     "test:room-chat": "tsx tests/room-chat.unit.test.ts",
     "test:p12-b2": "tsx tests/p12-b2-room-lifecycle.unit.test.ts",
     "test:presence-reconnect": "tsx tests/presence-reconnect-race.unit.test.ts",

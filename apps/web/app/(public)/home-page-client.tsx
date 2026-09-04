@@ -75,7 +75,8 @@ export function HomePageClient() {
           <div className="relative grid items-center gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-10">
             <div className="max-w-3xl">
               <h1 className="text-wanas-text-primary text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-[3.25rem]">
-                لأن الوناسة ما تحلى إلا مع أصحابك
+                <span className="block">لأن الوناسة ما تحلى إلا</span>
+                <span className="text-wanas-accent block">مع أصحابك</span>
               </h1>
               <p className="text-wanas-text-secondary mt-3 max-w-xl text-base leading-8 sm:mt-5">
                 أنشئ غرفة، شارك الرمز، وابدؤوا اللعب خلال ثوانٍ — مباشرة من المتصفح وبدون تسجيل.

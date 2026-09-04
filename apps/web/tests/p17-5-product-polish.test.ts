@@ -47,7 +47,9 @@ test('Home hero uses official logo, no lock icon, no hero divider', () => {
   assert.equal(existsSync(join(root, 'public/brand/wanasatna-logo.png')), true);
   assert.doesNotMatch(logo, />و</);
   assert.match(navbar, /PublicBrandLogo/);
-  assert.match(home, /لأن الوناسة ما تحلى إلا مع أصحابك/);
+  assert.match(home, /لأن الوناسة ما تحلى إلا/);
+  assert.match(home, /text-wanas-accent/);
+  assert.match(home, /مع أصحابك/);
   assert.match(home, /بدون تسجيل/);
   assert.doesNotMatch(home, /<svg[\s\S]*lock|M12 15v2|lock icon/i);
   assert.doesNotMatch(home, /section className="relative overflow-hidden border-b/);

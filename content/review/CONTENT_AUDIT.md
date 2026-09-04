@@ -1,8 +1,116 @@
 # Wanasatna content audit — complete item inventory
 
-Generated from production JSON under `content/`. This file lists **every** existing content item, not samples.
+This file has two layers:
 
-Assessments in the item list describe the **baseline before the expansion pass**. Cleanup and new items are summarized at the top after the pass lands.
+1. **Pass summary (this section)** — after the cleanup and expansion.
+2. **Baseline item-by-item audit** — every production item that existed *before* the pass, with KEEP / FIX / REPLACE. Do not treat that list as the current catalog size.
+
+Generated from production JSON under `content/`. The item list below contains **every** existing item as of the baseline (688 items), not samples.
+
+## Pass summary (final)
+
+### Existing content
+
+| | Items |
+| --- | ---: |
+| **Total before** | **688** |
+| **Total after** | **1390** |
+| تحدي التوقيت | 0 before / 0 after (no content catalog by design) |
+
+| Game | Before | After |
+| --- | ---: | ---: |
+| برا السالفة | 120 | 240 |
+| ارسم وخمّن | 99 | 200 |
+| الإمبوستر بالرسم | 99 | 200 |
+| أسرع إجابة | 97 | 200 |
+| من كتبها؟ | 60 | 120 |
+| القاضي | 75 | 150 |
+| تحدي التخمين | 138 | 280 |
+
+Every existing category is now **40** items for word/quiz/identity games, and **30** for من كتبها؟ / القاضي (was 15).
+
+| Game | Category | Before | After |
+| --- | --- | ---: | ---: |
+| برا السالفة | حيوانات / أكلات / بلدان / كرة قدم / مسلسلات / ألعاب | 20 | 40 |
+| ارسم وخمّن | حيوانات / أكلات / طبيعة / أماكن | 20 | 40 |
+| ارسم وخمّن | تقنيات | 19 | 40 |
+| الإمبوستر بالرسم | حيوانات / أكلات / طبيعة / أماكن | 20 | 40 |
+| الإمبوستر بالرسم | تقنيات | 19 | 40 |
+| أسرع إجابة | حيوانات / بلدان / مسلسلات / ألعاب | 20 | 40 |
+| أسرع إجابة | أكلات | 17 | 40 |
+| تحدي التخمين | حيوانات / أكلات / بلدان / كرة قدم / مسلسلات / ألعاب | 20 | 40 |
+| تحدي التخمين | تقنيات | 18 | 40 |
+| من كتبها؟ | كل الفئات الأربع | 15 | 30 |
+| القاضي | كل الفئات الخمس | 15 | 30 |
+
+### Cleanup
+
+- **Kept:** 685 items (IDs preserved; wording unchanged or only aliases added).
+- **Fixed:** 25 existing items (wrong/missing aliases, including Guessing Challenge `countries-8` Oman/Amman, Draw `nature-19` dropping `The Island`, Fast Answer animal English names, Cheetah, etc.).
+- **Replaced (same ID):** 3
+  - Fast Answer `countries-18` — Britain/Big Ben was a near-duplicate of London/Britain; now Australia/kangaroo.
+  - Fast Answer `series-20` — Lost island answer was too generic; now Oceanic 815 → Lost.
+  - Fast Answer `games-2` — “100-player battle royale” matched several games; now Erangel + plane → PUBG.
+- **Removed as true duplicates:** 0 catalog rows. No IDs deleted.
+
+### New content
+
+- **Added:** 702 items.
+- **Categories expanded:** every existing category (pools were 15–20; they are now 30–40).
+- **New categories added:** none. Football/people already exist in برا السالفة and تحدي التخمين. Adding `people` or Fast Answer `football` would require lobby UI + shared category-contract changes; that was left out on purpose.
+
+Variety in the new quiz items is mixed (habitats, food, records, culture, landmarks, clubs as well as players, Gulf dishes, not only animal-size trivia).
+
+### Answer aliases
+
+- **Existing items with improved aliases:** about 30 (Fast Answer animals/facts, Guessing Challenge Oman + several identities, Draw جزيرة).
+- **New items:** written with Arabic + English (or Latin title + Arabic transliteration) from the start.
+- Normalization already folds `ال`, `ة`→`ه`, hamza, and case, so we did **not** add redundant `زرافه` / `الزرافة` pairs.
+- Confirmed bilingual coverage on Fast Answer accepted answers and Guessing Challenge identities where an English/Latin form is naturally used.
+
+### Repetition
+
+Players were not stuck on a hidden 10-item subset.
+
+**Cause:** category pools were only **15–20 items**, selection is uniform random, and **recent-item memory is match-scoped only** (then it resets). Fast Answer default is 5 rounds; Bara/Draw/Imposter default is 3. A host who locks حيوانات will cycle the same ~20 items across rematches. Random mode still picks **one category per round**, then one item inside it — it does not draw from the global bag.
+
+Duplicate IDs were not shrinking the pool. The picker fallback (reuse when unused is empty) is only for long matches.
+
+**No runtime selection rewrite in this pass.** Expanding pools is the content fix. A cross-match cooldown would be a separate, small code change if still needed.
+
+### Files
+
+**Production catalogs**
+
+- `content/bara-al-salafa/words.json`
+- `content/draw-guess/words.json`
+- `content/imposter-draw/words.json`
+- `content/fast-answer/questions.json`
+- `content/guessing-challenge/questions.json`
+- `content/who-wrote-it/words.json`
+- `content/judge/words.json`
+
+**Tests**
+
+- `apps/server/tests/content-contract.unit.test.ts` (baseline counts are now a floor, not an exact freeze)
+
+**Review / tooling**
+
+- `content/review/CONTENT_AUDIT.md` (this file)
+- `content/review/generate-content-audit.mjs`
+- `content/review/apply-content-pass.mjs`
+- `content/review/pass-alias-map.mjs`
+- `content/review/pass-new-content.mjs`
+- `content/review/OWNER_REVIEW.md` (regenerated by export)
+- `content/review/OWNER_REVIEW.csv` (regenerated by export)
+
+---
+
+# Baseline item-by-item audit
+
+Generated from production JSON under `content/` **before** expansion. This lists **every** existing content item, not samples.
+
+Assessments in the item list describe the **baseline before the expansion pass**.
 
 Normalization used by the live matcher (`normalizeTextAnswer`): NFKC, trim, lower-case, Arabic/Persian digits, strip tatweel and diacritics, strip a leading `ال`, collapse hamza/alif, `ى`→`ي`, **`ة`→`ه`**, strip punctuation. Duplicate aliases after this step are invalid. The content README note that matching does not map `ة`→`ه` is outdated relative to code.
 

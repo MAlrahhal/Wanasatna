@@ -10,9 +10,11 @@ import {
   type ActiveRoomSession,
 } from '@/lib/room-v2';
 import {
+  EMPTY_RESUME_CLAIMS,
   getResumeDiscoverySnapshot,
   subscribeResumeDiscovery,
 } from '@/lib/room-v2/discover-claim';
+import { useVerifiedResumeClaims } from '@/lib/room-v2/use-verified-resume-claims';
 import { cn } from '@/lib/utils';
 
 export function useDiscoverableReconnectClaim(roomCode?: string | null) {
@@ -121,7 +123,9 @@ export function RoomResumePanel({
 export function ActiveRoomBanner() {
   const pathname = usePathname();
   const router = useRouter();
-  const claim = useDiscoverableReconnectClaim();
+  const discovered = useDiscoverableReconnectClaim();
+  const verifiedClaims = useVerifiedResumeClaims(discovered ? [discovered] : EMPTY_RESUME_CLAIMS);
+  const claim = verifiedClaims[0] ?? null;
   const [busy, setBusy] = useState(false);
 
   const onResume = useCallback(() => {

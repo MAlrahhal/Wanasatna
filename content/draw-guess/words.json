@@ -2,47 +2,74 @@
   {
     "id": "animals-1",
     "text": "أسد",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Lion"
+    ]
   },
   {
     "id": "animals-2",
     "text": "نمر",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Tiger"
+    ]
   },
   {
     "id": "animals-3",
     "text": "فيل",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Elephant"
+    ]
   },
   {
     "id": "animals-4",
     "text": "زرافة",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Giraffe"
+    ]
   },
   {
     "id": "animals-5",
     "text": "قرد",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Monkey"
+    ]
   },
   {
     "id": "animals-6",
     "text": "دب",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Bear"
+    ]
   },
   {
     "id": "animals-7",
     "text": "أرنب",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Rabbit"
+    ]
   },
   {
     "id": "animals-8",
     "text": "جمل",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Camel"
+    ]
   },
   {
     "id": "animals-9",
     "text": "حصان",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Horse"
+    ]
   },
   {
     "id": "animals-10",
@@ -57,50 +84,224 @@
   {
     "id": "animals-12",
     "text": "بطريق",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Penguin"
+    ]
   },
   {
     "id": "animals-13",
     "text": "تمساح",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Crocodile"
+    ]
   },
   {
     "id": "animals-14",
     "text": "ثعبان",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Snake",
+      "حية"
+    ]
   },
   {
     "id": "animals-15",
     "text": "دلفين",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Dolphin",
+      "دولفين"
+    ]
   },
   {
     "id": "animals-16",
     "text": "أخطبوط",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Octopus"
+    ]
   },
   {
     "id": "animals-17",
     "text": "سلحفاة",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Turtle"
+    ]
   },
   {
     "id": "animals-18",
     "text": "ضفدع",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Frog"
+    ]
   },
   {
     "id": "animals-19",
     "text": "نحلة",
     "categoryId": "animals",
     "aliases": [
-      "النحل"
+      "Bee"
     ]
   },
   {
     "id": "animals-20",
     "text": "فراشة",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Butterfly"
+    ]
+  },
+  {
+    "id": "animals-wolf",
+    "text": "ذئب",
+    "categoryId": "animals",
+    "aliases": [
+      "Wolf",
+      "ذيب"
+    ]
+  },
+  {
+    "id": "animals-fox",
+    "text": "ثعلب",
+    "categoryId": "animals",
+    "aliases": [
+      "Fox"
+    ]
+  },
+  {
+    "id": "animals-cow",
+    "text": "بقرة",
+    "categoryId": "animals",
+    "aliases": [
+      "Cow"
+    ]
+  },
+  {
+    "id": "animals-sheep",
+    "text": "خروف",
+    "categoryId": "animals",
+    "aliases": [
+      "Sheep"
+    ]
+  },
+  {
+    "id": "animals-goat",
+    "text": "ماعز",
+    "categoryId": "animals",
+    "aliases": [
+      "Goat"
+    ]
+  },
+  {
+    "id": "animals-kangaroo",
+    "text": "كنغر",
+    "categoryId": "animals",
+    "aliases": [
+      "Kangaroo",
+      "كنجارو"
+    ]
+  },
+  {
+    "id": "animals-owl",
+    "text": "بومة",
+    "categoryId": "animals",
+    "aliases": [
+      "Owl"
+    ]
+  },
+  {
+    "id": "animals-hedgehog",
+    "text": "قنفذ",
+    "categoryId": "animals",
+    "aliases": [
+      "Hedgehog"
+    ]
+  },
+  {
+    "id": "animals-peacock",
+    "text": "طاووس",
+    "categoryId": "animals",
+    "aliases": [
+      "Peacock"
+    ]
+  },
+  {
+    "id": "animals-bat",
+    "text": "خفاش",
+    "categoryId": "animals",
+    "aliases": [
+      "Bat",
+      "وطواط"
+    ]
+  },
+  {
+    "id": "animals-falcon",
+    "text": "صقر",
+    "categoryId": "animals",
+    "aliases": [
+      "Falcon"
+    ]
+  },
+  {
+    "id": "animals-hamster",
+    "text": "هامستر",
+    "categoryId": "animals",
+    "aliases": [
+      "Hamster"
+    ]
+  },
+  {
+    "id": "animals-gazelle",
+    "text": "غزال",
+    "categoryId": "animals",
+    "aliases": [
+      "Gazelle"
+    ]
+  },
+  {
+    "id": "animals-cheetah",
+    "text": "فهد",
+    "categoryId": "animals",
+    "aliases": [
+      "Cheetah",
+      "الشيتا"
+    ]
+  },
+  {
+    "id": "animals-parrot",
+    "text": "ببغاء",
+    "categoryId": "animals",
+    "aliases": [
+      "Parrot"
+    ]
+  },
+  {
+    "id": "animals-rooster",
+    "text": "ديك",
+    "categoryId": "animals",
+    "aliases": [
+      "Rooster"
+    ]
+  },
+  {
+    "id": "animals-duck",
+    "text": "بط",
+    "categoryId": "animals",
+    "aliases": [
+      "Duck"
+    ]
+  },
+  {
+    "id": "animals-crab",
+    "text": "سلطعون",
+    "categoryId": "animals",
+    "aliases": [
+      "Crab"
+    ]
   },
   {
     "id": "food-1",
@@ -264,6 +465,19 @@
     ]
   },
   {
+    "id": "food-lemon",
+    "text": "ليمون",
+    "categoryId": "food",
+    "aliases": [
+      "Lemon"
+    ]
+  },
+  {
+    "id": "food-chocolate",
+    "text": "شوكولاتة",
+    "categoryId": "food"
+  },
+  {
     "id": "nature-1",
     "text": "بركان",
     "categoryId": "nature"
@@ -291,21 +505,6 @@
   {
     "id": "nature-6",
     "text": "صاروخ",
-    "categoryId": "nature"
-  },
-  {
-    "id": "nature-7",
-    "text": "كوكب",
-    "categoryId": "nature"
-  },
-  {
-    "id": "nature-8",
-    "text": "نجمة",
-    "categoryId": "nature"
-  },
-  {
-    "id": "nature-9",
-    "text": "صحراء",
     "categoryId": "nature"
   },
   {
@@ -358,13 +557,53 @@
     "text": "جزيرة",
     "categoryId": "nature",
     "aliases": [
-      "The Island"
+      "Island"
     ]
   },
   {
     "id": "nature-20",
     "text": "ثلج",
     "categoryId": "nature"
+  },
+  {
+    "id": "nature-palm",
+    "text": "نخلة",
+    "categoryId": "nature",
+    "aliases": [
+      "Palm"
+    ]
+  },
+  {
+    "id": "nature-rose",
+    "text": "وردة",
+    "categoryId": "nature",
+    "aliases": [
+      "Rose"
+    ]
+  },
+  {
+    "id": "nature-tree",
+    "text": "شجرة",
+    "categoryId": "nature",
+    "aliases": [
+      "Tree"
+    ]
+  },
+  {
+    "id": "nature-sea",
+    "text": "بحر",
+    "categoryId": "nature",
+    "aliases": [
+      "Sea"
+    ]
+  },
+  {
+    "id": "nature-forest",
+    "text": "غابة",
+    "categoryId": "nature",
+    "aliases": [
+      "Forest"
+    ]
   },
   {
     "id": "places-1",
@@ -417,16 +656,6 @@
     "categoryId": "places"
   },
   {
-    "id": "places-11",
-    "text": "خيمة سيرك",
-    "categoryId": "places"
-  },
-  {
-    "id": "places-12",
-    "text": "محطة قطار",
-    "categoryId": "places"
-  },
-  {
     "id": "places-13",
     "text": "مطعم",
     "categoryId": "places"
@@ -462,8 +691,16 @@
     "categoryId": "places"
   },
   {
-    "id": "places-20",
-    "text": "محطة وقود",
+    "id": "places-fountain",
+    "text": "نافورة",
+    "categoryId": "places",
+    "aliases": [
+      "Fountain"
+    ]
+  },
+  {
+    "id": "places-makkah-clock",
+    "text": "ساعة مكة",
     "categoryId": "places"
   },
   {
@@ -474,32 +711,54 @@
   {
     "id": "tech-2",
     "text": "لابتوب",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "Laptop"
+    ]
   },
   {
     "id": "tech-3",
     "text": "كمبيوتر",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "Computer",
+      "PC"
+    ]
   },
   {
     "id": "tech-4",
     "text": "روبوت",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "Robot"
+    ]
   },
   {
     "id": "tech-5",
     "text": "كاميرا",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "كامره",
+      "Camera"
+    ]
   },
   {
     "id": "tech-6",
     "text": "سماعات",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "Wireless Earbuds",
+      "Earbuds"
+    ]
   },
   {
     "id": "tech-7",
     "text": "لوحة مفاتيح",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "Keyboard",
+      "كيبورد"
+    ]
   },
   {
     "id": "tech-8",
@@ -514,7 +773,10 @@
   {
     "id": "tech-10",
     "text": "طابعة",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "Printer"
+    ]
   },
   {
     "id": "tech-11",
@@ -524,22 +786,37 @@
   {
     "id": "tech-12",
     "text": "شاحن",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "Charger"
+    ]
   },
   {
     "id": "tech-13",
     "text": "باور بانك",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "Power Bank"
+    ]
   },
   {
     "id": "tech-14",
     "text": "درون",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "Drone"
+    ]
   },
   {
     "id": "tech-15",
     "text": "بلايستيشن",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "بلاي ستيشن",
+      "PlayStation",
+      "Sony",
+      "سوني"
+    ]
   },
   {
     "id": "tech-16",
@@ -549,7 +826,11 @@
   {
     "id": "tech-17",
     "text": "نظارة واقع افتراضي",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "VR",
+      "VR Headset"
+    ]
   },
   {
     "id": "tech-18",
@@ -559,6 +840,66 @@
   {
     "id": "tech-19",
     "text": "فلاش ميموري",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "Flash Memory"
+    ]
+  },
+  {
+    "id": "tech-tv",
+    "text": "تلفاز",
+    "categoryId": "tech",
+    "aliases": [
+      "TV",
+      "Television"
+    ]
+  },
+  {
+    "id": "tech-remote",
+    "text": "ريموت",
+    "categoryId": "tech",
+    "aliases": [
+      "Remote"
+    ]
+  },
+  {
+    "id": "tech-tablet",
+    "text": "تابلت",
+    "categoryId": "tech",
+    "aliases": [
+      "Tablet"
+    ]
+  },
+  {
+    "id": "tech-battery",
+    "text": "بطارية",
+    "categoryId": "tech",
+    "aliases": [
+      "Battery"
+    ]
+  },
+  {
+    "id": "tech-speaker",
+    "text": "سبيكر",
+    "categoryId": "tech",
+    "aliases": [
+      "Speaker"
+    ]
+  },
+  {
+    "id": "tech-calculator",
+    "text": "آلة حاسبة",
+    "categoryId": "tech",
+    "aliases": [
+      "Calculator"
+    ]
+  },
+  {
+    "id": "tech-xbox",
+    "text": "إكس بوكس",
+    "categoryId": "tech",
+    "aliases": [
+      "Xbox"
+    ]
   }
 ]

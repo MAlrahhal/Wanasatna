@@ -177,6 +177,7 @@ test('cold lobby invite does not silently resume a persistent claim by room code
   assert.match(invite, /RoomResumePanel/);
   assert.match(invite, /onJoinRoom/);
   assert.match(hook, /getResumeDiscoveryListSnapshot\(readInviteCode\(searchParams\) \|\| null\)/);
+  assert.match(hook, /useVerifiedResumeClaims/);
   assert.match(hook, /enterFromJoinForm\(claim\.roomCode, claim\.playerName\)/);
 });
 

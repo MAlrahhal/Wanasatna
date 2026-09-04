@@ -6,7 +6,8 @@
     "acceptedAnswers": [
       "الفهد الصياد",
       "الفهد",
-      "الشيتا"
+      "الشيتا",
+      "Cheetah"
     ]
   },
   {
@@ -15,7 +16,8 @@
     "question": "ما أكبر حيوان في العالم؟",
     "acceptedAnswers": [
       "الحوت الأزرق",
-      "حوت أزرق"
+      "حوت أزرق",
+      "Blue whale"
     ]
   },
   {
@@ -33,7 +35,8 @@
     "categoryId": "animals",
     "question": "ما الحيوان المعروف بسفينة الصحراء؟",
     "acceptedAnswers": [
-      "الجمل"
+      "الجمل",
+      "Camel"
     ]
   },
   {
@@ -41,7 +44,8 @@
     "categoryId": "animals",
     "question": "ما الحيوان الذي يغيّر لون جلده للتمويه؟",
     "acceptedAnswers": [
-      "الحرباء"
+      "الحرباء",
+      "Chameleon"
     ]
   },
   {
@@ -49,7 +53,8 @@
     "categoryId": "animals",
     "question": "ما أكبر طائر في العالم؟",
     "acceptedAnswers": [
-      "النعامة"
+      "النعامة",
+      "Ostrich"
     ]
   },
   {
@@ -57,7 +62,8 @@
     "categoryId": "animals",
     "question": "ما الحيوان الذي يتميز برقبة طويلة جدًا؟",
     "acceptedAnswers": [
-      "الزرافة"
+      "الزرافة",
+      "Giraffe"
     ]
   },
   {
@@ -65,7 +71,8 @@
     "categoryId": "animals",
     "question": "ما الحيوان الذي يُلقب بملك الغابة؟",
     "acceptedAnswers": [
-      "الأسد"
+      "الأسد",
+      "Lion"
     ]
   },
   {
@@ -83,7 +90,8 @@
     "categoryId": "animals",
     "question": "ما الحيوان الذي يعيش في القطب الجنوبي ويشتهر بلونه الأسود والأبيض؟",
     "acceptedAnswers": [
-      "البطريق"
+      "البطريق",
+      "Penguin"
     ]
   },
   {
@@ -91,7 +99,8 @@
     "categoryId": "animals",
     "question": "ما الحيوان البحري الذي له ثمانية أذرع؟",
     "acceptedAnswers": [
-      "الأخطبوط"
+      "الأخطبوط",
+      "Octopus"
     ]
   },
   {
@@ -99,7 +108,8 @@
     "categoryId": "animals",
     "question": "ما الحيوان الذي يحمل صغاره في كيس؟",
     "acceptedAnswers": [
-      "الكنغر"
+      "الكنغر",
+      "Kangaroo"
     ]
   },
   {
@@ -107,7 +117,8 @@
     "categoryId": "animals",
     "question": "ما الحيوان الذي يشتهر ببطئه ويحمل صدفة؟",
     "acceptedAnswers": [
-      "السلحفاة"
+      "السلحفاة",
+      "Turtle"
     ]
   },
   {
@@ -117,7 +128,8 @@
     "acceptedAnswers": [
       "الحمار الوحشي",
       "حمار وحشي",
-      "الزيبرا"
+      "الزيبرا",
+      "Zebra"
     ]
   },
   {
@@ -126,7 +138,8 @@
     "question": "ما الحشرة التي تنتج العسل؟",
     "acceptedAnswers": [
       "النحلة",
-      "النحل"
+      "النحل",
+      "Bee"
     ]
   },
   {
@@ -134,7 +147,8 @@
     "categoryId": "animals",
     "question": "ما الحيوان الذي يُعرف بقدرته الكبيرة على تقليد أصوات البشر؟",
     "acceptedAnswers": [
-      "الببغاء"
+      "الببغاء",
+      "Parrot"
     ]
   },
   {
@@ -142,7 +156,8 @@
     "categoryId": "animals",
     "question": "ما أكبر حيوان بري؟",
     "acceptedAnswers": [
-      "الفيل"
+      "الفيل",
+      "Elephant"
     ]
   },
   {
@@ -150,7 +165,8 @@
     "categoryId": "animals",
     "question": "ما الحيوان الذي يعيش في الماء واليابسة ويبدأ حياته كشرغوف؟",
     "acceptedAnswers": [
-      "الضفدع"
+      "الضفدع",
+      "Frog"
     ]
   },
   {
@@ -159,7 +175,8 @@
     "question": "ما الحيوان الذي يشتهر ببناء السدود؟",
     "acceptedAnswers": [
       "القندس",
-      "البيفر"
+      "البيفر",
+      "Beaver"
     ]
   },
   {
@@ -167,7 +184,8 @@
     "categoryId": "animals",
     "question": "ما الحيوان الذي يستخدم خرطومه للشرب؟",
     "acceptedAnswers": [
-      "الفيل"
+      "الفيل",
+      "Elephant"
     ]
   },
   {
@@ -182,7 +200,7 @@
   {
     "id": "food-2",
     "categoryId": "food",
-    "question": "ما الأكلة التي تتكون غالبًا من خبز ولحم وطبقات إضافية؟",
+    "question": "ما الأكلة التي تتكون من قطعة لحم داخل خبز دائري مع إضافات مثل الجبن والخس؟",
     "acceptedAnswers": [
       "برغر",
       "برجر",
@@ -192,16 +210,17 @@
   {
     "id": "food-3",
     "categoryId": "food",
-    "question": "ما الأكلة الشامية التي تُلف غالبًا بالخبز وتحتوي لحمًا أو دجاجًا؟",
+    "question": "ما الأكلة التي تُحضّر من لحم أو دجاج يُطهى على سيخ دوّار ثم يُقدّم غالبًا داخل خبز؟",
     "acceptedAnswers": [
       "شاورما",
+      "شاورمه",
       "Shawarma"
     ]
   },
   {
     "id": "food-4",
     "categoryId": "food",
-    "question": "ما الطبق السعودي الشهير الذي يُحضّر بالأرز واللحم أو الدجاج؟",
+    "question": "ما الطبق السعودي التقليدي الذي يُعد من أشهر أطباق الأرز ويُقدّم عادةً مع اللحم أو الدجاج؟",
     "acceptedAnswers": [
       "كبسة",
       "Kabsa"
@@ -219,7 +238,7 @@
   {
     "id": "food-6",
     "categoryId": "food",
-    "question": "ما الأكلة اليابانية المشهورة التي قد تحتوي أرزًا وسمكًا؟",
+    "question": "ما الأكلة اليابانية المشهورة التي تعتمد على الأرز المتبّل وتُقدّم غالبًا مع السمك؟",
     "acceptedAnswers": [
       "سوشي",
       "Sushi"
@@ -228,10 +247,11 @@
   {
     "id": "food-7",
     "categoryId": "food",
-    "question": "ما الحلوى الباردة المصنوعة من الحليب أو الكريمة والمنكهات؟",
+    "question": "ما الحلوى المثلجة التي تُصنع من الحليب أو الكريمة وتأتي بنكهات مختلفة؟",
     "acceptedAnswers": [
       "آيس كريم",
       "مثلجات",
+      "بوظة",
       "Ice cream"
     ]
   },
@@ -249,9 +269,10 @@
   {
     "id": "food-9",
     "categoryId": "food",
-    "question": "ما الطعام الذي يُحضّر على شكل أقراص من عجينة سائلة ويؤكل غالبًا في الإفطار؟",
+    "question": "ما الفطائر الأمريكية الرقيقة التي تُقدّم غالبًا في طبقات مع العسل أو شراب القيقب؟",
     "acceptedAnswers": [
       "بان كيك",
+      "بانكيك",
       "Pancake",
       "Pancakes"
     ]
@@ -259,7 +280,7 @@
   {
     "id": "food-10",
     "categoryId": "food",
-    "question": "ما الحلوى الشبكية التي تُطهى في جهاز خاص وتؤكل مع الصوصات؟",
+    "question": "ما الحلوى ذات الشكل المربّع والشبكي التي تُطهى في جهاز خاص وتُقدّم مع الصوصات؟",
     "acceptedAnswers": [
       "وافل",
       "Waffle",
@@ -272,6 +293,7 @@
     "question": "ما الحلوى الصغيرة التي تشبه الكيك وتُخبز عادة في قالب ورقي؟",
     "acceptedAnswers": [
       "كب كيك",
+      "كوب كيك",
       "Cupcake",
       "Cup cake"
     ]
@@ -302,7 +324,8 @@
     "question": "ما الفاكهة الكبيرة ذات القشرة الخضراء والداخل الأحمر غالبًا؟",
     "acceptedAnswers": [
       "بطيخ",
-      "حبحب"
+      "حبحب",
+      "جح"
     ]
   },
   {
@@ -495,11 +518,10 @@
   {
     "id": "countries-18",
     "categoryId": "countries",
-    "question": "ما الدولة التي تشتهر بساعة بيغ بن؟",
+    "question": "ما الدولة التي تشتهر بالكنغر؟",
     "acceptedAnswers": [
-      "بريطانيا",
-      "المملكة المتحدة",
-      "UK"
+      "أستراليا",
+      "Australia"
     ]
   },
   {
@@ -705,10 +727,10 @@
   {
     "id": "series-20",
     "categoryId": "series",
-    "question": "ما اسم المدينة/الجزيرة الغامضة التي تدور حولها أحداث مسلسل Lost؟",
+    "question": "ما اسم المسلسل الذي تسقط فيه رحلة Oceanic 815؟",
     "acceptedAnswers": [
-      "الجزيرة",
-      "The Island"
+      "Lost",
+      "لوست"
     ]
   },
   {
@@ -723,7 +745,7 @@
   {
     "id": "games-2",
     "categoryId": "games",
-    "question": "ما اسم اللعبة الشهيرة التي يتنافس فيها 100 لاعب تقريبًا حتى يبقى لاعب أو فريق واحد؟",
+    "question": "ما لعبة الباتل رويال التي تشتهر بخريطة إيرنغل والنزول من طائرة؟",
     "acceptedAnswers": [
       "PUBG",
       "ببجي",
@@ -906,5 +928,100 @@
       "Spider-Man",
       "سبايدرمان"
     ]
-  }
+  },
+  {"id":"animals-owl","categoryId":"animals","question":"ما الطائر الليلي الذي يستطيع إدارة رأسه بزاوية واسعة؟","acceptedAnswers":["البومة","Owl"]},
+  {"id":"animals-panda","categoryId":"animals","question":"ما الحيوان الأبيض والأسود الذي يعيش على الخيزران؟","acceptedAnswers":["الباندا","Panda"]},
+  {"id":"animals-polar-bear","categoryId":"animals","question":"ما الدب الذي يعيش في القطب الشمالي؟","acceptedAnswers":["الدب القطبي","دب قطبي","Polar bear"]},
+  {"id":"animals-flamingo","categoryId":"animals","question":"ما الطائر الوردي الذي يقف غالبًا على رجل واحدة؟","acceptedAnswers":["النحام","فلامنغو","Flamingo"]},
+  {"id":"animals-hedgehog","categoryId":"animals","question":"ما الحيوان الصغير المغطى بأشواك على ظهره؟","acceptedAnswers":["القنفذ","Hedgehog"]},
+  {"id":"animals-peacock","categoryId":"animals","question":"ما الطائر الذي يفتح ذيله كمروحة ملونة؟","acceptedAnswers":["الطاووس","الطاؤوس","Peacock"]},
+  {"id":"animals-koala","categoryId":"animals","question":"ما الحيوان الأسترالي الذي يعيش على أشجار الكينا؟","acceptedAnswers":["الكوالا","Koala"]},
+  {"id":"animals-hippo","categoryId":"animals","question":"ما الحيوان الأفريقي الضخم الذي يقضي ساعات طويلة في النهر؟","acceptedAnswers":["فرس النهر","Hippo"]},
+  {"id":"animals-rhino","categoryId":"animals","question":"ما الحيوان الضخم الذي يحمل قرنًا فوق أنفه؟","acceptedAnswers":["وحيد القرن","Rhino"]},
+  {"id":"animals-spider-legs","categoryId":"animals","question":"كم رجلًا للعنكبوت؟","acceptedAnswers":["8","ثمانية","ثمان"]},
+  {"id":"animals-cow-stomachs","categoryId":"animals","question":"كم تجويفًا لمعدة البقرة عادة؟","acceptedAnswers":["4","أربعة","أربع"]},
+  {"id":"animals-bat","categoryId":"animals","question":"ما الثديي الوحيد الذي يطير حقيقيًا بأجنحة؟","acceptedAnswers":["الخفاش","Bat"]},
+  {"id":"animals-seahorse","categoryId":"animals","question":"ما الحيوان البحري الذي يشبه الحصان ويحمل الذكر الصغار؟","acceptedAnswers":["حصان البحر","Seahorse"]},
+  {"id":"animals-hyena","categoryId":"animals","question":"ما الحيوان المعروف بصوت يشبه الضحك؟","acceptedAnswers":["الضبع","Hyena"]},
+  {"id":"animals-orca","categoryId":"animals","question":"ما الحيوان البحري الملقب بالحوت القاتل؟","acceptedAnswers":["الأوركا","الحوت القاتل","Orca"]},
+  {"id":"animals-firefly","categoryId":"animals","question":"ما الحشرة التي تضيء في الليل؟","acceptedAnswers":["اليراعة","Firefly"]},
+  {"id":"animals-lioness","categoryId":"animals","question":"ما اسم أنثى الأسد؟","acceptedAnswers":["اللبوة","Lioness"]},
+  {"id":"animals-wolf","categoryId":"animals","question":"ما الحيوان المعروف بعوائه مع مجموعته؟","acceptedAnswers":["الذئب","Wolf"]},
+  {"id":"animals-eagle","categoryId":"animals","question":"ما الطائر الجارح الأشهر في الصيد عند العرب؟","acceptedAnswers":["الصقر","Falcon"]},
+  {"id":"animals-starfish","categoryId":"animals","question":"ما الحيوان البحري الذي يشبه النجمة؟","acceptedAnswers":["نجم البحر","Starfish"]},
+  {"id":"food-harees","categoryId":"food","question":"ما الأكلة الخليجية التقليدية التي تُحضّر من القمح المهروس واللحم؟","acceptedAnswers":["هريس","Harees"]},
+  {"id":"food-dates","categoryId":"food","question":"ما الفاكهة التي تُقدم غالبًا مع القهوة العربية؟","acceptedAnswers":["تمر","Dates"]},
+  {"id":"food-arabic-coffee","categoryId":"food","question":"ما المشروب الذي يُسكب في فنجان صغير مع الهيل؟","acceptedAnswers":["قهوة عربية","Coffee"]},
+  {"id":"food-kunafa","categoryId":"food","question":"ما الحلوى بالجبن أو القشطة والقطر؟","acceptedAnswers":["كنافة","Kunafa"]},
+  {"id":"food-baklava","categoryId":"food","question":"ما الحلوى الرقائقية المحشوة بالمكسرات والقطر؟","acceptedAnswers":["بقلاوة","Baklava"]},
+  {"id":"food-luqaimat","categoryId":"food","question":"ما الحلوى الخليجية المقليّة على شكل كرات مع الدبس؟","acceptedAnswers":["لقيمات","Luqaimat"]},
+  {"id":"food-mansaf","categoryId":"food","question":"ما طبق الأرز واللحم باللبن الأشهر في الأردن؟","acceptedAnswers":["منسف","Mansaf"]},
+  {"id":"food-koshari","categoryId":"food","question":"ما طبق الأرز والعدس والمكرونة الشهير في مصر؟","acceptedAnswers":["كشري","Koshari"]},
+  {"id":"food-chocolate","categoryId":"food","question":"ما الحلوى التي تُصنع أساسًا من حبوب الكاكاو وتأتي بأشكال وأنواع مختلفة؟","acceptedAnswers":["شوكولاتة","Chocolate"]},
+  {"id":"food-mango","categoryId":"food","question":"ما الفاكهة الاستوائية الصفراء ذات النواة الكبيرة؟","acceptedAnswers":["مانجو","Mango"]},
+  {"id":"food-banana","categoryId":"food","question":"ما الفاكهة الصفراء المقوّسة التي تُقشر باليد؟","acceptedAnswers":["موز","Banana"]},
+  {"id":"food-apple","categoryId":"food","question":"ما الفاكهة البيضاء من الداخل وقشرتها حمراء أو خضراء؟","acceptedAnswers":["تفاح","Apple"]},
+  {"id":"food-karak","categoryId":"food","question":"ما الشاي المغلي بالحليب والهال المنتشر في الخليج؟","acceptedAnswers":["كرك","شاي كرك","Karak"]},
+  {"id":"food-pasta","categoryId":"food","question":"ما الطعام الإيطالي المصنوع من القمح على أشكال مختلفة؟","acceptedAnswers":["معكرونة","باستا","Pasta"]},
+  {"id":"food-basbousa","categoryId":"food","question":"ما الحلوى السميدية المشربة بالقطر والمنتشرة عربيًا؟","acceptedAnswers":["بسبوسة","هريسة","نمورة","Basbousa"]},
+  {"id":"countries-new-zealand","categoryId":"countries","question":"ما الدولة التي عاصمتها ويلينغتون؟","acceptedAnswers":["نيوزيلندا","نيوزيلاند","New Zealand"]},
+  {"id":"countries-china-wall","categoryId":"countries","question":"ما الدولة التي فيها السور العظيم الشهير؟","acceptedAnswers":["الصين","China"]},
+  {"id":"countries-usa-capital","categoryId":"countries","question":"ما عاصمة الولايات المتحدة؟","acceptedAnswers":["واشنطن","Washington","Washington DC"]},
+  {"id":"countries-kuwait-capital","categoryId":"countries","question":"ما عاصمة الكويت؟","acceptedAnswers":["مدينة الكويت","الكويت","Kuwait City"]},
+  {"id":"countries-mexico","categoryId":"countries","question":"ما الدولة التي تقع فيها مدينة مكسيكو سيتي؟","acceptedAnswers":["المكسيك","Mexico"]},
+  {"id":"countries-canada","categoryId":"countries","question":"ما الدولة التي تحمل ورقة القيقب الحمراء على علمها؟","acceptedAnswers":["كندا","Canada"]},
+  {"id":"countries-greece","categoryId":"countries","question":"ما الدولة التي تشتهر بأثينا والبارثينون؟","acceptedAnswers":["اليونان","Greece"]},
+  {"id":"countries-portugal","categoryId":"countries","question":"ما الدولة التي تقع فيها مدينة لشبونة؟","acceptedAnswers":["البرتغال","Portugal"]},
+  {"id":"countries-korea","categoryId":"countries","question":"ما الدولة التي عاصمتها سيول؟","acceptedAnswers":["كوريا الجنوبية","South Korea"]},
+  {"id":"countries-singapore","categoryId":"countries","question":"ما الدولة المدينة المعروفة بتمثال ميرليون؟","acceptedAnswers":["سنغافورة","Singapore"]},
+  {"id":"countries-south-africa","categoryId":"countries","question":"ما الدولة التي تقع فيها مدينة كيب تاون؟","acceptedAnswers":["جنوب أفريقيا","South Africa"]},
+  {"id":"countries-argentina","categoryId":"countries","question":"ما الدولة التي عاصمتها بوينس آيرس؟","acceptedAnswers":["الأرجنتين","Argentina"]},
+  {"id":"countries-iraq","categoryId":"countries","question":"ما عاصمة العراق؟","acceptedAnswers":["بغداد","Baghdad"]},
+  {"id":"countries-lebanon","categoryId":"countries","question":"ما عاصمة لبنان؟","acceptedAnswers":["بيروت","Beirut"]},
+  {"id":"countries-syria","categoryId":"countries","question":"ما عاصمة سوريا؟","acceptedAnswers":["دمشق","Damascus"]},
+  {"id":"countries-yemen","categoryId":"countries","question":"ما عاصمة اليمن؟","acceptedAnswers":["صنعاء","Sanaa"]},
+  {"id":"countries-sudan","categoryId":"countries","question":"ما عاصمة السودان؟","acceptedAnswers":["الخرطوم","Khartoum"]},
+  {"id":"countries-pakistan","categoryId":"countries","question":"ما عاصمة باكستان؟","acceptedAnswers":["إسلام آباد","Islamabad"]},
+  {"id":"countries-russia-capital","categoryId":"countries","question":"ما عاصمة روسيا؟","acceptedAnswers":["موسكو","Moscow"]},
+  {"id":"countries-china-capital","categoryId":"countries","question":"ما عاصمة الصين؟","acceptedAnswers":["بكين","Beijing"]},
+  {"id":"series-friends","categoryId":"series","question":"في أي مسلسل تظهر راشيل ومونيكا وجوي؟","acceptedAnswers":["Friends","فريندز"]},
+  {"id":"series-office","categoryId":"series","question":"في أي مسلسل يعمل مايكل سكوت مديرًا إقليميًا؟","acceptedAnswers":["The Office","ذا أوفيس"]},
+  {"id":"series-wednesday","categoryId":"series","question":"ما اسم ابنة عائلة آدامز في مسلسل نتفليكس الأسود؟","acceptedAnswers":["Wednesday","وينزداي"]},
+  {"id":"series-dark","categoryId":"series","question":"ما المسلسل الألماني عن السفر عبر الزمن في بلدة وندن؟","acceptedAnswers":["Dark","دارك"]},
+  {"id":"series-black-mirror","categoryId":"series","question":"ما المسلسل ذو الحلقات المنفصلة عن التقنية والمستقبل المظلم؟","acceptedAnswers":["Black Mirror","بلاك ميرور"]},
+  {"id":"series-arcane","categoryId":"series","question":"في أي مسلسل تظهر جينكس وفاين من عالم League of Legends؟","acceptedAnswers":["Arcane","أركين"]},
+  {"id":"series-bear","categoryId":"series","question":"في أي مسلسل يدير كارمي مطعم سندويتشات في شيكاغو؟","acceptedAnswers":["The Bear","ذا بير"]},
+  {"id":"series-succession","categoryId":"series","question":"في أي مسلسل تتصارع عائلة روي على إمبراطورية إعلامية؟","acceptedAnswers":["Succession","سكسيشن"]},
+  {"id":"series-eleven","categoryId":"series","question":"ما اسم الفتاة ذات القدرات في Stranger Things؟","acceptedAnswers":["Eleven","إلسن"]},
+  {"id":"series-daenerys","categoryId":"series","question":"من هي أم التنانين في Game of Thrones؟","acceptedAnswers":["Daenerys","دينيريس","Khaleesi"]},
+  {"id":"series-professor","categoryId":"series","question":"ما الاسم الرمزي لقائد السرقة في Money Heist؟","acceptedAnswers":["Professor","البروفيسور"]},
+  {"id":"series-peaky-city","categoryId":"series","question":"في أي مدينة بريطانية تدور أحداث Peaky Blinders؟","acceptedAnswers":["Birmingham","برمنغهام"]},
+  {"id":"series-walkers","categoryId":"series","question":"كيف يُسمّى الزومبي غالبًا في The Walking Dead؟","acceptedAnswers":["Walkers","الووكرز"]},
+  {"id":"series-baker-street","categoryId":"series","question":"ما عنوان منزل شيرلوك هولمز الشهير؟","acceptedAnswers":["221B Baker Street","بيكر ستريت"]},
+  {"id":"series-narcos-country","categoryId":"series","question":"في أي دولة تبدأ أحداث Narcos مع إسكوبار؟","acceptedAnswers":["كولومبيا","Colombia"]},
+  {"id":"series-house-md","categoryId":"series","question":"في أي مسلسل يظهر الطبيب الساخر غريغوري هاوس؟","acceptedAnswers":["House","House MD","هاوس"]},
+  {"id":"series-crown","categoryId":"series","question":"ما مسلسل نتفليكس عن العائلة الملكية البريطانية؟","acceptedAnswers":["The Crown","ذا كراون"]},
+  {"id":"series-mando","categoryId":"series","question":"ما اسم صياد الجوائز في مسلسل ستار وورز مع غروغو؟","acceptedAnswers":["The Mandalorian","ماندلوريان"]},
+  {"id":"series-nevermore","categoryId":"series","question":"ما اسم مدرسة وينزداي في مسلسل Wednesday؟","acceptedAnswers":["Nevermore","نيفرمور"]},
+  {"id":"series-ted-lasso","categoryId":"series","question":"في أي مسلسل يدرب مدرب أمريكي فريق كرة إنجليزي؟","acceptedAnswers":["Ted Lasso","تيد لاسو"]},
+  {"id":"games-mario","categoryId":"games","question":"في أي سلسلة يظهر السباك ذو القبعة الحمراء ماريو؟","acceptedAnswers":["Super Mario","Mario","ماريو"]},
+  {"id":"games-zelda","categoryId":"games","question":"ما السلسلة التي يستخدم فيها لينك السيف والدرع غالبًا؟","acceptedAnswers":["The Legend of Zelda","Zelda","زيلدا"]},
+  {"id":"games-pokemon","categoryId":"games","question":"ما السلسلة التي تلتقط فيها مخلوقات وتجعلها تقاتل؟","acceptedAnswers":["Pokemon","بوكيمون"]},
+  {"id":"games-roblox","categoryId":"games","question":"ما المنصة التي يبني فيها اللاعبون ألعابًا بشخصيات مكعبة؟","acceptedAnswers":["Roblox","روبلوكس"]},
+  {"id":"games-free-fire","categoryId":"games","question":"ما لعبة الباتل رويال الشهيرة على الجوال من Garena؟","acceptedAnswers":["Free Fire","فري فاير"]},
+  {"id":"games-clash","categoryId":"games","question":"ما اللعبة التي تبني فيها قرية وتهاجم عشائر أخرى؟","acceptedAnswers":["Clash of Clans","كلاش أوف كلانس"]},
+  {"id":"games-lol","categoryId":"games","question":"في أي لعبة تظهر شخصيات مثل Ahri وYasuo في معارك 5 ضد 5؟","acceptedAnswers":["League of Legends","LoL","لول"]},
+  {"id":"games-genshin","categoryId":"games","question":"ما لعبة العالم المفتوح بأسلوب الأنمي من miHoYo؟","acceptedAnswers":["Genshin Impact","جينشن"]},
+  {"id":"games-tekken","categoryId":"games","question":"ما سلسلة القتال اليابانية التي تشتهر بشخصية Jin؟","acceptedAnswers":["Tekken","تيكن"]},
+  {"id":"games-tetris","categoryId":"games","question":"ما اللعبة الكلاسيكية التي ترتب فيها قطعًا متساقطة؟","acceptedAnswers":["Tetris","تتريس"]},
+  {"id":"games-pacman","categoryId":"games","question":"ما الشخصية الصفراء التي تأكل النقاط وتهرب من أشباح؟","acceptedAnswers":["Pac-Man","باك مان"]},
+  {"id":"games-skyrim","categoryId":"games","question":"في أي لعبة تصبح Dragonborn في إقليم Skyrim؟","acceptedAnswers":["Skyrim","سكايرم"]},
+  {"id":"games-efootball","categoryId":"games","question":"ما لعبة كرة القدم من Konami التي كانت تُعرف بـ PES؟","acceptedAnswers":["eFootball","PES","بيس"]},
+  {"id":"games-subway","categoryId":"games","question":"ما لعبة الجري على السكة وأنت تهرب من المفتش؟","acceptedAnswers":["Subway Surfers","سابواي سيرفرز"]},
+  {"id":"games-sims","categoryId":"games","question":"ما اللعبة التي تبني فيها بيتًا وتدير حياة شخصيات يومية؟","acceptedAnswers":["The Sims","ذا سيمز"]},
+  {"id":"games-valorant-spike","categoryId":"games","question":"ما اسم القنبلة التي يزرعها المهاجمون في Valorant؟","acceptedAnswers":["Spike","السبايك"]},
+  {"id":"games-dark-souls","categoryId":"games","question":"ما سلسلة الرولبلينغ الصعبة من FromSoftware قبل Elden Ring؟","acceptedAnswers":["Dark Souls","دارك سولز"]},
+  {"id":"games-clash-royale","categoryId":"games","question":"ما لعبة البطاقات من سوبرسال على ساحة ببرجين؟","acceptedAnswers":["Clash Royale","كلاش رويال"]},
+  {"id":"games-candy-crush","categoryId":"games","question":"ما لعبة الألغاز التي تطابق فيها الحلوى الملونة؟","acceptedAnswers":["Candy Crush","كاندي كراش"]},
+  {"id":"games-dota","categoryId":"games","question":"ما لعبة الـ MOBA المنافسة للول من Valve؟","acceptedAnswers":["Dota 2","دوتا"]}
 ]
