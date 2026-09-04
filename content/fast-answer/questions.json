@@ -372,7 +372,8 @@
     "acceptedAnswers": [
       "الإمارات",
       "الإمارات العربية المتحدة",
-      "UAE"
+      "UAE",
+      "United Arab Emirates"
     ]
   },
   {
@@ -387,7 +388,7 @@
   {
     "id": "countries-4",
     "categoryId": "countries",
-    "question": "ما الدولة التي تقع فيها الأهرامات؟",
+    "question": "ما الدولة التي تشتهر بالأهرامات؟",
     "acceptedAnswers": [
       "مصر",
       "Egypt"
@@ -486,27 +487,6 @@
     ]
   },
   {
-    "id": "countries-15",
-    "categoryId": "countries",
-    "question": "ما الدولة التي تقع فيها مدينة مكة؟",
-    "acceptedAnswers": [
-      "السعودية",
-      "المملكة العربية السعودية",
-      "Saudi Arabia"
-    ]
-  },
-  {
-    "id": "countries-16",
-    "categoryId": "countries",
-    "question": "ما الدولة التي تقع فيها مدينة لندن؟",
-    "acceptedAnswers": [
-      "بريطانيا",
-      "المملكة المتحدة",
-      "UK",
-      "United Kingdom"
-    ]
-  },
-  {
     "id": "countries-17",
     "categoryId": "countries",
     "question": "ما عاصمة ألمانيا؟",
@@ -521,6 +501,7 @@
     "question": "ما الدولة التي تشتهر بالكنغر؟",
     "acceptedAnswers": [
       "أستراليا",
+      "أوستراليا",
       "Australia"
     ]
   },
@@ -532,7 +513,9 @@
       "أمريكا",
       "الولايات المتحدة",
       "USA",
-      "United States"
+      "US",
+      "United States",
+      "United States of America"
     ]
   },
   {
@@ -552,16 +535,6 @@
       "Breaking Bad",
       "بريكنق باد",
       "بريكنغ باد"
-    ]
-  },
-  {
-    "id": "series-2",
-    "categoryId": "series",
-    "question": "من الشخصية الرئيسية في مسلسل Dexter؟",
-    "acceptedAnswers": [
-      "Dexter Morgan",
-      "ديكستر مورغان",
-      "ديكستر"
     ]
   },
   {
@@ -599,15 +572,6 @@
       "The Seven",
       "السبعة",
       "ذا سفن"
-    ]
-  },
-  {
-    "id": "series-7",
-    "categoryId": "series",
-    "question": "في أي مسلسل يظهر Saul Goodman؟",
-    "acceptedAnswers": [
-      "Better Call Saul",
-      "بيتر كول سول"
     ]
   },
   {
@@ -650,11 +614,12 @@
   {
     "id": "series-12",
     "categoryId": "series",
-    "question": "ما اسم المحقق الشهير في مسلسل Sherlock؟",
+    "question": "ما اسم الدكتور الذي يعيش مع شيرلوك هولمز في 221B Baker Street؟",
     "acceptedAnswers": [
-      "Sherlock Holmes",
-      "شيرلوك هولمز",
-      "شيرلوك"
+      "John Watson",
+      "جون واتسون",
+      "واتسون",
+      "Watson"
     ]
   },
   {
@@ -698,11 +663,12 @@
   {
     "id": "series-17",
     "categoryId": "series",
-    "question": "في أي مسلسل يظهر Tony Soprano؟",
+    "question": "ما اسم الشركة التي يعمل فيها جيم وبام ومايكل سكوت في مسلسل The Office؟",
     "acceptedAnswers": [
-      "The Sopranos",
-      "ذا سوبرانوز",
-      "سوبرانوز"
+      "Dunder Mifflin",
+      "Dunder Mifflin Paper Company",
+      "دندر ميفلين",
+      "دندر ميفلن"
     ]
   },
   {
@@ -719,8 +685,8 @@
     "categoryId": "series",
     "question": "في أي مسلسل تدور أحداث سرقة دار السك الإسبانية؟",
     "acceptedAnswers": [
-      "Money Heist",
       "La Casa de Papel",
+      "Money Heist",
       "لا كاسا دي بابيل"
     ]
   },
@@ -739,7 +705,8 @@
     "question": "في أي لعبة يظهر شخصية Steve؟",
     "acceptedAnswers": [
       "Minecraft",
-      "ماينكرافت"
+      "ماينكرافت",
+      "ماين كرافت"
     ]
   },
   {
@@ -880,24 +847,15 @@
     ]
   },
   {
-    "id": "games-16",
-    "categoryId": "games",
-    "question": "ما اسم لعبة كرة القدم التي كانت تصدر سابقًا باسم FIFA وأصبحت EA Sports FC؟",
-    "acceptedAnswers": [
-      "EA Sports FC",
-      "EA FC",
-      "فيفا",
-      "FIFA"
-    ]
-  },
-  {
     "id": "games-17",
     "categoryId": "games",
-    "question": "في أي لعبة يظهر بطل اسمه Geralt؟",
+    "question": "ما اسم اللعبة التي يلعب فيها اللاعب بشخصية CJ في مدينة Los Santos؟",
     "acceptedAnswers": [
-      "The Witcher 3",
-      "ويتشر 3",
-      "The Witcher"
+      "Grand Theft Auto: San Andreas",
+      "GTA San Andreas",
+      "GTA SA",
+      "قراند سان أندرياس",
+      "سان أندرياس"
     ]
   },
   {
@@ -907,16 +865,6 @@
     "acceptedAnswers": [
       "Fortnite",
       "فورتنايت"
-    ]
-  },
-  {
-    "id": "games-19",
-    "categoryId": "games",
-    "question": "ما اسم لعبة التصويب التي تحتوي على طور Warzone؟",
-    "acceptedAnswers": [
-      "Call of Duty",
-      "كول أوف ديوتي",
-      "COD"
     ]
   },
   {
@@ -966,9 +914,7 @@
   {"id":"food-basbousa","categoryId":"food","question":"ما الحلوى السميدية المشربة بالقطر والمنتشرة عربيًا؟","acceptedAnswers":["بسبوسة","هريسة","نمورة","Basbousa"]},
   {"id":"countries-new-zealand","categoryId":"countries","question":"ما الدولة التي عاصمتها ويلينغتون؟","acceptedAnswers":["نيوزيلندا","نيوزيلاند","New Zealand"]},
   {"id":"countries-china-wall","categoryId":"countries","question":"ما الدولة التي فيها السور العظيم الشهير؟","acceptedAnswers":["الصين","China"]},
-  {"id":"countries-usa-capital","categoryId":"countries","question":"ما عاصمة الولايات المتحدة؟","acceptedAnswers":["واشنطن","Washington","Washington DC"]},
   {"id":"countries-kuwait-capital","categoryId":"countries","question":"ما عاصمة الكويت؟","acceptedAnswers":["مدينة الكويت","الكويت","Kuwait City"]},
-  {"id":"countries-mexico","categoryId":"countries","question":"ما الدولة التي تقع فيها مدينة مكسيكو سيتي؟","acceptedAnswers":["المكسيك","Mexico"]},
   {"id":"countries-canada","categoryId":"countries","question":"ما الدولة التي تحمل ورقة القيقب الحمراء على علمها؟","acceptedAnswers":["كندا","Canada"]},
   {"id":"countries-greece","categoryId":"countries","question":"ما الدولة التي تشتهر بأثينا والبارثينون؟","acceptedAnswers":["اليونان","Greece"]},
   {"id":"countries-portugal","categoryId":"countries","question":"ما الدولة التي تقع فيها مدينة لشبونة؟","acceptedAnswers":["البرتغال","Portugal"]},
@@ -984,6 +930,16 @@
   {"id":"countries-pakistan","categoryId":"countries","question":"ما عاصمة باكستان؟","acceptedAnswers":["إسلام آباد","Islamabad"]},
   {"id":"countries-russia-capital","categoryId":"countries","question":"ما عاصمة روسيا؟","acceptedAnswers":["موسكو","Moscow"]},
   {"id":"countries-china-capital","categoryId":"countries","question":"ما عاصمة الصين؟","acceptedAnswers":["بكين","Beijing"]},
+  {"id":"countries-samba","categoryId":"countries","question":"ما الدولة التي تشتهر برقصة السامبا؟","acceptedAnswers":["البرازيل","Brazil"]},
+  {"id":"countries-pisa","categoryId":"countries","question":"ما الدولة التي تشتهر ببرج بيزا المائل؟","acceptedAnswers":["إيطاليا","Italy"]},
+  {"id":"countries-ethiopia-coffee","categoryId":"countries","question":"ما الدولة التي تشتهر بزراعة البن وقهوة أرابيكا؟","acceptedAnswers":["إثيوبيا","Ethiopia"]},
+  {"id":"countries-judo","categoryId":"countries","question":"ما الدولة التي تُعرف بأنها موطن رياضة الجودو؟","acceptedAnswers":["اليابان","Japan"]},
+  {"id":"countries-statue-liberty","categoryId":"countries","question":"ما الدولة التي تشتهر بتمثال الحرية؟","acceptedAnswers":["الولايات المتحدة","أمريكا","USA","US","United States","United States of America"]},
+  {"id":"countries-tulips","categoryId":"countries","question":"ما الدولة التي تشتهر بطواحين الهواء التقليدية وحقول التوليب؟","acceptedAnswers":["هولندا","Netherlands","Nederland"]},
+  {"id":"countries-rio-carnival","categoryId":"countries","question":"ما الدولة التي تشتهر بالكرنفال السنوي في مدينة ريو دي جانيرو؟","acceptedAnswers":["البرازيل","Brazil"]},
+  {"id":"countries-fuji","categoryId":"countries","question":"ما الدولة التي تُعرف بوجود جبل فوجي الشهير؟","acceptedAnswers":["اليابان","Japan"]},
+  {"id":"countries-swiss-chocolate","categoryId":"countries","question":"ما الدولة التي تشتهر بشوكولاتة السُويس؟","acceptedAnswers":["سويسرا","Switzerland"]},
+  {"id":"countries-alps","categoryId":"countries","question":"ما الدولة التي تشتهر بجبال الألب ومناظرها الطبيعية؟","acceptedAnswers":["سويسرا","Switzerland"]},
   {"id":"series-friends","categoryId":"series","question":"في أي مسلسل تظهر راشيل ومونيكا وجوي؟","acceptedAnswers":["Friends","فريندز"]},
   {"id":"series-office","categoryId":"series","question":"في أي مسلسل يعمل مايكل سكوت مديرًا إقليميًا؟","acceptedAnswers":["The Office","ذا أوفيس"]},
   {"id":"series-wednesday","categoryId":"series","question":"ما اسم ابنة عائلة آدامز في مسلسل نتفليكس الأسود؟","acceptedAnswers":["Wednesday","وينزداي"]},
@@ -992,12 +948,10 @@
   {"id":"series-arcane","categoryId":"series","question":"في أي مسلسل تظهر جينكس وفاين من عالم League of Legends؟","acceptedAnswers":["Arcane","أركين"]},
   {"id":"series-bear","categoryId":"series","question":"في أي مسلسل يدير كارمي مطعم سندويتشات في شيكاغو؟","acceptedAnswers":["The Bear","ذا بير"]},
   {"id":"series-succession","categoryId":"series","question":"في أي مسلسل تتصارع عائلة روي على إمبراطورية إعلامية؟","acceptedAnswers":["Succession","سكسيشن"]},
-  {"id":"series-eleven","categoryId":"series","question":"ما اسم الفتاة ذات القدرات في Stranger Things؟","acceptedAnswers":["Eleven","إلسن"]},
+  {"id":"series-eleven","categoryId":"series","question":"ما اسم الفتاة ذات القدرات في Stranger Things؟","acceptedAnswers":["Eleven","إليفن","إلفن"]},
   {"id":"series-daenerys","categoryId":"series","question":"من هي أم التنانين في Game of Thrones؟","acceptedAnswers":["Daenerys","دينيريس","Khaleesi"]},
-  {"id":"series-professor","categoryId":"series","question":"ما الاسم الرمزي لقائد السرقة في Money Heist؟","acceptedAnswers":["Professor","البروفيسور"]},
   {"id":"series-peaky-city","categoryId":"series","question":"في أي مدينة بريطانية تدور أحداث Peaky Blinders؟","acceptedAnswers":["Birmingham","برمنغهام"]},
   {"id":"series-walkers","categoryId":"series","question":"كيف يُسمّى الزومبي غالبًا في The Walking Dead؟","acceptedAnswers":["Walkers","الووكرز"]},
-  {"id":"series-baker-street","categoryId":"series","question":"ما عنوان منزل شيرلوك هولمز الشهير؟","acceptedAnswers":["221B Baker Street","بيكر ستريت"]},
   {"id":"series-narcos-country","categoryId":"series","question":"في أي دولة تبدأ أحداث Narcos مع إسكوبار؟","acceptedAnswers":["كولومبيا","Colombia"]},
   {"id":"series-house-md","categoryId":"series","question":"في أي مسلسل يظهر الطبيب الساخر غريغوري هاوس؟","acceptedAnswers":["House","House MD","هاوس"]},
   {"id":"series-crown","categoryId":"series","question":"ما مسلسل نتفليكس عن العائلة الملكية البريطانية؟","acceptedAnswers":["The Crown","ذا كراون"]},
@@ -1015,7 +969,6 @@
   {"id":"games-tekken","categoryId":"games","question":"ما سلسلة القتال اليابانية التي تشتهر بشخصية Jin؟","acceptedAnswers":["Tekken","تيكن"]},
   {"id":"games-tetris","categoryId":"games","question":"ما اللعبة الكلاسيكية التي ترتب فيها قطعًا متساقطة؟","acceptedAnswers":["Tetris","تتريس"]},
   {"id":"games-pacman","categoryId":"games","question":"ما الشخصية الصفراء التي تأكل النقاط وتهرب من أشباح؟","acceptedAnswers":["Pac-Man","باك مان"]},
-  {"id":"games-skyrim","categoryId":"games","question":"في أي لعبة تصبح Dragonborn في إقليم Skyrim؟","acceptedAnswers":["Skyrim","سكايرم"]},
   {"id":"games-efootball","categoryId":"games","question":"ما لعبة كرة القدم من Konami التي كانت تُعرف بـ PES؟","acceptedAnswers":["eFootball","PES","بيس"]},
   {"id":"games-subway","categoryId":"games","question":"ما لعبة الجري على السكة وأنت تهرب من المفتش؟","acceptedAnswers":["Subway Surfers","سابواي سيرفرز"]},
   {"id":"games-sims","categoryId":"games","question":"ما اللعبة التي تبني فيها بيتًا وتدير حياة شخصيات يومية؟","acceptedAnswers":["The Sims","ذا سيمز"]},
@@ -1023,5 +976,5 @@
   {"id":"games-dark-souls","categoryId":"games","question":"ما سلسلة الرولبلينغ الصعبة من FromSoftware قبل Elden Ring؟","acceptedAnswers":["Dark Souls","دارك سولز"]},
   {"id":"games-clash-royale","categoryId":"games","question":"ما لعبة البطاقات من سوبرسال على ساحة ببرجين؟","acceptedAnswers":["Clash Royale","كلاش رويال"]},
   {"id":"games-candy-crush","categoryId":"games","question":"ما لعبة الألغاز التي تطابق فيها الحلوى الملونة؟","acceptedAnswers":["Candy Crush","كاندي كراش"]},
-  {"id":"games-dota","categoryId":"games","question":"ما لعبة الـ MOBA المنافسة للول من Valve؟","acceptedAnswers":["Dota 2","دوتا"]}
+  {"id":"games-dota","categoryId":"games","question":"ما اسم اللعبة التي تدور أحداثها في مدينة Night City؟","acceptedAnswers":["Cyberpunk 2077","Cyberpunk","سايبر بانك","سايبر بانك 2077"]}
 ]

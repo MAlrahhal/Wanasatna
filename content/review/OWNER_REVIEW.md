@@ -1679,7 +1679,7 @@
 ### countries-2
 - السؤال: ما الدولة التي تقع فيها مدينة دبي؟
 - الجواب: الإمارات
-- الأجوبة المقبولة: الإمارات، الإمارات العربية المتحدة، UAE
+- الأجوبة المقبولة: الإمارات، الإمارات العربية المتحدة، UAE، United Arab Emirates
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### countries-3
@@ -1689,7 +1689,7 @@
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### countries-4
-- السؤال: ما الدولة التي تقع فيها الأهرامات؟
+- السؤال: ما الدولة التي تشتهر بالأهرامات؟
 - الجواب: مصر
 - الأجوبة المقبولة: مصر، Egypt
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
@@ -1754,18 +1754,6 @@
 - الأجوبة المقبولة: برازيليا، Brasilia
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### countries-15
-- السؤال: ما الدولة التي تقع فيها مدينة مكة؟
-- الجواب: السعودية
-- الأجوبة المقبولة: السعودية، المملكة العربية السعودية، Saudi Arabia
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-16
-- السؤال: ما الدولة التي تقع فيها مدينة لندن؟
-- الجواب: بريطانيا
-- الأجوبة المقبولة: بريطانيا، المملكة المتحدة، UK، United Kingdom
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
 ### countries-17
 - السؤال: ما عاصمة ألمانيا؟
 - الجواب: برلين
@@ -1775,13 +1763,13 @@
 ### countries-18
 - السؤال: ما الدولة التي تشتهر بالكنغر؟
 - الجواب: أستراليا
-- الأجوبة المقبولة: أستراليا، Australia
+- الأجوبة المقبولة: أستراليا، أوستراليا، Australia
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### countries-19
 - السؤال: ما الدولة التي تقع فيها مدينة نيويورك؟
 - الجواب: أمريكا
-- الأجوبة المقبولة: أمريكا، الولايات المتحدة، USA، United States
+- الأجوبة المقبولة: أمريكا، الولايات المتحدة، USA، US، United States، United States of America
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### countries-20
@@ -1796,12 +1784,6 @@
 - السؤال: في أي مسلسل يظهر والتر وايت؟
 - الجواب: Breaking Bad
 - الأجوبة المقبولة: Breaking Bad، بريكنق باد، بريكنغ باد
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-2
-- السؤال: من الشخصية الرئيسية في مسلسل Dexter؟
-- الجواب: Dexter Morgan
-- الأجوبة المقبولة: Dexter Morgan، ديكستر مورغان، ديكستر
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### series-3
@@ -1826,12 +1808,6 @@
 - السؤال: ما اسم المجموعة الخارقة في مسلسل The Boys؟
 - الجواب: The Seven
 - الأجوبة المقبولة: The Seven، السبعة، ذا سفن
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-7
-- السؤال: في أي مسلسل يظهر Saul Goodman؟
-- الجواب: Better Call Saul
-- الأجوبة المقبولة: Better Call Saul، بيتر كول سول
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### series-8
@@ -1859,9 +1835,9 @@
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### series-12
-- السؤال: ما اسم المحقق الشهير في مسلسل Sherlock؟
-- الجواب: Sherlock Holmes
-- الأجوبة المقبولة: Sherlock Holmes، شيرلوك هولمز، شيرلوك
+- السؤال: ما اسم الدكتور الذي يعيش مع شيرلوك هولمز في 221B Baker Street؟
+- الجواب: John Watson
+- الأجوبة المقبولة: John Watson، جون واتسون، واتسون، Watson
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### series-13
@@ -1889,9 +1865,9 @@
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### series-17
-- السؤال: في أي مسلسل يظهر Tony Soprano؟
-- الجواب: The Sopranos
-- الأجوبة المقبولة: The Sopranos، ذا سوبرانوز، سوبرانوز
+- السؤال: ما اسم الشركة التي يعمل فيها جيم وبام ومايكل سكوت في مسلسل The Office؟
+- الجواب: Dunder Mifflin
+- الأجوبة المقبولة: Dunder Mifflin، Dunder Mifflin Paper Company، دندر ميفلين، دندر ميفلن
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### series-18
@@ -1902,8 +1878,8 @@
 
 ### series-19
 - السؤال: في أي مسلسل تدور أحداث سرقة دار السك الإسبانية؟
-- الجواب: Money Heist
-- الأجوبة المقبولة: Money Heist، La Casa de Papel، لا كاسا دي بابيل
+- الجواب: La Casa de Papel
+- الأجوبة المقبولة: La Casa de Papel، Money Heist، لا كاسا دي بابيل
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### series-20
@@ -1917,7 +1893,7 @@
 ### games-1
 - السؤال: في أي لعبة يظهر شخصية Steve؟
 - الجواب: Minecraft
-- الأجوبة المقبولة: Minecraft، ماينكرافت
+- الأجوبة المقبولة: Minecraft، ماينكرافت، ماين كرافت
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-2
@@ -2004,28 +1980,16 @@
 - الأجوبة المقبولة: Marvel Rivals، مارفل رايفلز، مارفل ريفالز
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### games-16
-- السؤال: ما اسم لعبة كرة القدم التي كانت تصدر سابقًا باسم FIFA وأصبحت EA Sports FC؟
-- الجواب: EA Sports FC
-- الأجوبة المقبولة: EA Sports FC، EA FC، فيفا، FIFA
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
 ### games-17
-- السؤال: في أي لعبة يظهر بطل اسمه Geralt؟
-- الجواب: The Witcher 3
-- الأجوبة المقبولة: The Witcher 3، ويتشر 3، The Witcher
+- السؤال: ما اسم اللعبة التي يلعب فيها اللاعب بشخصية CJ في مدينة Los Santos؟
+- الجواب: Grand Theft Auto: San Andreas
+- الأجوبة المقبولة: Grand Theft Auto: San Andreas، GTA San Andreas، GTA SA، قراند سان أندرياس، سان أندرياس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-18
 - السؤال: ما اسم لعبة الباتل رويال الشهيرة من Epic Games؟
 - الجواب: Fortnite
 - الأجوبة المقبولة: Fortnite، فورتنايت
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-19
-- السؤال: ما اسم لعبة التصويب التي تحتوي على طور Warzone؟
-- الجواب: Call of Duty
-- الأجوبة المقبولة: Call of Duty، كول أوف ديوتي، COD
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-20
@@ -2262,22 +2226,10 @@
 - الأجوبة المقبولة: الصين، China
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### countries-usa-capital
-- السؤال: ما عاصمة الولايات المتحدة؟
-- الجواب: واشنطن
-- الأجوبة المقبولة: واشنطن، Washington، Washington DC
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
 ### countries-kuwait-capital
 - السؤال: ما عاصمة الكويت؟
 - الجواب: مدينة الكويت
 - الأجوبة المقبولة: مدينة الكويت، الكويت، Kuwait City
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### countries-mexico
-- السؤال: ما الدولة التي تقع فيها مدينة مكسيكو سيتي؟
-- الجواب: المكسيك
-- الأجوبة المقبولة: المكسيك، Mexico
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### countries-canada
@@ -2370,6 +2322,66 @@
 - الأجوبة المقبولة: بكين، Beijing
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
+### countries-samba
+- السؤال: ما الدولة التي تشتهر برقصة السامبا؟
+- الجواب: البرازيل
+- الأجوبة المقبولة: البرازيل، Brazil
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-pisa
+- السؤال: ما الدولة التي تشتهر ببرج بيزا المائل؟
+- الجواب: إيطاليا
+- الأجوبة المقبولة: إيطاليا، Italy
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-ethiopia-coffee
+- السؤال: ما الدولة التي تشتهر بزراعة البن وقهوة أرابيكا؟
+- الجواب: إثيوبيا
+- الأجوبة المقبولة: إثيوبيا، Ethiopia
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-judo
+- السؤال: ما الدولة التي تُعرف بأنها موطن رياضة الجودو؟
+- الجواب: اليابان
+- الأجوبة المقبولة: اليابان، Japan
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-statue-liberty
+- السؤال: ما الدولة التي تشتهر بتمثال الحرية؟
+- الجواب: الولايات المتحدة
+- الأجوبة المقبولة: الولايات المتحدة، أمريكا، USA، US، United States، United States of America
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-tulips
+- السؤال: ما الدولة التي تشتهر بطواحين الهواء التقليدية وحقول التوليب؟
+- الجواب: هولندا
+- الأجوبة المقبولة: هولندا، Netherlands، Nederland
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-rio-carnival
+- السؤال: ما الدولة التي تشتهر بالكرنفال السنوي في مدينة ريو دي جانيرو؟
+- الجواب: البرازيل
+- الأجوبة المقبولة: البرازيل، Brazil
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-fuji
+- السؤال: ما الدولة التي تُعرف بوجود جبل فوجي الشهير؟
+- الجواب: اليابان
+- الأجوبة المقبولة: اليابان، Japan
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-swiss-chocolate
+- السؤال: ما الدولة التي تشتهر بشوكولاتة السُويس؟
+- الجواب: سويسرا
+- الأجوبة المقبولة: سويسرا، Switzerland
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### countries-alps
+- السؤال: ما الدولة التي تشتهر بجبال الألب ومناظرها الطبيعية؟
+- الجواب: سويسرا
+- الأجوبة المقبولة: سويسرا، Switzerland
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
 ## مسلسلات
 
 ### series-friends
@@ -2423,19 +2435,13 @@
 ### series-eleven
 - السؤال: ما اسم الفتاة ذات القدرات في Stranger Things؟
 - الجواب: Eleven
-- الأجوبة المقبولة: Eleven، إلسن
+- الأجوبة المقبولة: Eleven، إليفن، إلفن
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### series-daenerys
 - السؤال: من هي أم التنانين في Game of Thrones؟
 - الجواب: Daenerys
 - الأجوبة المقبولة: Daenerys، دينيريس، Khaleesi
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-professor
-- السؤال: ما الاسم الرمزي لقائد السرقة في Money Heist؟
-- الجواب: Professor
-- الأجوبة المقبولة: Professor، البروفيسور
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### series-peaky-city
@@ -2448,12 +2454,6 @@
 - السؤال: كيف يُسمّى الزومبي غالبًا في The Walking Dead؟
 - الجواب: Walkers
 - الأجوبة المقبولة: Walkers، الووكرز
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-baker-street
-- السؤال: ما عنوان منزل شيرلوك هولمز الشهير؟
-- الجواب: 221B Baker Street
-- الأجوبة المقبولة: 221B Baker Street، بيكر ستريت
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### series-narcos-country
@@ -2560,12 +2560,6 @@
 - الأجوبة المقبولة: Pac-Man، باك مان
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-### games-skyrim
-- السؤال: في أي لعبة تصبح Dragonborn في إقليم Skyrim؟
-- الجواب: Skyrim
-- الأجوبة المقبولة: Skyrim، سكايرم
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
 ### games-efootball
 - السؤال: ما لعبة كرة القدم من Konami التي كانت تُعرف بـ PES؟
 - الجواب: eFootball
@@ -2609,9 +2603,9 @@
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-dota
-- السؤال: ما لعبة الـ MOBA المنافسة للول من Valve؟
-- الجواب: Dota 2
-- الأجوبة المقبولة: Dota 2، دوتا
+- السؤال: ما اسم اللعبة التي تدور أحداثها في مدينة Night City؟
+- الجواب: Cyberpunk 2077
+- الأجوبة المقبولة: Cyberpunk 2077، Cyberpunk، سايبر بانك، سايبر بانك 2077
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 # من كتبها؟
@@ -2827,7 +2821,7 @@
 `funny-situations-22 — وش أكثر مرة توهّمت إن أحد يكلمك وهو يكلم غيرك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-situations-23 — وش موقف انحبست فيه في المصعد أو الحمّام؟`
+`funny-situations-23 — وش أغرب موقف علقت فيه وما عرفت كيف تطلع منه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 `funny-situations-24 — وش أغبى شيء سويته وأنت تصوّر ستوري؟`
@@ -2842,7 +2836,7 @@
 `funny-situations-27 — وش موقف ردّيت فيه على الناس وأنت بين النوم والصحى؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`funny-situations-28 — وش أكثر مرة ضاعت منك السيارة في موقف؟`
+`funny-situations-28 — وش أغرب موقف صار لك وأنت تدور سيارتك في المواقف؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 `funny-situations-29 — وش أغرب كذبة انفضحت من أول جملة؟`
@@ -2859,7 +2853,7 @@
 `confessions-17 — وش أكثر شيء تسويه وأنت تقول للناس إنك مشغول؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`confessions-18 — وش عادة أكل عندك ما تبي أحد يعرف كميتها؟`
+`confessions-18 — وش شيء تسويه وتدري إنه غريب، بس مستحيل توقفه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 `confessions-19 — وش إشعار تخاف يطلع وأنت مع ناس؟`
@@ -2943,6 +2937,9 @@
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 `light-personal-30 — وش شيء صغير تعتبره فخامة؟`
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+`light-personal-31 — من هو الشخص اللي ما تحلى الجلسة إلا بوجوده من بين الموجودين؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## ماذا ستفعل؟
@@ -3090,49 +3087,49 @@
 
 ## سيناريوهات غريبة
 
-`weird-scenarios-1 — صحيت ولقيت نفسك رئيس دولة لمدة يوم، وش أول قرار تسويه؟`
+`weird-scenarios-1 — لو صحيت ولقيت نفسك رئيس دولة لمدة يوم، وش أول قرار بتتخذه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-2 — فجأة كل الحيوانات صارت تتكلم، أي حيوان بيكون أكثر واحد مزعج؟`
+`weird-scenarios-2 — لو صارت كل الحيوانات تتكلم فجأة، أي حيوان تتوقع يكون أكثر واحد مزعج؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-3 — صحيت ولقيت نفسك مشهور عالميًا بدون سبب، وش أول شيء تسويه؟`
+`weird-scenarios-3 — لو صحيت ولقيت نفسك مشهور عالميًا بدون أي سبب، وش أول شيء بتسويه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-4 — لو صار ممنوع استخدام الجوال أسبوع كامل، وش أكثر شيء الناس بتسويه بدلًا منه؟`
+`weird-scenarios-4 — لو صار ممنوع استخدام الجوال لمدة أسبوع، وش تتوقع الناس بتسوي بدلًا منه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-5 — لو تقدر تضيف زر واحد جديد في جسم الإنسان، وش يسوي؟`
+`weird-scenarios-5 — لو تقدر تضيف زر جديد في جسم الإنسان، وش بيكون وظيفته؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-6 — لو البشر صاروا ينامون ساعة وحدة فقط يوميًا، وش بيتغير؟`
+`weird-scenarios-6 — لو صار البشر ينامون ساعة وحدة فقط في اليوم، وش أول شيء بيتغير في حياتهم؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-7 — لو صار عندك ريموت يتحكم بالناس، وش أول زر تضيفه؟`
+`weird-scenarios-7 — لو كان عندك ريموت يتحكم بالناس، وش أول زر بتضيفه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-8 — لو صرت شبح لمدة 24 ساعة، وش أول شيء تسويه؟`
+`weird-scenarios-8 — لو صرت شبح لمدة 24 ساعة، وش أول شيء بتسويه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-9 — لو كل شخص لازم يلبس زي موحد حسب شخصيته، وش يكون زيك؟`
+`weird-scenarios-9 — لو صار لكل شخص زي موحد يعكس شخصيته، وش تتوقع يكون زيك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-10 — لو قدرت تغير صوتك لأي صوت بالعالم، وش تختار؟`
+`weird-scenarios-10 — لو تقدر تغير صوتك لأي صوت في العالم، وش الصوت اللي بتختاره؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-11 — لو كل كذبة تقولها تطلع فوق رأسك كتابة، وش بيصير؟`
+`weird-scenarios-11 — لو صارت كل كذبة تقولها تظهر مكتوبة فوق رأسك، وش أول موقف بتتورط فيه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-12 — لو صار لازم تختار حيوان يكون مديرك، وش تختار؟`
+`weird-scenarios-12 — لو لازم تختار حيوان يكون مديرك، أي حيوان بتختار؟ وليش؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-13 — لو الإنترنت اختفى للأبد، وش أول شيء بينهار؟`
+`weird-scenarios-13 — لو اختفى الإنترنت للأبد، وش أول شيء تتوقع ينهار؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-14 — لو كل شخص عنده موسيقى دخول مثل المصارعين، وش تكون موسيقاك؟`
+`weird-scenarios-14 — لو صار لكل شخص موسيقى دخول مثل المصارعين، وش الأغنية اللي بتختارها لنفسك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-15 — لو قدرت تعيش داخل لعبة أسبوع، أي لعبة تختار؟`
+`weird-scenarios-15 — لو تقدر تعيش داخل أي لعبة لمدة أسبوع، أي لعبة بتختار؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## كمل الجملة
@@ -3240,22 +3237,16 @@
 `worst-answer-18 — وش أسوأ شيء ينكتب على كيكة تخرج؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`worst-answer-19 — وش أسوأ جملة تبدأ فيها خطاب زواج؟`
+`worst-answer-19 — وش أسوأ جملة ممكن تقولها في عرس؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 `worst-answer-20 — وش أسوأ شيء تقول لجارك عن الضجيج؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`worst-answer-21 — وش أسوأ تعليق في زوم وأنت فاكر المايك مقفل؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`worst-answer-22 — وش أسوأ شيء تقوله لشخص يريحك أكلته؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
 `worst-answer-23 — وش أسوأ سبب تعتذر فيه بعد ما نسيت عيد ميلاد؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`worst-answer-24 — وش أسوأ اسم ممكن تعطيه لمجموعة واتساب العائلة؟`
+`worst-answer-24 — وش أسوأ شيء ممكن ترسله في مجموعة واتساب العائلة؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 `worst-answer-25 — وش أسوأ نصيحة تعطيها لشخص بيسافر أول مرة؟`
@@ -3271,9 +3262,6 @@
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 `worst-answer-29 — وش أسوأ تعليق على صورة طفل؟`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`worst-answer-30 — وش أسوأ شيء ممكن يجي في إعلان وظيفتك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## اخترع شيء غبي
@@ -3299,9 +3287,6 @@
 `invent-something-silly-22 — اخترع رياضة أولمبية ما لها داعي.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`invent-something-silly-23 — اخترع خدمة عملاء أسوأ من الانتظار على الخط.`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
 `invent-something-silly-24 — اخترع لعبة جوال مصممة عشان تضيّع البطارية.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
@@ -3309,9 +3294,6 @@
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 `invent-something-silly-26 — اخترع وسيلة مواصلات أبطأ من المشي.`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`invent-something-silly-27 — اخترع تطبيق منبه يزيد النوم.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 `invent-something-silly-28 — اخترع قائمة مطعم كلها أسماء ما تنفهم.`
@@ -3325,49 +3307,49 @@
 
 ## سيناريوهات غريبة
 
-`weird-scenarios-16 — لو صار لكل شخص شريط أخبار فوق رأسه، وش أول خبر عندك؟`
+`weird-scenarios-16 — لو كان فوق رأس كل شخص شريط أخبار يعرض آخر أخباره، وش تتوقع يكون مكتوب فوق رأسك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-17 — لو القهوة صارت حلال فقط بعد توقيع عقد، وش يصير؟`
+`weird-scenarios-17 — لو صار لازم توقّع عقد قبل ما تشرب القهوة، وش أغرب شرط ممكن تحطه في العقد؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-18 — لو الحيوانات الأليفة صارت تقيّم أصحابها، وش تقييمك؟`
+`weird-scenarios-18 — لو صارت الحيوانات الأليفة تقدر تقيّم أصحابها، كم تتوقع حيوانك بيعطيك من 10؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-19 — لو كل رسالة واتساب تنرسل بصوت الوالدة، وش بيتغير؟`
+`weird-scenarios-19 — لو صارت كل رسالة واتساب تنرسل بصوت الوالدة، وش أول شيء بيتغير؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-20 — لو صار ممنوع الكذب في المجالس، وش أول مجلس ينهار؟`
+`weird-scenarios-20 — لو صار ممنوع الكذب في المجالس، أي نوع من المجالس تتوقع ينهار أول؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-21 — لو السيارات تختار السائق، أي سيارة ترفضك؟`
+`weird-scenarios-21 — لو صارت السيارات هي اللي تختار أصحابها، أي نوع من السيارات تتوقع يرفضك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-22 — لو قدرت تسمع أفكار الناس في الطابور، وش أكثر فكر يزعجك؟`
+`weird-scenarios-22 — لو قدرت تسمع أفكار الناس وأنت واقف في طابور، وش أكثر شيء تتوقع يزعجك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-23 — لو كل أكلة تنطق قبل ما تنأكل، وش الأكلة الأكثر لومًا؟`
+`weird-scenarios-23 — لو صارت كل أكلة تتكلم قبل ما تنأكل، وش تتوقع أكلك المفضل بيقول لك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-24 — لو صار اليوم 16 ساعة فقط، وش أول شيء تحذفه؟`
+`weird-scenarios-24 — لو صار اليوم 16 ساعة بدل 24، وش أكثر شيء في حياتك بيتأثر؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-25 — لو المكيفات صارت لها شخصية، وش شخصية مكيفك؟`
+`weird-scenarios-25 — لو صار للمكيفات شخصيات ومزاج، وش تتوقع تكون شخصية مكيفك؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-26 — لو الجوال يطلب إذنًا قبل كل فتح تطبيق، وش راح ينرفزك؟`
+`weird-scenarios-26 — لو صار جوالك يطلب إذنك قبل ما تفتح أي تطبيق، أي تطبيق بتتوقع يزعجك أكثر؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-27 — لو تقدر تبادل مكانك مع إشارة مرور يوم، وش راح تسوي؟`
+`weird-scenarios-27 — لو قدرت تعيش يوم كامل كإشارة مرور، وش أول شيء بتسويه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-28 — لو كل شخص لازم يعلن سبب خروجه من البيت، وش تكتب؟`
+`weird-scenarios-28 — لو صار لازم تعلن للناس سبب خروجك من البيت كل مرة، وش أكثر عذر بتستخدمه؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-29 — لو صارت النوم وظيفة رسمية، وش مسماك الوظيفي؟`
+`weird-scenarios-29 — لو صارت "النومة" وظيفة رسمية، وش بيكون مسماك الوظيفي؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`weird-scenarios-30 — لو القروبات العائلية صارت بث مباشر، وش أول كارثة؟`
+`weird-scenarios-30 — لو صارت القروبات العائلية بثًا مباشرًا للجميع، وش أول كارثة تتوقع تصير؟`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## كمل الجملة
@@ -3431,16 +3413,10 @@
 `rapid-response-19 — عطنا لقب لسيارتك لو كانت شخص.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-`rapid-response-20 — عطنا شيء تطلبه من الذكاء الاصطناعي وما ينفع.`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
 `rapid-response-21 — عطنا سبب تطفّي فيه اللعبة وأنت رابح.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 `rapid-response-22 — عطنا جملة تخلي النادل يندم إنه سأل.`
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-`rapid-response-23 — عطنا شيء تحطه في الثلاجة وما له مكان.`
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 `rapid-response-24 — عطنا اسم نادي رياضي محد يسجّل فيه.`
