@@ -1,59 +1,77 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import type { TimingChallengePlayerView } from '@wanasatna/shared';
-import { playGameSound } from '@/lib/game/sounds';
+import type { GameSoundId } from '@/lib/game/sounds';
+import { isGameAudioUnlocked, playGameSound } from '@/lib/game/sounds';
+import {
+  shouldPlayTimingEndSound,
+  shouldPlayTimingStartSound,
+  timingEndEventKey,
+  timingStartEventKey,
+  type TimingWindowSfxSnapshot,
+} from './timing-window-sfx';
 
-type PhaseSnapshot = {
-  round: number;
-  phase: TimingChallengePlayerView['gamePhase'];
-  running: boolean;
-  mode: TimingChallengePlayerView['mode'];
-};
+const UNLOCK_RETRY_FRAMES = 10;
 
 /**
- * Plays the start cue once when the authoritative timing phase begins.
- * Reconnect / remount into an already-running phase does not replay.
+ * Feedback-only: never delays the timer. Retries briefly if the same-gesture
+ * unlock from Ready / Start has not finished when the view transition lands.
+ */
+function playTimingCue(id: GameSoundId, eventKey: string): void {
+  playGameSound(id, { eventKey });
+  if (isGameAudioUnlocked() || typeof requestAnimationFrame !== 'function') {
+    return;
+  }
+
+  let frames = 0;
+  const retry = () => {
+    frames += 1;
+    playGameSound(id, { eventKey });
+    if (!isGameAudioUnlocked() && frames < UNLOCK_RETRY_FRAMES) {
+      requestAnimationFrame(retry);
+    }
+  };
+  requestAnimationFrame(retry);
+}
+
+function snapshotFromView(view: TimingChallengePlayerView): TimingWindowSfxSnapshot {
+  return {
+    round: view.currentRound,
+    phase: view.gamePhase,
+    running: view.selfTimerRunning,
+    mode: view.mode,
+  };
+}
+
+/**
+ * Plays start/end cues once on client timing-window transitions.
+ * Reconnect / remount into an already-running (or already-ended) window does not replay.
+ * Layout effect keeps the cue on the same frame as the timer UI, before paint.
  */
 export function useTimingStartSound(view: TimingChallengePlayerView | null): void {
-  const prevRef = useRef<PhaseSnapshot | null>(null);
+  const prevRef = useRef<TimingWindowSfxSnapshot | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!view) {
       return;
     }
 
     const prev = prevRef.current;
-    const next: PhaseSnapshot = {
-      round: view.currentRound,
-      phase: view.gamePhase,
-      running: view.selfTimerRunning,
-      mode: view.mode,
-    };
+    const next = snapshotFromView(view);
     prevRef.current = next;
 
     if (!prev) {
       return;
     }
 
-    if (
-      view.mode === 'guess-time' &&
-      view.gamePhase === 'hidden-timing' &&
-      prev.round === view.currentRound &&
-      prev.phase === 'ready'
-    ) {
-      playGameSound('go', { eventKey: `go:${view.roundId}:hidden` });
+    if (shouldPlayTimingStartSound(prev, next)) {
+      playTimingCue('go', timingStartEventKey(view.roundId, view.mode));
       return;
     }
 
-    if (
-      view.mode === 'stop-timer' &&
-      view.gamePhase === 'stop-timer' &&
-      view.selfTimerRunning &&
-      prev.round === view.currentRound &&
-      !prev.running
-    ) {
-      playGameSound('go', { eventKey: `go:${view.roundId}:stop` });
+    if (shouldPlayTimingEndSound(prev, next)) {
+      playTimingCue('time-up', timingEndEventKey(view.roundId));
     }
   }, [view]);
 }

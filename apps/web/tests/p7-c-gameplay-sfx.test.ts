@@ -440,12 +440,13 @@ void (async () => {
     assert.doesNotMatch(read('plugins/fast-answer/use-sfx.ts'), /'wrong'|your-turn/);
     assert.doesNotMatch(read('plugins/draw-guess/use-sfx.ts'), /'wrong'/);
     assert.doesNotMatch(read('plugins/timing-challenge/use-sfx.ts'), /time-up|countdown-tick|your-turn/);
-    assert.doesNotMatch(
-      read('plugins/timing-challenge/use-timing-start-sound.ts'),
-      /time-up|countdown-tick/,
-    );
-    assert.match(read('plugins/timing-challenge/use-timing-start-sound.ts'), /playGameSound\('go'/);
+    assert.doesNotMatch(read('plugins/timing-challenge/use-timing-start-sound.ts'), /countdown-tick/);
+    assert.match(read('plugins/timing-challenge/use-timing-start-sound.ts'), /playTimingCue\('go'/);
+    assert.match(read('plugins/timing-challenge/use-timing-start-sound.ts'), /playTimingCue\('time-up'/);
+    assert.match(read('plugins/timing-challenge/use-timing-start-sound.ts'), /playGameSound\(id/);
     assert.match(read('plugins/timing-challenge/use-timing-start-sound.ts'), /if \(!prev\)/);
+    assert.match(read('plugins/timing-challenge/use-timing-start-sound.ts'), /useLayoutEffect/);
+    assert.match(read('plugins/timing-challenge/timing-window-sfx.ts'), /timeup:timing:/);
     assert.doesNotMatch(read('plugins/guessing-challenge/playing-screen.tsx'), /playGameSound/);
     assert.doesNotMatch(read('plugins/bara-al-salafa/countdown-screen.tsx'), /playGameSound/);
     const panel = read('plugins/guessing-challenge/special-cards-panel.tsx');

@@ -235,6 +235,10 @@ export function setGameAudioMuted(muted: boolean): void {
   emitPrefs();
 }
 
+export function isGameAudioUnlocked(): boolean {
+  return unlocked;
+}
+
 /** Silent unlock after a real user gesture. Idempotent. Never throws. */
 export function unlockGameAudio(): void {
   if (!isBrowser() || unlocked || unlocking) {
@@ -344,7 +348,9 @@ export function playGameSound(id: GameSoundId, options?: PlayGameSoundOptions): 
     lastPlayedAt.set(id, now);
     node.gain = SOUND_GAIN[id];
     node.priority = priority;
-    node.el.src = src;
+    if (node.el.src !== src && !node.el.src.endsWith(src)) {
+      node.el.src = src;
+    }
     applyNodeVolume(node);
     node.el.currentTime = 0;
     node.busy = true;

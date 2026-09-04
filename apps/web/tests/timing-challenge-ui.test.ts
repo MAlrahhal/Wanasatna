@@ -1,10 +1,16 @@
 /**
- * Timing Challenge UI helpers — digital format + start-sound transition rules.
+ * Timing Challenge UI helpers — digital format + start/end-sound transition rules.
  * Run via web test:unit (appended) or:
  * node ../server/node_modules/tsx/dist/cli.mjs tests/timing-challenge-ui.test.ts
  */
 import assert from 'node:assert/strict';
 import { formatDigitalTimer, formatSecondsFromMs } from '../plugins/timing-challenge/format';
+import {
+  shouldPlayTimingEndSound,
+  shouldPlayTimingStartSound,
+  timingEndEventKey,
+  type TimingWindowSfxSnapshot,
+} from '../plugins/timing-challenge/timing-window-sfx';
 
 let passed = 0;
 let failed = 0;
@@ -21,37 +27,14 @@ function test(name: string, fn: () => void): void {
   }
 }
 
-/** Mirrors useTimingStartSound transition rules (no React / DOM). */
-function shouldPlayTimerStart(args: {
-  prev: { round: number; phase: string; running: boolean; mode: string } | null;
-  next: { round: number; phase: string; running: boolean; mode: string };
-}): boolean {
-  const { prev, next } = args;
-
-  if (!prev) {
-    return false;
-  }
-
-  if (
-    next.mode === 'guess-time' &&
-    next.phase === 'hidden-timing' &&
-    prev.round === next.round &&
-    prev.phase === 'ready'
-  ) {
-    return true;
-  }
-
-  if (
-    next.mode === 'stop-timer' &&
-    next.phase === 'stop-timer' &&
-    next.running &&
-    prev.round === next.round &&
-    !prev.running
-  ) {
-    return true;
-  }
-
-  return false;
+function snap(
+  partial: Partial<TimingWindowSfxSnapshot> & Pick<TimingWindowSfxSnapshot, 'phase' | 'mode'>,
+): TimingWindowSfxSnapshot {
+  return {
+    round: 1,
+    running: false,
+    ...partial,
+  };
 }
 
 test('F/H digital timer formats MM:SS.cc without exposing raw ms as integer', () => {
@@ -63,52 +46,111 @@ test('F/H digital timer formats MM:SS.cc without exposing raw ms as integer', ()
 
 test('A Mode A plays once on ready → hidden-timing', () => {
   assert.equal(
-    shouldPlayTimerStart({
-      prev: { round: 1, phase: 'ready', running: false, mode: 'guess-time' },
-      next: { round: 1, phase: 'hidden-timing', running: false, mode: 'guess-time' },
-    }),
+    shouldPlayTimingStartSound(
+      snap({ phase: 'ready', mode: 'guess-time' }),
+      snap({ phase: 'hidden-timing', mode: 'guess-time' }),
+    ),
     true,
   );
 });
 
 test('B Mode A rerender / same phase does not replay', () => {
   assert.equal(
-    shouldPlayTimerStart({
-      prev: { round: 1, phase: 'hidden-timing', running: false, mode: 'guess-time' },
-      next: { round: 1, phase: 'hidden-timing', running: false, mode: 'guess-time' },
-    }),
+    shouldPlayTimingStartSound(
+      snap({ phase: 'hidden-timing', mode: 'guess-time' }),
+      snap({ phase: 'hidden-timing', mode: 'guess-time' }),
+    ),
     false,
   );
 });
 
 test('C next round plays again on ready → hidden-timing', () => {
   assert.equal(
-    shouldPlayTimerStart({
-      prev: { round: 2, phase: 'ready', running: false, mode: 'guess-time' },
-      next: { round: 2, phase: 'hidden-timing', running: false, mode: 'guess-time' },
-    }),
+    shouldPlayTimingStartSound(
+      snap({ round: 2, phase: 'ready', mode: 'guess-time' }),
+      snap({ round: 2, phase: 'hidden-timing', mode: 'guess-time' }),
+    ),
     true,
   );
 });
 
 test('D reconnect mount into running timer does not play', () => {
   assert.equal(
-    shouldPlayTimerStart({
-      prev: null,
-      next: { round: 1, phase: 'hidden-timing', running: false, mode: 'guess-time' },
-    }),
+    shouldPlayTimingStartSound(null, snap({ phase: 'hidden-timing', mode: 'guess-time' })),
     false,
   );
 });
 
 test('Mode B plays once when self timer starts', () => {
   assert.equal(
-    shouldPlayTimerStart({
-      prev: { round: 1, phase: 'stop-timer', running: false, mode: 'stop-timer' },
-      next: { round: 1, phase: 'stop-timer', running: true, mode: 'stop-timer' },
-    }),
+    shouldPlayTimingStartSound(
+      snap({ phase: 'stop-timer', mode: 'stop-timer', running: false }),
+      snap({ phase: 'stop-timer', mode: 'stop-timer', running: true }),
+    ),
     true,
   );
+});
+
+test('Mode A end sound on hidden-timing → guessing', () => {
+  assert.equal(
+    shouldPlayTimingEndSound(
+      snap({ phase: 'hidden-timing', mode: 'guess-time' }),
+      snap({ phase: 'guessing', mode: 'guess-time' }),
+    ),
+    true,
+  );
+});
+
+test('Mode A end sound does not replay on guessing rerender', () => {
+  assert.equal(
+    shouldPlayTimingEndSound(
+      snap({ phase: 'guessing', mode: 'guess-time' }),
+      snap({ phase: 'guessing', mode: 'guess-time' }),
+    ),
+    false,
+  );
+});
+
+test('Mode A guessing → round-results is not a timing-window end', () => {
+  assert.equal(
+    shouldPlayTimingEndSound(
+      snap({ phase: 'guessing', mode: 'guess-time' }),
+      snap({ phase: 'round-results', mode: 'guess-time' }),
+    ),
+    false,
+  );
+});
+
+test('reconnect into guessing does not play end sound', () => {
+  assert.equal(
+    shouldPlayTimingEndSound(null, snap({ phase: 'guessing', mode: 'guess-time' })),
+    false,
+  );
+});
+
+test('Mode B end sound when the local timer stops', () => {
+  assert.equal(
+    shouldPlayTimingEndSound(
+      snap({ phase: 'stop-timer', mode: 'stop-timer', running: true }),
+      snap({ phase: 'stop-timer', mode: 'stop-timer', running: false }),
+    ),
+    true,
+  );
+});
+
+test('Mode B start transition does not play end sound', () => {
+  assert.equal(
+    shouldPlayTimingEndSound(
+      snap({ phase: 'stop-timer', mode: 'stop-timer', running: false }),
+      snap({ phase: 'stop-timer', mode: 'stop-timer', running: true }),
+    ),
+    false,
+  );
+});
+
+test('end eventKey is stable per round so stop + phase-leave cannot double-play', () => {
+  assert.equal(timingEndEventKey('round-a'), timingEndEventKey('round-a'));
+  assert.notEqual(timingEndEventKey('round-a'), timingEndEventKey('round-b'));
 });
 
 test('global doodle pattern CSS var opacity restored above invisible threshold', async () => {

@@ -281,13 +281,16 @@ void (async () => {
     const ready = read('plugins/timing-challenge/ready-screen.tsx');
     const stop = read('plugins/timing-challenge/stop-timer-screen.tsx');
     const panel = read('plugins/guessing-challenge/special-cards-panel.tsx');
-    assert.match(timing, /playGameSound\('go'/);
+    assert.match(timing, /playTimingCue\('go'/);
+    assert.match(timing, /playTimingCue\('time-up'/);
+    assert.match(timing, /playGameSound\(id/);
     assert.match(timing, /if \(!prev\)/);
+    assert.match(timing, /useLayoutEffect/);
     assert.match(ready, /unlockGameAudio\(\)/);
     assert.match(stop, /unlockGameAudio\(\)/);
     assert.match(panel, /playSoftCardRequestPing\(/);
     assert.match(panel, /lastPingKey/);
-    assert.doesNotMatch(timing, /countdown-tick|time-up|your-turn/);
+    assert.doesNotMatch(timing, /countdown-tick|your-turn/);
   });
 
   await test('P7-B does not wire the P7-C gameplay sound map', () => {
