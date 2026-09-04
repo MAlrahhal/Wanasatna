@@ -104,7 +104,7 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
         <p className="text-wanas-text-muted text-xs">لا توجد إعدادات إضافية لهذه اللعبة.</p>
       )}
 
-      {isAdmin && selectedGame ? (
+      {isAdmin && isHost && selectedGame ? (
         <ExperimentalGameSettingsPanel
           gameId={selectedGame.id}
           roomSettings={room?.gameSettings ?? null}

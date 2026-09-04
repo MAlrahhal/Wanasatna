@@ -45,6 +45,10 @@ export async function updateRoomGameSettings(input: {
     return serviceError('PLAYER_NOT_FOUND', 'Player not found in this room.');
   }
 
+  if (room.hostPlayerId !== input.playerId) {
+    return serviceError('FORBIDDEN', 'غير مصرح لك بتعديل هذه الإعدادات.');
+  }
+
   if (getGameShellByRoomId(input.roomId) || room.status === RoomStatus.PLAYING) {
     return serviceError('MATCH_IN_PROGRESS', 'لا يمكن تعديل الإعدادات أثناء المباراة.');
   }

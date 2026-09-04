@@ -42,9 +42,10 @@ test('Admin lobby shows إعدادات تجريبية; Guest/USER sources do not
   assert.doesNotMatch(panel, /Admin badge|شارة/);
 });
 
-test('Guest/USER cannot see experimental controls without ADMIN role check', () => {
+test('experimental settings require ADMIN and current host', () => {
   const panel = read('components/lobby/game-settings-panel.tsx');
-  assert.match(panel, /isAdmin && selectedGame/);
+  assert.match(panel, /isAdmin && isHost && selectedGame/);
+  assert.doesNotMatch(panel, /isAdmin && selectedGame \?/);
   assert.doesNotMatch(panel, /إعدادات تجريبية/);
 });
 

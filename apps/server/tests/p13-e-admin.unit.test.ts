@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { io as ioClient, type Socket } from 'socket.io-client';
 import {
   CREATE_ROOM_EVENT,
+  JOIN_ROOM_EVENT,
   UPDATE_ROOM_GAME_SETTINGS_EVENT,
   sanitizeGameSettingPatch,
   sanitizeRoomGameSettings,
@@ -221,6 +222,7 @@ async function main(): Promise<void> {
     assert.match(shared, /function resolveEffectiveGameSettings/);
     assert.match(service, /resolveSocketAccountUser|isAdminSession/);
     assert.match(service, /accountUser\?\.role === 'ADMIN'|isAdminSession/);
+    assert.match(service, /hostPlayerId !== input\.playerId/);
     assert.doesNotMatch(service, /player\.userId/);
     assert.match(handlers, /UPDATE_ROOM_GAME_SETTINGS_EVENT/);
     assert.match(handlers, /resolveSocketAccountUser/);
@@ -296,7 +298,7 @@ async function main(): Promise<void> {
     });
   });
 
-  await test('3 ADMIN can edit', async () => {
+  await test('3 ADMIN host can edit', async () => {
     const account = await promoteAccount(await registerAccount('admin'));
     await withSocketServer(async (url) => {
       const host = await createBoundRoom(
@@ -323,6 +325,44 @@ async function main(): Promise<void> {
         const stored = sanitizeRoomGameSettings(row?.gameSettings);
         assert.equal(stored?.['bara-al-salafa']?.questionTurnSeconds, 90);
       } finally {
+        host.socket.close();
+        await cleanupRoom(host.roomId);
+        await cleanupEmail(account.email);
+      }
+    });
+  });
+
+  await test('3b ADMIN member cannot edit', async () => {
+    const account = await promoteAccount(await registerAccount('member'));
+    await withSocketServer(async (url) => {
+      const host = await createBoundRoom(url, uniqueName('مضيف'));
+      const memberSocket = await connectClient(url, `${AUTH_COOKIE_NAME}=${account.sessionToken}`);
+      try {
+        const joined = await ack<CreateRoomResponse>(memberSocket, JOIN_ROOM_EVENT, {
+          roomCode: host.code,
+          playerName: uniqueName('إدارة'),
+        });
+        assert.equal(joined.success, true, joined.success ? '' : joined.error.message);
+        if (joined.success) {
+          assert.equal(joined.data.player.isHost, false);
+        }
+        const response = await ack<SettingsAck>(memberSocket, UPDATE_ROOM_GAME_SETTINGS_EVENT, {
+          gameId: 'fast-answer',
+          answerSeconds: 10,
+          rounds: 10,
+        });
+        assert.equal(response.success, false);
+        if (!response.success) {
+          assert.equal(response.error.code, 'FORBIDDEN');
+        }
+        const row = await prisma.room.findUnique({
+          where: { id: host.roomId },
+          select: { gameSettings: true, hostPlayerId: true },
+        });
+        assert.equal(row?.hostPlayerId, host.playerId);
+        assert.equal(sanitizeRoomGameSettings(row?.gameSettings), null);
+      } finally {
+        memberSocket.close();
         host.socket.close();
         await cleanupRoom(host.roomId);
         await cleanupEmail(account.email);
