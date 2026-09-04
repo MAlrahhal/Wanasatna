@@ -145,6 +145,7 @@ async function main(): Promise<void> {
     assert.match(routes, /get\('\/users', requireAdmin/);
     assert.match(routes, /get\('\/users\/:userId', requireAdmin/);
     assert.match(routes, /get\('\/history', requireAdmin/);
+    assert.match(routes, /get\('\/history\/:matchId\/answers', requireAdmin/);
     assert.match(routes, /get\('\/history\/:matchId', requireAdmin/);
     assert.doesNotMatch(routes, /post\('\/users|patch\('\/users|delete\('\/users/);
     assert.doesNotMatch(routes, /post\('\/history|patch\('\/history|delete\('\/history/);

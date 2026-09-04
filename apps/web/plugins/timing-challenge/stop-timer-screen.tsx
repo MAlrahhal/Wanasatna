@@ -2,14 +2,16 @@
 
 import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { unlockGameAudio } from '@/lib/game/sounds';
+import { playGameSound, unlockGameAudio } from '@/lib/game/sounds';
 import { DigitalTimerDisplay, ElectronicPanel } from './electronic-panel';
 import { PeerStatusList } from './peer-status-list';
 import { formatDigitalTimer, formatSignedDeltaMs, timingFeedbackLabel } from './format';
+import { timingStartEventKey } from './timing-window-sfx';
 import type { TimingChallengePeerStatus } from '@wanasatna/shared';
 import { cn } from '@/lib/utils';
 
 type StopTimerScreenProps = {
+  roundId: string;
   targetMs: number;
   canStartTimer: boolean;
   canStopTimer: boolean;
@@ -26,7 +28,13 @@ type StopTimerScreenProps = {
   onStop: () => void;
 };
 
+function playLocalTimerStartCue(roundId: string): void {
+  unlockGameAudio();
+  playGameSound('go', { eventKey: timingStartEventKey(roundId, 'stop-timer') });
+}
+
 export function StopTimerScreen({
+  roundId,
   targetMs,
   canStartTimer,
   canStopTimer,
@@ -42,8 +50,18 @@ export function StopTimerScreen({
   onStart,
   onStop,
 }: StopTimerScreenProps) {
-  const actionRef = useRef({ canStartTimer, canStopTimer, isSubmitting, onStart, onStop });
-  actionRef.current = { canStartTimer, canStopTimer, isSubmitting, onStart, onStop };
+  const actionRef = useRef({
+    roundId,
+    canStartTimer,
+    canStopTimer,
+    isSubmitting,
+    onStart,
+    onStop,
+  });
+
+  useEffect(() => {
+    actionRef.current = { roundId, canStartTimer, canStopTimer, isSubmitting, onStart, onStop };
+  }, [roundId, canStartTimer, canStopTimer, isSubmitting, onStart, onStop]);
 
   useEffect(() => {
     if (!canStartTimer && !canStopTimer) {
@@ -63,6 +81,7 @@ export function StopTimerScreen({
       }
 
       if (current.canStartTimer) {
+        playLocalTimerStartCue(current.roundId);
         current.onStart();
         return;
       }
@@ -119,11 +138,12 @@ export function StopTimerScreen({
               type="button"
               disabled={(!canStartTimer && !canStopTimer) || isSubmitting}
               onClick={() => {
-                unlockGameAudio();
                 if (canStartTimer) {
+                  playLocalTimerStartCue(roundId);
                   onStart();
                   return;
                 }
+                unlockGameAudio();
                 if (canStopTimer) {
                   onStop();
                 }

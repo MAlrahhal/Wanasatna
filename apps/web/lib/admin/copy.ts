@@ -175,6 +175,30 @@ export const ADMIN_COPY = {
   team: 'الفريق',
   winner: 'فائز',
   activeMatchNote: 'سجل المباراة الجارية لا يمثل حالة اللعب الحية.',
+  answerLogTitle: 'سجل الإجابات',
+  answerLogCount: 'محاولات مسجّلة',
+  answerLogEmpty: 'لم تُسجَّل أي إجابات في هذه المباراة.',
+  answerLogUnavailable:
+    'لا توجد سجلات إجابات لهذه المباراة — السجل غير متوفر لهذه الفترة.',
+  answerLogFilteredEmpty: 'لا توجد محاولات مطابقة لهذه التصفية.',
+  answerTime: 'الوقت',
+  answerPlayer: 'اللاعب',
+  answerPrompt: 'السؤال',
+  answerText: 'الإجابة',
+  answerOutcome: 'النتيجة',
+  answerCounted: 'احتُسبت؟',
+  answerPoints: 'النقاط',
+  answerRaw: 'الإجابة الأصلية',
+  answerNormalized: 'الإجابة بعد التوحيد',
+  answerRoundId: 'معرّف الجولة',
+  answerTurnId: 'معرّف الدور',
+  answerPromptId: 'معرّف السؤال',
+  answerRejectReason: 'سبب الرفض',
+  answerAllOutcomes: 'كل النتائج',
+  answerRoundFilter: 'الجولة',
+  answerAllRounds: 'كل الجولات',
+  answerYes: 'نعم',
+  answerNo: 'لا',
   systemTitle: 'حالة النظام',
   serverStatus: 'حالة السيرفر',
   databaseStatus: 'قاعدة البيانات',
@@ -233,6 +257,27 @@ export const ADMIN_MATCH_STATUS_LABEL: Record<string, string> = {
   ACTIVE: 'جارية',
   COMPLETED: 'مكتملة',
   ABORTED: 'أُلغيت',
+};
+
+export const ADMIN_ANSWER_STATUS_LABEL: Record<string, string> = {
+  CORRECT_COUNTED: 'صحيحة — احتُسبت',
+  CORRECT_NOT_COUNTED: 'صحيحة — لم تُحتسب',
+  WRONG_COUNTED: 'خاطئة',
+  WRONG_NOT_COUNTED: 'خاطئة',
+  REJECTED: 'مرفوضة',
+  LATE: 'متأخرة',
+  OUT_OF_TURN: 'خارج الدور',
+  DUPLICATE: 'مكررة',
+};
+
+export const ADMIN_ANSWER_REJECT_REASON_LABEL: Record<string, string> = {
+  VALIDATION: 'غير صالحة',
+  NOT_PARTICIPANT: 'ليس مشاركاً',
+  INVALID_ROLE: 'دور غير مسموح',
+  RECOVERY: 'استعادة لاعب',
+  EMPTY: 'إجابة فارغة',
+  OVERSIZED: 'أطول من المسموح',
+  GAME_NOT_READY: 'اللعبة غير جاهزة',
 };
 
 export const ADMIN_ROOM_CLOSE_REASON_LABEL: Record<string, string> = {

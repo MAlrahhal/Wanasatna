@@ -109,7 +109,8 @@
     "question": "ما الحيوان الذي يحمل صغاره في كيس؟",
     "acceptedAnswers": [
       "الكنغر",
-      "Kangaroo"
+      "Kangaroo",
+      "كنجارو"
     ]
   },
   {
@@ -148,7 +149,8 @@
     "question": "ما الحيوان الذي يُعرف بقدرته الكبيرة على تقليد أصوات البشر؟",
     "acceptedAnswers": [
       "الببغاء",
-      "Parrot"
+      "Parrot",
+      "ببغا"
     ]
   },
   {
@@ -189,12 +191,201 @@
     ]
   },
   {
+    "id": "animals-owl",
+    "categoryId": "animals",
+    "question": "ما الطائر الليلي الذي يستطيع إدارة رأسه بزاوية واسعة؟",
+    "acceptedAnswers": [
+      "البومة",
+      "Owl"
+    ]
+  },
+  {
+    "id": "animals-panda",
+    "categoryId": "animals",
+    "question": "ما الحيوان الأبيض والأسود الذي يعيش على الخيزران؟",
+    "acceptedAnswers": [
+      "الباندا",
+      "Panda"
+    ]
+  },
+  {
+    "id": "animals-polar-bear",
+    "categoryId": "animals",
+    "question": "ما الدب الذي يعيش في القطب الشمالي؟",
+    "acceptedAnswers": [
+      "الدب القطبي",
+      "دب قطبي",
+      "Polar bear"
+    ]
+  },
+  {
+    "id": "animals-flamingo",
+    "categoryId": "animals",
+    "question": "ما الطائر الوردي الذي يقف غالبًا على رجل واحدة؟",
+    "acceptedAnswers": [
+      "النحام",
+      "فلامنغو",
+      "Flamingo"
+    ]
+  },
+  {
+    "id": "animals-hedgehog",
+    "categoryId": "animals",
+    "question": "ما الحيوان الصغير المغطى بأشواك على ظهره؟",
+    "acceptedAnswers": [
+      "القنفذ",
+      "Hedgehog"
+    ]
+  },
+  {
+    "id": "animals-peacock",
+    "categoryId": "animals",
+    "question": "ما الطائر الذي يفتح ذيله كمروحة ملونة؟",
+    "acceptedAnswers": [
+      "الطاووس",
+      "الطاؤوس",
+      "Peacock"
+    ]
+  },
+  {
+    "id": "animals-koala",
+    "categoryId": "animals",
+    "question": "ما الحيوان الأسترالي الذي يعيش على أشجار الكينا؟",
+    "acceptedAnswers": [
+      "الكوالا",
+      "Koala"
+    ]
+  },
+  {
+    "id": "animals-hippo",
+    "categoryId": "animals",
+    "question": "ما الحيوان الأفريقي الضخم الذي يقضي ساعات طويلة في النهر؟",
+    "acceptedAnswers": [
+      "فرس النهر",
+      "Hippo"
+    ]
+  },
+  {
+    "id": "animals-rhino",
+    "categoryId": "animals",
+    "question": "ما الحيوان الضخم الذي يحمل قرنًا فوق أنفه؟",
+    "acceptedAnswers": [
+      "وحيد القرن",
+      "Rhino"
+    ]
+  },
+  {
+    "id": "animals-spider-legs",
+    "categoryId": "animals",
+    "question": "كم رجلًا للعنكبوت؟",
+    "acceptedAnswers": [
+      "8",
+      "ثمانية",
+      "ثمان"
+    ]
+  },
+  {
+    "id": "animals-cow-stomachs",
+    "categoryId": "animals",
+    "question": "كم تجويفًا لمعدة البقرة عادة؟",
+    "acceptedAnswers": [
+      "4",
+      "أربعة",
+      "أربع"
+    ]
+  },
+  {
+    "id": "animals-bat",
+    "categoryId": "animals",
+    "question": "ما الثديي الوحيد الذي يطير حقيقيًا بأجنحة؟",
+    "acceptedAnswers": [
+      "الخفاش",
+      "Bat",
+      "وطواط"
+    ]
+  },
+  {
+    "id": "animals-seahorse",
+    "categoryId": "animals",
+    "question": "ما الحيوان البحري الذي يشبه الحصان ويحمل الذكر الصغار؟",
+    "acceptedAnswers": [
+      "حصان البحر",
+      "Seahorse"
+    ]
+  },
+  {
+    "id": "animals-hyena",
+    "categoryId": "animals",
+    "question": "ما الحيوان المعروف بصوت يشبه الضحك؟",
+    "acceptedAnswers": [
+      "الضبع",
+      "Hyena"
+    ]
+  },
+  {
+    "id": "animals-orca",
+    "categoryId": "animals",
+    "question": "ما الحيوان البحري الملقب بالحوت القاتل؟",
+    "acceptedAnswers": [
+      "الأوركا",
+      "الحوت القاتل",
+      "Orca"
+    ]
+  },
+  {
+    "id": "animals-firefly",
+    "categoryId": "animals",
+    "question": "ما الحشرة التي تضيء في الليل؟",
+    "acceptedAnswers": [
+      "اليراعة",
+      "Firefly"
+    ]
+  },
+  {
+    "id": "animals-lioness",
+    "categoryId": "animals",
+    "question": "ما اسم أنثى الأسد؟",
+    "acceptedAnswers": [
+      "اللبوة",
+      "Lioness"
+    ]
+  },
+  {
+    "id": "animals-wolf",
+    "categoryId": "animals",
+    "question": "ما الحيوان المعروف بعوائه مع مجموعته؟",
+    "acceptedAnswers": [
+      "الذئب",
+      "Wolf",
+      "ذيب"
+    ]
+  },
+  {
+    "id": "animals-eagle",
+    "categoryId": "animals",
+    "question": "ما الطائر الجارح الأشهر في الصيد عند العرب؟",
+    "acceptedAnswers": [
+      "الصقر",
+      "Falcon"
+    ]
+  },
+  {
+    "id": "animals-starfish",
+    "categoryId": "animals",
+    "question": "ما الحيوان البحري الذي يشبه النجمة؟",
+    "acceptedAnswers": [
+      "نجم البحر",
+      "Starfish"
+    ]
+  },
+  {
     "id": "food-1",
     "categoryId": "food",
     "question": "ما الأكلة الإيطالية الدائرية المشهورة بالجبن والصلصة؟",
     "acceptedAnswers": [
       "بيتزا",
-      "Pizza"
+      "Pizza",
+      "بيزا"
     ]
   },
   {
@@ -204,7 +395,12 @@
     "acceptedAnswers": [
       "برغر",
       "برجر",
-      "Burger"
+      "Burger",
+      "برقر",
+      "همبرغر",
+      "همبرجر",
+      "Hamburger",
+      "Hamburgers"
     ]
   },
   {
@@ -252,7 +448,9 @@
       "آيس كريم",
       "مثلجات",
       "بوظة",
-      "Ice cream"
+      "Ice cream",
+      "آيسكريم",
+      "Icecream"
     ]
   },
   {
@@ -263,7 +461,10 @@
       "دونات",
       "دونت",
       "Donut",
-      "Doughnut"
+      "Doughnut",
+      "Donuts",
+      "Doughnuts",
+      "دوناتس"
     ]
   },
   {
@@ -284,7 +485,8 @@
     "acceptedAnswers": [
       "وافل",
       "Waffle",
-      "Waffles"
+      "Waffles",
+      "وافلز"
     ]
   },
   {
@@ -295,7 +497,9 @@
       "كب كيك",
       "كوب كيك",
       "Cupcake",
-      "Cup cake"
+      "Cup cake",
+      "Cupcakes",
+      "كبكيك"
     ]
   },
   {
@@ -305,7 +509,10 @@
     "acceptedAnswers": [
       "سمبوسة",
       "سمبوسك",
-      "Samosa"
+      "Samosa",
+      "سمبوسا",
+      "ساموسا",
+      "Samosas"
     ]
   },
   {
@@ -315,7 +522,9 @@
     "acceptedAnswers": [
       "تشيز كيك",
       "Cheesecake",
-      "Cheese cake"
+      "Cheese cake",
+      "تشيزكيك",
+      "Cheesecakes"
     ]
   },
   {
@@ -325,7 +534,10 @@
     "acceptedAnswers": [
       "بطيخ",
       "حبحب",
-      "جح"
+      "جح",
+      "بطيخة",
+      "Watermelon",
+      "بطيخ أحمر"
     ]
   },
   {
@@ -353,7 +565,192 @@
     "acceptedAnswers": [
       "فشار",
       "بوشار",
-      "Popcorn"
+      "Popcorn",
+      "بوب كورن",
+      "بوبكورن",
+      "Pop Corn"
+    ]
+  },
+  {
+    "id": "food-harees",
+    "categoryId": "food",
+    "question": "ما الأكلة الخليجية التقليدية التي تُحضّر من القمح المهروس واللحم؟",
+    "acceptedAnswers": [
+      "هريس",
+      "Harees"
+    ]
+  },
+  {
+    "id": "food-dates",
+    "categoryId": "food",
+    "question": "ما الفاكهة التي تُقدم غالبًا مع القهوة العربية؟",
+    "acceptedAnswers": [
+      "تمر",
+      "Dates",
+      "تمور",
+      "Date"
+    ]
+  },
+  {
+    "id": "food-arabic-coffee",
+    "categoryId": "food",
+    "question": "ما المشروب الذي يُسكب في فنجان صغير مع الهيل؟",
+    "acceptedAnswers": [
+      "قهوة عربية",
+      "Coffee",
+      "قهوة",
+      "Arabic Coffee",
+      "قهوة عربي",
+      "قهوة سعودية",
+      "Saudi Coffee"
+    ]
+  },
+  {
+    "id": "food-kunafa",
+    "categoryId": "food",
+    "question": "ما الحلوى بالجبن أو القشطة والقطر؟",
+    "acceptedAnswers": [
+      "كنافة",
+      "Kunafa",
+      "Kanafeh",
+      "Knafeh"
+    ]
+  },
+  {
+    "id": "food-baklava",
+    "categoryId": "food",
+    "question": "ما الحلوى الرقائقية المحشوة بالمكسرات والقطر؟",
+    "acceptedAnswers": [
+      "بقلاوة",
+      "Baklava",
+      "Baklawa",
+      "Baklawah"
+    ]
+  },
+  {
+    "id": "food-luqaimat",
+    "categoryId": "food",
+    "question": "ما الحلوى الخليجية المقليّة على شكل كرات مع الدبس؟",
+    "acceptedAnswers": [
+      "لقيمات",
+      "Luqaimat",
+      "لقمة القاضي",
+      "Luqmat Al Qadi"
+    ]
+  },
+  {
+    "id": "food-mansaf",
+    "categoryId": "food",
+    "question": "ما طبق الأرز واللحم باللبن الأشهر في الأردن؟",
+    "acceptedAnswers": [
+      "منسف",
+      "Mansaf",
+      "منسف أردني",
+      "Jordanian Mansaf"
+    ]
+  },
+  {
+    "id": "food-koshari",
+    "categoryId": "food",
+    "question": "ما طبق الأرز والعدس والمكرونة الشهير في مصر؟",
+    "acceptedAnswers": [
+      "كشري",
+      "Koshari",
+      "Koshary",
+      "Kushari",
+      "كوشاري",
+      "كشري مصري",
+      "Egyptian Koshari"
+    ]
+  },
+  {
+    "id": "food-chocolate",
+    "categoryId": "food",
+    "question": "ما الحلوى التي تُصنع أساسًا من حبوب الكاكاو وتأتي بأشكال وأنواع مختلفة؟",
+    "acceptedAnswers": [
+      "شوكولاتة",
+      "Chocolate",
+      "شوكلا",
+      "شوكولات",
+      "شوكليت",
+      "Chocolat",
+      "شوكلاته"
+    ]
+  },
+  {
+    "id": "food-mango",
+    "categoryId": "food",
+    "question": "ما الفاكهة الاستوائية الصفراء ذات النواة الكبيرة؟",
+    "acceptedAnswers": [
+      "مانجو",
+      "Mango",
+      "مانجا",
+      "مانقا",
+      "Mangos",
+      "Mangoes"
+    ]
+  },
+  {
+    "id": "food-banana",
+    "categoryId": "food",
+    "question": "ما الفاكهة الصفراء المقوّسة التي تُقشر باليد؟",
+    "acceptedAnswers": [
+      "موز",
+      "Banana",
+      "Bananas",
+      "موزة",
+      "بنانا",
+      "بنانة"
+    ]
+  },
+  {
+    "id": "food-apple",
+    "categoryId": "food",
+    "question": "ما الفاكهة البيضاء من الداخل وقشرتها حمراء أو خضراء؟",
+    "acceptedAnswers": [
+      "تفاح",
+      "Apple",
+      "Apples",
+      "آبل",
+      "تفاحة",
+      "تفاحات"
+    ]
+  },
+  {
+    "id": "food-karak",
+    "categoryId": "food",
+    "question": "ما الشاي المغلي بالحليب والهال المنتشر في الخليج؟",
+    "acceptedAnswers": [
+      "كرك",
+      "شاي كرك",
+      "Karak"
+    ]
+  },
+  {
+    "id": "food-pasta",
+    "categoryId": "food",
+    "question": "ما الطعام الإيطالي المصنوع من القمح على أشكال مختلفة؟",
+    "acceptedAnswers": [
+      "معكرونة",
+      "باستا",
+      "Pasta",
+      "مكرونة",
+      "Pastas"
+    ]
+  },
+  {
+    "id": "food-basbousa",
+    "categoryId": "food",
+    "question": "ما الحلوى السميدية المشربة بالقطر والمنتشرة عربيًا؟",
+    "acceptedAnswers": [
+      "بسبوسة",
+      "هريسة",
+      "نمورة",
+      "Basbousa",
+      "Basbousah",
+      "Harissa",
+      "Namoura",
+      "بسبوسا"
     ]
   },
   {
@@ -528,6 +925,267 @@
     ]
   },
   {
+    "id": "countries-new-zealand",
+    "categoryId": "countries",
+    "question": "ما الدولة التي عاصمتها ويلينغتون؟",
+    "acceptedAnswers": [
+      "نيوزيلندا",
+      "نيوزيلاند",
+      "New Zealand",
+      "نيوزلندا"
+    ]
+  },
+  {
+    "id": "countries-china-wall",
+    "categoryId": "countries",
+    "question": "ما الدولة التي فيها السور العظيم الشهير؟",
+    "acceptedAnswers": [
+      "الصين",
+      "China"
+    ]
+  },
+  {
+    "id": "countries-kuwait-capital",
+    "categoryId": "countries",
+    "question": "ما عاصمة الكويت؟",
+    "acceptedAnswers": [
+      "مدينة الكويت",
+      "الكويت",
+      "Kuwait City"
+    ]
+  },
+  {
+    "id": "countries-canada",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تحمل ورقة القيقب الحمراء على علمها؟",
+    "acceptedAnswers": [
+      "كندا",
+      "Canada"
+    ]
+  },
+  {
+    "id": "countries-greece",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تشتهر بأثينا والبارثينون؟",
+    "acceptedAnswers": [
+      "اليونان",
+      "Greece"
+    ]
+  },
+  {
+    "id": "countries-portugal",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تقع فيها مدينة لشبونة؟",
+    "acceptedAnswers": [
+      "البرتغال",
+      "Portugal"
+    ]
+  },
+  {
+    "id": "countries-korea",
+    "categoryId": "countries",
+    "question": "ما الدولة التي عاصمتها سيول؟",
+    "acceptedAnswers": [
+      "كوريا الجنوبية",
+      "South Korea"
+    ]
+  },
+  {
+    "id": "countries-singapore",
+    "categoryId": "countries",
+    "question": "ما الدولة المدينة المعروفة بتمثال ميرليون؟",
+    "acceptedAnswers": [
+      "سنغافورة",
+      "Singapore",
+      "سينغافوره"
+    ]
+  },
+  {
+    "id": "countries-south-africa",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تقع فيها مدينة كيب تاون؟",
+    "acceptedAnswers": [
+      "جنوب أفريقيا",
+      "South Africa"
+    ]
+  },
+  {
+    "id": "countries-argentina",
+    "categoryId": "countries",
+    "question": "ما الدولة التي عاصمتها بوينس آيرس؟",
+    "acceptedAnswers": [
+      "الأرجنتين",
+      "Argentina"
+    ]
+  },
+  {
+    "id": "countries-iraq",
+    "categoryId": "countries",
+    "question": "ما عاصمة العراق؟",
+    "acceptedAnswers": [
+      "بغداد",
+      "Baghdad"
+    ]
+  },
+  {
+    "id": "countries-lebanon",
+    "categoryId": "countries",
+    "question": "ما عاصمة لبنان؟",
+    "acceptedAnswers": [
+      "بيروت",
+      "Beirut"
+    ]
+  },
+  {
+    "id": "countries-syria",
+    "categoryId": "countries",
+    "question": "ما عاصمة سوريا؟",
+    "acceptedAnswers": [
+      "دمشق",
+      "Damascus"
+    ]
+  },
+  {
+    "id": "countries-yemen",
+    "categoryId": "countries",
+    "question": "ما عاصمة اليمن؟",
+    "acceptedAnswers": [
+      "صنعاء",
+      "Sanaa"
+    ]
+  },
+  {
+    "id": "countries-sudan",
+    "categoryId": "countries",
+    "question": "ما عاصمة السودان؟",
+    "acceptedAnswers": [
+      "الخرطوم",
+      "Khartoum"
+    ]
+  },
+  {
+    "id": "countries-pakistan",
+    "categoryId": "countries",
+    "question": "ما عاصمة باكستان؟",
+    "acceptedAnswers": [
+      "إسلام آباد",
+      "Islamabad"
+    ]
+  },
+  {
+    "id": "countries-russia-capital",
+    "categoryId": "countries",
+    "question": "ما عاصمة روسيا؟",
+    "acceptedAnswers": [
+      "موسكو",
+      "Moscow"
+    ]
+  },
+  {
+    "id": "countries-china-capital",
+    "categoryId": "countries",
+    "question": "ما عاصمة الصين؟",
+    "acceptedAnswers": [
+      "بكين",
+      "Beijing"
+    ]
+  },
+  {
+    "id": "countries-samba",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تشتهر برقصة السامبا؟",
+    "acceptedAnswers": [
+      "البرازيل",
+      "Brazil"
+    ]
+  },
+  {
+    "id": "countries-pisa",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تشتهر ببرج بيزا المائل؟",
+    "acceptedAnswers": [
+      "إيطاليا",
+      "Italy"
+    ]
+  },
+  {
+    "id": "countries-ethiopia-coffee",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تشتهر بزراعة البن وقهوة أرابيكا؟",
+    "acceptedAnswers": [
+      "إثيوبيا",
+      "Ethiopia"
+    ]
+  },
+  {
+    "id": "countries-judo",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تُعرف بأنها موطن رياضة الجودو؟",
+    "acceptedAnswers": [
+      "اليابان",
+      "Japan"
+    ]
+  },
+  {
+    "id": "countries-statue-liberty",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تشتهر بتمثال الحرية؟",
+    "acceptedAnswers": [
+      "الولايات المتحدة",
+      "أمريكا",
+      "USA",
+      "US",
+      "United States",
+      "United States of America"
+    ]
+  },
+  {
+    "id": "countries-tulips",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تشتهر بطواحين الهواء التقليدية وحقول التوليب؟",
+    "acceptedAnswers": [
+      "هولندا",
+      "Netherlands",
+      "Nederland"
+    ]
+  },
+  {
+    "id": "countries-rio-carnival",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تشتهر بالكرنفال السنوي في مدينة ريو دي جانيرو؟",
+    "acceptedAnswers": [
+      "البرازيل",
+      "Brazil"
+    ]
+  },
+  {
+    "id": "countries-fuji",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تُعرف بوجود جبل فوجي الشهير؟",
+    "acceptedAnswers": [
+      "اليابان",
+      "Japan"
+    ]
+  },
+  {
+    "id": "countries-swiss-chocolate",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تشتهر بشوكولاتة السُويس؟",
+    "acceptedAnswers": [
+      "سويسرا",
+      "Switzerland"
+    ]
+  },
+  {
+    "id": "countries-alps",
+    "categoryId": "countries",
+    "question": "ما الدولة التي تشتهر بجبال الألب ومناظرها الطبيعية؟",
+    "acceptedAnswers": [
+      "سويسرا",
+      "Switzerland"
+    ]
+  },
+  {
     "id": "series-1",
     "categoryId": "series",
     "question": "في أي مسلسل يظهر والتر وايت؟",
@@ -543,7 +1201,8 @@
     "question": "في أي مسلسل توجد عائلة Stark؟",
     "acceptedAnswers": [
       "Game of Thrones",
-      "جيم أوف ثرونز"
+      "جيم أوف ثرونز",
+      "غيم اوف ثرونز"
     ]
   },
   {
@@ -552,7 +1211,8 @@
     "question": "ما اسم السجن الشهير في بداية مسلسل Prison Break؟",
     "acceptedAnswers": [
       "Fox River",
-      "فوكس ريفر"
+      "فوكس ريفر",
+      "فوكس رفر"
     ]
   },
   {
@@ -590,7 +1250,8 @@
     "acceptedAnswers": [
       "Vikings",
       "فايكنغز",
-      "فايكنجز"
+      "فايكنجز",
+      "فايكنقز"
     ]
   },
   {
@@ -599,7 +1260,8 @@
     "question": "ما اسم اللعبة القاتلة الشهيرة في مسلسل Squid Game؟",
     "acceptedAnswers": [
       "Red Light, Green Light",
-      "الضوء الأحمر والضوء الأخضر"
+      "الضوء الأحمر والضوء الأخضر",
+      "الأحمر والأخضر"
     ]
   },
   {
@@ -608,7 +1270,9 @@
     "question": "في أي مسلسل يظهر Rick Grimes؟",
     "acceptedAnswers": [
       "The Walking Dead",
-      "ذا ووكينغ ديد"
+      "ذا ووكينغ ديد",
+      "تود",
+      "ذا ووكينج ديد"
     ]
   },
   {
@@ -677,7 +1341,8 @@
     "question": "ما اسم الشخصية التي يلعبها Pedro Pascal في The Last of Us؟",
     "acceptedAnswers": [
       "Joel",
-      "جويل"
+      "جويل",
+      "جول"
     ]
   },
   {
@@ -687,7 +1352,9 @@
     "acceptedAnswers": [
       "La Casa de Papel",
       "Money Heist",
-      "لا كاسا دي بابيل"
+      "لا كاسا دي بابيل",
+      "لا كاسا دي بابل",
+      "لاكاسا دي بابيل"
     ]
   },
   {
@@ -700,13 +1367,180 @@
     ]
   },
   {
+    "id": "series-friends",
+    "categoryId": "series",
+    "question": "في أي مسلسل تظهر راشيل ومونيكا وجوي؟",
+    "acceptedAnswers": [
+      "Friends",
+      "فريندز"
+    ]
+  },
+  {
+    "id": "series-office",
+    "categoryId": "series",
+    "question": "في أي مسلسل يعمل مايكل سكوت مديرًا إقليميًا؟",
+    "acceptedAnswers": [
+      "The Office",
+      "ذا أوفيس"
+    ]
+  },
+  {
+    "id": "series-wednesday",
+    "categoryId": "series",
+    "question": "ما اسم ابنة عائلة آدامز في مسلسل نتفليكس الأسود؟",
+    "acceptedAnswers": [
+      "Wednesday",
+      "وينزداي"
+    ]
+  },
+  {
+    "id": "series-dark",
+    "categoryId": "series",
+    "question": "ما المسلسل الألماني عن السفر عبر الزمن في بلدة وندن؟",
+    "acceptedAnswers": [
+      "Dark",
+      "دارك"
+    ]
+  },
+  {
+    "id": "series-black-mirror",
+    "categoryId": "series",
+    "question": "ما المسلسل ذو الحلقات المنفصلة عن التقنية والمستقبل المظلم؟",
+    "acceptedAnswers": [
+      "Black Mirror",
+      "بلاك ميرور"
+    ]
+  },
+  {
+    "id": "series-arcane",
+    "categoryId": "series",
+    "question": "في أي مسلسل تظهر جينكس وفاين من عالم League of Legends؟",
+    "acceptedAnswers": [
+      "Arcane",
+      "أركين"
+    ]
+  },
+  {
+    "id": "series-bear",
+    "categoryId": "series",
+    "question": "في أي مسلسل يدير كارمي مطعم سندويتشات في شيكاغو؟",
+    "acceptedAnswers": [
+      "The Bear",
+      "ذا بير"
+    ]
+  },
+  {
+    "id": "series-succession",
+    "categoryId": "series",
+    "question": "في أي مسلسل تتصارع عائلة روي على إمبراطورية إعلامية؟",
+    "acceptedAnswers": [
+      "Succession",
+      "سكسيشن"
+    ]
+  },
+  {
+    "id": "series-eleven",
+    "categoryId": "series",
+    "question": "ما اسم الفتاة ذات القدرات في Stranger Things؟",
+    "acceptedAnswers": [
+      "Eleven",
+      "إليفن",
+      "إلفن"
+    ]
+  },
+  {
+    "id": "series-daenerys",
+    "categoryId": "series",
+    "question": "من هي أم التنانين في Game of Thrones؟",
+    "acceptedAnswers": [
+      "Daenerys",
+      "دينيريس",
+      "Khaleesi"
+    ]
+  },
+  {
+    "id": "series-peaky-city",
+    "categoryId": "series",
+    "question": "في أي مدينة بريطانية تدور أحداث Peaky Blinders؟",
+    "acceptedAnswers": [
+      "Birmingham",
+      "برمنغهام"
+    ]
+  },
+  {
+    "id": "series-walkers",
+    "categoryId": "series",
+    "question": "كيف يُسمّى الزومبي غالبًا في The Walking Dead؟",
+    "acceptedAnswers": [
+      "Walkers",
+      "الووكرز"
+    ]
+  },
+  {
+    "id": "series-narcos-country",
+    "categoryId": "series",
+    "question": "في أي دولة تبدأ أحداث Narcos مع إسكوبار؟",
+    "acceptedAnswers": [
+      "كولومبيا",
+      "Colombia"
+    ]
+  },
+  {
+    "id": "series-house-md",
+    "categoryId": "series",
+    "question": "في أي مسلسل يظهر الطبيب الساخر غريغوري هاوس؟",
+    "acceptedAnswers": [
+      "House",
+      "House MD",
+      "هاوس"
+    ]
+  },
+  {
+    "id": "series-crown",
+    "categoryId": "series",
+    "question": "ما مسلسل نتفليكس عن العائلة الملكية البريطانية؟",
+    "acceptedAnswers": [
+      "The Crown",
+      "ذا كراون"
+    ]
+  },
+  {
+    "id": "series-mando",
+    "categoryId": "series",
+    "question": "ما اسم صياد الجوائز في مسلسل ستار وورز مع غروغو؟",
+    "acceptedAnswers": [
+      "The Mandalorian",
+      "ماندلوريان"
+    ]
+  },
+  {
+    "id": "series-nevermore",
+    "categoryId": "series",
+    "question": "ما اسم مدرسة وينزداي في مسلسل Wednesday؟",
+    "acceptedAnswers": [
+      "Nevermore",
+      "نيفرمور"
+    ]
+  },
+  {
+    "id": "series-ted-lasso",
+    "categoryId": "series",
+    "question": "في أي مسلسل يدرب مدرب أمريكي فريق كرة إنجليزي؟",
+    "acceptedAnswers": [
+      "Ted Lasso",
+      "تيد لاسو"
+    ]
+  },
+  {
     "id": "games-1",
     "categoryId": "games",
     "question": "في أي لعبة يظهر شخصية Steve؟",
     "acceptedAnswers": [
       "Minecraft",
       "ماينكرافت",
-      "ماين كرافت"
+      "ماين كرافت",
+      "Mine craft",
+      "ماين كرفات"
     ]
   },
   {
@@ -722,12 +1556,28 @@
   {
     "id": "games-3",
     "categoryId": "games",
-    "question": "في أي لعبة توجد مدينة Los Santos؟",
+    "question": "في أي لعبة من سلسلة GTA تظهر شخصيات مايكل وفرانكلن وتريفور؟",
     "acceptedAnswers": [
       "GTA V",
       "GTA 5",
+      "Grand Theft Auto",
+      "Grand Theft Auto V",
+      "Grand Theft Auto 5",
+      "GTA",
+      "GTA San Andreas",
+      "San Andreas",
+      "Los Santos",
+      "حرامي السيارات",
+      "قراند ثفت أوتو",
+      "قراند ثيفت أوتو",
+      "قراند",
+      "جراند ثفت أوتو",
+      "جراند ثيفت أوتو",
+      "جراند",
       "قراند 5",
-      "Grand Theft Auto V"
+      "جراند 5",
+      "جي تي اي 5",
+      "جي تي اي V"
     ]
   },
   {
@@ -737,7 +1587,10 @@
     "acceptedAnswers": [
       "Rocket League",
       "روكيت ليق",
-      "روكيت ليغ"
+      "روكيت ليغ",
+      "RL",
+      "روكيت ليج",
+      "RocketLeague"
     ]
   },
   {
@@ -746,7 +1599,9 @@
     "question": "في أي لعبة يظهر العميل Jett؟",
     "acceptedAnswers": [
       "Valorant",
-      "فالورانت"
+      "فالورانت",
+      "Valo",
+      "فالورنت"
     ]
   },
   {
@@ -757,7 +1612,18 @@
       "Counter-Strike",
       "كاونتر سترايك",
       "CS",
-      "CS2"
+      "CS2",
+      "CounterStrike",
+      "CS 2",
+      "CS:GO",
+      "CS GO",
+      "كاونترسترايك",
+      "كاونتر سترايك 2",
+      "كاونتر سترايك جلوبال أوفنسيف",
+      "كاونتر سترايك غلوبال أوفنسيف",
+      "كاونتر سترايك جلوبال اوفنسف",
+      "كاونتر سترايك جو",
+      "كاونتر سترايك غو"
     ]
   },
   {
@@ -766,7 +1632,14 @@
     "question": "في أي لعبة يظهر البطل Tracer؟",
     "acceptedAnswers": [
       "Overwatch",
-      "أوفرواتش"
+      "أوفرواتش",
+      "OW",
+      "OW2",
+      "OW 2",
+      "اوفر واتش",
+      "أوفرواتش 2",
+      "اوفر واتش 2",
+      "أوفر واتش٢"
     ]
   },
   {
@@ -775,7 +1648,14 @@
     "question": "ما اسم اللعبة التي يكون فيها بعض اللاعبين Impostors؟",
     "acceptedAnswers": [
       "Among Us",
-      "امونغ اس"
+      "امونغ اس",
+      "امونق اس",
+      "امونق اوس",
+      "أمونج اس",
+      "امونغ اوس",
+      "امونج اوس",
+      "AU",
+      "AmongUs"
     ]
   },
   {
@@ -784,7 +1664,23 @@
     "question": "في أي لعبة يظهر Joel وEllie؟",
     "acceptedAnswers": [
       "The Last of Us",
-      "ذا لاست أوف أس"
+      "ذا لاست أوف أس",
+      "TheLastOfUs",
+      "Last of Us",
+      "TLOU",
+      "TLOU1",
+      "TLOU 1",
+      "TLOU Part 1",
+      "The Last of Us Part I",
+      "The Last of Us Part 1",
+      "The Last of Us Part One",
+      "لاست أوف أس",
+      "ذا لاست اف اس",
+      "ذا لاست اوف يوس",
+      "ذا لاست اوف اوس",
+      "لاست اوف يوس",
+      "ذا لاست اوف اس 1",
+      "لاست اوف اس 1"
     ]
   },
   {
@@ -793,8 +1689,22 @@
     "question": "ما اسم لعبة العالم المفتوح التي بطلها Arthur Morgan؟",
     "acceptedAnswers": [
       "Red Dead Redemption 2",
+      "Red Dead Redemption II",
+      "Red Dead Redemption",
+      "RDR2",
+      "RDR 2",
+      "RDR",
+      "ريد ديد ريدمبشن 2",
+      "ريد ديد ريدمبشن",
+      "ريد ديد",
       "ريد ديد 2",
-      "RDR2"
+      "ريد ديد ريدمشن 2",
+      "ريد ديد ريدمبشن تو",
+      "RDR II",
+      "Red Dead 2",
+      "Red Dead",
+      "ريد ديد ردمبشن 2",
+      "ريد ديد ريدمشن"
     ]
   },
   {
@@ -804,7 +1714,21 @@
     "acceptedAnswers": [
       "Resident Evil",
       "ريزدنت إيفل",
-      "رزدنت ايفل"
+      "رزدنت ايفل",
+      "RE",
+      "ResidentEvil",
+      "Resident Evil 1",
+      "Resident Evil 2",
+      "Resident Evil 3",
+      "Resident Evil 4",
+      "Resident Evil 5",
+      "Resident Evil 6",
+      "Resident Evil 7",
+      "Resident Evil 8",
+      "Biohazard",
+      "بايوهازرد",
+      "بايو هازرد",
+      "بايوهازارد"
     ]
   },
   {
@@ -813,7 +1737,17 @@
     "question": "في أي سلسلة ألعاب يظهر Ezio Auditore؟",
     "acceptedAnswers": [
       "Assassin’s Creed",
-      "اساسنز كريد"
+      "اساسنز كريد",
+      "Assassin Creed",
+      "AC",
+      "اساسن كريد",
+      "اسسين كريد",
+      "اسسينز كريد",
+      "اساسنز",
+      "Assassin's",
+      "AssassinCreed",
+      "أسسن كريد",
+      "اسسنز كريد"
     ]
   },
   {
@@ -822,8 +1756,22 @@
     "question": "ما اسم سلسلة الألعاب التي بطلها Kratos؟",
     "acceptedAnswers": [
       "God of War",
+      "GOW",
       "قاد أوف وور",
-      "جاد أوف وور"
+      "جاد أوف وور",
+      "غاد أوف وار",
+      "جود أوف وار",
+      "جود أوف وور",
+      "غود اوف وور",
+      "إله الحرب",
+      "قود اوف وار",
+      "GodOfWar",
+      "غود اوف وار",
+      "قود اوف وور",
+      "قاد اوف وار",
+      "جاد اوف وار",
+      "اله الحرب",
+      "غاد اوف وور"
     ]
   },
   {
@@ -833,7 +1781,15 @@
     "acceptedAnswers": [
       "Elden Ring",
       "إلدن رينغ",
-      "الدن رينق"
+      "الدن رينق",
+      "EldenRing",
+      "ER",
+      "إلدن رينق",
+      "الدن رينغ",
+      "إلدين رينغ",
+      "الدن رينج",
+      "إلدن رينج",
+      "إلدين رينج"
     ]
   },
   {
@@ -842,20 +1798,44 @@
     "question": "ما اسم اللعبة التي تحتوي على شخصيات مثل Iron Man وSpider-Man وDoctor Strange في مواجهات جماعية؟",
     "acceptedAnswers": [
       "Marvel Rivals",
+      "Marvel Rivals game",
       "مارفل رايفلز",
-      "مارفل ريفالز"
+      "مارفل ريفلز",
+      "مارفل رايفل",
+      "مارفل ريفالز",
+      "مارفل",
+      "Marvel",
+      "MarvelRivals",
+      "MR"
     ]
   },
   {
     "id": "games-17",
     "categoryId": "games",
-    "question": "ما اسم اللعبة التي يلعب فيها اللاعب بشخصية CJ في مدينة Los Santos؟",
+    "question": "في أي لعبة من سلسلة GTA تظهر شخصية CJ؟",
     "acceptedAnswers": [
       "Grand Theft Auto: San Andreas",
+      "Grand Theft Auto",
+      "GTA",
       "GTA San Andreas",
       "GTA SA",
+      "San Andreas",
+      "حرامي السيارات",
+      "حرامي السيارات سان أندرياس",
+      "قراند ثفت أوتو",
+      "قراند ثيفت أوتو",
+      "قراند",
       "قراند سان أندرياس",
-      "سان أندرياس"
+      "جراند ثفت أوتو",
+      "جراند ثيفت أوتو",
+      "جراند",
+      "جراند سان أندرياس",
+      "سان أندرياس",
+      "GTASA",
+      "SA",
+      "سان اندريس",
+      "GTA San Andreas 2004",
+      "GTA SA 2004"
     ]
   },
   {
@@ -864,117 +1844,301 @@
     "question": "ما اسم لعبة الباتل رويال الشهيرة من Epic Games؟",
     "acceptedAnswers": [
       "Fortnite",
-      "فورتنايت"
+      "فورتنايت",
+      "Fortnite Battle Royale",
+      "Fortnite BR",
+      "FN",
+      "فورت نايت",
+      "فورتنايت باتل رويال",
+      "فورت نايت باتل رويال"
     ]
   },
   {
-    "id": "games-20",
+    "id": "games-mario",
     "categoryId": "games",
-    "question": "ما اسم لعبة Spider-Man الشهيرة من Insomniac؟",
+    "question": "في أي سلسلة يظهر السباك ذو القبعة الحمراء ماريو؟",
     "acceptedAnswers": [
-      "Marvel’s Spider-Man",
-      "Spider-Man",
-      "سبايدرمان"
+      "Super Mario",
+      "Mario",
+      "ماريو",
+      "SuperMario",
+      "Super Mario Bros",
+      "Super Mario Brothers",
+      "SMB",
+      "سوبر ماريو",
+      "سوبرماريو",
+      "سوبر ماريو بروس",
+      "سوبر ماريو برذرز",
+      "ماريو بروس",
+      "ماريو برذرز",
+      "ماريو بروذرز",
+      "ماريو براذرز",
+      "سوبر ماريو براذرز"
     ]
   },
-  {"id":"animals-owl","categoryId":"animals","question":"ما الطائر الليلي الذي يستطيع إدارة رأسه بزاوية واسعة؟","acceptedAnswers":["البومة","Owl"]},
-  {"id":"animals-panda","categoryId":"animals","question":"ما الحيوان الأبيض والأسود الذي يعيش على الخيزران؟","acceptedAnswers":["الباندا","Panda"]},
-  {"id":"animals-polar-bear","categoryId":"animals","question":"ما الدب الذي يعيش في القطب الشمالي؟","acceptedAnswers":["الدب القطبي","دب قطبي","Polar bear"]},
-  {"id":"animals-flamingo","categoryId":"animals","question":"ما الطائر الوردي الذي يقف غالبًا على رجل واحدة؟","acceptedAnswers":["النحام","فلامنغو","Flamingo"]},
-  {"id":"animals-hedgehog","categoryId":"animals","question":"ما الحيوان الصغير المغطى بأشواك على ظهره؟","acceptedAnswers":["القنفذ","Hedgehog"]},
-  {"id":"animals-peacock","categoryId":"animals","question":"ما الطائر الذي يفتح ذيله كمروحة ملونة؟","acceptedAnswers":["الطاووس","الطاؤوس","Peacock"]},
-  {"id":"animals-koala","categoryId":"animals","question":"ما الحيوان الأسترالي الذي يعيش على أشجار الكينا؟","acceptedAnswers":["الكوالا","Koala"]},
-  {"id":"animals-hippo","categoryId":"animals","question":"ما الحيوان الأفريقي الضخم الذي يقضي ساعات طويلة في النهر؟","acceptedAnswers":["فرس النهر","Hippo"]},
-  {"id":"animals-rhino","categoryId":"animals","question":"ما الحيوان الضخم الذي يحمل قرنًا فوق أنفه؟","acceptedAnswers":["وحيد القرن","Rhino"]},
-  {"id":"animals-spider-legs","categoryId":"animals","question":"كم رجلًا للعنكبوت؟","acceptedAnswers":["8","ثمانية","ثمان"]},
-  {"id":"animals-cow-stomachs","categoryId":"animals","question":"كم تجويفًا لمعدة البقرة عادة؟","acceptedAnswers":["4","أربعة","أربع"]},
-  {"id":"animals-bat","categoryId":"animals","question":"ما الثديي الوحيد الذي يطير حقيقيًا بأجنحة؟","acceptedAnswers":["الخفاش","Bat"]},
-  {"id":"animals-seahorse","categoryId":"animals","question":"ما الحيوان البحري الذي يشبه الحصان ويحمل الذكر الصغار؟","acceptedAnswers":["حصان البحر","Seahorse"]},
-  {"id":"animals-hyena","categoryId":"animals","question":"ما الحيوان المعروف بصوت يشبه الضحك؟","acceptedAnswers":["الضبع","Hyena"]},
-  {"id":"animals-orca","categoryId":"animals","question":"ما الحيوان البحري الملقب بالحوت القاتل؟","acceptedAnswers":["الأوركا","الحوت القاتل","Orca"]},
-  {"id":"animals-firefly","categoryId":"animals","question":"ما الحشرة التي تضيء في الليل؟","acceptedAnswers":["اليراعة","Firefly"]},
-  {"id":"animals-lioness","categoryId":"animals","question":"ما اسم أنثى الأسد؟","acceptedAnswers":["اللبوة","Lioness"]},
-  {"id":"animals-wolf","categoryId":"animals","question":"ما الحيوان المعروف بعوائه مع مجموعته؟","acceptedAnswers":["الذئب","Wolf"]},
-  {"id":"animals-eagle","categoryId":"animals","question":"ما الطائر الجارح الأشهر في الصيد عند العرب؟","acceptedAnswers":["الصقر","Falcon"]},
-  {"id":"animals-starfish","categoryId":"animals","question":"ما الحيوان البحري الذي يشبه النجمة؟","acceptedAnswers":["نجم البحر","Starfish"]},
-  {"id":"food-harees","categoryId":"food","question":"ما الأكلة الخليجية التقليدية التي تُحضّر من القمح المهروس واللحم؟","acceptedAnswers":["هريس","Harees"]},
-  {"id":"food-dates","categoryId":"food","question":"ما الفاكهة التي تُقدم غالبًا مع القهوة العربية؟","acceptedAnswers":["تمر","Dates"]},
-  {"id":"food-arabic-coffee","categoryId":"food","question":"ما المشروب الذي يُسكب في فنجان صغير مع الهيل؟","acceptedAnswers":["قهوة عربية","Coffee"]},
-  {"id":"food-kunafa","categoryId":"food","question":"ما الحلوى بالجبن أو القشطة والقطر؟","acceptedAnswers":["كنافة","Kunafa"]},
-  {"id":"food-baklava","categoryId":"food","question":"ما الحلوى الرقائقية المحشوة بالمكسرات والقطر؟","acceptedAnswers":["بقلاوة","Baklava"]},
-  {"id":"food-luqaimat","categoryId":"food","question":"ما الحلوى الخليجية المقليّة على شكل كرات مع الدبس؟","acceptedAnswers":["لقيمات","Luqaimat"]},
-  {"id":"food-mansaf","categoryId":"food","question":"ما طبق الأرز واللحم باللبن الأشهر في الأردن؟","acceptedAnswers":["منسف","Mansaf"]},
-  {"id":"food-koshari","categoryId":"food","question":"ما طبق الأرز والعدس والمكرونة الشهير في مصر؟","acceptedAnswers":["كشري","Koshari"]},
-  {"id":"food-chocolate","categoryId":"food","question":"ما الحلوى التي تُصنع أساسًا من حبوب الكاكاو وتأتي بأشكال وأنواع مختلفة؟","acceptedAnswers":["شوكولاتة","Chocolate"]},
-  {"id":"food-mango","categoryId":"food","question":"ما الفاكهة الاستوائية الصفراء ذات النواة الكبيرة؟","acceptedAnswers":["مانجو","Mango"]},
-  {"id":"food-banana","categoryId":"food","question":"ما الفاكهة الصفراء المقوّسة التي تُقشر باليد؟","acceptedAnswers":["موز","Banana"]},
-  {"id":"food-apple","categoryId":"food","question":"ما الفاكهة البيضاء من الداخل وقشرتها حمراء أو خضراء؟","acceptedAnswers":["تفاح","Apple"]},
-  {"id":"food-karak","categoryId":"food","question":"ما الشاي المغلي بالحليب والهال المنتشر في الخليج؟","acceptedAnswers":["كرك","شاي كرك","Karak"]},
-  {"id":"food-pasta","categoryId":"food","question":"ما الطعام الإيطالي المصنوع من القمح على أشكال مختلفة؟","acceptedAnswers":["معكرونة","باستا","Pasta"]},
-  {"id":"food-basbousa","categoryId":"food","question":"ما الحلوى السميدية المشربة بالقطر والمنتشرة عربيًا؟","acceptedAnswers":["بسبوسة","هريسة","نمورة","Basbousa"]},
-  {"id":"countries-new-zealand","categoryId":"countries","question":"ما الدولة التي عاصمتها ويلينغتون؟","acceptedAnswers":["نيوزيلندا","نيوزيلاند","New Zealand"]},
-  {"id":"countries-china-wall","categoryId":"countries","question":"ما الدولة التي فيها السور العظيم الشهير؟","acceptedAnswers":["الصين","China"]},
-  {"id":"countries-kuwait-capital","categoryId":"countries","question":"ما عاصمة الكويت؟","acceptedAnswers":["مدينة الكويت","الكويت","Kuwait City"]},
-  {"id":"countries-canada","categoryId":"countries","question":"ما الدولة التي تحمل ورقة القيقب الحمراء على علمها؟","acceptedAnswers":["كندا","Canada"]},
-  {"id":"countries-greece","categoryId":"countries","question":"ما الدولة التي تشتهر بأثينا والبارثينون؟","acceptedAnswers":["اليونان","Greece"]},
-  {"id":"countries-portugal","categoryId":"countries","question":"ما الدولة التي تقع فيها مدينة لشبونة؟","acceptedAnswers":["البرتغال","Portugal"]},
-  {"id":"countries-korea","categoryId":"countries","question":"ما الدولة التي عاصمتها سيول؟","acceptedAnswers":["كوريا الجنوبية","South Korea"]},
-  {"id":"countries-singapore","categoryId":"countries","question":"ما الدولة المدينة المعروفة بتمثال ميرليون؟","acceptedAnswers":["سنغافورة","Singapore"]},
-  {"id":"countries-south-africa","categoryId":"countries","question":"ما الدولة التي تقع فيها مدينة كيب تاون؟","acceptedAnswers":["جنوب أفريقيا","South Africa"]},
-  {"id":"countries-argentina","categoryId":"countries","question":"ما الدولة التي عاصمتها بوينس آيرس؟","acceptedAnswers":["الأرجنتين","Argentina"]},
-  {"id":"countries-iraq","categoryId":"countries","question":"ما عاصمة العراق؟","acceptedAnswers":["بغداد","Baghdad"]},
-  {"id":"countries-lebanon","categoryId":"countries","question":"ما عاصمة لبنان؟","acceptedAnswers":["بيروت","Beirut"]},
-  {"id":"countries-syria","categoryId":"countries","question":"ما عاصمة سوريا؟","acceptedAnswers":["دمشق","Damascus"]},
-  {"id":"countries-yemen","categoryId":"countries","question":"ما عاصمة اليمن؟","acceptedAnswers":["صنعاء","Sanaa"]},
-  {"id":"countries-sudan","categoryId":"countries","question":"ما عاصمة السودان؟","acceptedAnswers":["الخرطوم","Khartoum"]},
-  {"id":"countries-pakistan","categoryId":"countries","question":"ما عاصمة باكستان؟","acceptedAnswers":["إسلام آباد","Islamabad"]},
-  {"id":"countries-russia-capital","categoryId":"countries","question":"ما عاصمة روسيا؟","acceptedAnswers":["موسكو","Moscow"]},
-  {"id":"countries-china-capital","categoryId":"countries","question":"ما عاصمة الصين؟","acceptedAnswers":["بكين","Beijing"]},
-  {"id":"countries-samba","categoryId":"countries","question":"ما الدولة التي تشتهر برقصة السامبا؟","acceptedAnswers":["البرازيل","Brazil"]},
-  {"id":"countries-pisa","categoryId":"countries","question":"ما الدولة التي تشتهر ببرج بيزا المائل؟","acceptedAnswers":["إيطاليا","Italy"]},
-  {"id":"countries-ethiopia-coffee","categoryId":"countries","question":"ما الدولة التي تشتهر بزراعة البن وقهوة أرابيكا؟","acceptedAnswers":["إثيوبيا","Ethiopia"]},
-  {"id":"countries-judo","categoryId":"countries","question":"ما الدولة التي تُعرف بأنها موطن رياضة الجودو؟","acceptedAnswers":["اليابان","Japan"]},
-  {"id":"countries-statue-liberty","categoryId":"countries","question":"ما الدولة التي تشتهر بتمثال الحرية؟","acceptedAnswers":["الولايات المتحدة","أمريكا","USA","US","United States","United States of America"]},
-  {"id":"countries-tulips","categoryId":"countries","question":"ما الدولة التي تشتهر بطواحين الهواء التقليدية وحقول التوليب؟","acceptedAnswers":["هولندا","Netherlands","Nederland"]},
-  {"id":"countries-rio-carnival","categoryId":"countries","question":"ما الدولة التي تشتهر بالكرنفال السنوي في مدينة ريو دي جانيرو؟","acceptedAnswers":["البرازيل","Brazil"]},
-  {"id":"countries-fuji","categoryId":"countries","question":"ما الدولة التي تُعرف بوجود جبل فوجي الشهير؟","acceptedAnswers":["اليابان","Japan"]},
-  {"id":"countries-swiss-chocolate","categoryId":"countries","question":"ما الدولة التي تشتهر بشوكولاتة السُويس؟","acceptedAnswers":["سويسرا","Switzerland"]},
-  {"id":"countries-alps","categoryId":"countries","question":"ما الدولة التي تشتهر بجبال الألب ومناظرها الطبيعية؟","acceptedAnswers":["سويسرا","Switzerland"]},
-  {"id":"series-friends","categoryId":"series","question":"في أي مسلسل تظهر راشيل ومونيكا وجوي؟","acceptedAnswers":["Friends","فريندز"]},
-  {"id":"series-office","categoryId":"series","question":"في أي مسلسل يعمل مايكل سكوت مديرًا إقليميًا؟","acceptedAnswers":["The Office","ذا أوفيس"]},
-  {"id":"series-wednesday","categoryId":"series","question":"ما اسم ابنة عائلة آدامز في مسلسل نتفليكس الأسود؟","acceptedAnswers":["Wednesday","وينزداي"]},
-  {"id":"series-dark","categoryId":"series","question":"ما المسلسل الألماني عن السفر عبر الزمن في بلدة وندن؟","acceptedAnswers":["Dark","دارك"]},
-  {"id":"series-black-mirror","categoryId":"series","question":"ما المسلسل ذو الحلقات المنفصلة عن التقنية والمستقبل المظلم؟","acceptedAnswers":["Black Mirror","بلاك ميرور"]},
-  {"id":"series-arcane","categoryId":"series","question":"في أي مسلسل تظهر جينكس وفاين من عالم League of Legends؟","acceptedAnswers":["Arcane","أركين"]},
-  {"id":"series-bear","categoryId":"series","question":"في أي مسلسل يدير كارمي مطعم سندويتشات في شيكاغو؟","acceptedAnswers":["The Bear","ذا بير"]},
-  {"id":"series-succession","categoryId":"series","question":"في أي مسلسل تتصارع عائلة روي على إمبراطورية إعلامية؟","acceptedAnswers":["Succession","سكسيشن"]},
-  {"id":"series-eleven","categoryId":"series","question":"ما اسم الفتاة ذات القدرات في Stranger Things؟","acceptedAnswers":["Eleven","إليفن","إلفن"]},
-  {"id":"series-daenerys","categoryId":"series","question":"من هي أم التنانين في Game of Thrones؟","acceptedAnswers":["Daenerys","دينيريس","Khaleesi"]},
-  {"id":"series-peaky-city","categoryId":"series","question":"في أي مدينة بريطانية تدور أحداث Peaky Blinders؟","acceptedAnswers":["Birmingham","برمنغهام"]},
-  {"id":"series-walkers","categoryId":"series","question":"كيف يُسمّى الزومبي غالبًا في The Walking Dead؟","acceptedAnswers":["Walkers","الووكرز"]},
-  {"id":"series-narcos-country","categoryId":"series","question":"في أي دولة تبدأ أحداث Narcos مع إسكوبار؟","acceptedAnswers":["كولومبيا","Colombia"]},
-  {"id":"series-house-md","categoryId":"series","question":"في أي مسلسل يظهر الطبيب الساخر غريغوري هاوس؟","acceptedAnswers":["House","House MD","هاوس"]},
-  {"id":"series-crown","categoryId":"series","question":"ما مسلسل نتفليكس عن العائلة الملكية البريطانية؟","acceptedAnswers":["The Crown","ذا كراون"]},
-  {"id":"series-mando","categoryId":"series","question":"ما اسم صياد الجوائز في مسلسل ستار وورز مع غروغو؟","acceptedAnswers":["The Mandalorian","ماندلوريان"]},
-  {"id":"series-nevermore","categoryId":"series","question":"ما اسم مدرسة وينزداي في مسلسل Wednesday؟","acceptedAnswers":["Nevermore","نيفرمور"]},
-  {"id":"series-ted-lasso","categoryId":"series","question":"في أي مسلسل يدرب مدرب أمريكي فريق كرة إنجليزي؟","acceptedAnswers":["Ted Lasso","تيد لاسو"]},
-  {"id":"games-mario","categoryId":"games","question":"في أي سلسلة يظهر السباك ذو القبعة الحمراء ماريو؟","acceptedAnswers":["Super Mario","Mario","ماريو"]},
-  {"id":"games-zelda","categoryId":"games","question":"ما السلسلة التي يستخدم فيها لينك السيف والدرع غالبًا؟","acceptedAnswers":["The Legend of Zelda","Zelda","زيلدا"]},
-  {"id":"games-pokemon","categoryId":"games","question":"ما السلسلة التي تلتقط فيها مخلوقات وتجعلها تقاتل؟","acceptedAnswers":["Pokemon","بوكيمون"]},
-  {"id":"games-roblox","categoryId":"games","question":"ما المنصة التي يبني فيها اللاعبون ألعابًا بشخصيات مكعبة؟","acceptedAnswers":["Roblox","روبلوكس"]},
-  {"id":"games-free-fire","categoryId":"games","question":"ما لعبة الباتل رويال الشهيرة على الجوال من Garena؟","acceptedAnswers":["Free Fire","فري فاير"]},
-  {"id":"games-clash","categoryId":"games","question":"ما اللعبة التي تبني فيها قرية وتهاجم عشائر أخرى؟","acceptedAnswers":["Clash of Clans","كلاش أوف كلانس"]},
-  {"id":"games-lol","categoryId":"games","question":"في أي لعبة تظهر شخصيات مثل Ahri وYasuo في معارك 5 ضد 5؟","acceptedAnswers":["League of Legends","LoL","لول"]},
-  {"id":"games-genshin","categoryId":"games","question":"ما لعبة العالم المفتوح بأسلوب الأنمي من miHoYo؟","acceptedAnswers":["Genshin Impact","جينشن"]},
-  {"id":"games-tekken","categoryId":"games","question":"ما سلسلة القتال اليابانية التي تشتهر بشخصية Jin؟","acceptedAnswers":["Tekken","تيكن"]},
-  {"id":"games-tetris","categoryId":"games","question":"ما اللعبة الكلاسيكية التي ترتب فيها قطعًا متساقطة؟","acceptedAnswers":["Tetris","تتريس"]},
-  {"id":"games-pacman","categoryId":"games","question":"ما الشخصية الصفراء التي تأكل النقاط وتهرب من أشباح؟","acceptedAnswers":["Pac-Man","باك مان"]},
-  {"id":"games-efootball","categoryId":"games","question":"ما لعبة كرة القدم من Konami التي كانت تُعرف بـ PES؟","acceptedAnswers":["eFootball","PES","بيس"]},
-  {"id":"games-subway","categoryId":"games","question":"ما لعبة الجري على السكة وأنت تهرب من المفتش؟","acceptedAnswers":["Subway Surfers","سابواي سيرفرز"]},
-  {"id":"games-sims","categoryId":"games","question":"ما اللعبة التي تبني فيها بيتًا وتدير حياة شخصيات يومية؟","acceptedAnswers":["The Sims","ذا سيمز"]},
-  {"id":"games-valorant-spike","categoryId":"games","question":"ما اسم القنبلة التي يزرعها المهاجمون في Valorant؟","acceptedAnswers":["Spike","السبايك"]},
-  {"id":"games-dark-souls","categoryId":"games","question":"ما سلسلة الرولبلينغ الصعبة من FromSoftware قبل Elden Ring؟","acceptedAnswers":["Dark Souls","دارك سولز"]},
-  {"id":"games-clash-royale","categoryId":"games","question":"ما لعبة البطاقات من سوبرسال على ساحة ببرجين؟","acceptedAnswers":["Clash Royale","كلاش رويال"]},
-  {"id":"games-candy-crush","categoryId":"games","question":"ما لعبة الألغاز التي تطابق فيها الحلوى الملونة؟","acceptedAnswers":["Candy Crush","كاندي كراش"]},
-  {"id":"games-dota","categoryId":"games","question":"ما اسم اللعبة التي تدور أحداثها في مدينة Night City؟","acceptedAnswers":["Cyberpunk 2077","Cyberpunk","سايبر بانك","سايبر بانك 2077"]}
+  {
+    "id": "games-zelda",
+    "categoryId": "games",
+    "question": "ما السلسلة التي يستخدم فيها لينك السيف والدرع غالبًا؟",
+    "acceptedAnswers": [
+      "The Legend of Zelda",
+      "Zelda",
+      "زيلدا",
+      "Legend of Zelda",
+      "TLOZ",
+      "LOZ",
+      "ليجند أوف زيلدا",
+      "ليجند اف زيلدا",
+      "أسطورة زيلدا"
+    ]
+  },
+  {
+    "id": "games-pokemon",
+    "categoryId": "games",
+    "question": "ما السلسلة التي تلتقط فيها مخلوقات وتجعلها تقاتل؟",
+    "acceptedAnswers": [
+      "Pokemon",
+      "بوكيمون",
+      "Pokémon",
+      "بوكمان",
+      "بوكيمونز"
+    ]
+  },
+  {
+    "id": "games-roblox",
+    "categoryId": "games",
+    "question": "ما المنصة التي يبني فيها اللاعبون ألعابًا بشخصيات مكعبة؟",
+    "acceptedAnswers": [
+      "Roblox",
+      "روبلوكس",
+      "روبلكس",
+      "روبلاكس",
+      "ربلوكس"
+    ]
+  },
+  {
+    "id": "games-free-fire",
+    "categoryId": "games",
+    "question": "ما لعبة الباتل رويال الشهيرة على الجوال من Garena؟",
+    "acceptedAnswers": [
+      "Free Fire",
+      "فري فاير",
+      "FreeFire",
+      "Free Fire MAX",
+      "FF",
+      "FF MAX",
+      "Garena Free Fire",
+      "فريفاير",
+      "فري فاير ماكس"
+    ]
+  },
+  {
+    "id": "games-clash",
+    "categoryId": "games",
+    "question": "ما اللعبة التي تبني فيها قرية وتهاجم عشائر أخرى؟",
+    "acceptedAnswers": [
+      "Clash of Clans",
+      "كلاش أوف كلانس",
+      "ClashOfClans",
+      "COC",
+      "كلاش اف كلانس",
+      "كلاش اوف كلانز",
+      "كلاش كلانس"
+    ]
+  },
+  {
+    "id": "games-lol",
+    "categoryId": "games",
+    "question": "في أي لعبة تظهر شخصيات مثل Ahri وYasuo في معارك 5 ضد 5؟",
+    "acceptedAnswers": [
+      "League of Legends",
+      "LoL",
+      "لول",
+      "LeagueOfLegends",
+      "League",
+      "ليغ أوف ليجندز",
+      "ليق أوف ليجندز",
+      "ليج أوف ليجندز",
+      "ليغ اوف ليجند",
+      "ليق اوف ليجند",
+      "ليج اوف ليجند"
+    ]
+  },
+  {
+    "id": "games-genshin",
+    "categoryId": "games",
+    "question": "ما لعبة العالم المفتوح بأسلوب الأنمي من miHoYo؟",
+    "acceptedAnswers": [
+      "Genshin Impact",
+      "جينشن",
+      "Genshin",
+      "GenshinImpact",
+      "جينشين",
+      "جينشن امباكت",
+      "جينشين امباكت",
+      "GI"
+    ]
+  },
+  {
+    "id": "games-tekken",
+    "categoryId": "games",
+    "question": "ما سلسلة القتال اليابانية التي تشتهر بشخصية Jin؟",
+    "acceptedAnswers": [
+      "Tekken",
+      "تيكن",
+      "Tekken 7",
+      "Tekken 8",
+      "Tekken 6",
+      "تيكين",
+      "تكن",
+      "تيكن 7",
+      "تيكن 8",
+      "تيكين 8",
+      "تكن 8",
+      "TK"
+    ]
+  },
+  {
+    "id": "games-tetris",
+    "categoryId": "games",
+    "question": "ما اللعبة الكلاسيكية التي ترتب فيها قطعًا متساقطة؟",
+    "acceptedAnswers": [
+      "Tetris",
+      "تتريس",
+      "تيتريس",
+      "تترس"
+    ]
+  },
+  {
+    "id": "games-pacman",
+    "categoryId": "games",
+    "question": "ما الشخصية الصفراء التي تأكل النقاط وتهرب من أشباح؟",
+    "acceptedAnswers": [
+      "Pac-Man",
+      "باك مان",
+      "Pacman",
+      "باكمان"
+    ]
+  },
+  {
+    "id": "games-subway",
+    "categoryId": "games",
+    "question": "ما لعبة الجري على السكة وأنت تهرب من المفتش؟",
+    "acceptedAnswers": [
+      "Subway Surfers",
+      "سابواي سيرفرز",
+      "SubwaySurfers",
+      "Subway Surfer",
+      "Subway",
+      "سبواي سيرفرز",
+      "سبواي",
+      "صبواي سيرفرز",
+      "صبواي",
+      "ساب واي سيرفرز",
+      "سابوي سيرفرز",
+      "سبواي سيرفر",
+      "سابواي سيرفر"
+    ]
+  },
+  {
+    "id": "games-sims",
+    "categoryId": "games",
+    "question": "ما اللعبة التي تبني فيها بيتًا وتدير حياة شخصيات يومية؟",
+    "acceptedAnswers": [
+      "The Sims",
+      "ذا سيمز",
+      "TheSims",
+      "Sims",
+      "ذا سيمس",
+      "سيمز",
+      "سيمس",
+      "The Sims 4",
+      "The Sims 3",
+      "TS",
+      "Sims 4"
+    ]
+  },
+  {
+    "id": "games-valorant-spike",
+    "categoryId": "games",
+    "question": "ما اسم القنبلة التي يزرعها المهاجمون في Valorant؟",
+    "acceptedAnswers": [
+      "Spike",
+      "السبايك",
+      "Valorant Spike",
+      "فالورانت سبايك",
+      "سبايك فالورانت",
+      "Spike Valorant"
+    ]
+  },
+  {
+    "id": "games-dark-souls",
+    "categoryId": "games",
+    "question": "ما سلسلة الرولبلينغ الصعبة من FromSoftware قبل Elden Ring؟",
+    "acceptedAnswers": [
+      "Dark Souls",
+      "دارك سولز",
+      "DarkSouls",
+      "DS",
+      "Dark Souls 1",
+      "Dark Souls I",
+      "دارك سولس",
+      "دارك سول",
+      "دارك سولز 1",
+      "دارك سولز 2",
+      "دارك سولز 3",
+      "Dark Souls II",
+      "Dark Souls III"
+    ]
+  },
+  {
+    "id": "games-clash-royale",
+    "categoryId": "games",
+    "question": "ما لعبة البطاقات من سوبرسال على ساحة ببرجين؟",
+    "acceptedAnswers": [
+      "Clash Royale",
+      "كلاش رويال",
+      "ClashRoyale",
+      "CR",
+      "كلاش روييل",
+      "Clash Royale Game"
+    ]
+  },
+  {
+    "id": "games-candy-crush",
+    "categoryId": "games",
+    "question": "ما لعبة الألغاز التي تطابق فيها الحلوى الملونة؟",
+    "acceptedAnswers": [
+      "Candy Crush",
+      "كاندي كراش",
+      "CandyCrush",
+      "Candy Crush Saga",
+      "CandyCrushSaga",
+      "CC",
+      "كاندي كرش",
+      "كاندي كراش ساغا",
+      "كاندي كرش ساغا",
+      "كاندي كراش صاغا",
+      "كاندي كرش صاغا"
+    ]
+  },
+  {
+    "id": "games-dota",
+    "categoryId": "games",
+    "question": "ما اسم اللعبة التي تدور أحداثها في مدينة Night City؟",
+    "acceptedAnswers": [
+      "Cyberpunk 2077",
+      "Cyberpunk",
+      "سايبر بانك",
+      "سايبر بانك 2077",
+      "Cyberpunk2077",
+      "CP2077",
+      "CP 2077",
+      "CP77",
+      "Cyberpunk 77",
+      "سايبر بانك ٧٧",
+      "سايبر بنك",
+      "سايبر بنك 2077"
+    ]
+  }
 ]

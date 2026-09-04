@@ -51,6 +51,27 @@ enum RoomCloseReason {
   STARTUP_RECONCILIATION
 }
 
+enum AnswerAttemptStatus {
+  CORRECT_COUNTED
+  CORRECT_NOT_COUNTED
+  WRONG_COUNTED
+  WRONG_NOT_COUNTED
+  REJECTED
+  LATE
+  OUT_OF_TURN
+  DUPLICATE
+}
+
+enum AnswerRejectReason {
+  VALIDATION
+  NOT_PARTICIPANT
+  INVALID_ROLE
+  RECOVERY
+  EMPTY
+  OVERSIZED
+  GAME_NOT_READY
+}
+
 // ---------------------------------------------------------------------------
 // Models
 // ---------------------------------------------------------------------------
@@ -95,10 +116,11 @@ model RoomHistory {
   closeReason         RoomCloseReason?
   updatedAt           DateTime         @updatedAt
 
-  liveRoom       Room?                      @relation("LiveRoomHistory")
-  participations RoomParticipationHistory[]
-  hostChanges    RoomHostHistory[]
-  matches        Match[]
+  liveRoom        Room?                      @relation("LiveRoomHistory")
+  participations  RoomParticipationHistory[]
+  hostChanges     RoomHostHistory[]
+  matches         Match[]
+  answerAttempts  AnswerAttempt[]
 
   @@index([createdAt])
   @@index([closedAt])
@@ -261,9 +283,10 @@ model Match {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
-  room         Room?              @relation(fields: [roomId], references: [id], onDelete: SetNull)
-  roomHistory  RoomHistory?       @relation(fields: [roomHistoryId], references: [id], onDelete: Restrict)
-  participants MatchParticipant[]
+  room           Room?              @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  roomHistory    RoomHistory?       @relation(fields: [roomHistoryId], references: [id], onDelete: Restrict)
+  participants   MatchParticipant[]
+  answerAttempts AnswerAttempt[]
 
   @@index([roomId])
   @@index([roomHistoryId])
@@ -292,6 +315,40 @@ model MatchParticipant {
   @@index([matchId])
   @@index([userId])
   @@index([playerId])
+}
+
+// Support/debug log of authoritative answer attempts. Purged after 30 days.
+// Does not keep live Room/Player FKs because those rows disappear with the room.
+model AnswerAttempt {
+  id                String              @id @default(cuid())
+  roomHistoryId     String
+  matchId           String
+  gameId            String
+  submittedAt       DateTime            @default(now())
+  livePlayerId      String?
+  playerDisplayName String
+  rawAnswer         String              @db.VarChar(200)
+  normalizedAnswer  String?             @db.VarChar(200)
+  status            AnswerAttemptStatus
+  rejectReason      AnswerRejectReason?
+  wasCorrect        Boolean?
+  wasCounted        Boolean
+  pointsAwarded     Int                 @default(0)
+  roundIndex        Int?
+  roundId           String?
+  turnId            String?
+  promptId          String?
+  promptText        String              @db.VarChar(200)
+  teamId            String?
+
+  roomHistory RoomHistory @relation(fields: [roomHistoryId], references: [id], onDelete: Cascade)
+  match       Match       @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([matchId, submittedAt])
+  @@index([roomHistoryId, submittedAt])
+  @@index([submittedAt])
+  @@index([gameId, submittedAt])
+  @@index([matchId, status, submittedAt])
 }
 
 model RoomMessage {

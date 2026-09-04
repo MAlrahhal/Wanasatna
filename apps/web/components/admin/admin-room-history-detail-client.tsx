@@ -433,6 +433,9 @@ export function AdminRoomHistoryDetailClient() {
                         ? `الفائز: ${match.winnerDisplayNames.join('، ')}`
                         : 'لا تتوفر خلاصة نتيجة'}
                     </p>
+                    <p className="text-wanas-text-muted mt-1 text-xs tabular-nums">
+                      {ADMIN_COPY.answerLogCount}: {match.answerAttemptCount}
+                    </p>
                   </div>
                   <Link
                     href={adminHistoryPath(match.id)}

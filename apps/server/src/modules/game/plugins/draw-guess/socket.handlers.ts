@@ -17,6 +17,11 @@ import {
   isActiveMatchParticipant,
 } from '@wanasatna/shared';
 import { isOversizedGameAnswer } from '../../runtime/game-answer-text.js';
+import {
+  AnswerAttemptStatus,
+  AnswerRejectReason,
+  recordAnswerAttempt,
+} from '../../runtime/answer-attempt-log.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
 import {
@@ -37,7 +42,8 @@ import { continueFromRoundResults, endDrawingRound } from './match-lifecycle.js'
 import { clearDrawGuessPhaseTimerRuntime } from './phase-timer.js';
 import { buildDrawGuessPlayerView, buildDrawGuessSpectatorView, withRound } from './state.js';
 import { deleteDrawGuessState, getDrawGuessState, setDrawGuessState } from './store.js';
-import { getDrawGuessAliases, isCorrectGuess } from './words.js';
+import { getDrawGuessAliases, getDrawGuessWordId, isCorrectGuess, normalizeGuessText } from './words.js';
+import { DRAW_GUESS_CORRECT_GUESS_POINTS } from './scoring.js';
 import {
   DRAW_GUESS_BOARD_LIMITS,
   processStrokeCommand,
@@ -189,6 +195,35 @@ function assertActiveDrawerTurn(
   }
 
   return null;
+}
+
+async function logDrawGuessAttempt(
+  roomId: string,
+  playerId: string,
+  match: NonNullable<ReturnType<typeof getDrawGuessState>>,
+  rawAnswer: string,
+  fields: {
+    status: AnswerAttemptStatus;
+    rejectReason?: AnswerRejectReason | null;
+    wasCorrect: boolean | null;
+    wasCounted: boolean;
+    pointsAwarded?: number;
+  },
+): Promise<void> {
+  await recordAnswerAttempt({
+    roomId,
+    gameId: DRAW_GUESS_GAME_ID,
+    playerId,
+    playerDisplayName: match.playerNames[playerId] ?? 'لاعب',
+    rawAnswer,
+    normalizedAnswer: rawAnswer.trim() ? normalizeGuessText(rawAnswer) || null : null,
+    roundIndex: match.currentRound,
+    roundId: null,
+    turnId: match.round.turnId,
+    promptId: getDrawGuessWordId(match.round.word),
+    promptText: match.round.word,
+    ...fields,
+  });
 }
 
 export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): void {
@@ -517,74 +552,130 @@ export function registerDrawGuessSocketHandlers(io: Server, socket: Socket): voi
 
     const { playerId, roomId } = socket.data;
 
-    if (recoveryBlockedResponse(roomId!, callback)) {
-      return;
-    }
-
-    try {
-      const shell = getGameShellByRoomId(roomId!);
-      const match = getDrawGuessState(roomId!);
-
-      if (!shell || shell.gameId !== DRAW_GUESS_GAME_ID || shell.phase !== 'PLAYING' || !match) {
-        sendGameResponse(callback, gameNotReadyError());
+      if (isPlayerRecoveryActive(roomId!)) {
+        const blockedMatch = getDrawGuessState(roomId!);
+        if (blockedMatch) {
+          await logDrawGuessAttempt(roomId!, playerId!, blockedMatch, '', {
+            status: AnswerAttemptStatus.REJECTED,
+            rejectReason: AnswerRejectReason.RECOVERY,
+            wasCorrect: null,
+            wasCounted: false,
+          });
+        }
+        sendGameResponse(callback, playerRecoveryBlockedError());
         return;
       }
 
-      if (!match.playerIds.includes(playerId!)) {
-        sendGameResponse(callback, notParticipantError());
-        return;
-      }
+      try {
+        const shell = getGameShellByRoomId(roomId!);
+        const match = getDrawGuessState(roomId!);
 
-      if (match.round.gamePhase !== 'drawing') {
-        sendGameResponse(callback, gameNotReadyError());
-        return;
-      }
+        if (!shell || shell.gameId !== DRAW_GUESS_GAME_ID || shell.phase !== 'PLAYING' || !match) {
+          sendGameResponse(callback, gameNotReadyError());
+          return;
+        }
 
-      if (match.round.drawerPlayerId === playerId) {
-        sendGameResponse(callback, invalidActionError('الرسام لا يمكنه التخمين.'));
-        return;
-      }
+        if (!match.playerIds.includes(playerId!)) {
+          await logDrawGuessAttempt(roomId!, playerId!, match, '', {
+            status: AnswerAttemptStatus.REJECTED,
+            rejectReason: AnswerRejectReason.NOT_PARTICIPANT,
+            wasCorrect: null,
+            wasCounted: false,
+          });
+          sendGameResponse(callback, notParticipantError());
+          return;
+        }
 
-      const guess =
-        payload && typeof payload === 'object'
-          ? (payload as DrawGuessSubmitGuessPayload).guess
-          : undefined;
+        const guess =
+          payload && typeof payload === 'object'
+            ? (payload as DrawGuessSubmitGuessPayload).guess
+            : undefined;
+        const rawGuess = typeof guess === 'string' ? guess : '';
 
-      if (typeof guess !== 'string' || guess.trim().length === 0) {
-        sendGameResponse(callback, invalidActionError('التخمين غير صالح.'));
-        return;
-      }
+        if (match.round.gamePhase !== 'drawing') {
+          const isCorrect =
+            rawGuess.trim().length > 0 &&
+            !isOversizedGameAnswer(rawGuess) &&
+            isCorrectGuess(rawGuess, match.round.word, getDrawGuessAliases(match.round.word));
+          await logDrawGuessAttempt(roomId!, playerId!, match, rawGuess, {
+            status: isCorrect ? AnswerAttemptStatus.CORRECT_NOT_COUNTED : AnswerAttemptStatus.LATE,
+            wasCorrect: isCorrect ? true : rawGuess.trim() ? false : null,
+            wasCounted: false,
+          });
+          sendGameResponse(callback, gameNotReadyError());
+          return;
+        }
 
-      if (isOversizedGameAnswer(guess)) {
-        sendGameResponse(callback, invalidActionError('التخمين طويل جداً.'));
-        return;
-      }
+        if (match.round.drawerPlayerId === playerId) {
+          await logDrawGuessAttempt(roomId!, playerId!, match, rawGuess, {
+            status: AnswerAttemptStatus.REJECTED,
+            rejectReason: AnswerRejectReason.INVALID_ROLE,
+            wasCorrect: null,
+            wasCounted: false,
+          });
+          sendGameResponse(callback, invalidActionError('الرسام لا يمكنه التخمين.'));
+          return;
+        }
 
-      if (!isCorrectGuess(guess, match.round.word, getDrawGuessAliases(match.round.word))) {
+        if (typeof guess !== 'string' || guess.trim().length === 0) {
+          await logDrawGuessAttempt(roomId!, playerId!, match, rawGuess, {
+            status: AnswerAttemptStatus.REJECTED,
+            rejectReason: AnswerRejectReason.EMPTY,
+            wasCorrect: null,
+            wasCounted: false,
+          });
+          sendGameResponse(callback, invalidActionError('التخمين غير صالح.'));
+          return;
+        }
+
+        if (isOversizedGameAnswer(guess)) {
+          await logDrawGuessAttempt(roomId!, playerId!, match, guess, {
+            status: AnswerAttemptStatus.REJECTED,
+            rejectReason: AnswerRejectReason.OVERSIZED,
+            wasCorrect: null,
+            wasCounted: false,
+          });
+          sendGameResponse(callback, invalidActionError('التخمين طويل جداً.'));
+          return;
+        }
+
+        if (!isCorrectGuess(guess, match.round.word, getDrawGuessAliases(match.round.word))) {
+          await logDrawGuessAttempt(roomId!, playerId!, match, guess, {
+            status: AnswerAttemptStatus.WRONG_NOT_COUNTED,
+            wasCorrect: false,
+            wasCounted: false,
+          });
+          sendGameResponse(callback, {
+            success: true,
+            data: {
+              correct: false,
+              feedback: 'إجابة خاطئة',
+              view: buildDrawGuessPlayerView(match, playerId!, shell),
+            },
+          });
+          return;
+        }
+
+        const nextMatch = endDrawingRound(io, roomId!, match, {
+          guessedCorrectly: true,
+          correctGuesserPlayerId: playerId!,
+        });
+
+        await logDrawGuessAttempt(roomId!, playerId!, nextMatch, guess, {
+          status: AnswerAttemptStatus.CORRECT_COUNTED,
+          wasCorrect: true,
+          wasCounted: true,
+          pointsAwarded: DRAW_GUESS_CORRECT_GUESS_POINTS,
+        });
+
         sendGameResponse(callback, {
           success: true,
           data: {
-            correct: false,
-            feedback: 'إجابة خاطئة',
-            view: buildDrawGuessPlayerView(match, playerId!, shell),
+            correct: true,
+            view: buildDrawGuessPlayerView(nextMatch, playerId!, shell),
           },
         });
-        return;
-      }
-
-      const nextMatch = endDrawingRound(io, roomId!, match, {
-        guessedCorrectly: true,
-        correctGuesserPlayerId: playerId!,
-      });
-
-      sendGameResponse(callback, {
-        success: true,
-        data: {
-          correct: true,
-          view: buildDrawGuessPlayerView(nextMatch, playerId!, shell),
-        },
-      });
-    } catch {
+      } catch {
       sendGameResponse(callback, {
         success: false,
         error: {

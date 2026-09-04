@@ -447,6 +447,11 @@ void (async () => {
     assert.match(read('plugins/timing-challenge/use-timing-start-sound.ts'), /if \(!prev\)/);
     assert.match(read('plugins/timing-challenge/use-timing-start-sound.ts'), /useLayoutEffect/);
     assert.match(read('plugins/timing-challenge/timing-window-sfx.ts'), /timeup:timing:/);
+    assert.match(read('plugins/timing-challenge/stop-timer-screen.tsx'), /playGameSound\('go'/);
+    assert.match(
+      read('plugins/timing-challenge/stop-timer-screen.tsx'),
+      /timingStartEventKey\(roundId, 'stop-timer'\)/,
+    );
     assert.doesNotMatch(read('plugins/guessing-challenge/playing-screen.tsx'), /playGameSound/);
     assert.doesNotMatch(read('plugins/bara-al-salafa/countdown-screen.tsx'), /playGameSound/);
     const panel = read('plugins/guessing-challenge/special-cards-panel.tsx');

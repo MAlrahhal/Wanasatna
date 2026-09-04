@@ -276,6 +276,17 @@ void (async () => {
     assert.match(layout, /<GameAudioSession/);
   });
 
+  await test('unlock enables same-tick go playback for a start-button gesture', async () => {
+    setup();
+    audio.unlockGameAudio();
+    const before = playCount();
+    audio.playGameSound('go', { eventKey: 'go:round-a:stop' });
+    assert.ok(playCount() > before);
+    const after = playCount();
+    audio.playGameSound('go', { eventKey: 'go:round-a:stop' });
+    assert.equal(playCount(), after);
+  });
+
   await test('existing Timing and GC audio call sites are preserved', () => {
     const timing = read('plugins/timing-challenge/use-timing-start-sound.ts');
     const ready = read('plugins/timing-challenge/ready-screen.tsx');
@@ -287,6 +298,9 @@ void (async () => {
     assert.match(timing, /if \(!prev\)/);
     assert.match(timing, /useLayoutEffect/);
     assert.match(ready, /unlockGameAudio\(\)/);
+    assert.match(stop, /playLocalTimerStartCue/);
+    assert.match(stop, /playGameSound\('go'/);
+    assert.match(stop, /timingStartEventKey\(roundId, 'stop-timer'\)/);
     assert.match(stop, /unlockGameAudio\(\)/);
     assert.match(panel, /playSoftCardRequestPing\(/);
     assert.match(panel, /lastPingKey/);

@@ -52,3 +52,8 @@ export function getDrawGuessAliases(secretWord: string): string[] {
   const word = content?.bundle.words.find((entry) => entry.text === secretWord);
   return word?.aliases ?? [];
 }
+
+export function getDrawGuessWordId(secretWord: string): string | null {
+  const content = getLoadedGameContent(DRAW_GUESS_GAME_ID);
+  return content?.bundle.words.find((entry) => entry.text === secretWord)?.id ?? null;
+}

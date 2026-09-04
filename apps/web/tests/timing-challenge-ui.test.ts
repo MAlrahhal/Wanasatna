@@ -9,6 +9,7 @@ import {
   shouldPlayTimingEndSound,
   shouldPlayTimingStartSound,
   timingEndEventKey,
+  timingStartEventKey,
   type TimingWindowSfxSnapshot,
 } from '../plugins/timing-challenge/timing-window-sfx';
 
@@ -153,6 +154,29 @@ test('end eventKey is stable per round so stop + phase-leave cannot double-play'
   assert.notEqual(timingEndEventKey('round-a'), timingEndEventKey('round-b'));
 });
 
+test('local start-button cue shares eventKey with the view-transition start cue', () => {
+  assert.equal(timingStartEventKey('round-a', 'stop-timer'), 'go:round-a:stop');
+  assert.equal(
+    timingStartEventKey('round-a', 'stop-timer'),
+    timingStartEventKey('round-a', 'stop-timer'),
+  );
+});
+
+test('stop-timer screen plays go on the local start gesture before onStart', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const src = readFileSync(
+    join(__dirname, '..', 'plugins', 'timing-challenge', 'stop-timer-screen.tsx'),
+    'utf8',
+  );
+  assert.match(src, /function playLocalTimerStartCue/);
+  assert.match(src, /playGameSound\('go'/);
+  assert.match(src, /timingStartEventKey\(roundId, 'stop-timer'\)/);
+  assert.match(src, /playLocalTimerStartCue\(roundId\);\s*\n\s*onStart\(\)/);
+  assert.match(src, /playLocalTimerStartCue\(current\.roundId\);\s*\n\s*current\.onStart\(\)/);
+  assert.doesNotMatch(src, /await playGameSound|await playLocalTimerStartCue/);
+});
+
 test('global doodle pattern CSS var opacity restored above invisible threshold', async () => {
   const { readFileSync } = await import('node:fs');
   const { join } = await import('node:path');
@@ -169,10 +193,12 @@ test('root layout mounts global background layer', async () => {
   assert.match(layout, /wanas-site-bg-pattern/);
 });
 
-test('original go SFX exists and temp timer-start WAV is gone', async () => {
-  const { existsSync } = await import('node:fs');
+test('original go SFX exists, is non-empty, and temp timer-start WAV is gone', async () => {
+  const { existsSync, statSync } = await import('node:fs');
   const { join } = await import('node:path');
-  assert.equal(existsSync(join(__dirname, '..', 'public', 'audio', 'sfx', 'go.wav')), true);
+  const goPath = join(__dirname, '..', 'public', 'audio', 'sfx', 'go.wav');
+  assert.equal(existsSync(goPath), true);
+  assert.ok(statSync(goPath).size > 1000);
   assert.equal(existsSync(join(__dirname, '..', 'public', 'sounds', 'timer-start.wav')), false);
 });
 

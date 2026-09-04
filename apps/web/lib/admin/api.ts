@@ -1,6 +1,8 @@
 import type {
   AdminActionResponse,
   AdminAnalyticsData,
+  AdminAnswerAttempt,
+  AdminAnswerAttemptData,
   AdminAuditData,
   AdminAuditEntry,
   AdminDashboardData,
@@ -32,7 +34,7 @@ import type {
   AuthActionResponse,
   PublicUser,
 } from '@wanasatna/shared';
-import { ADMIN_AUDIT_ACTIONS } from '@wanasatna/shared';
+import { ADMIN_AUDIT_ACTIONS, ANSWER_ATTEMPT_STATUSES } from '@wanasatna/shared';
 import { getServerUrl } from '@/lib/config/server-url';
 
 export type AdminMeResult = { ok: true; user: PublicUser } | { ok: false; status: number };
@@ -543,6 +545,9 @@ function pickSafeMatchDetails(value: unknown): AdminMatchDetails | null {
     participants: record.participants
       .map(pickSafeHistoryParticipant)
       .filter((row): row is AdminHistoryParticipant => row !== null),
+    answerAttemptCount:
+      typeof record.answerAttemptCount === 'number' ? record.answerAttemptCount : 0,
+    roomHistoryId: typeof record.roomHistoryId === 'string' ? record.roomHistoryId : null,
   };
 }
 
@@ -676,6 +681,118 @@ export async function fetchAdminMatch(matchId: string): Promise<AdminMatchResult
   }
 }
 
+function pickSafeAnswerAttempt(value: unknown): AdminAnswerAttempt | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const record = value as Record<string, unknown>;
+  const statusOk =
+    typeof record.status === 'string' &&
+    ANSWER_ATTEMPT_STATUSES.includes(record.status as (typeof ANSWER_ATTEMPT_STATUSES)[number]);
+  if (
+    typeof record.id !== 'string' ||
+    typeof record.submittedAt !== 'string' ||
+    typeof record.gameId !== 'string' ||
+    typeof record.playerDisplayName !== 'string' ||
+    typeof record.rawAnswer !== 'string' ||
+    (record.normalizedAnswer !== null && typeof record.normalizedAnswer !== 'string') ||
+    !statusOk ||
+    (record.rejectReason !== null && typeof record.rejectReason !== 'string') ||
+    (record.wasCorrect !== null && typeof record.wasCorrect !== 'boolean') ||
+    typeof record.wasCounted !== 'boolean' ||
+    typeof record.pointsAwarded !== 'number' ||
+    (record.roundIndex !== null && typeof record.roundIndex !== 'number') ||
+    (record.roundId !== null && typeof record.roundId !== 'string') ||
+    (record.turnId !== null && typeof record.turnId !== 'string') ||
+    (record.promptId !== null && typeof record.promptId !== 'string') ||
+    typeof record.promptText !== 'string' ||
+    (record.teamId !== null && typeof record.teamId !== 'string')
+  ) {
+    return null;
+  }
+  return {
+    id: record.id,
+    submittedAt: record.submittedAt,
+    gameId: record.gameId,
+    playerDisplayName: record.playerDisplayName,
+    rawAnswer: record.rawAnswer,
+    normalizedAnswer: asNullableString(record.normalizedAnswer),
+    status: record.status as AdminAnswerAttempt['status'],
+    rejectReason: record.rejectReason as AdminAnswerAttempt['rejectReason'],
+    wasCorrect: asNullableBoolean(record.wasCorrect),
+    wasCounted: record.wasCounted,
+    pointsAwarded: record.pointsAwarded,
+    roundIndex: asNullableNumber(record.roundIndex),
+    roundId: asNullableString(record.roundId),
+    turnId: asNullableString(record.turnId),
+    promptId: asNullableString(record.promptId),
+    promptText: record.promptText,
+    teamId: asNullableString(record.teamId),
+  };
+}
+
+export type AdminAnswerAttemptQuery = {
+  page?: number;
+  status?: string;
+  roundIndex?: number;
+};
+
+export type AdminAnswerAttemptResult =
+  { ok: true; data: AdminAnswerAttemptData } | { ok: false; status: number };
+
+export async function fetchAdminMatchAnswers(
+  matchId: string,
+  query: AdminAnswerAttemptQuery = {},
+): Promise<AdminAnswerAttemptResult> {
+  try {
+    const params = new URLSearchParams();
+    if (query.page && query.page > 1) {
+      params.set('page', String(query.page));
+    }
+    if (query.status) {
+      params.set('status', query.status);
+    }
+    if (query.roundIndex && query.roundIndex > 0) {
+      params.set('roundIndex', String(query.roundIndex));
+    }
+    const suffix = params.toString() ? `?${params.toString()}` : '';
+    const response = await fetch(
+      adminUrl(`/history/${encodeURIComponent(matchId)}/answers${suffix}`),
+      { method: 'GET', credentials: 'include' },
+    );
+    const body = (await response.json()) as AdminActionResponse<AdminAnswerAttemptData>;
+    if (
+      !response.ok ||
+      !body.success ||
+      !body.data ||
+      !Array.isArray(body.data.attempts) ||
+      typeof body.data.total !== 'number' ||
+      typeof body.data.page !== 'number' ||
+      typeof body.data.pageSize !== 'number' ||
+      typeof body.data.historyAvailable !== 'boolean'
+    ) {
+      return { ok: false, status: response.status || 500 };
+    }
+    return {
+      ok: true,
+      data: {
+        matchId: body.data.matchId,
+        gameId: body.data.gameId,
+        startedAt: body.data.startedAt,
+        historyAvailable: body.data.historyAvailable,
+        total: body.data.total,
+        page: body.data.page,
+        pageSize: body.data.pageSize,
+        attempts: body.data.attempts
+          .map(pickSafeAnswerAttempt)
+          .filter((row): row is AdminAnswerAttempt => row !== null),
+      },
+    };
+  } catch {
+    return { ok: false, status: 0 };
+  }
+}
+
 const ROOM_CLOSE_REASONS = new Set([
   'ROOM_EMPTY',
   'HOST_ENDED',
@@ -784,6 +901,8 @@ function pickSafeRoomHistoryMatch(value: unknown): AdminRoomHistoryMatch | null 
     winnerDisplayNames: record.winnerDisplayNames.filter(
       (name): name is string => typeof name === 'string',
     ),
+    answerAttemptCount:
+      typeof record.answerAttemptCount === 'number' ? record.answerAttemptCount : 0,
   };
 }
 

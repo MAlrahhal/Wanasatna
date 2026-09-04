@@ -13,6 +13,7 @@ import {
 } from '@wanasatna/shared';
 import { prisma } from '../../lib/prisma.js';
 import { abortPersistedMatch, beginPersistedMatch } from '../match/match-history.service.js';
+import { clearAnswerLogContext } from './runtime/answer-attempt-log.js';
 import { hydrateRoomGameSettings } from '../room/room-game-settings.store.js';
 import { resolveGameEnabledForStart } from './game-availability.service.js';
 import { validateGameStart } from './runtime/validate-game-start.js';
@@ -31,6 +32,7 @@ export function countLiveGameShells(): number {
 
 export function deleteGameShell(roomId: string): void {
   shellsByRoomId.delete(roomId);
+  clearAnswerLogContext(roomId);
 }
 
 /** Test-only: install an in-memory shell without Prisma. */

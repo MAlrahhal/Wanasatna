@@ -259,6 +259,7 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
       <div className="space-y-3">
         {spectatorBanner}
         <StopTimerScreen
+          roundId={view.roundId}
           targetMs={view.targetMs}
           canStartTimer={view.canStartTimer}
           canStopTimer={view.canStopTimer}

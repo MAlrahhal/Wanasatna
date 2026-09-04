@@ -1513,7 +1513,7 @@
 ### animals-12
 - السؤال: ما الحيوان الذي يحمل صغاره في كيس؟
 - الجواب: الكنغر
-- الأجوبة المقبولة: الكنغر، Kangaroo
+- الأجوبة المقبولة: الكنغر، Kangaroo، كنجارو
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### animals-13
@@ -1537,7 +1537,7 @@
 ### animals-16
 - السؤال: ما الحيوان الذي يُعرف بقدرته الكبيرة على تقليد أصوات البشر؟
 - الجواب: الببغاء
-- الأجوبة المقبولة: الببغاء، Parrot
+- الأجوبة المقبولة: الببغاء، Parrot، ببغا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### animals-17
@@ -1564,18 +1564,138 @@
 - الأجوبة المقبولة: الفيل، Elephant
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
+### animals-owl
+- السؤال: ما الطائر الليلي الذي يستطيع إدارة رأسه بزاوية واسعة؟
+- الجواب: البومة
+- الأجوبة المقبولة: البومة، Owl
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-panda
+- السؤال: ما الحيوان الأبيض والأسود الذي يعيش على الخيزران؟
+- الجواب: الباندا
+- الأجوبة المقبولة: الباندا، Panda
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-polar-bear
+- السؤال: ما الدب الذي يعيش في القطب الشمالي؟
+- الجواب: الدب القطبي
+- الأجوبة المقبولة: الدب القطبي، دب قطبي، Polar bear
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-flamingo
+- السؤال: ما الطائر الوردي الذي يقف غالبًا على رجل واحدة؟
+- الجواب: النحام
+- الأجوبة المقبولة: النحام، فلامنغو، Flamingo
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-hedgehog
+- السؤال: ما الحيوان الصغير المغطى بأشواك على ظهره؟
+- الجواب: القنفذ
+- الأجوبة المقبولة: القنفذ، Hedgehog
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-peacock
+- السؤال: ما الطائر الذي يفتح ذيله كمروحة ملونة؟
+- الجواب: الطاووس
+- الأجوبة المقبولة: الطاووس، الطاؤوس، Peacock
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-koala
+- السؤال: ما الحيوان الأسترالي الذي يعيش على أشجار الكينا؟
+- الجواب: الكوالا
+- الأجوبة المقبولة: الكوالا، Koala
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-hippo
+- السؤال: ما الحيوان الأفريقي الضخم الذي يقضي ساعات طويلة في النهر؟
+- الجواب: فرس النهر
+- الأجوبة المقبولة: فرس النهر، Hippo
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-rhino
+- السؤال: ما الحيوان الضخم الذي يحمل قرنًا فوق أنفه؟
+- الجواب: وحيد القرن
+- الأجوبة المقبولة: وحيد القرن، Rhino
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-spider-legs
+- السؤال: كم رجلًا للعنكبوت؟
+- الجواب: 8
+- الأجوبة المقبولة: 8، ثمانية، ثمان
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-cow-stomachs
+- السؤال: كم تجويفًا لمعدة البقرة عادة؟
+- الجواب: 4
+- الأجوبة المقبولة: 4، أربعة، أربع
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-bat
+- السؤال: ما الثديي الوحيد الذي يطير حقيقيًا بأجنحة؟
+- الجواب: الخفاش
+- الأجوبة المقبولة: الخفاش، Bat، وطواط
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-seahorse
+- السؤال: ما الحيوان البحري الذي يشبه الحصان ويحمل الذكر الصغار؟
+- الجواب: حصان البحر
+- الأجوبة المقبولة: حصان البحر، Seahorse
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-hyena
+- السؤال: ما الحيوان المعروف بصوت يشبه الضحك؟
+- الجواب: الضبع
+- الأجوبة المقبولة: الضبع، Hyena
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-orca
+- السؤال: ما الحيوان البحري الملقب بالحوت القاتل؟
+- الجواب: الأوركا
+- الأجوبة المقبولة: الأوركا، الحوت القاتل، Orca
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-firefly
+- السؤال: ما الحشرة التي تضيء في الليل؟
+- الجواب: اليراعة
+- الأجوبة المقبولة: اليراعة، Firefly
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-lioness
+- السؤال: ما اسم أنثى الأسد؟
+- الجواب: اللبوة
+- الأجوبة المقبولة: اللبوة، Lioness
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-wolf
+- السؤال: ما الحيوان المعروف بعوائه مع مجموعته؟
+- الجواب: الذئب
+- الأجوبة المقبولة: الذئب، Wolf، ذيب
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-eagle
+- السؤال: ما الطائر الجارح الأشهر في الصيد عند العرب؟
+- الجواب: الصقر
+- الأجوبة المقبولة: الصقر، Falcon
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### animals-starfish
+- السؤال: ما الحيوان البحري الذي يشبه النجمة؟
+- الجواب: نجم البحر
+- الأجوبة المقبولة: نجم البحر، Starfish
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
 ## أكلات
 
 ### food-1
 - السؤال: ما الأكلة الإيطالية الدائرية المشهورة بالجبن والصلصة؟
 - الجواب: بيتزا
-- الأجوبة المقبولة: بيتزا، Pizza
+- الأجوبة المقبولة: بيتزا، Pizza، بيزا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-2
 - السؤال: ما الأكلة التي تتكون من قطعة لحم داخل خبز دائري مع إضافات مثل الجبن والخس؟
 - الجواب: برغر
-- الأجوبة المقبولة: برغر، برجر، Burger
+- الأجوبة المقبولة: برغر، برجر، Burger، برقر، همبرغر، همبرجر، Hamburger، Hamburgers
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-3
@@ -1605,13 +1725,13 @@
 ### food-7
 - السؤال: ما الحلوى المثلجة التي تُصنع من الحليب أو الكريمة وتأتي بنكهات مختلفة؟
 - الجواب: آيس كريم
-- الأجوبة المقبولة: آيس كريم، مثلجات، بوظة، Ice cream
+- الأجوبة المقبولة: آيس كريم، مثلجات، بوظة، Ice cream، آيسكريم، Icecream
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-8
 - السؤال: ما الحلوى المقلية الدائرية التي غالبًا يكون في وسطها ثقب؟
 - الجواب: دونات
-- الأجوبة المقبولة: دونات، دونت، Donut، Doughnut
+- الأجوبة المقبولة: دونات، دونت، Donut، Doughnut، Donuts، Doughnuts، دوناتس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-9
@@ -1623,31 +1743,31 @@
 ### food-10
 - السؤال: ما الحلوى ذات الشكل المربّع والشبكي التي تُطهى في جهاز خاص وتُقدّم مع الصوصات؟
 - الجواب: وافل
-- الأجوبة المقبولة: وافل، Waffle، Waffles
+- الأجوبة المقبولة: وافل، Waffle، Waffles، وافلز
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-11
 - السؤال: ما الحلوى الصغيرة التي تشبه الكيك وتُخبز عادة في قالب ورقي؟
 - الجواب: كب كيك
-- الأجوبة المقبولة: كب كيك، كوب كيك، Cupcake، Cup cake
+- الأجوبة المقبولة: كب كيك، كوب كيك، Cupcake، Cup cake، Cupcakes، كبكيك
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-12
 - السؤال: ما المعجنات المثلثة المحشوة غالبًا باللحم أو الجبن أو الخضار؟
 - الجواب: سمبوسة
-- الأجوبة المقبولة: سمبوسة، سمبوسك، Samosa
+- الأجوبة المقبولة: سمبوسة، سمبوسك، Samosa، سمبوسا، ساموسا، Samosas
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-13
 - السؤال: ما الحلوى التي تعتمد بشكل أساسي على الجبن وتُقدم ككيكة؟
 - الجواب: تشيز كيك
-- الأجوبة المقبولة: تشيز كيك، Cheesecake، Cheese cake
+- الأجوبة المقبولة: تشيز كيك، Cheesecake، Cheese cake، تشيزكيك، Cheesecakes
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-14
 - السؤال: ما الفاكهة الكبيرة ذات القشرة الخضراء والداخل الأحمر غالبًا؟
 - الجواب: بطيخ
-- الأجوبة المقبولة: بطيخ، حبحب، جح
+- الأجوبة المقبولة: بطيخ، حبحب، جح، بطيخة، Watermelon، بطيخ أحمر
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-15
@@ -1665,7 +1785,97 @@
 ### food-17
 - السؤال: ما الطعام الذي يُصنع من حبوب الذرة عند تسخينها حتى تنفجر؟
 - الجواب: فشار
-- الأجوبة المقبولة: فشار، بوشار، Popcorn
+- الأجوبة المقبولة: فشار، بوشار، Popcorn، بوب كورن، بوبكورن، Pop Corn
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-harees
+- السؤال: ما الأكلة الخليجية التقليدية التي تُحضّر من القمح المهروس واللحم؟
+- الجواب: هريس
+- الأجوبة المقبولة: هريس، Harees
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-dates
+- السؤال: ما الفاكهة التي تُقدم غالبًا مع القهوة العربية؟
+- الجواب: تمر
+- الأجوبة المقبولة: تمر، Dates، تمور، Date
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-arabic-coffee
+- السؤال: ما المشروب الذي يُسكب في فنجان صغير مع الهيل؟
+- الجواب: قهوة عربية
+- الأجوبة المقبولة: قهوة عربية، Coffee، قهوة، Arabic Coffee، قهوة عربي، قهوة سعودية، Saudi Coffee
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-kunafa
+- السؤال: ما الحلوى بالجبن أو القشطة والقطر؟
+- الجواب: كنافة
+- الأجوبة المقبولة: كنافة، Kunafa، Kanafeh، Knafeh
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-baklava
+- السؤال: ما الحلوى الرقائقية المحشوة بالمكسرات والقطر؟
+- الجواب: بقلاوة
+- الأجوبة المقبولة: بقلاوة، Baklava، Baklawa، Baklawah
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-luqaimat
+- السؤال: ما الحلوى الخليجية المقليّة على شكل كرات مع الدبس؟
+- الجواب: لقيمات
+- الأجوبة المقبولة: لقيمات، Luqaimat، لقمة القاضي، Luqmat Al Qadi
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-mansaf
+- السؤال: ما طبق الأرز واللحم باللبن الأشهر في الأردن؟
+- الجواب: منسف
+- الأجوبة المقبولة: منسف، Mansaf، منسف أردني، Jordanian Mansaf
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-koshari
+- السؤال: ما طبق الأرز والعدس والمكرونة الشهير في مصر؟
+- الجواب: كشري
+- الأجوبة المقبولة: كشري، Koshari، Koshary، Kushari، كوشاري، كشري مصري، Egyptian Koshari
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-chocolate
+- السؤال: ما الحلوى التي تُصنع أساسًا من حبوب الكاكاو وتأتي بأشكال وأنواع مختلفة؟
+- الجواب: شوكولاتة
+- الأجوبة المقبولة: شوكولاتة، Chocolate، شوكلا، شوكولات، شوكليت، Chocolat، شوكلاته
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-mango
+- السؤال: ما الفاكهة الاستوائية الصفراء ذات النواة الكبيرة؟
+- الجواب: مانجو
+- الأجوبة المقبولة: مانجو، Mango، مانجا، مانقا، Mangos، Mangoes
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-banana
+- السؤال: ما الفاكهة الصفراء المقوّسة التي تُقشر باليد؟
+- الجواب: موز
+- الأجوبة المقبولة: موز، Banana، Bananas، موزة، بنانا، بنانة
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-apple
+- السؤال: ما الفاكهة البيضاء من الداخل وقشرتها حمراء أو خضراء؟
+- الجواب: تفاح
+- الأجوبة المقبولة: تفاح، Apple، Apples، آبل، تفاحة، تفاحات
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-karak
+- السؤال: ما الشاي المغلي بالحليب والهال المنتشر في الخليج؟
+- الجواب: كرك
+- الأجوبة المقبولة: كرك، شاي كرك، Karak
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-pasta
+- السؤال: ما الطعام الإيطالي المصنوع من القمح على أشكال مختلفة؟
+- الجواب: معكرونة
+- الأجوبة المقبولة: معكرونة، باستا، Pasta، مكرونة، Pastas
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### food-basbousa
+- السؤال: ما الحلوى السميدية المشربة بالقطر والمنتشرة عربيًا؟
+- الجواب: بسبوسة
+- الأجوبة المقبولة: بسبوسة، هريسة، نمورة، Basbousa، Basbousah، Harissa، Namoura، بسبوسا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## بلدان
@@ -1778,446 +1988,10 @@
 - الأجوبة المقبولة: الدوحة، Doha
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
-## مسلسلات
-
-### series-1
-- السؤال: في أي مسلسل يظهر والتر وايت؟
-- الجواب: Breaking Bad
-- الأجوبة المقبولة: Breaking Bad، بريكنق باد، بريكنغ باد
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-3
-- السؤال: في أي مسلسل توجد عائلة Stark؟
-- الجواب: Game of Thrones
-- الأجوبة المقبولة: Game of Thrones، جيم أوف ثرونز
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-4
-- السؤال: ما اسم السجن الشهير في بداية مسلسل Prison Break؟
-- الجواب: Fox River
-- الأجوبة المقبولة: Fox River، فوكس ريفر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-5
-- السؤال: في أي مسلسل يظهر Tommy Shelby؟
-- الجواب: Peaky Blinders
-- الأجوبة المقبولة: Peaky Blinders، بيكي بلايندرز
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-6
-- السؤال: ما اسم المجموعة الخارقة في مسلسل The Boys؟
-- الجواب: The Seven
-- الأجوبة المقبولة: The Seven، السبعة، ذا سفن
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-8
-- السؤال: ما اسم المدينة التي تدور فيها أحداث Stranger Things؟
-- الجواب: Hawkins
-- الأجوبة المقبولة: Hawkins، هوكينز
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-9
-- السؤال: في أي مسلسل يظهر Ragnar Lothbrok؟
-- الجواب: Vikings
-- الأجوبة المقبولة: Vikings، فايكنغز، فايكنجز
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-10
-- السؤال: ما اسم اللعبة القاتلة الشهيرة في مسلسل Squid Game؟
-- الجواب: Red Light, Green Light
-- الأجوبة المقبولة: Red Light, Green Light، الضوء الأحمر والضوء الأخضر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-11
-- السؤال: في أي مسلسل يظهر Rick Grimes؟
-- الجواب: The Walking Dead
-- الأجوبة المقبولة: The Walking Dead، ذا ووكينغ ديد
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-12
-- السؤال: ما اسم الدكتور الذي يعيش مع شيرلوك هولمز في 221B Baker Street؟
-- الجواب: John Watson
-- الأجوبة المقبولة: John Watson، جون واتسون، واتسون، Watson
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-13
-- السؤال: في أي مسلسل تظهر شخصية Geralt of Rivia؟
-- الجواب: The Witcher
-- الأجوبة المقبولة: The Witcher، ذا ويتشر
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-14
-- السؤال: ما اسم عائلة التنين الرئيسية في House of the Dragon؟
-- الجواب: Targaryen
-- الأجوبة المقبولة: Targaryen، تارغاريان، تارجيريان
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-15
-- السؤال: في أي مسلسل يظهر Pablo Escobar كشخصية رئيسية؟
-- الجواب: Narcos
-- الأجوبة المقبولة: Narcos، ناركوس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-16
-- السؤال: ما اسم المحامي الرئيسي في مسلسل Suits؟
-- الجواب: Harvey Specter
-- الأجوبة المقبولة: Harvey Specter، هارفي سبكتر، هارفي
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-17
-- السؤال: ما اسم الشركة التي يعمل فيها جيم وبام ومايكل سكوت في مسلسل The Office؟
-- الجواب: Dunder Mifflin
-- الأجوبة المقبولة: Dunder Mifflin، Dunder Mifflin Paper Company، دندر ميفلين، دندر ميفلن
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-18
-- السؤال: ما اسم الشخصية التي يلعبها Pedro Pascal في The Last of Us؟
-- الجواب: Joel
-- الأجوبة المقبولة: Joel، جويل
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-19
-- السؤال: في أي مسلسل تدور أحداث سرقة دار السك الإسبانية؟
-- الجواب: La Casa de Papel
-- الأجوبة المقبولة: La Casa de Papel، Money Heist، لا كاسا دي بابيل
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### series-20
-- السؤال: ما اسم المسلسل الذي تسقط فيه رحلة Oceanic 815؟
-- الجواب: Lost
-- الأجوبة المقبولة: Lost، لوست
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## ألعاب
-
-### games-1
-- السؤال: في أي لعبة يظهر شخصية Steve؟
-- الجواب: Minecraft
-- الأجوبة المقبولة: Minecraft، ماينكرافت، ماين كرافت
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-2
-- السؤال: ما لعبة الباتل رويال التي تشتهر بخريطة إيرنغل والنزول من طائرة؟
-- الجواب: PUBG
-- الأجوبة المقبولة: PUBG، ببجي، PlayerUnknown's Battlegrounds
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-3
-- السؤال: في أي لعبة توجد مدينة Los Santos؟
-- الجواب: GTA V
-- الأجوبة المقبولة: GTA V، GTA 5، قراند 5، Grand Theft Auto V
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-4
-- السؤال: ما اسم لعبة السيارات التي تلعب فيها كرة قدم بالسيارات؟
-- الجواب: Rocket League
-- الأجوبة المقبولة: Rocket League، روكيت ليق، روكيت ليغ
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-5
-- السؤال: في أي لعبة يظهر العميل Jett؟
-- الجواب: Valorant
-- الأجوبة المقبولة: Valorant، فالورانت
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-6
-- السؤال: ما اسم لعبة التصويب الشهيرة التي تحتوي على خرائط مثل Dust II؟
-- الجواب: Counter-Strike
-- الأجوبة المقبولة: Counter-Strike، كاونتر سترايك، CS، CS2
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-7
-- السؤال: في أي لعبة يظهر البطل Tracer؟
-- الجواب: Overwatch
-- الأجوبة المقبولة: Overwatch، أوفرواتش
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-8
-- السؤال: ما اسم اللعبة التي يكون فيها بعض اللاعبين Impostors؟
-- الجواب: Among Us
-- الأجوبة المقبولة: Among Us، امونغ اس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-9
-- السؤال: في أي لعبة يظهر Joel وEllie؟
-- الجواب: The Last of Us
-- الأجوبة المقبولة: The Last of Us، ذا لاست أوف أس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-10
-- السؤال: ما اسم لعبة العالم المفتوح التي بطلها Arthur Morgan؟
-- الجواب: Red Dead Redemption 2
-- الأجوبة المقبولة: Red Dead Redemption 2، ريد ديد 2، RDR2
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-11
-- السؤال: ما سلسلة ألعاب الرعب الشهيرة التي تحتوي على شخصيات مثل Leon Kennedy؟
-- الجواب: Resident Evil
-- الأجوبة المقبولة: Resident Evil، ريزدنت إيفل، رزدنت ايفل
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-12
-- السؤال: في أي سلسلة ألعاب يظهر Ezio Auditore؟
-- الجواب: Assassin’s Creed
-- الأجوبة المقبولة: Assassin’s Creed، اساسنز كريد
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-13
-- السؤال: ما اسم سلسلة الألعاب التي بطلها Kratos؟
-- الجواب: God of War
-- الأجوبة المقبولة: God of War، قاد أوف وور، جاد أوف وور
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-14
-- السؤال: في أي لعبة يظهر عالم The Lands Between؟
-- الجواب: Elden Ring
-- الأجوبة المقبولة: Elden Ring، إلدن رينغ، الدن رينق
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-15
-- السؤال: ما اسم اللعبة التي تحتوي على شخصيات مثل Iron Man وSpider-Man وDoctor Strange في مواجهات جماعية؟
-- الجواب: Marvel Rivals
-- الأجوبة المقبولة: Marvel Rivals، مارفل رايفلز، مارفل ريفالز
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-17
-- السؤال: ما اسم اللعبة التي يلعب فيها اللاعب بشخصية CJ في مدينة Los Santos؟
-- الجواب: Grand Theft Auto: San Andreas
-- الأجوبة المقبولة: Grand Theft Auto: San Andreas، GTA San Andreas، GTA SA، قراند سان أندرياس، سان أندرياس
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-18
-- السؤال: ما اسم لعبة الباتل رويال الشهيرة من Epic Games؟
-- الجواب: Fortnite
-- الأجوبة المقبولة: Fortnite، فورتنايت
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-20
-- السؤال: ما اسم لعبة Spider-Man الشهيرة من Insomniac؟
-- الجواب: Marvel’s Spider-Man
-- الأجوبة المقبولة: Marvel’s Spider-Man، Spider-Man، سبايدرمان
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## حيوانات
-
-### animals-owl
-- السؤال: ما الطائر الليلي الذي يستطيع إدارة رأسه بزاوية واسعة؟
-- الجواب: البومة
-- الأجوبة المقبولة: البومة، Owl
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-panda
-- السؤال: ما الحيوان الأبيض والأسود الذي يعيش على الخيزران؟
-- الجواب: الباندا
-- الأجوبة المقبولة: الباندا، Panda
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-polar-bear
-- السؤال: ما الدب الذي يعيش في القطب الشمالي؟
-- الجواب: الدب القطبي
-- الأجوبة المقبولة: الدب القطبي، دب قطبي، Polar bear
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-flamingo
-- السؤال: ما الطائر الوردي الذي يقف غالبًا على رجل واحدة؟
-- الجواب: النحام
-- الأجوبة المقبولة: النحام، فلامنغو، Flamingo
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-hedgehog
-- السؤال: ما الحيوان الصغير المغطى بأشواك على ظهره؟
-- الجواب: القنفذ
-- الأجوبة المقبولة: القنفذ، Hedgehog
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-peacock
-- السؤال: ما الطائر الذي يفتح ذيله كمروحة ملونة؟
-- الجواب: الطاووس
-- الأجوبة المقبولة: الطاووس، الطاؤوس، Peacock
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-koala
-- السؤال: ما الحيوان الأسترالي الذي يعيش على أشجار الكينا؟
-- الجواب: الكوالا
-- الأجوبة المقبولة: الكوالا، Koala
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-hippo
-- السؤال: ما الحيوان الأفريقي الضخم الذي يقضي ساعات طويلة في النهر؟
-- الجواب: فرس النهر
-- الأجوبة المقبولة: فرس النهر، Hippo
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-rhino
-- السؤال: ما الحيوان الضخم الذي يحمل قرنًا فوق أنفه؟
-- الجواب: وحيد القرن
-- الأجوبة المقبولة: وحيد القرن، Rhino
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-spider-legs
-- السؤال: كم رجلًا للعنكبوت؟
-- الجواب: 8
-- الأجوبة المقبولة: 8، ثمانية، ثمان
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-cow-stomachs
-- السؤال: كم تجويفًا لمعدة البقرة عادة؟
-- الجواب: 4
-- الأجوبة المقبولة: 4، أربعة، أربع
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-bat
-- السؤال: ما الثديي الوحيد الذي يطير حقيقيًا بأجنحة؟
-- الجواب: الخفاش
-- الأجوبة المقبولة: الخفاش، Bat
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-seahorse
-- السؤال: ما الحيوان البحري الذي يشبه الحصان ويحمل الذكر الصغار؟
-- الجواب: حصان البحر
-- الأجوبة المقبولة: حصان البحر، Seahorse
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-hyena
-- السؤال: ما الحيوان المعروف بصوت يشبه الضحك؟
-- الجواب: الضبع
-- الأجوبة المقبولة: الضبع، Hyena
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-orca
-- السؤال: ما الحيوان البحري الملقب بالحوت القاتل؟
-- الجواب: الأوركا
-- الأجوبة المقبولة: الأوركا، الحوت القاتل، Orca
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-firefly
-- السؤال: ما الحشرة التي تضيء في الليل؟
-- الجواب: اليراعة
-- الأجوبة المقبولة: اليراعة، Firefly
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-lioness
-- السؤال: ما اسم أنثى الأسد؟
-- الجواب: اللبوة
-- الأجوبة المقبولة: اللبوة، Lioness
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-wolf
-- السؤال: ما الحيوان المعروف بعوائه مع مجموعته؟
-- الجواب: الذئب
-- الأجوبة المقبولة: الذئب، Wolf
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-eagle
-- السؤال: ما الطائر الجارح الأشهر في الصيد عند العرب؟
-- الجواب: الصقر
-- الأجوبة المقبولة: الصقر، Falcon
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### animals-starfish
-- السؤال: ما الحيوان البحري الذي يشبه النجمة؟
-- الجواب: نجم البحر
-- الأجوبة المقبولة: نجم البحر، Starfish
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## أكلات
-
-### food-harees
-- السؤال: ما الأكلة الخليجية التقليدية التي تُحضّر من القمح المهروس واللحم؟
-- الجواب: هريس
-- الأجوبة المقبولة: هريس، Harees
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-dates
-- السؤال: ما الفاكهة التي تُقدم غالبًا مع القهوة العربية؟
-- الجواب: تمر
-- الأجوبة المقبولة: تمر، Dates
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-arabic-coffee
-- السؤال: ما المشروب الذي يُسكب في فنجان صغير مع الهيل؟
-- الجواب: قهوة عربية
-- الأجوبة المقبولة: قهوة عربية، Coffee
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-kunafa
-- السؤال: ما الحلوى بالجبن أو القشطة والقطر؟
-- الجواب: كنافة
-- الأجوبة المقبولة: كنافة، Kunafa
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-baklava
-- السؤال: ما الحلوى الرقائقية المحشوة بالمكسرات والقطر؟
-- الجواب: بقلاوة
-- الأجوبة المقبولة: بقلاوة، Baklava
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-luqaimat
-- السؤال: ما الحلوى الخليجية المقليّة على شكل كرات مع الدبس؟
-- الجواب: لقيمات
-- الأجوبة المقبولة: لقيمات، Luqaimat
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-mansaf
-- السؤال: ما طبق الأرز واللحم باللبن الأشهر في الأردن؟
-- الجواب: منسف
-- الأجوبة المقبولة: منسف، Mansaf
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-koshari
-- السؤال: ما طبق الأرز والعدس والمكرونة الشهير في مصر؟
-- الجواب: كشري
-- الأجوبة المقبولة: كشري، Koshari
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-chocolate
-- السؤال: ما الحلوى التي تُصنع أساسًا من حبوب الكاكاو وتأتي بأشكال وأنواع مختلفة؟
-- الجواب: شوكولاتة
-- الأجوبة المقبولة: شوكولاتة، Chocolate
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-mango
-- السؤال: ما الفاكهة الاستوائية الصفراء ذات النواة الكبيرة؟
-- الجواب: مانجو
-- الأجوبة المقبولة: مانجو، Mango
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-banana
-- السؤال: ما الفاكهة الصفراء المقوّسة التي تُقشر باليد؟
-- الجواب: موز
-- الأجوبة المقبولة: موز، Banana
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-apple
-- السؤال: ما الفاكهة البيضاء من الداخل وقشرتها حمراء أو خضراء؟
-- الجواب: تفاح
-- الأجوبة المقبولة: تفاح، Apple
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-karak
-- السؤال: ما الشاي المغلي بالحليب والهال المنتشر في الخليج؟
-- الجواب: كرك
-- الأجوبة المقبولة: كرك، شاي كرك، Karak
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-pasta
-- السؤال: ما الطعام الإيطالي المصنوع من القمح على أشكال مختلفة؟
-- الجواب: معكرونة
-- الأجوبة المقبولة: معكرونة، باستا، Pasta
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### food-basbousa
-- السؤال: ما الحلوى السميدية المشربة بالقطر والمنتشرة عربيًا؟
-- الجواب: بسبوسة
-- الأجوبة المقبولة: بسبوسة، هريسة، نمورة، Basbousa
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-## بلدان
-
 ### countries-new-zealand
 - السؤال: ما الدولة التي عاصمتها ويلينغتون؟
 - الجواب: نيوزيلندا
-- الأجوبة المقبولة: نيوزيلندا، نيوزيلاند، New Zealand
+- الأجوبة المقبولة: نيوزيلندا، نيوزيلاند، New Zealand، نيوزلندا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### countries-china-wall
@@ -2259,7 +2033,7 @@
 ### countries-singapore
 - السؤال: ما الدولة المدينة المعروفة بتمثال ميرليون؟
 - الجواب: سنغافورة
-- الأجوبة المقبولة: سنغافورة، Singapore
+- الأجوبة المقبولة: سنغافورة، Singapore، سينغافوره
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### countries-south-africa
@@ -2384,6 +2158,114 @@
 
 ## مسلسلات
 
+### series-1
+- السؤال: في أي مسلسل يظهر والتر وايت؟
+- الجواب: Breaking Bad
+- الأجوبة المقبولة: Breaking Bad، بريكنق باد، بريكنغ باد
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-3
+- السؤال: في أي مسلسل توجد عائلة Stark؟
+- الجواب: Game of Thrones
+- الأجوبة المقبولة: Game of Thrones، جيم أوف ثرونز، غيم اوف ثرونز
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-4
+- السؤال: ما اسم السجن الشهير في بداية مسلسل Prison Break؟
+- الجواب: Fox River
+- الأجوبة المقبولة: Fox River، فوكس ريفر، فوكس رفر
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-5
+- السؤال: في أي مسلسل يظهر Tommy Shelby؟
+- الجواب: Peaky Blinders
+- الأجوبة المقبولة: Peaky Blinders، بيكي بلايندرز
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-6
+- السؤال: ما اسم المجموعة الخارقة في مسلسل The Boys؟
+- الجواب: The Seven
+- الأجوبة المقبولة: The Seven، السبعة، ذا سفن
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-8
+- السؤال: ما اسم المدينة التي تدور فيها أحداث Stranger Things؟
+- الجواب: Hawkins
+- الأجوبة المقبولة: Hawkins، هوكينز
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-9
+- السؤال: في أي مسلسل يظهر Ragnar Lothbrok؟
+- الجواب: Vikings
+- الأجوبة المقبولة: Vikings، فايكنغز، فايكنجز، فايكنقز
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-10
+- السؤال: ما اسم اللعبة القاتلة الشهيرة في مسلسل Squid Game؟
+- الجواب: Red Light, Green Light
+- الأجوبة المقبولة: Red Light, Green Light، الضوء الأحمر والضوء الأخضر، الأحمر والأخضر
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-11
+- السؤال: في أي مسلسل يظهر Rick Grimes؟
+- الجواب: The Walking Dead
+- الأجوبة المقبولة: The Walking Dead، ذا ووكينغ ديد، تود، ذا ووكينج ديد
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-12
+- السؤال: ما اسم الدكتور الذي يعيش مع شيرلوك هولمز في 221B Baker Street؟
+- الجواب: John Watson
+- الأجوبة المقبولة: John Watson، جون واتسون، واتسون، Watson
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-13
+- السؤال: في أي مسلسل تظهر شخصية Geralt of Rivia؟
+- الجواب: The Witcher
+- الأجوبة المقبولة: The Witcher، ذا ويتشر
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-14
+- السؤال: ما اسم عائلة التنين الرئيسية في House of the Dragon؟
+- الجواب: Targaryen
+- الأجوبة المقبولة: Targaryen، تارغاريان، تارجيريان
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-15
+- السؤال: في أي مسلسل يظهر Pablo Escobar كشخصية رئيسية؟
+- الجواب: Narcos
+- الأجوبة المقبولة: Narcos، ناركوس
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-16
+- السؤال: ما اسم المحامي الرئيسي في مسلسل Suits؟
+- الجواب: Harvey Specter
+- الأجوبة المقبولة: Harvey Specter، هارفي سبكتر، هارفي
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-17
+- السؤال: ما اسم الشركة التي يعمل فيها جيم وبام ومايكل سكوت في مسلسل The Office؟
+- الجواب: Dunder Mifflin
+- الأجوبة المقبولة: Dunder Mifflin، Dunder Mifflin Paper Company، دندر ميفلين، دندر ميفلن
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-18
+- السؤال: ما اسم الشخصية التي يلعبها Pedro Pascal في The Last of Us؟
+- الجواب: Joel
+- الأجوبة المقبولة: Joel، جويل، جول
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-19
+- السؤال: في أي مسلسل تدور أحداث سرقة دار السك الإسبانية؟
+- الجواب: La Casa de Papel
+- الأجوبة المقبولة: La Casa de Papel، Money Heist، لا كاسا دي بابيل، لا كاسا دي بابل، لاكاسا دي بابيل
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### series-20
+- السؤال: ما اسم المسلسل الذي تسقط فيه رحلة Oceanic 815؟
+- الجواب: Lost
+- الأجوبة المقبولة: Lost، لوست
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
 ### series-friends
 - السؤال: في أي مسلسل تظهر راشيل ومونيكا وجوي؟
 - الجواب: Friends
@@ -2494,118 +2376,214 @@
 
 ## ألعاب
 
+### games-1
+- السؤال: في أي لعبة يظهر شخصية Steve؟
+- الجواب: Minecraft
+- الأجوبة المقبولة: Minecraft، ماينكرافت، ماين كرافت، Mine craft، ماين كرفات
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-2
+- السؤال: ما لعبة الباتل رويال التي تشتهر بخريطة إيرنغل والنزول من طائرة؟
+- الجواب: PUBG
+- الأجوبة المقبولة: PUBG، ببجي، PlayerUnknown's Battlegrounds
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-3
+- السؤال: في أي لعبة من سلسلة GTA تظهر شخصيات مايكل وفرانكلن وتريفور؟
+- الجواب: GTA V
+- الأجوبة المقبولة: GTA V، GTA 5، Grand Theft Auto، Grand Theft Auto V، Grand Theft Auto 5، GTA، GTA San Andreas، San Andreas، Los Santos، حرامي السيارات، قراند ثفت أوتو، قراند ثيفت أوتو، قراند، جراند ثفت أوتو، جراند ثيفت أوتو، جراند، قراند 5، جراند 5، جي تي اي 5، جي تي اي V
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-4
+- السؤال: ما اسم لعبة السيارات التي تلعب فيها كرة قدم بالسيارات؟
+- الجواب: Rocket League
+- الأجوبة المقبولة: Rocket League، روكيت ليق، روكيت ليغ، RL، روكيت ليج، RocketLeague
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-5
+- السؤال: في أي لعبة يظهر العميل Jett؟
+- الجواب: Valorant
+- الأجوبة المقبولة: Valorant، فالورانت، Valo، فالورنت
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-6
+- السؤال: ما اسم لعبة التصويب الشهيرة التي تحتوي على خرائط مثل Dust II؟
+- الجواب: Counter-Strike
+- الأجوبة المقبولة: Counter-Strike، كاونتر سترايك، CS، CS2، CounterStrike، CS 2، CS:GO، CS GO، كاونترسترايك، كاونتر سترايك 2، كاونتر سترايك جلوبال أوفنسيف، كاونتر سترايك غلوبال أوفنسيف، كاونتر سترايك جلوبال اوفنسف، كاونتر سترايك جو، كاونتر سترايك غو
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-7
+- السؤال: في أي لعبة يظهر البطل Tracer؟
+- الجواب: Overwatch
+- الأجوبة المقبولة: Overwatch، أوفرواتش، OW، OW2، OW 2، اوفر واتش، أوفرواتش 2، اوفر واتش 2، أوفر واتش٢
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-8
+- السؤال: ما اسم اللعبة التي يكون فيها بعض اللاعبين Impostors؟
+- الجواب: Among Us
+- الأجوبة المقبولة: Among Us، امونغ اس، امونق اس، امونق اوس، أمونج اس، امونغ اوس، امونج اوس، AU، AmongUs
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-9
+- السؤال: في أي لعبة يظهر Joel وEllie؟
+- الجواب: The Last of Us
+- الأجوبة المقبولة: The Last of Us، ذا لاست أوف أس، TheLastOfUs، Last of Us، TLOU، TLOU1، TLOU 1، TLOU Part 1، The Last of Us Part I، The Last of Us Part 1، The Last of Us Part One، لاست أوف أس، ذا لاست اف اس، ذا لاست اوف يوس، ذا لاست اوف اوس، لاست اوف يوس، ذا لاست اوف اس 1، لاست اوف اس 1
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-10
+- السؤال: ما اسم لعبة العالم المفتوح التي بطلها Arthur Morgan؟
+- الجواب: Red Dead Redemption 2
+- الأجوبة المقبولة: Red Dead Redemption 2، Red Dead Redemption II، Red Dead Redemption، RDR2، RDR 2، RDR، ريد ديد ريدمبشن 2، ريد ديد ريدمبشن، ريد ديد، ريد ديد 2، ريد ديد ريدمشن 2، ريد ديد ريدمبشن تو، RDR II، Red Dead 2، Red Dead، ريد ديد ردمبشن 2، ريد ديد ريدمشن
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-11
+- السؤال: ما سلسلة ألعاب الرعب الشهيرة التي تحتوي على شخصيات مثل Leon Kennedy؟
+- الجواب: Resident Evil
+- الأجوبة المقبولة: Resident Evil، ريزدنت إيفل، رزدنت ايفل، RE، ResidentEvil، Resident Evil 1، Resident Evil 2، Resident Evil 3، Resident Evil 4، Resident Evil 5، Resident Evil 6، Resident Evil 7، Resident Evil 8، Biohazard، بايوهازرد، بايو هازرد، بايوهازارد
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-12
+- السؤال: في أي سلسلة ألعاب يظهر Ezio Auditore؟
+- الجواب: Assassin’s Creed
+- الأجوبة المقبولة: Assassin’s Creed، اساسنز كريد، Assassin Creed، AC، اساسن كريد، اسسين كريد، اسسينز كريد، اساسنز، Assassin's، AssassinCreed، أسسن كريد، اسسنز كريد
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-13
+- السؤال: ما اسم سلسلة الألعاب التي بطلها Kratos؟
+- الجواب: God of War
+- الأجوبة المقبولة: God of War، GOW، قاد أوف وور، جاد أوف وور، غاد أوف وار، جود أوف وار، جود أوف وور، غود اوف وور، إله الحرب، قود اوف وار، GodOfWar، غود اوف وار، قود اوف وور، قاد اوف وار، جاد اوف وار، اله الحرب، غاد اوف وور
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-14
+- السؤال: في أي لعبة يظهر عالم The Lands Between؟
+- الجواب: Elden Ring
+- الأجوبة المقبولة: Elden Ring، إلدن رينغ، الدن رينق، EldenRing، ER، إلدن رينق، الدن رينغ، إلدين رينغ، الدن رينج، إلدن رينج، إلدين رينج
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-15
+- السؤال: ما اسم اللعبة التي تحتوي على شخصيات مثل Iron Man وSpider-Man وDoctor Strange في مواجهات جماعية؟
+- الجواب: Marvel Rivals
+- الأجوبة المقبولة: Marvel Rivals، Marvel Rivals game، مارفل رايفلز، مارفل ريفلز، مارفل رايفل، مارفل ريفالز، مارفل، Marvel، MarvelRivals، MR
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-17
+- السؤال: في أي لعبة من سلسلة GTA تظهر شخصية CJ؟
+- الجواب: Grand Theft Auto: San Andreas
+- الأجوبة المقبولة: Grand Theft Auto: San Andreas، Grand Theft Auto، GTA، GTA San Andreas، GTA SA، San Andreas، حرامي السيارات، حرامي السيارات سان أندرياس، قراند ثفت أوتو، قراند ثيفت أوتو، قراند، قراند سان أندرياس، جراند ثفت أوتو، جراند ثيفت أوتو، جراند، جراند سان أندرياس، سان أندرياس، GTASA، SA، سان اندريس، GTA San Andreas 2004، GTA SA 2004
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
+### games-18
+- السؤال: ما اسم لعبة الباتل رويال الشهيرة من Epic Games؟
+- الجواب: Fortnite
+- الأجوبة المقبولة: Fortnite، فورتنايت، Fortnite Battle Royale، Fortnite BR، FN، فورت نايت، فورتنايت باتل رويال، فورت نايت باتل رويال
+[ ] KEEP  [ ] EDIT  [ ] REMOVE
+
 ### games-mario
 - السؤال: في أي سلسلة يظهر السباك ذو القبعة الحمراء ماريو؟
 - الجواب: Super Mario
-- الأجوبة المقبولة: Super Mario، Mario، ماريو
+- الأجوبة المقبولة: Super Mario، Mario، ماريو، SuperMario، Super Mario Bros، Super Mario Brothers، SMB، سوبر ماريو، سوبرماريو، سوبر ماريو بروس، سوبر ماريو برذرز، ماريو بروس، ماريو برذرز، ماريو بروذرز، ماريو براذرز، سوبر ماريو براذرز
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-zelda
 - السؤال: ما السلسلة التي يستخدم فيها لينك السيف والدرع غالبًا؟
 - الجواب: The Legend of Zelda
-- الأجوبة المقبولة: The Legend of Zelda، Zelda، زيلدا
+- الأجوبة المقبولة: The Legend of Zelda، Zelda، زيلدا، Legend of Zelda، TLOZ، LOZ، ليجند أوف زيلدا، ليجند اف زيلدا، أسطورة زيلدا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-pokemon
 - السؤال: ما السلسلة التي تلتقط فيها مخلوقات وتجعلها تقاتل؟
 - الجواب: Pokemon
-- الأجوبة المقبولة: Pokemon، بوكيمون
+- الأجوبة المقبولة: Pokemon، بوكيمون، Pokémon، بوكمان، بوكيمونز
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-roblox
 - السؤال: ما المنصة التي يبني فيها اللاعبون ألعابًا بشخصيات مكعبة؟
 - الجواب: Roblox
-- الأجوبة المقبولة: Roblox، روبلوكس
+- الأجوبة المقبولة: Roblox، روبلوكس، روبلكس، روبلاكس، ربلوكس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-free-fire
 - السؤال: ما لعبة الباتل رويال الشهيرة على الجوال من Garena؟
 - الجواب: Free Fire
-- الأجوبة المقبولة: Free Fire، فري فاير
+- الأجوبة المقبولة: Free Fire، فري فاير، FreeFire، Free Fire MAX، FF، FF MAX، Garena Free Fire، فريفاير، فري فاير ماكس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-clash
 - السؤال: ما اللعبة التي تبني فيها قرية وتهاجم عشائر أخرى؟
 - الجواب: Clash of Clans
-- الأجوبة المقبولة: Clash of Clans، كلاش أوف كلانس
+- الأجوبة المقبولة: Clash of Clans، كلاش أوف كلانس، ClashOfClans، COC، كلاش اف كلانس، كلاش اوف كلانز، كلاش كلانس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-lol
 - السؤال: في أي لعبة تظهر شخصيات مثل Ahri وYasuo في معارك 5 ضد 5؟
 - الجواب: League of Legends
-- الأجوبة المقبولة: League of Legends، LoL، لول
+- الأجوبة المقبولة: League of Legends، LoL، لول، LeagueOfLegends، League، ليغ أوف ليجندز، ليق أوف ليجندز، ليج أوف ليجندز، ليغ اوف ليجند، ليق اوف ليجند، ليج اوف ليجند
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-genshin
 - السؤال: ما لعبة العالم المفتوح بأسلوب الأنمي من miHoYo؟
 - الجواب: Genshin Impact
-- الأجوبة المقبولة: Genshin Impact، جينشن
+- الأجوبة المقبولة: Genshin Impact، جينشن، Genshin، GenshinImpact، جينشين، جينشن امباكت، جينشين امباكت، GI
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-tekken
 - السؤال: ما سلسلة القتال اليابانية التي تشتهر بشخصية Jin؟
 - الجواب: Tekken
-- الأجوبة المقبولة: Tekken، تيكن
+- الأجوبة المقبولة: Tekken، تيكن، Tekken 7، Tekken 8، Tekken 6، تيكين، تكن، تيكن 7، تيكن 8، تيكين 8، تكن 8، TK
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-tetris
 - السؤال: ما اللعبة الكلاسيكية التي ترتب فيها قطعًا متساقطة؟
 - الجواب: Tetris
-- الأجوبة المقبولة: Tetris، تتريس
+- الأجوبة المقبولة: Tetris، تتريس، تيتريس، تترس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-pacman
 - السؤال: ما الشخصية الصفراء التي تأكل النقاط وتهرب من أشباح؟
 - الجواب: Pac-Man
-- الأجوبة المقبولة: Pac-Man، باك مان
-[ ] KEEP  [ ] EDIT  [ ] REMOVE
-
-### games-efootball
-- السؤال: ما لعبة كرة القدم من Konami التي كانت تُعرف بـ PES؟
-- الجواب: eFootball
-- الأجوبة المقبولة: eFootball، PES، بيس
+- الأجوبة المقبولة: Pac-Man، باك مان، Pacman، باكمان
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-subway
 - السؤال: ما لعبة الجري على السكة وأنت تهرب من المفتش؟
 - الجواب: Subway Surfers
-- الأجوبة المقبولة: Subway Surfers، سابواي سيرفرز
+- الأجوبة المقبولة: Subway Surfers، سابواي سيرفرز، SubwaySurfers، Subway Surfer، Subway، سبواي سيرفرز، سبواي، صبواي سيرفرز، صبواي، ساب واي سيرفرز، سابوي سيرفرز، سبواي سيرفر، سابواي سيرفر
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-sims
 - السؤال: ما اللعبة التي تبني فيها بيتًا وتدير حياة شخصيات يومية؟
 - الجواب: The Sims
-- الأجوبة المقبولة: The Sims، ذا سيمز
+- الأجوبة المقبولة: The Sims، ذا سيمز، TheSims، Sims، ذا سيمس، سيمز، سيمس، The Sims 4، The Sims 3، TS، Sims 4
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-valorant-spike
 - السؤال: ما اسم القنبلة التي يزرعها المهاجمون في Valorant؟
 - الجواب: Spike
-- الأجوبة المقبولة: Spike، السبايك
+- الأجوبة المقبولة: Spike، السبايك، Valorant Spike، فالورانت سبايك، سبايك فالورانت، Spike Valorant
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-dark-souls
 - السؤال: ما سلسلة الرولبلينغ الصعبة من FromSoftware قبل Elden Ring؟
 - الجواب: Dark Souls
-- الأجوبة المقبولة: Dark Souls، دارك سولز
+- الأجوبة المقبولة: Dark Souls، دارك سولز، DarkSouls، DS، Dark Souls 1، Dark Souls I، دارك سولس، دارك سول، دارك سولز 1، دارك سولز 2، دارك سولز 3، Dark Souls II، Dark Souls III
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-clash-royale
 - السؤال: ما لعبة البطاقات من سوبرسال على ساحة ببرجين؟
 - الجواب: Clash Royale
-- الأجوبة المقبولة: Clash Royale، كلاش رويال
+- الأجوبة المقبولة: Clash Royale، كلاش رويال، ClashRoyale، CR، كلاش روييل، Clash Royale Game
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-candy-crush
 - السؤال: ما لعبة الألغاز التي تطابق فيها الحلوى الملونة؟
 - الجواب: Candy Crush
-- الأجوبة المقبولة: Candy Crush، كاندي كراش
+- الأجوبة المقبولة: Candy Crush، كاندي كراش، CandyCrush، Candy Crush Saga، CandyCrushSaga، CC، كاندي كرش، كاندي كراش ساغا، كاندي كرش ساغا، كاندي كراش صاغا، كاندي كرش صاغا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-dota
 - السؤال: ما اسم اللعبة التي تدور أحداثها في مدينة Night City؟
 - الجواب: Cyberpunk 2077
-- الأجوبة المقبولة: Cyberpunk 2077، Cyberpunk، سايبر بانك، سايبر بانك 2077
+- الأجوبة المقبولة: Cyberpunk 2077، Cyberpunk، سايبر بانك، سايبر بانك 2077، Cyberpunk2077، CP2077، CP 2077، CP77، Cyberpunk 77، سايبر بانك ٧٧، سايبر بنك، سايبر بنك 2077
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 # من كتبها؟
@@ -3548,17 +3526,17 @@
 
 ### food-1
 - العرض: بيتزا
-- الأجوبة المقبولة: بيتزا، Pizza
+- الأجوبة المقبولة: بيتزا، Pizza، بيزا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-2
 - العرض: برغر
-- الأجوبة المقبولة: برغر، برجر، Burger
+- الأجوبة المقبولة: برغر، برجر، Burger، برقر، همبرغر، همبرجر، Hamburger، Hamburgers
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-3
 - العرض: شاورما
-- الأجوبة المقبولة: شاورما، Shawarma
+- الأجوبة المقبولة: شاورما، Shawarma، شاورمه
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-4
@@ -3583,7 +3561,7 @@
 
 ### food-8
 - العرض: كنافة
-- الأجوبة المقبولة: كنافة
+- الأجوبة المقبولة: كنافة، Kunafa، Kanafeh، Knafeh
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-9
@@ -3593,37 +3571,37 @@
 
 ### food-10
 - العرض: آيس كريم
-- الأجوبة المقبولة: آيس كريم، مثلجات، Ice cream
+- الأجوبة المقبولة: آيس كريم، مثلجات، Ice cream، بوظة، آيسكريم، Icecream
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-11
 - العرض: دونات
-- الأجوبة المقبولة: دونات، دونت، Donut، Doughnut
+- الأجوبة المقبولة: دونات، دونت، Donut، Doughnut، Donuts، Doughnuts، دوناتس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-12
 - العرض: بان كيك
-- الأجوبة المقبولة: بان كيك، Pancake، Pancakes
+- الأجوبة المقبولة: بان كيك، Pancake، Pancakes، بانكيك
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-13
 - العرض: وافل
-- الأجوبة المقبولة: وافل، Waffle، Waffles
+- الأجوبة المقبولة: وافل، Waffle، Waffles، وافلز
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-14
 - العرض: سمبوسة
-- الأجوبة المقبولة: سمبوسة، سمبوسك، Samosa
+- الأجوبة المقبولة: سمبوسة، سمبوسك، Samosa، سمبوسا، ساموسا، Samosas
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-15
 - العرض: تشيز كيك
-- الأجوبة المقبولة: تشيز كيك، Cheesecake، Cheese cake
+- الأجوبة المقبولة: تشيز كيك، Cheesecake، Cheese cake، تشيزكيك، Cheesecakes
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-16
 - العرض: بطيخ
-- الأجوبة المقبولة: بطيخ، حبحب
+- الأجوبة المقبولة: بطيخ، حبحب، جح، بطيخة، Watermelon، بطيخ أحمر
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-17
@@ -3638,12 +3616,12 @@
 
 ### food-19
 - العرض: فشار
-- الأجوبة المقبولة: فشار، بوشار، Popcorn
+- الأجوبة المقبولة: فشار، بوشار، Popcorn، بوب كورن، بوبكورن، Pop Corn
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-20
 - العرض: شوكولاتة
-- الأجوبة المقبولة: شوكولاتة
+- الأجوبة المقبولة: شوكولاتة، Chocolate، شوكلا، شوكولات، شوكليت، Chocolat، شوكلاته
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## بلدان
@@ -3752,102 +3730,102 @@
 
 ### football-1
 - العرض: كريستيانو رونالدو
-- الأجوبة المقبولة: كريستيانو رونالدو، رونالدو، كريستيانو، Cristiano Ronaldo، CR7
+- الأجوبة المقبولة: كريستيانو رونالدو، رونالدو، كريستيانو، Cristiano Ronaldo، CR7، Cristiano
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-2
 - العرض: ليونيل ميسي
-- الأجوبة المقبولة: ليونيل ميسي، ليونيل، ميسي، Lionel Messi
+- الأجوبة المقبولة: ليونيل ميسي، ليونيل، ميسي، Lionel Messi، Leo Messi، Messi
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-3
 - العرض: نيمار
-- الأجوبة المقبولة: نيمار، Neymar
+- الأجوبة المقبولة: نيمار، Neymar، Neymar Jr، Neymar Junior، نيمار جونيور
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-4
 - العرض: كيليان مبابي
-- الأجوبة المقبولة: كيليان مبابي، كيليان، مبابي، Kylian Mbappe، Kylian Mbappé
+- الأجوبة المقبولة: كيليان مبابي، كيليان، مبابي، Kylian Mbappe، Kylian Mbappé، Mbappe، Mbappé
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-5
 - العرض: محمد صلاح
-- الأجوبة المقبولة: محمد صلاح، صلاح، Mohamed Salah
+- الأجوبة المقبولة: محمد صلاح، صلاح، Mohamed Salah، Mo Salah، Mohammed Salah
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-6
 - العرض: كريم بنزيما
-- الأجوبة المقبولة: كريم بنزيما، بنزيما، Karim Benzema
+- الأجوبة المقبولة: كريم بنزيما، بنزيما، Karim Benzema، Benzema
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-7
 - العرض: لوكا مودريتش
-- الأجوبة المقبولة: لوكا مودريتش، مودريتش، Luka Modric، Luka Modrić
+- الأجوبة المقبولة: لوكا مودريتش، مودريتش، Luka Modric، Luka Modrić، Modric، Modrić
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-8
 - العرض: روبرت ليفاندوفسكي
-- الأجوبة المقبولة: روبرت ليفاندوفسكي، ليفاندوفسكي، Robert Lewandowski
+- الأجوبة المقبولة: روبرت ليفاندوفسكي، ليفاندوفسكي، Robert Lewandowski، Lewandowski
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-9
 - العرض: إيرلينغ هالاند
-- الأجوبة المقبولة: إيرلينغ هالاند، هالاند، Erling Haaland
+- الأجوبة المقبولة: إيرلينغ هالاند، هالاند، Erling Haaland، Haaland
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-10
 - العرض: فينيسيوس جونيور
-- الأجوبة المقبولة: فينيسيوس جونيور، فينيسيوس، Vinicius Junior، Vinícius Júnior
+- الأجوبة المقبولة: فينيسيوس جونيور، فينيسيوس، Vinicius Junior، Vinícius Júnior، Vini، Vini Jr، Vinicius، Vinicius Jr
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-11
 - العرض: رونالدينيو
-- الأجوبة المقبولة: رونالدينيو، رونالدينهو، Ronaldinho
+- الأجوبة المقبولة: رونالدينيو، رونالدينهو، Ronaldinho، رونالدينو
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-12
 - العرض: زين الدين زيدان
-- الأجوبة المقبولة: زين الدين زيدان، زيدان، Zinedine Zidane
+- الأجوبة المقبولة: زين الدين زيدان، زيدان، Zinedine Zidane، Zidane
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-13
 - العرض: ديفيد بيكهام
-- الأجوبة المقبولة: ديفيد بيكهام، بيكهام، David Beckham
+- الأجوبة المقبولة: ديفيد بيكهام، بيكهام، David Beckham، Beckham
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-14
 - العرض: أندريس إنييستا
-- الأجوبة المقبولة: أندريس إنييستا، إنييستا، Iniesta، Andrés Iniesta
+- الأجوبة المقبولة: أندريس إنييستا، إنييستا، Iniesta، Andrés Iniesta، Andres Iniesta
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-15
 - العرض: تشافي
-- الأجوبة المقبولة: تشافي، Xavi
+- الأجوبة المقبولة: تشافي، Xavi، شافي
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-16
 - العرض: سيرجيو راموس
-- الأجوبة المقبولة: سيرجيو راموس، راموس، Sergio Ramos
+- الأجوبة المقبولة: سيرجيو راموس، راموس، Sergio Ramos، Ramos
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-17
 - العرض: بوفون
-- الأجوبة المقبولة: بوفون، جانلويجي بوفون، Gianluigi Buffon
+- الأجوبة المقبولة: بوفون، جانلويجي بوفون، Gianluigi Buffon، Buffon
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-18
 - العرض: رونالدو نازاريو
-- الأجوبة المقبولة: رونالدو نازاريو، رونالدو البرازيلي، Ronaldo Nazário
+- الأجوبة المقبولة: رونالدو نازاريو، رونالدو البرازيلي، Ronaldo Nazário، Ronaldo Nazario
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-19
 - العرض: بيليه
-- الأجوبة المقبولة: بيليه، Pelé
+- الأجوبة المقبولة: بيليه، Pelé، Pele
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-20
 - العرض: مارادونا
-- الأجوبة المقبولة: مارادونا، دييغو مارادونا، Diego Maradona
+- الأجوبة المقبولة: مارادونا، دييغو مارادونا، Diego Maradona، Maradona، دييجو مارادونا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## مسلسلات
@@ -3859,7 +3837,7 @@
 
 ### series-2
 - العرض: Game of Thrones
-- الأجوبة المقبولة: Game of Thrones، Game، جيم أوف ثرونز
+- الأجوبة المقبولة: Game of Thrones، Game، جيم أوف ثرونز، غيم اوف ثرونز، GOT
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### series-3
@@ -3884,7 +3862,7 @@
 
 ### series-7
 - العرض: La Casa de Papel
-- الأجوبة المقبولة: La Casa de Papel، Money Heist، لا كاسا دي بابيل، لاكاسا دي بابيل
+- الأجوبة المقبولة: La Casa de Papel، Money Heist، لا كاسا دي بابيل، لاكاسا دي بابيل، لا كاسا دي بابل
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### series-8
@@ -3919,7 +3897,7 @@
 
 ### series-14
 - العرض: Vikings
-- الأجوبة المقبولة: Vikings، فايكنغز، فايكنجز
+- الأجوبة المقبولة: Vikings، فايكنغز، فايكنجز، فايكنقز
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### series-15
@@ -3951,12 +3929,12 @@
 
 ### games-1
 - العرض: Minecraft
-- الأجوبة المقبولة: Minecraft، Mine craft، ماينكرافت، ماين كرافت
+- الأجوبة المقبولة: Minecraft، Mine craft، ماينكرافت، ماين كرافت، ماين كرفات
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-2
 - العرض: Fortnite
-- الأجوبة المقبولة: Fortnite، فورتنايت
+- الأجوبة المقبولة: Fortnite، فورتنايت، فورت نايت، Fortnite Battle Royale، Fortnite BR
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-3
@@ -3966,7 +3944,7 @@
 
 ### games-4
 - العرض: GTA
-- الأجوبة المقبولة: GTA، GTA 5، GTA V، قراند 5، Grand Theft Auto V
+- الأجوبة المقبولة: GTA، GTA 5، GTA V، قراند 5، Grand Theft Auto V، Grand Theft Auto 5، جراند 5، جي تي اي 5، جي تي اي V
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-5
@@ -3981,67 +3959,67 @@
 
 ### games-7
 - العرض: Rocket League
-- الأجوبة المقبولة: Rocket League، روكيت ليق، روكيت ليغ
+- الأجوبة المقبولة: Rocket League، روكيت ليق، روكيت ليغ، RocketLeague، روكيت ليج
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-8
 - العرض: Valorant
-- الأجوبة المقبولة: Valorant، فالورانت
+- الأجوبة المقبولة: Valorant، فالورانت، Valo، فالورنت
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-9
 - العرض: League of Legends
-- الأجوبة المقبولة: League of Legends، LoL
+- الأجوبة المقبولة: League of Legends، LoL، LeagueOfLegends، لول، ليغ أوف ليجندز، ليق أوف ليجندز، ليج أوف ليجندز
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-10
 - العرض: Counter-Strike
-- الأجوبة المقبولة: Counter-Strike، كاونتر سترايك، CS، CS2
+- الأجوبة المقبولة: Counter-Strike، كاونتر سترايك، CS، CS2، CounterStrike، CS 2، كاونترسترايك، كاونتر سترايك 2
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-11
 - العرض: Overwatch
-- الأجوبة المقبولة: Overwatch، أوفرواتش
+- الأجوبة المقبولة: Overwatch، أوفرواتش، اوفر واتش
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-12
 - العرض: Marvel Rivals
-- الأجوبة المقبولة: Marvel Rivals، مارفل رايفلز، مارفل ريفالز
+- الأجوبة المقبولة: Marvel Rivals، مارفل رايفلز، مارفل ريفالز، MarvelRivals، Marvel Rivals game، مارفل ريفلز
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-13
 - العرض: Among Us
-- الأجوبة المقبولة: Among Us، امونغ اس
+- الأجوبة المقبولة: Among Us، امونغ اس، AmongUs، امونق اس، امونق اوس، أمونج أس، امونج اوس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-14
 - العرض: The Last of Us
-- الأجوبة المقبولة: The Last of Us، ذا لاست أوف أس
+- الأجوبة المقبولة: The Last of Us، ذا لاست أوف أس، TheLastOfUs، Last of Us، TLOU، ذا لاست اف اس، ذا لاست اوف يوس، ذا لاست اوف اوس، لاست أوف أس، لاست اوف يوس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-15
 - العرض: Red Dead Redemption 2
-- الأجوبة المقبولة: Red Dead Redemption 2، ريد ديد 2، RDR2
+- الأجوبة المقبولة: Red Dead Redemption 2، ريد ديد 2، RDR2، Red Dead Redemption II، Red Dead 2، RDR 2، RDR II، ريد ديد ريدمبشن 2، ريد ديد ريدمشن 2، ريد ديد ردمبشن 2، ريد ديد ريدمبشن تو
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-16
 - العرض: Resident Evil
-- الأجوبة المقبولة: Resident Evil، ريزدنت إيفل، رزدنت ايفل، RE
+- الأجوبة المقبولة: Resident Evil، ريزدنت إيفل، رزدنت ايفل، RE، ResidentEvil، Biohazard، بايوهازرد، بايو هازرد، بايوهازارد
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-17
 - العرض: Assassin's Creed
-- الأجوبة المقبولة: Assassin's Creed، اساسنز كريد، Assassin
+- الأجوبة المقبولة: Assassin's Creed، اساسنز كريد، Assassin، Assassin Creed، AssassinCreed، اساسن كريد، أسسن كريد، اسسين كريد، اسسنز كريد
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-18
 - العرض: God of War
-- الأجوبة المقبولة: God of War، قاد أوف وور، جاد أوف وور
+- الأجوبة المقبولة: God of War، قاد أوف وور، جاد أوف وور، GodOfWar، غود أوف وار، غود أوف وور، جود أوف وار، جود أوف وور، قود أوف وار، قود أوف وور، إله الحرب
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-19
 - العرض: Elden Ring
-- الأجوبة المقبولة: Elden Ring، إلدن رينغ، الدن رينق
+- الأجوبة المقبولة: Elden Ring، إلدن رينغ، الدن رينق، EldenRing، الدن رينغ، إلدن رينج، الدن رينج، إلدين رينغ، إلدين رينج
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-20
@@ -4073,7 +4051,7 @@
 
 ### tech-5
 - العرض: بلايستيشن
-- الأجوبة المقبولة: بلايستيشن، بلاي ستيشن، PlayStation، Sony، سوني
+- الأجوبة المقبولة: بلايستيشن، بلاي ستيشن، PlayStation، Sony، سوني، PS، Play Station
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-6
@@ -4088,27 +4066,27 @@
 
 ### tech-8
 - العرض: لابتوب
-- الأجوبة المقبولة: لابتوب، Laptop
+- الأجوبة المقبولة: لابتوب، Laptop، لاب توب، Notebook، نوتبوك، نوت بوك، Laptop Computer
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-9
 - العرض: كمبيوتر
-- الأجوبة المقبولة: كمبيوتر، Computer، PC
+- الأجوبة المقبولة: كمبيوتر، Computer، PC، حاسوب، كومبيوتر، بي سي، حاسب آلي
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-10
 - العرض: روبوت
-- الأجوبة المقبولة: روبوت، Robot
+- الأجوبة المقبولة: روبوت، Robot، إنسان آلي، روبوتات، Robots
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-11
 - العرض: درون
-- الأجوبة المقبولة: درون، Drone
+- الأجوبة المقبولة: درون، Drone، طائرة بدون طيار
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-12
 - العرض: ساعة
-- الأجوبة المقبولة: ساعة، ساعة ذكية، Smartwatch
+- الأجوبة المقبولة: ساعة، ساعة ذكية، Smartwatch، Smart Watch، سمارت واتش، ساعة سمارت
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-13
@@ -4118,27 +4096,27 @@
 
 ### tech-14
 - العرض: كاميرا
-- الأجوبة المقبولة: كاميرا، كامره، Camera
+- الأجوبة المقبولة: كاميرا، كامره، Camera، كميرا، كاميرة
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-15
 - العرض: طابعة
-- الأجوبة المقبولة: طابعة، Printer
+- الأجوبة المقبولة: طابعة، Printer، برنتر
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-16
 - العرض: فلاش ميموري
-- الأجوبة المقبولة: فلاش ميموري، Flash Memory
+- الأجوبة المقبولة: فلاش ميموري، Flash Memory، Flash Drive، USB Flash، Thumb Drive، USB Stick، يو اس بي فلاش
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-17
 - العرض: باور بانك
-- الأجوبة المقبولة: باور بانك، Power Bank
+- الأجوبة المقبولة: باور بانك، Power Bank، باوربانك، PowerBank، بنك طاقة
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-18
 - العرض: نظارة واقع افتراضي
-- الأجوبة المقبولة: نظارة واقع افتراضي، VR، VR Headset
+- الأجوبة المقبولة: نظارة واقع افتراضي، VR، VR Headset، نظارة VR، في ار، VR Glasses
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## حيوانات
@@ -4155,7 +4133,7 @@
 
 ### animals-peacock
 - العرض: طاووس
-- الأجوبة المقبولة: طاووس، Peacock
+- الأجوبة المقبولة: طاووس، Peacock، الطاؤوس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### animals-hippo
@@ -4195,12 +4173,12 @@
 
 ### animals-cheetah
 - العرض: فهد
-- الأجوبة المقبولة: فهد، Cheetah، الشيتا
+- الأجوبة المقبولة: فهد، Cheetah، الشيتا، الفهد الصياد
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### animals-parrot
 - العرض: ببغاء
-- الأجوبة المقبولة: ببغاء، Parrot
+- الأجوبة المقبولة: ببغاء، Parrot، ببغا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### animals-frog
@@ -4210,7 +4188,7 @@
 
 ### animals-bee
 - العرض: نحلة
-- الأجوبة المقبولة: نحلة، Bee
+- الأجوبة المقبولة: نحلة، Bee، النحل
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### animals-butterfly
@@ -4237,7 +4215,7 @@
 
 ### food-dates
 - العرض: تمر
-- الأجوبة المقبولة: تمر، Dates
+- الأجوبة المقبولة: تمر، Dates، تمور، Date
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-mutabbaq
@@ -4247,7 +4225,7 @@
 
 ### food-mansaf
 - العرض: منسف
-- الأجوبة المقبولة: منسف، Mansaf
+- الأجوبة المقبولة: منسف، Mansaf، منسف أردني، Jordanian Mansaf
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### food-kibbeh
@@ -4294,7 +4272,7 @@
 
 ### countries-australia
 - العرض: أستراليا
-- الأجوبة المقبولة: أستراليا، Australia
+- الأجوبة المقبولة: أستراليا، Australia، أوستراليا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### countries-mexico
@@ -4319,7 +4297,7 @@
 
 ### countries-singapore
 - العرض: سنغافورة
-- الأجوبة المقبولة: سنغافورة، Singapore
+- الأجوبة المقبولة: سنغافورة، Singapore، سينغافوره
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### countries-argentina
@@ -4391,82 +4369,82 @@
 
 ### football-kaka
 - العرض: كاكا
-- الأجوبة المقبولة: كاكا، Kaká
+- الأجوبة المقبولة: كاكا، Kaká، Kaka
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-neuer
 - العرض: مانويل نوير
-- الأجوبة المقبولة: مانويل نوير، نوير، Manuel Neuer
+- الأجوبة المقبولة: مانويل نوير، نوير، Manuel Neuer، Neuer
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-de-bruyne
 - العرض: كيفن دي بروين
-- الأجوبة المقبولة: كيفن دي بروين، دي بروين، Kevin De Bruyne
+- الأجوبة المقبولة: كيفن دي بروين، دي بروين، Kevin De Bruyne، De Bruyne
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-van-dijk
 - العرض: فيرجيل فان دايك
-- الأجوبة المقبولة: فيرجيل فان دايك، فان دايك، Virgil van Dijk
+- الأجوبة المقبولة: فيرجيل فان دايك، فان دايك، Virgil van Dijk، Van Dijk
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-bellingham
 - العرض: جود بيلينغهام
-- الأجوبة المقبولة: جود بيلينغهام، جود بيلينجهام، بيلينغهام، بيلينجهام، Jude Bellingham
+- الأجوبة المقبولة: جود بيلينغهام، جود بيلينجهام، بيلينغهام، بيلينجهام، Jude Bellingham، Bellingham
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-ibrahimovic
 - العرض: زلاتان إبراهيموفيتش
-- الأجوبة المقبولة: زلاتان إبراهيموفيتش، إبراهيموفيتش، زلاتان، Zlatan Ibrahimovic، Zlatan
+- الأجوبة المقبولة: زلاتان إبراهيموفيتش، إبراهيموفيتش، زلاتان، Zlatan Ibrahimovic، Zlatan، Ibrahimovic، Ibra
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-henry
 - العرض: تييري هنري
-- الأجوبة المقبولة: تييري هنري، هنري، Thierry Henry
+- الأجوبة المقبولة: تييري هنري، هنري، Thierry Henry، Thierry
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-kante
 - العرض: نغولو كانتي
-- الأجوبة المقبولة: نغولو كانتي، كانتي، N'Golo Kante، N'Golo Kanté
+- الأجوبة المقبولة: نغولو كانتي، كانتي، N'Golo Kante، N'Golo Kanté، Kante، Kanté
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-mahrez
 - العرض: رياض محرز
-- الأجوبة المقبولة: رياض محرز، محرز، Riyad Mahrez
+- الأجوبة المقبولة: رياض محرز، محرز، Riyad Mahrez، Mahrez
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-mane
 - العرض: ساديو ماني
-- الأجوبة المقبولة: ساديو ماني، ماني، Sadio Mane، Sadio Mané
+- الأجوبة المقبولة: ساديو ماني، ماني، Sadio Mane، Sadio Mané، Mane، Mané
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-hakimi
 - العرض: أشرف حكيمي
-- الأجوبة المقبولة: أشرف حكيمي، حكيمي، Achraf Hakimi
+- الأجوبة المقبولة: أشرف حكيمي، حكيمي، Achraf Hakimi، Hakimi
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-dawsari
 - العرض: سالم الدوسري
-- الأجوبة المقبولة: سالم الدوسري، سالم، Salem Al-Dawsari
+- الأجوبة المقبولة: سالم الدوسري، سالم، Salem Al-Dawsari، Al Dawsari
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-son
 - العرض: سون هيونغ مين
-- الأجوبة المقبولة: سون هيونغ مين، سون، Son Heung-min
+- الأجوبة المقبولة: سون هيونغ مين، سون، Son Heung-min، Son
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-suarez
 - العرض: لويس سواريز
-- الأجوبة المقبولة: لويس سواريز، سواريز، Luis Suarez، Luis Suárez
+- الأجوبة المقبولة: لويس سواريز، سواريز، Luis Suarez، Luis Suárez، Suarez، Suárez
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-aguero
 - العرض: سيرجيو أغويرو
-- الأجوبة المقبولة: سيرجيو أغويرو، أغويرو، Aguero، Sergio Aguero، Sergio Agüero
+- الأجوبة المقبولة: سيرجيو أغويرو، أغويرو، Aguero، Sergio Aguero، Sergio Agüero، Agüero
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-kroos
 - العرض: توني كروس
-- الأجوبة المقبولة: توني كروس، كروس، Toni Kroos
+- الأجوبة المقبولة: توني كروس، كروس، Toni Kroos، Kroos
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-griezmann
@@ -4481,12 +4459,12 @@
 
 ### football-di-maria
 - العرض: أنخيل دي ماريا
-- الأجوبة المقبولة: أنخيل دي ماريا، دي ماريا، Ángel Di María، Di Maria
+- الأجوبة المقبولة: أنخيل دي ماريا، دي ماريا، Ángel Di María، Di Maria، Angel Di Maria
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### football-rooney
 - العرض: واين روني
-- الأجوبة المقبولة: واين روني، روني، Wayne Rooney
+- الأجوبة المقبولة: واين روني، روني، Wayne Rooney، Rooney
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## مسلسلات
@@ -4550,42 +4528,42 @@
 
 ### games-mario
 - العرض: Super Mario
-- الأجوبة المقبولة: Super Mario، Mario، ماريو
+- الأجوبة المقبولة: Super Mario، Mario، ماريو، SuperMario، Super Mario Bros، Super Mario Brothers، سوبر ماريو، سوبرماريو، سوبر ماريو بروس، سوبر ماريو برذرز، سوبر ماريو براذرز، ماريو بروس، ماريو برذرز، ماريو بروذرز، ماريو براذرز
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-zelda
 - العرض: The Legend of Zelda
-- الأجوبة المقبولة: The Legend of Zelda، Zelda، زيلدا
+- الأجوبة المقبولة: The Legend of Zelda، Zelda، زيلدا، Legend of Zelda، TLOZ، LOZ، ليجند أوف زيلدا، ليجند اف زيلدا، أسطورة زيلدا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-pokemon
 - العرض: Pokémon
-- الأجوبة المقبولة: Pokémon، Pokemon، بوكيمون
+- الأجوبة المقبولة: Pokémon، Pokemon، بوكيمون، بوكمان، بوكيمونز
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-roblox
 - العرض: Roblox
-- الأجوبة المقبولة: Roblox، روبلوكس
+- الأجوبة المقبولة: Roblox، روبلوكس، روبلكس، روبلاكس، ربلوكس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-free-fire
 - العرض: Free Fire
-- الأجوبة المقبولة: Free Fire، فري فاير
+- الأجوبة المقبولة: Free Fire، فري فاير، FreeFire، Garena Free Fire، فريفاير
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-clash-clans
 - العرض: Clash of Clans
-- الأجوبة المقبولة: Clash of Clans، كلاش أوف كلانس
+- الأجوبة المقبولة: Clash of Clans، كلاش أوف كلانس، ClashOfClans، كلاش اف كلانس، كلاش اوف كلانز، كلاش كلانس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-genshin
 - العرض: Genshin Impact
-- الأجوبة المقبولة: Genshin Impact، جينشن
+- الأجوبة المقبولة: Genshin Impact، جينشن، GenshinImpact، Genshin، جينشين، جينشين إمباكت
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-tekken
 - العرض: Tekken
-- الأجوبة المقبولة: Tekken، تيكن
+- الأجوبة المقبولة: Tekken، تيكن، تيكين
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-efootball
@@ -4595,27 +4573,27 @@
 
 ### games-sims
 - العرض: The Sims
-- الأجوبة المقبولة: The Sims، ذا سيمز
+- الأجوبة المقبولة: The Sims، ذا سيمز، TheSims، Sims، ذا سيمس، سيمز، سيمس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-dark-souls
 - العرض: Dark Souls
-- الأجوبة المقبولة: Dark Souls، دارك سولز
+- الأجوبة المقبولة: Dark Souls، دارك سولز، DarkSouls، دارك سولس
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-clash-royale
 - العرض: Clash Royale
-- الأجوبة المقبولة: Clash Royale، كلاش رويال
+- الأجوبة المقبولة: Clash Royale، كلاش رويال، ClashRoyale، Clash Royale Game، كلاش روييل
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-candy-crush
 - العرض: Candy Crush
-- الأجوبة المقبولة: Candy Crush، كاندي كراش
+- الأجوبة المقبولة: Candy Crush، كاندي كراش، CandyCrush، Candy Crush Saga، CandyCrushSaga، كاندي كرش، كاندي كراش ساغا، كاندي كراش صاغا
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### games-subway
 - العرض: Subway Surfers
-- الأجوبة المقبولة: Subway Surfers، سبواي سيرفرز
+- الأجوبة المقبولة: Subway Surfers، سبواي سيرفرز، SubwaySurfers، Subway Surfer، سابواي سيرفرز، سابوي سيرفرز، صبواي سيرفرز، سبواي سيرفر، سابواي سيرفر، ساب واي سيرفرز
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ## تقنيات
@@ -4657,7 +4635,7 @@
 
 ### tech-charger
 - العرض: شاحن
-- الأجوبة المقبولة: شاحن، Charger
+- الأجوبة المقبولة: شاحن، Charger، تشارجر
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-router
@@ -4667,12 +4645,12 @@
 
 ### tech-tv
 - العرض: تلفاز
-- الأجوبة المقبولة: تلفاز، TV، Television
+- الأجوبة المقبولة: تلفاز، TV، Television، تلفزيون، تي في
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-tablet
 - العرض: تابلت
-- الأجوبة المقبولة: تابلت، Tablet
+- الأجوبة المقبولة: تابلت، Tablet، جهاز لوحي، Tablet PC
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-airpods
@@ -4687,27 +4665,27 @@
 
 ### tech-remote
 - العرض: ريموت
-- الأجوبة المقبولة: ريموت، Remote
+- الأجوبة المقبولة: ريموت، Remote، Remote Control، ريموت كنترول، ريموت كونترول
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-battery
 - العرض: بطارية
-- الأجوبة المقبولة: بطارية، Battery
+- الأجوبة المقبولة: بطارية، Battery، باتري
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-calculator
 - العرض: آلة حاسبة
-- الأجوبة المقبولة: آلة حاسبة، Calculator
+- الأجوبة المقبولة: آلة حاسبة، Calculator، حاسبة، كالكيوليتر، كلكوليتر
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-keyboard
 - العرض: لوحة مفاتيح
-- الأجوبة المقبولة: لوحة مفاتيح، Keyboard، كيبورد
+- الأجوبة المقبولة: لوحة مفاتيح، Keyboard، كيبورد، كي بورد، كيبورد كمبيوتر
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-mouse
 - العرض: ماوس
-- الأجوبة المقبولة: ماوس، Mouse
+- الأجوبة المقبولة: ماوس، Mouse، فأرة كمبيوتر، فأرة، ماوس كمبيوتر، فأرة الحاسوب، Computer Mouse
 [ ] KEEP  [ ] EDIT  [ ] REMOVE
 
 ### tech-usb

@@ -19,7 +19,9 @@ import {
   GUESSING_CHALLENGE_REJECT_CARD_EVENT,
   GUESSING_CHALLENGE_USE_RED_CARD_EVENT,
   GUESSING_CHALLENGE_USE_YELLOW_CARD_EVENT,
+  GUESSING_CHALLENGE_WINNER_POINTS,
   isActiveMatchParticipant,
+  normalizeTextAnswer,
 } from '@wanasatna/shared';
 import { consumeLookLimit } from '../../../../lib/abuse-limiter.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
@@ -29,6 +31,11 @@ import {
   rejectIfGameSyncRateLimited,
   sendGameResponse,
 } from '../../game.socket.utils.js';
+import {
+  AnswerAttemptStatus,
+  AnswerRejectReason,
+  recordAnswerAttempt,
+} from '../../runtime/answer-attempt-log.js';
 import { ensureGuessingChallengeMatchStateWithTimer } from './init-match.js';
 import {
   broadcastPhaseChanged,
@@ -54,6 +61,7 @@ import {
   rejectSpecialCard,
   resetPlayerLook,
 } from './state.js';
+import { identityMatchesGuess } from './identities.js';
 import {
   deleteGuessingChallengeState,
   getGuessingChallengeState,
@@ -110,6 +118,60 @@ function respondWithView(
       view: buildGuessingChallengePlayerView(match, playerId, shell),
       ...extra,
     },
+  });
+}
+
+function classifyGuessingChallengeReject(message: string): {
+  status: AnswerAttemptStatus;
+  rejectReason: AnswerRejectReason | null;
+} {
+  if (message === 'انتهى هذا الدور.') {
+    return { status: AnswerAttemptStatus.LATE, rejectReason: null };
+  }
+  if (message === 'ليس دورك الآن') {
+    return { status: AnswerAttemptStatus.OUT_OF_TURN, rejectReason: null };
+  }
+  if (message === 'انتهت هذه الجولة.') {
+    return { status: AnswerAttemptStatus.LATE, rejectReason: null };
+  }
+  if (message === 'اكتب تخمينك أولًا') {
+    return { status: AnswerAttemptStatus.REJECTED, rejectReason: AnswerRejectReason.EMPTY };
+  }
+  if (message === 'لست مشاركاً في هذه المباراة.') {
+    return { status: AnswerAttemptStatus.REJECTED, rejectReason: AnswerRejectReason.NOT_PARTICIPANT };
+  }
+  return { status: AnswerAttemptStatus.REJECTED, rejectReason: AnswerRejectReason.VALIDATION };
+}
+
+async function logGuessingChallengeAttempt(
+  roomId: string,
+  playerId: string,
+  match: NonNullable<ReturnType<typeof getGuessingChallengeState>>,
+  rawAnswer: string,
+  fields: {
+    status: AnswerAttemptStatus;
+    rejectReason?: AnswerRejectReason | null;
+    wasCorrect: boolean | null;
+    wasCounted: boolean;
+    pointsAwarded?: number;
+  },
+): Promise<void> {
+  const teamId = match.teamByPlayerId[playerId] ?? null;
+  const identity = teamId ? match.round.identitiesByTeamId[teamId] : null;
+  await recordAnswerAttempt({
+    roomId,
+    gameId: GUESSING_CHALLENGE_GAME_ID,
+    playerId,
+    playerDisplayName: match.playerNames[playerId] ?? 'لاعب',
+    rawAnswer,
+    normalizedAnswer: rawAnswer.trim() ? normalizeTextAnswer(rawAnswer) || null : null,
+    roundIndex: match.currentRound,
+    roundId: match.round.roundId,
+    turnId: match.round.turnId,
+    promptId: identity?.id ?? null,
+    promptText: identity?.value ?? '',
+    teamId,
+    ...fields,
   });
 }
 
@@ -217,7 +279,7 @@ export function registerGuessingChallengeSocketHandlers(io: Server, socket: Sock
 
   socket.on(
     GUESSING_CHALLENGE_SUBMIT_FINAL_GUESS_EVENT,
-    (payload: GuessingChallengeSubmitFinalGuessPayload, callback) => {
+    async (payload: GuessingChallengeSubmitFinalGuessPayload, callback) => {
       const contextError = getGameSocketContext(socket);
 
       if (contextError) {
@@ -235,11 +297,20 @@ export function registerGuessingChallengeSocketHandlers(io: Server, socket: Sock
 
       ensureGuessingChallengeMatchStateWithTimer(io, roomId!);
       const current = getGuessingChallengeState(roomId!);
+      const rawGuess = typeof payload?.guess === 'string' ? payload.guess : '';
       if (
         !current ||
         !isActiveMatchParticipant(shell, playerId!) ||
         !isEligibleGuessingChallengeActor(current, playerId!)
       ) {
+        if (current) {
+          await logGuessingChallengeAttempt(roomId!, playerId!, current, rawGuess, {
+            status: AnswerAttemptStatus.REJECTED,
+            rejectReason: AnswerRejectReason.NOT_PARTICIPANT,
+            wasCorrect: null,
+            wasCounted: false,
+          });
+        }
         sendGameResponse(callback, notParticipantError());
         return;
       }
@@ -248,22 +319,51 @@ export function registerGuessingChallengeSocketHandlers(io: Server, socket: Sock
         () => getGuessingChallengeState(roomId!),
         (next) => setGuessingChallengeState(roomId!, next),
         playerId!,
-        typeof payload?.guess === 'string' ? payload.guess : '',
+        rawGuess,
         payload?.roundId ?? '',
         payload?.turnId ?? '',
       );
 
       if (!result.accepted) {
+        const classified = classifyGuessingChallengeReject(result.message);
+        const teamId = current.teamByPlayerId[playerId!];
+        const identity = teamId ? current.round.identitiesByTeamId[teamId] : null;
+        const isCorrect =
+          Boolean(identity && rawGuess.trim()) && identityMatchesGuess(identity!, rawGuess);
+        const status =
+          isCorrect && classified.status === AnswerAttemptStatus.LATE
+            ? current.round.winningTeamId
+              ? AnswerAttemptStatus.DUPLICATE
+              : AnswerAttemptStatus.CORRECT_NOT_COUNTED
+            : classified.status;
+        await logGuessingChallengeAttempt(roomId!, playerId!, current, rawGuess, {
+          status,
+          rejectReason: classified.rejectReason,
+          wasCorrect: isCorrect ? true : rawGuess.trim() ? false : null,
+          wasCounted: false,
+        });
         sendGameResponse(callback, invalidActionError(result.message));
         return;
       }
 
       if (result.correct) {
+        await logGuessingChallengeAttempt(roomId!, playerId!, result.match, rawGuess, {
+          status: AnswerAttemptStatus.CORRECT_COUNTED,
+          wasCorrect: true,
+          wasCounted: true,
+          pointsAwarded: GUESSING_CHALLENGE_WINNER_POINTS,
+        });
         startRoundResults(io, roomId!, result.match);
         respondWithView(callback, roomId!, playerId!, { guessCorrect: true });
         return;
       }
 
+      await logGuessingChallengeAttempt(roomId!, playerId!, result.match, rawGuess, {
+        status: AnswerAttemptStatus.WRONG_COUNTED,
+        wasCorrect: false,
+        wasCounted: true,
+        pointsAwarded: 0,
+      });
       restartGuessingChallengePhaseTimer(io, roomId!);
       broadcastPhaseChanged(io, roomId!);
       respondWithView(callback, roomId!, playerId!, {

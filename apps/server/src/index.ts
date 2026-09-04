@@ -6,6 +6,7 @@ import { createGracefulShutdown, registerProcessShutdownSignals } from "./lib/gr
 import { opsLogger, sanitizeErrorName } from "./lib/ops-logger.js";
 import { prisma } from "./lib/prisma.js";
 import { purgeExpiredAuthSessions } from "./modules/auth/auth-session-cleanup.js";
+import { purgeExpiredAnswerAttempts } from "./modules/game/runtime/answer-attempt-log.js";
 import { reconcilePersistedRoomLifecycle } from "./modules/room/services/room-startup-reconciliation.service.js";
 import { createSocketServer } from "./sockets/index.js";
 
@@ -32,6 +33,17 @@ async function start(): Promise<void> {
     });
   } catch (error) {
     opsLogger.error("auth-session-cleanup-failed", "تعذر تنظيف جلسات الدخول المنتهية.", {
+      errorName: sanitizeErrorName(error),
+    });
+  }
+
+  try {
+    const expiredAnswerAttemptsPurged = await purgeExpiredAnswerAttempts();
+    opsLogger.info("answer-attempt-cleanup", "تم حذف سجلات الإجابات المنتهية.", {
+      expiredAnswerAttemptsPurged,
+    });
+  } catch (error) {
+    opsLogger.error("answer-attempt-cleanup-failed", "تعذر تنظيف سجلات الإجابات المنتهية.", {
       errorName: sanitizeErrorName(error),
     });
   }

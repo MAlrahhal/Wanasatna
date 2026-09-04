@@ -258,7 +258,12 @@ export function unlockGameAudio(): void {
     node.el.muted = true;
     node.el.volume = 0;
     node.el.src = src;
+    node.busy = true;
+    activeCount += 1;
     const playPromise = node.el.play();
+    // Gesture already started playback; later SFX must not wait on this promise.
+    unlocked = true;
+
     const finish = (): void => {
       try {
         node.el.pause();
@@ -268,7 +273,7 @@ export function unlockGameAudio(): void {
       }
       node.el.muted = false;
       applyNodeVolume(node);
-      unlocked = true;
+      releaseNode(node);
       unlocking = false;
     };
 
@@ -276,6 +281,7 @@ export function unlockGameAudio(): void {
       void playPromise.then(finish).catch(() => {
         node.el.muted = false;
         applyNodeVolume(node);
+        releaseNode(node);
         unlocking = false;
       });
       return;
@@ -283,6 +289,9 @@ export function unlockGameAudio(): void {
 
     finish();
   } catch {
+    if (node.busy) {
+      releaseNode(node);
+    }
     unlocking = false;
   }
 }
@@ -348,9 +357,7 @@ export function playGameSound(id: GameSoundId, options?: PlayGameSoundOptions): 
     lastPlayedAt.set(id, now);
     node.gain = SOUND_GAIN[id];
     node.priority = priority;
-    if (node.el.src !== src && !node.el.src.endsWith(src)) {
-      node.el.src = src;
-    }
+    node.el.src = src;
     applyNodeVolume(node);
     node.el.currentTime = 0;
     node.busy = true;

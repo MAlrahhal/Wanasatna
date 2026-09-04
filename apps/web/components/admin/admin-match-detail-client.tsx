@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import type { AdminMatchDetails } from '@wanasatna/shared';
 import { fetchAdminMatch } from '@/lib/admin/api';
 import { ADMIN_COPY, ADMIN_MATCH_STATUS_LABEL } from '@/lib/admin/copy';
 import { adminGameTitle, formatAdminDateTime } from '@/lib/admin/format';
 import { ADMIN_ROUTES, adminUserPath } from '@/lib/admin/routes';
+import { AdminAnswerLogSection } from './admin-answer-log';
 
 export function AdminMatchDetailClient() {
   const params = useParams<{ matchId: string }>();
@@ -167,6 +168,14 @@ export function AdminMatchDetailClient() {
           </div>
         </>
       )}
+
+      <Suspense fallback={<p className="text-wanas-text-muted mt-8 text-sm">{ADMIN_COPY.resolving}</p>}>
+        <AdminAnswerLogSection
+          matchId={match.id}
+          gameId={match.gameId}
+          startedAt={match.startedAt}
+        />
+      </Suspense>
     </div>
   );
 }

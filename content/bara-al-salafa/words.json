@@ -741,7 +741,8 @@
     "text": "أستراليا",
     "categoryId": "countries",
     "aliases": [
-      "Australia"
+      "Australia",
+      "أوستراليا"
     ]
   },
   {
@@ -781,7 +782,8 @@
     "text": "سنغافورة",
     "categoryId": "countries",
     "aliases": [
-      "Singapore"
+      "Singapore",
+      "سينغافوره"
     ]
   },
   {
@@ -898,7 +900,8 @@
       "رونالدو",
       "كريستيانو",
       "Cristiano Ronaldo",
-      "CR7"
+      "CR7",
+      "Cristiano"
     ]
   },
   {
@@ -908,7 +911,9 @@
     "aliases": [
       "ليونيل",
       "ميسي",
-      "Lionel Messi"
+      "Lionel Messi",
+      "Leo Messi",
+      "Messi"
     ]
   },
   {
@@ -916,7 +921,10 @@
     "text": "نيمار",
     "categoryId": "football",
     "aliases": [
-      "Neymar"
+      "Neymar",
+      "Neymar Jr",
+      "Neymar Junior",
+      "نيمار جونيور"
     ]
   },
   {
@@ -927,7 +935,9 @@
       "كيليان",
       "مبابي",
       "Kylian Mbappe",
-      "Kylian Mbappé"
+      "Kylian Mbappé",
+      "Mbappe",
+      "Mbappé"
     ]
   },
   {
@@ -936,7 +946,9 @@
     "categoryId": "football",
     "aliases": [
       "صلاح",
-      "Mohamed Salah"
+      "Mohamed Salah",
+      "Mo Salah",
+      "Mohammed Salah"
     ]
   },
   {
@@ -945,7 +957,8 @@
     "categoryId": "football",
     "aliases": [
       "بنزيما",
-      "Karim Benzema"
+      "Karim Benzema",
+      "Benzema"
     ]
   },
   {
@@ -955,7 +968,9 @@
     "aliases": [
       "مودريتش",
       "Luka Modric",
-      "Luka Modrić"
+      "Luka Modrić",
+      "Modric",
+      "Modrić"
     ]
   },
   {
@@ -964,7 +979,8 @@
     "categoryId": "football",
     "aliases": [
       "ليفاندوفسكي",
-      "Robert Lewandowski"
+      "Robert Lewandowski",
+      "Lewandowski"
     ]
   },
   {
@@ -973,7 +989,8 @@
     "categoryId": "football",
     "aliases": [
       "هالاند",
-      "Erling Haaland"
+      "Erling Haaland",
+      "Haaland"
     ]
   },
   {
@@ -983,7 +1000,11 @@
     "aliases": [
       "فينيسيوس",
       "Vinicius Junior",
-      "Vinícius Júnior"
+      "Vinícius Júnior",
+      "Vini",
+      "Vini Jr",
+      "Vinicius",
+      "Vinicius Jr"
     ]
   },
   {
@@ -992,7 +1013,8 @@
     "categoryId": "football",
     "aliases": [
       "رونالدينهو",
-      "Ronaldinho"
+      "Ronaldinho",
+      "رونالدينو"
     ]
   },
   {
@@ -1001,7 +1023,8 @@
     "categoryId": "football",
     "aliases": [
       "زيدان",
-      "Zinedine Zidane"
+      "Zinedine Zidane",
+      "Zidane"
     ]
   },
   {
@@ -1010,7 +1033,8 @@
     "categoryId": "football",
     "aliases": [
       "بيكهام",
-      "David Beckham"
+      "David Beckham",
+      "Beckham"
     ]
   },
   {
@@ -1020,7 +1044,8 @@
     "aliases": [
       "إنييستا",
       "Iniesta",
-      "Andrés Iniesta"
+      "Andrés Iniesta",
+      "Andres Iniesta"
     ]
   },
   {
@@ -1028,7 +1053,8 @@
     "text": "تشافي",
     "categoryId": "football",
     "aliases": [
-      "Xavi"
+      "Xavi",
+      "شافي"
     ]
   },
   {
@@ -1037,7 +1063,8 @@
     "categoryId": "football",
     "aliases": [
       "راموس",
-      "Sergio Ramos"
+      "Sergio Ramos",
+      "Ramos"
     ]
   },
   {
@@ -1046,7 +1073,8 @@
     "categoryId": "football",
     "aliases": [
       "جانلويجي بوفون",
-      "Gianluigi Buffon"
+      "Gianluigi Buffon",
+      "Buffon"
     ]
   },
   {
@@ -1055,7 +1083,8 @@
     "categoryId": "football",
     "aliases": [
       "رونالدو البرازيلي",
-      "Ronaldo Nazário"
+      "Ronaldo Nazário",
+      "Ronaldo Nazario"
     ]
   },
   {
@@ -1063,7 +1092,8 @@
     "text": "بيليه",
     "categoryId": "football",
     "aliases": [
-      "Pelé"
+      "Pelé",
+      "Pele"
     ]
   },
   {
@@ -1072,7 +1102,9 @@
     "categoryId": "football",
     "aliases": [
       "دييغو مارادونا",
-      "Diego Maradona"
+      "Diego Maradona",
+      "Maradona",
+      "دييجو مارادونا"
     ]
   },
   {
@@ -1080,7 +1112,8 @@
     "text": "كاكا",
     "categoryId": "football",
     "aliases": [
-      "Kaká"
+      "Kaká",
+      "Kaka"
     ]
   },
   {
@@ -1089,7 +1122,8 @@
     "categoryId": "football",
     "aliases": [
       "نوير",
-      "Manuel Neuer"
+      "Manuel Neuer",
+      "Neuer"
     ]
   },
   {
@@ -1098,7 +1132,8 @@
     "categoryId": "football",
     "aliases": [
       "دي بروين",
-      "Kevin De Bruyne"
+      "Kevin De Bruyne",
+      "De Bruyne"
     ]
   },
   {
@@ -1107,7 +1142,8 @@
     "categoryId": "football",
     "aliases": [
       "فان دايك",
-      "Virgil van Dijk"
+      "Virgil van Dijk",
+      "Van Dijk"
     ]
   },
   {
@@ -1118,7 +1154,8 @@
       "جود بيلينجهام",
       "بيلينغهام",
       "بيلينجهام",
-      "Jude Bellingham"
+      "Jude Bellingham",
+      "Bellingham"
     ]
   },
   {
@@ -1129,7 +1166,9 @@
       "إبراهيموفيتش",
       "زلاتان",
       "Zlatan Ibrahimovic",
-      "Zlatan"
+      "Zlatan",
+      "Ibrahimovic",
+      "Ibra"
     ]
   },
   {
@@ -1138,7 +1177,8 @@
     "categoryId": "football",
     "aliases": [
       "هنري",
-      "Thierry Henry"
+      "Thierry Henry",
+      "Thierry"
     ]
   },
   {
@@ -1148,7 +1188,9 @@
     "aliases": [
       "كانتي",
       "N'Golo Kante",
-      "N'Golo Kanté"
+      "N'Golo Kanté",
+      "Kante",
+      "Kanté"
     ]
   },
   {
@@ -1157,7 +1199,8 @@
     "categoryId": "football",
     "aliases": [
       "محرز",
-      "Riyad Mahrez"
+      "Riyad Mahrez",
+      "Mahrez"
     ]
   },
   {
@@ -1167,7 +1210,9 @@
     "aliases": [
       "ماني",
       "Sadio Mane",
-      "Sadio Mané"
+      "Sadio Mané",
+      "Mane",
+      "Mané"
     ]
   },
   {
@@ -1176,7 +1221,8 @@
     "categoryId": "football",
     "aliases": [
       "حكيمي",
-      "Achraf Hakimi"
+      "Achraf Hakimi",
+      "Hakimi"
     ]
   },
   {
@@ -1185,7 +1231,8 @@
     "categoryId": "football",
     "aliases": [
       "سالم",
-      "Salem Al-Dawsari"
+      "Salem Al-Dawsari",
+      "Al Dawsari"
     ]
   },
   {
@@ -1194,7 +1241,8 @@
     "categoryId": "football",
     "aliases": [
       "سون",
-      "Son Heung-min"
+      "Son Heung-min",
+      "Son"
     ]
   },
   {
@@ -1204,7 +1252,9 @@
     "aliases": [
       "سواريز",
       "Luis Suarez",
-      "Luis Suárez"
+      "Luis Suárez",
+      "Suarez",
+      "Suárez"
     ]
   },
   {
@@ -1215,7 +1265,8 @@
       "أغويرو",
       "Aguero",
       "Sergio Aguero",
-      "Sergio Agüero"
+      "Sergio Agüero",
+      "Agüero"
     ]
   },
   {
@@ -1224,7 +1275,8 @@
     "categoryId": "football",
     "aliases": [
       "كروس",
-      "Toni Kroos"
+      "Toni Kroos",
+      "Kroos"
     ]
   },
   {
@@ -1253,7 +1305,8 @@
     "aliases": [
       "دي ماريا",
       "Ángel Di María",
-      "Di Maria"
+      "Di Maria",
+      "Angel Di Maria"
     ]
   },
   {
@@ -1262,9 +1315,11 @@
     "categoryId": "football",
     "aliases": [
       "روني",
-      "Wayne Rooney"
+      "Wayne Rooney",
+      "Rooney"
     ]
   },
+
   {
     "id": "series-1",
     "text": "Breaking Bad",
@@ -1280,7 +1335,9 @@
     "categoryId": "series",
     "aliases": [
       "Game",
-      "جيم أوف ثرونز"
+      "جيم أوف ثرونز",
+      "غيم اوف ثرونز",
+      "GOT"
     ]
   },
   {
@@ -1325,7 +1382,8 @@
     "aliases": [
       "Money Heist",
       "لا كاسا دي بابيل",
-      "لاكاسا دي بابيل"
+      "لاكاسا دي بابيل",
+      "لا كاسا دي بابل"
     ]
   },
   {
@@ -1384,7 +1442,8 @@
     "categoryId": "series",
     "aliases": [
       "فايكنغز",
-      "فايكنجز"
+      "فايكنجز",
+      "فايكنقز"
     ]
   },
   {

@@ -5,6 +5,7 @@ import {
   FAST_ANSWER_GAME_ID,
   FAST_ANSWER_SUBMIT_ANSWER_EVENT,
   FAST_ANSWER_SYNC_EVENT,
+  FAST_ANSWER_WINNER_POINTS,
   isActiveMatchParticipant,
 } from '@wanasatna/shared';
 import { getGameShellByRoomId } from '../../game.service.js';
@@ -18,7 +19,12 @@ import {
   playerRecoveryBlockedError,
 } from '../../runtime/player-recovery.js';
 import { isOversizedGameAnswer } from '../../runtime/game-answer-text.js';
-import { isCorrectAnswer } from './answers.js';
+import {
+  AnswerAttemptStatus,
+  AnswerRejectReason,
+  recordAnswerAttempt,
+} from '../../runtime/answer-attempt-log.js';
+import { isCorrectAnswer, normalizeAnswerText } from './answers.js';
 import { ensureFastAnswerMatchStateWithTimer } from './init-match.js';
 import { continueFromRoundResults, finalizeQuestionRound } from './match-lifecycle.js';
 import { clearFastAnswerPhaseTimerRuntime } from './phase-timer.js';
@@ -88,6 +94,42 @@ function respondWithView(
   });
 }
 
+function playerDisplayName(
+  match: NonNullable<ReturnType<typeof getFastAnswerState>>,
+  playerId: string,
+): string {
+  return match.playerNames[playerId] ?? 'لاعب';
+}
+
+async function logFastAnswerAttempt(
+  roomId: string,
+  playerId: string,
+  match: NonNullable<ReturnType<typeof getFastAnswerState>>,
+  rawAnswer: string,
+  fields: {
+    status: AnswerAttemptStatus;
+    rejectReason?: AnswerRejectReason | null;
+    wasCorrect: boolean | null;
+    wasCounted: boolean;
+    pointsAwarded?: number;
+  },
+): Promise<void> {
+  await recordAnswerAttempt({
+    roomId,
+    gameId: FAST_ANSWER_GAME_ID,
+    playerId,
+    playerDisplayName: playerDisplayName(match, playerId),
+    rawAnswer,
+    normalizedAnswer: rawAnswer.trim() ? normalizeAnswerText(rawAnswer) || null : null,
+    roundIndex: match.currentRound,
+    roundId: match.round.roundId,
+    turnId: null,
+    promptId: match.round.questionId,
+    promptText: match.round.question,
+    ...fields,
+  });
+}
+
 export function registerFastAnswerSocketHandlers(io: Server, socket: Socket): void {
   socket.on(FAST_ANSWER_SYNC_EVENT, (_payload: unknown, callback) => {
     const contextError = getGameSocketContext(socket);
@@ -118,7 +160,7 @@ export function registerFastAnswerSocketHandlers(io: Server, socket: Socket): vo
 
   socket.on(
     FAST_ANSWER_SUBMIT_ANSWER_EVENT,
-    (payload: FastAnswerSubmitAnswerPayload, callback) => {
+    async (payload: FastAnswerSubmitAnswerPayload, callback) => {
       const contextError = getGameSocketContext(socket);
 
       if (contextError) {
@@ -128,7 +170,17 @@ export function registerFastAnswerSocketHandlers(io: Server, socket: Socket): vo
 
       const { roomId, playerId } = socket.data;
 
-      if (recoveryBlockedResponse(roomId!, callback)) {
+      if (isPlayerRecoveryActive(roomId!)) {
+        const blockedMatch = getFastAnswerState(roomId!);
+        if (blockedMatch) {
+          await logFastAnswerAttempt(roomId!, playerId!, blockedMatch, '', {
+            status: AnswerAttemptStatus.REJECTED,
+            rejectReason: AnswerRejectReason.RECOVERY,
+            wasCorrect: null,
+            wasCounted: false,
+          });
+        }
+        sendGameResponse(callback, playerRecoveryBlockedError());
         return;
       }
 
@@ -141,12 +193,13 @@ export function registerFastAnswerSocketHandlers(io: Server, socket: Socket): vo
       }
 
       if (!isActiveMatchParticipant(shell, playerId!) || !match.playerIds.includes(playerId!)) {
+        await logFastAnswerAttempt(roomId!, playerId!, match, '', {
+          status: AnswerAttemptStatus.REJECTED,
+          rejectReason: AnswerRejectReason.NOT_PARTICIPANT,
+          wasCorrect: null,
+          wasCounted: false,
+        });
         sendGameResponse(callback, notParticipantError());
-        return;
-      }
-
-      if (match.round.gamePhase !== 'question' || match.round.winnerPlayerId !== null) {
-        sendGameResponse(callback, invalidActionError('لا يمكن إرسال إجابة الآن.'));
         return;
       }
 
@@ -154,28 +207,77 @@ export function registerFastAnswerSocketHandlers(io: Server, socket: Socket): vo
         payload && typeof payload === 'object' ? payload.answer : undefined;
       const roundId =
         payload && typeof payload === 'object' ? payload.roundId : undefined;
+      const rawAnswer = typeof answer === 'string' ? answer : '';
+
+      if (match.round.gamePhase !== 'question' || match.round.winnerPlayerId !== null) {
+        const isCorrect =
+          rawAnswer.trim().length > 0 &&
+          !isOversizedGameAnswer(rawAnswer) &&
+          isCorrectAnswer(rawAnswer, match.round.acceptedAnswers);
+        await logFastAnswerAttempt(roomId!, playerId!, match, rawAnswer, {
+          status: isCorrect ? AnswerAttemptStatus.CORRECT_NOT_COUNTED : AnswerAttemptStatus.LATE,
+          rejectReason: null,
+          wasCorrect: isCorrect,
+          wasCounted: false,
+        });
+        sendGameResponse(callback, invalidActionError('لا يمكن إرسال إجابة الآن.'));
+        return;
+      }
 
       if (typeof roundId !== 'string' || roundId.length === 0) {
+        await logFastAnswerAttempt(roomId!, playerId!, match, rawAnswer, {
+          status: AnswerAttemptStatus.REJECTED,
+          rejectReason: AnswerRejectReason.VALIDATION,
+          wasCorrect: null,
+          wasCounted: false,
+        });
         sendGameResponse(callback, invalidActionError('معرف الجولة غير صالح.'));
         return;
       }
 
       if (roundId !== match.round.roundId) {
+        const isCorrect =
+          rawAnswer.trim().length > 0 &&
+          !isOversizedGameAnswer(rawAnswer) &&
+          isCorrectAnswer(rawAnswer, match.round.acceptedAnswers);
+        await logFastAnswerAttempt(roomId!, playerId!, match, rawAnswer, {
+          status: isCorrect ? AnswerAttemptStatus.CORRECT_NOT_COUNTED : AnswerAttemptStatus.LATE,
+          rejectReason: null,
+          wasCorrect: isCorrect ? true : rawAnswer.trim() ? false : null,
+          wasCounted: false,
+        });
         sendGameResponse(callback, invalidActionError('انتهت هذه الجولة.'));
         return;
       }
 
       if (typeof answer !== 'string' || answer.trim().length === 0) {
+        await logFastAnswerAttempt(roomId!, playerId!, match, rawAnswer, {
+          status: AnswerAttemptStatus.REJECTED,
+          rejectReason: AnswerRejectReason.EMPTY,
+          wasCorrect: null,
+          wasCounted: false,
+        });
         sendGameResponse(callback, invalidActionError('الإجابة غير صالحة.'));
         return;
       }
 
       if (isOversizedGameAnswer(answer)) {
+        await logFastAnswerAttempt(roomId!, playerId!, match, answer, {
+          status: AnswerAttemptStatus.REJECTED,
+          rejectReason: AnswerRejectReason.OVERSIZED,
+          wasCorrect: null,
+          wasCounted: false,
+        });
         sendGameResponse(callback, invalidActionError('الإجابة طويلة جداً.'));
         return;
       }
 
       if (!isCorrectAnswer(answer, match.round.acceptedAnswers)) {
+        await logFastAnswerAttempt(roomId!, playerId!, match, answer, {
+          status: AnswerAttemptStatus.WRONG_NOT_COUNTED,
+          wasCorrect: false,
+          wasCounted: false,
+        });
         sendGameResponse(callback, {
           success: true,
           data: {
@@ -194,6 +296,14 @@ export function registerFastAnswerSocketHandlers(io: Server, socket: Socket): vo
       );
 
       if (!claim.accepted || !claim.match) {
+        await logFastAnswerAttempt(roomId!, playerId!, match, answer, {
+          status:
+            claim.reason === 'stale'
+              ? AnswerAttemptStatus.LATE
+              : AnswerAttemptStatus.CORRECT_NOT_COUNTED,
+          wasCorrect: true,
+          wasCounted: false,
+        });
         sendGameResponse(callback, {
           success: true,
           data: {
@@ -207,6 +317,13 @@ export function registerFastAnswerSocketHandlers(io: Server, socket: Socket): vo
         });
         return;
       }
+
+      await logFastAnswerAttempt(roomId!, playerId!, claim.match, answer, {
+        status: AnswerAttemptStatus.CORRECT_COUNTED,
+        wasCorrect: true,
+        wasCounted: true,
+        pointsAwarded: FAST_ANSWER_WINNER_POINTS,
+      });
 
       const finalized = finalizeQuestionRound(io, roomId!, claim.match, {
         winnerPlayerId: playerId!,

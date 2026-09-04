@@ -31,6 +31,34 @@ export const ADMIN_ANALYTICS_POLL_MS = 60_000;
 export const ADMIN_ANALYTICS_DEFAULT_RANGE = '7d';
 export const ADMIN_ANALYTICS_RANGES = ['24h', '7d', '30d', 'all'] as const;
 export const ADMIN_AUDIT_PAGE_SIZE = 50;
+export const ADMIN_ANSWER_ATTEMPT_PAGE_SIZE = 50;
+export const ANSWER_ATTEMPT_FEATURE_STARTED_AT = '2026-09-05T00:00:00+03:00';
+export const ANSWER_ATTEMPT_RETENTION_DAYS = 30;
+
+export const ANSWER_ATTEMPT_STATUSES = [
+  'CORRECT_COUNTED',
+  'CORRECT_NOT_COUNTED',
+  'WRONG_COUNTED',
+  'WRONG_NOT_COUNTED',
+  'REJECTED',
+  'LATE',
+  'OUT_OF_TURN',
+  'DUPLICATE',
+] as const;
+
+export type AnswerAttemptStatus = (typeof ANSWER_ATTEMPT_STATUSES)[number];
+
+export const ANSWER_REJECT_REASONS = [
+  'VALIDATION',
+  'NOT_PARTICIPANT',
+  'INVALID_ROLE',
+  'RECOVERY',
+  'EMPTY',
+  'OVERSIZED',
+  'GAME_NOT_READY',
+] as const;
+
+export type AnswerRejectReason = (typeof ANSWER_REJECT_REASONS)[number];
 
 export const ADMIN_AUDIT_ACTIONS = [
   'ROLE_PROMOTED',
@@ -241,6 +269,7 @@ export type AdminRoomHostAssignment = {
 
 export type AdminRoomHistoryMatch = AdminHistoryMatchListItem & {
   winnerDisplayNames: string[];
+  answerAttemptCount: number;
 };
 
 export type AdminRoomHistoryDetails = AdminRoomHistoryListItem & {
@@ -344,6 +373,39 @@ export type AdminHistoryParticipant = {
 
 export type AdminMatchDetails = AdminHistoryMatchListItem & {
   participants: AdminHistoryParticipant[];
+  answerAttemptCount: number;
+  roomHistoryId: string | null;
+};
+
+export type AdminAnswerAttempt = {
+  id: string;
+  submittedAt: string;
+  gameId: string;
+  playerDisplayName: string;
+  rawAnswer: string;
+  normalizedAnswer: string | null;
+  status: AnswerAttemptStatus;
+  rejectReason: AnswerRejectReason | null;
+  wasCorrect: boolean | null;
+  wasCounted: boolean;
+  pointsAwarded: number;
+  roundIndex: number | null;
+  roundId: string | null;
+  turnId: string | null;
+  promptId: string | null;
+  promptText: string;
+  teamId: string | null;
+};
+
+export type AdminAnswerAttemptData = {
+  matchId: string;
+  gameId: string;
+  startedAt: string;
+  historyAvailable: boolean;
+  attempts: AdminAnswerAttempt[];
+  total: number;
+  page: number;
+  pageSize: number;
 };
 
 export type AdminSystemEnvironment = 'production' | 'development';

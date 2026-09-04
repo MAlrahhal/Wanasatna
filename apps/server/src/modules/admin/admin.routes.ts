@@ -10,6 +10,7 @@ import type {
   AdminAnalyticsData,
   AdminHistoryData,
   AdminMatchDetails,
+  AdminAnswerAttemptData,
   AdminMeData,
   AdminRoomHistoryData,
   AdminRoomHistoryDetails,
@@ -29,7 +30,7 @@ import {
   getAdminRoomById,
   listAdminRooms,
 } from './admin-rooms.service.js';
-import { getAdminMatchById, listAdminHistory } from './admin-history.service.js';
+import { getAdminMatchById, listAdminHistory, listAdminMatchAnswerAttempts } from './admin-history.service.js';
 import { getAdminRoomHistoryById, listAdminRoomHistory } from './admin-room-history.service.js';
 import { getAdminAnalytics } from './admin-analytics.service.js';
 import { getAdminSystemSnapshot } from './admin-system.service.js';
@@ -465,6 +466,33 @@ adminRouter.get('/history', requireAdmin, async (req, res) => {
       page: req.query.page,
     });
     res.status(200).json({ success: true, data } satisfies AdminActionResponse<AdminHistoryData>);
+  } catch (error) {
+    if (isPrismaError(error)) {
+      sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_LOAD_FAILED);
+      return;
+    }
+    sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_LOAD_FAILED);
+  }
+});
+
+adminRouter.get('/history/:matchId/answers', requireAdmin, async (req, res) => {
+  const matchId = typeof req.params.matchId === 'string' ? req.params.matchId.trim() : '';
+  if (!matchId || matchId.length > 64) {
+    sendAdminJsonError(res, 400, 'VALIDATION_ERROR', 'معرّف المباراة غير صالح.');
+    return;
+  }
+
+  try {
+    const result = await listAdminMatchAnswerAttempts(matchId, {
+      page: req.query.page,
+      status: req.query.status,
+      roundIndex: req.query.roundIndex,
+    });
+    if (!result.success) {
+      sendAdminJsonError(res, 404, result.error.code, result.error.message);
+      return;
+    }
+    res.status(200).json(result satisfies AdminActionResponse<AdminAnswerAttemptData>);
   } catch (error) {
     if (isPrismaError(error)) {
       sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_LOAD_FAILED);

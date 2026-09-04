@@ -220,7 +220,7 @@ export async function getAdminRoomHistoryById(
           status: true,
           startedAt: true,
           endedAt: true,
-          _count: { select: { participants: true } },
+          _count: { select: { participants: true, answerAttempts: true } },
           participants: {
             where: { OR: [{ isWinner: true }, { rank: 1 }] },
             orderBy: { createdAt: 'asc' },
@@ -270,6 +270,7 @@ export async function getAdminRoomHistoryById(
         startedAt: toIso(match.startedAt),
         endedAt: match.endedAt ? toIso(match.endedAt) : null,
         participantCount: match._count.participants,
+        answerAttemptCount: match._count.answerAttempts,
         winnerDisplayNames: [...new Set(match.participants.map((row) => row.displayName))],
       })),
     },

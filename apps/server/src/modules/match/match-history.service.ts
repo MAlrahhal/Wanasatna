@@ -1,6 +1,7 @@
 import { MatchStatus, Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { opsLogger } from '../../lib/ops-logger.js';
+import { rememberAnswerLogContext } from '../game/runtime/answer-attempt-log.js';
 import type { BeginPersistedMatchInput, MatchParticipantResult } from './match-history.types.js';
 
 type MatchWriteDb = {
@@ -21,6 +22,21 @@ type MatchWriteDb = {
     findMany: Prisma.TransactionClient['player']['findMany'];
   };
 };
+
+function rememberPersistedMatchContext(
+  roomId: string,
+  match: { id: string; roomHistoryId: string | null; gameId: string } | null,
+): void {
+  if (!match?.roomHistoryId) {
+    return;
+  }
+
+  rememberAnswerLogContext(roomId, {
+    matchId: match.id,
+    roomHistoryId: match.roomHistoryId,
+    gameId: match.gameId,
+  });
+}
 
 function logMatchHistoryFailure(stage: string, details: Record<string, unknown>): void {
   opsLogger.error('match-history-write-failed', 'تعذر حفظ سجل المباراة.', {
@@ -54,6 +70,7 @@ export async function beginPersistedMatch(
   try {
     const existing = await findActiveMatchForRoom(roomId, db);
     if (existing) {
+      rememberPersistedMatchContext(roomId, existing);
       return existing.id;
     }
 
@@ -90,13 +107,15 @@ export async function beginPersistedMatch(
           }),
         },
       },
-      select: { id: true },
+      select: { id: true, roomHistoryId: true, gameId: true },
     });
 
+    rememberPersistedMatchContext(roomId, match);
     return match.id;
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       const existing = await findActiveMatchForRoom(roomId, db);
+      rememberPersistedMatchContext(roomId, existing);
       return existing?.id ?? null;
     }
 

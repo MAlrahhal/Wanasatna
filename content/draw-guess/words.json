@@ -144,7 +144,8 @@
     "text": "نحلة",
     "categoryId": "animals",
     "aliases": [
-      "Bee"
+      "Bee",
+      "النحل"
     ]
   },
   {
@@ -226,7 +227,8 @@
     "text": "طاووس",
     "categoryId": "animals",
     "aliases": [
-      "Peacock"
+      "Peacock",
+      "الطاؤوس"
     ]
   },
   {
@@ -268,7 +270,8 @@
     "categoryId": "animals",
     "aliases": [
       "Cheetah",
-      "الشيتا"
+      "الشيتا",
+      "الفهد الصياد"
     ]
   },
   {
@@ -276,7 +279,8 @@
     "text": "ببغاء",
     "categoryId": "animals",
     "aliases": [
-      "Parrot"
+      "Parrot",
+      "ببغا"
     ]
   },
   {
@@ -308,7 +312,8 @@
     "text": "بيتزا",
     "categoryId": "food",
     "aliases": [
-      "Pizza"
+      "Pizza",
+      "بيزا"
     ]
   },
   {
@@ -317,7 +322,12 @@
     "categoryId": "food",
     "aliases": [
       "برجر",
-      "Burger"
+      "Burger",
+      "برقر",
+      "همبرغر",
+      "همبرجر",
+      "Hamburger",
+      "Hamburgers"
     ]
   },
   {
@@ -325,7 +335,8 @@
     "text": "شاورما",
     "categoryId": "food",
     "aliases": [
-      "Shawarma"
+      "Shawarma",
+      "شاورمه"
     ]
   },
   {
@@ -352,7 +363,12 @@
   {
     "id": "food-7",
     "text": "كنافة",
-    "categoryId": "food"
+    "categoryId": "food",
+    "aliases": [
+      "Kunafa",
+      "Kanafeh",
+      "Knafeh"
+    ]
   },
   {
     "id": "food-8",
@@ -368,7 +384,10 @@
     "categoryId": "food",
     "aliases": [
       "مثلجات",
-      "Ice cream"
+      "Ice cream",
+      "بوظة",
+      "آيسكريم",
+      "Icecream"
     ]
   },
   {
@@ -378,7 +397,10 @@
     "aliases": [
       "دونت",
       "Donut",
-      "Doughnut"
+      "Doughnut",
+      "Donuts",
+      "Doughnuts",
+      "دوناتس"
     ]
   },
   {
@@ -387,7 +409,8 @@
     "categoryId": "food",
     "aliases": [
       "Pancake",
-      "Pancakes"
+      "Pancakes",
+      "بانكيك"
     ]
   },
   {
@@ -396,7 +419,8 @@
     "categoryId": "food",
     "aliases": [
       "Waffle",
-      "Waffles"
+      "Waffles",
+      "وافلز"
     ]
   },
   {
@@ -405,7 +429,10 @@
     "categoryId": "food",
     "aliases": [
       "Cupcake",
-      "Cup cake"
+      "Cup cake",
+      "كوب كيك",
+      "Cupcakes",
+      "كبكيك"
     ]
   },
   {
@@ -414,7 +441,10 @@
     "categoryId": "food",
     "aliases": [
       "سمبوسك",
-      "Samosa"
+      "Samosa",
+      "سمبوسا",
+      "ساموسا",
+      "Samosas"
     ]
   },
   {
@@ -423,7 +453,9 @@
     "categoryId": "food",
     "aliases": [
       "Cheesecake",
-      "Cheese cake"
+      "Cheese cake",
+      "تشيزكيك",
+      "Cheesecakes"
     ]
   },
   {
@@ -431,7 +463,11 @@
     "text": "بطيخ",
     "categoryId": "food",
     "aliases": [
-      "حبحب"
+      "حبحب",
+      "جح",
+      "بطيخة",
+      "Watermelon",
+      "بطيخ أحمر"
     ]
   },
   {
@@ -461,7 +497,10 @@
     "categoryId": "food",
     "aliases": [
       "بوشار",
-      "Popcorn"
+      "Popcorn",
+      "بوب كورن",
+      "بوبكورن",
+      "Pop Corn"
     ]
   },
   {
@@ -475,7 +514,15 @@
   {
     "id": "food-chocolate",
     "text": "شوكولاتة",
-    "categoryId": "food"
+    "categoryId": "food",
+    "aliases": [
+      "Chocolate",
+      "شوكلا",
+      "شوكولات",
+      "شوكليت",
+      "Chocolat",
+      "شوكلاته"
+    ]
   },
   {
     "id": "nature-1",
@@ -628,7 +675,10 @@
   {
     "id": "places-5",
     "text": "حديقة حيوان",
-    "categoryId": "places"
+    "categoryId": "places",
+    "aliases": [
+      "حديقة حيوانات"
+    ]
   },
   {
     "id": "places-6",
@@ -673,7 +723,10 @@
   {
     "id": "places-16",
     "text": "مسجد",
-    "categoryId": "places"
+    "categoryId": "places",
+    "aliases": [
+      "جامع"
+    ]
   },
   {
     "id": "places-17",
@@ -706,14 +759,36 @@
   {
     "id": "tech-1",
     "text": "هاتف",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "جوال",
+      "جوالات",
+      "موبايل",
+      "هاتف محمول",
+      "تلفون",
+      "تليفون",
+      "نقال",
+      "Phone",
+      "Mobile",
+      "Mobile Phone",
+      "Cellphone",
+      "Cell Phone",
+      "Smartphone",
+      "موبايل فون",
+      "تلفون محمول"
+    ]
   },
   {
     "id": "tech-2",
     "text": "لابتوب",
     "categoryId": "tech",
     "aliases": [
-      "Laptop"
+      "Laptop",
+      "لاب توب",
+      "Notebook",
+      "نوتبوك",
+      "نوت بوك",
+      "Laptop Computer"
     ]
   },
   {
@@ -722,7 +797,13 @@
     "categoryId": "tech",
     "aliases": [
       "Computer",
-      "PC"
+      "PC",
+      "حاسوب",
+      "كومبيوتر",
+      "بي سي",
+      "حاسب آلي",
+      "حاسب",
+      "Desktop"
     ]
   },
   {
@@ -730,7 +811,10 @@
     "text": "روبوت",
     "categoryId": "tech",
     "aliases": [
-      "Robot"
+      "Robot",
+      "إنسان آلي",
+      "روبوتات",
+      "Robots"
     ]
   },
   {
@@ -739,7 +823,9 @@
     "categoryId": "tech",
     "aliases": [
       "كامره",
-      "Camera"
+      "Camera",
+      "كميرا",
+      "كاميرة"
     ]
   },
   {
@@ -748,7 +834,16 @@
     "categoryId": "tech",
     "aliases": [
       "Wireless Earbuds",
-      "Earbuds"
+      "Earbuds",
+      "Headphones",
+      "Headset",
+      "سماعة",
+      "سماعات رأس",
+      "هيدفون",
+      "هيدفونز",
+      "هيدست",
+      "Earphones",
+      "سماعات اذن"
     ]
   },
   {
@@ -757,38 +852,65 @@
     "categoryId": "tech",
     "aliases": [
       "Keyboard",
-      "كيبورد"
+      "كيبورد",
+      "كي بورد",
+      "كيبورد كمبيوتر"
     ]
   },
   {
     "id": "tech-8",
     "text": "فأرة كمبيوتر",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "فأرة",
+      "ماوس",
+      "Mouse",
+      "ماوس كمبيوتر",
+      "فأرة الحاسوب",
+      "Computer Mouse"
+    ]
   },
   {
     "id": "tech-9",
     "text": "شاشة",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "Screen",
+      "Monitor",
+      "مونيتور",
+      "شاشة كمبيوتر",
+      "Display"
+    ]
   },
   {
     "id": "tech-10",
     "text": "طابعة",
     "categoryId": "tech",
     "aliases": [
-      "Printer"
+      "Printer",
+      "برنتر"
     ]
   },
   {
     "id": "tech-11",
     "text": "ساعة ذكية",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "Smartwatch",
+      "Smart Watch",
+      "سمارت واتش",
+      "ساعة سمارت"
+    ]
   },
   {
     "id": "tech-12",
     "text": "شاحن",
     "categoryId": "tech",
     "aliases": [
-      "Charger"
+      "Charger",
+      "تشارجر",
+      "شاحن جوال",
+      "شاحن هاتف"
     ]
   },
   {
@@ -796,7 +918,11 @@
     "text": "باور بانك",
     "categoryId": "tech",
     "aliases": [
-      "Power Bank"
+      "Power Bank",
+      "باوربانك",
+      "PowerBank",
+      "بنك طاقة",
+      "بطارية خارجية"
     ]
   },
   {
@@ -804,7 +930,10 @@
     "text": "درون",
     "categoryId": "tech",
     "aliases": [
-      "Drone"
+      "Drone",
+      "طائرة بدون طيار",
+      "كوادكوبتر",
+      "كواد كوبتر"
     ]
   },
   {
@@ -815,13 +944,29 @@
       "بلاي ستيشن",
       "PlayStation",
       "Sony",
-      "سوني"
+      "سوني",
+      "PS",
+      "PS3",
+      "PS4",
+      "PS5",
+      "Play Station",
+      "بلايستيشن 4",
+      "بلايستيشن 5",
+      "بلاي ستيشن 4",
+      "بلاي ستيشن 5"
     ]
   },
   {
     "id": "tech-16",
     "text": "يد تحكم",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "Controller",
+      "Gamepad",
+      "كونترولر",
+      "يد ألعاب",
+      "Game Controller"
+    ]
   },
   {
     "id": "tech-17",
@@ -829,20 +974,38 @@
     "categoryId": "tech",
     "aliases": [
       "VR",
-      "VR Headset"
+      "VR Headset",
+      "نظارة VR",
+      "في ار",
+      "VR Glasses",
+      "واقع افتراضي",
+      "Virtual Reality"
     ]
   },
   {
     "id": "tech-18",
     "text": "ميكروفون",
-    "categoryId": "tech"
+    "categoryId": "tech",
+    "aliases": [
+      "Microphone",
+      "مايك",
+      "مايكروفون",
+      "Mic",
+      "مايك فون"
+    ]
   },
   {
     "id": "tech-19",
     "text": "فلاش ميموري",
     "categoryId": "tech",
     "aliases": [
-      "Flash Memory"
+      "Flash Memory",
+      "Flash Drive",
+      "USB Flash",
+      "فلاش",
+      "Thumb Drive",
+      "USB Stick",
+      "يو اس بي فلاش"
     ]
   },
   {
@@ -851,7 +1014,9 @@
     "categoryId": "tech",
     "aliases": [
       "TV",
-      "Television"
+      "Television",
+      "تلفزيون",
+      "تي في"
     ]
   },
   {
@@ -859,7 +1024,11 @@
     "text": "ريموت",
     "categoryId": "tech",
     "aliases": [
-      "Remote"
+      "Remote",
+      "Remote Control",
+      "ريموت كنترول",
+      "ريموت كونترول",
+      "التحكم عن بعد"
     ]
   },
   {
@@ -867,7 +1036,10 @@
     "text": "تابلت",
     "categoryId": "tech",
     "aliases": [
-      "Tablet"
+      "Tablet",
+      "جهاز لوحي",
+      "لوحي",
+      "Tablet PC"
     ]
   },
   {
@@ -875,7 +1047,8 @@
     "text": "بطارية",
     "categoryId": "tech",
     "aliases": [
-      "Battery"
+      "Battery",
+      "باتري"
     ]
   },
   {
@@ -883,7 +1056,11 @@
     "text": "سبيكر",
     "categoryId": "tech",
     "aliases": [
-      "Speaker"
+      "Speaker",
+      "Speakers",
+      "مكبر صوت",
+      "مكبرات صوت",
+      "سبيكرات"
     ]
   },
   {
@@ -891,7 +1068,10 @@
     "text": "آلة حاسبة",
     "categoryId": "tech",
     "aliases": [
-      "Calculator"
+      "Calculator",
+      "حاسبة",
+      "كالكيوليتر",
+      "كلكوليتر"
     ]
   },
   {
@@ -899,7 +1079,9 @@
     "text": "إكس بوكس",
     "categoryId": "tech",
     "aliases": [
-      "Xbox"
+      "Xbox",
+      "Xbox 360",
+      "Xbox One"
     ]
   }
 ]

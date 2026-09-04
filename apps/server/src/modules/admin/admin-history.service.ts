@@ -1,11 +1,18 @@
 import { MatchStatus, type Prisma } from '@prisma/client';
 import type {
   AdminActionResponse,
+  AdminAnswerAttemptData,
   AdminHistoryData,
   AdminMatchDetails,
   AdminMatchStatus,
+  AnswerAttemptStatus,
 } from '@wanasatna/shared';
-import { ADMIN_HISTORY_PAGE_SIZE } from '@wanasatna/shared';
+import {
+  ADMIN_ANSWER_ATTEMPT_PAGE_SIZE,
+  ADMIN_HISTORY_PAGE_SIZE,
+  ANSWER_ATTEMPT_FEATURE_STARTED_AT,
+  ANSWER_ATTEMPT_STATUSES,
+} from '@wanasatna/shared';
 import { prisma } from '../../lib/prisma.js';
 
 function toIso(value: Date): string {
@@ -107,7 +114,8 @@ export async function getAdminMatchById(
       status: true,
       startedAt: true,
       endedAt: true,
-      _count: { select: { participants: true } },
+      roomHistoryId: true,
+      _count: { select: { participants: true, answerAttempts: true } },
       participants: {
         orderBy: [{ rank: 'asc' }, { createdAt: 'asc' }],
         select: {
@@ -139,6 +147,8 @@ export async function getAdminMatchById(
       startedAt: toIso(match.startedAt),
       endedAt: match.endedAt ? toIso(match.endedAt) : null,
       participantCount: match._count.participants,
+      answerAttemptCount: match._count.answerAttempts,
+      roomHistoryId: match.roomHistoryId,
       participants: match.participants.map((participant) => ({
         displayName: participant.displayName,
         hasLinkedUser: Boolean(participant.userId),
@@ -147,6 +157,119 @@ export async function getAdminMatchById(
         rank: participant.rank,
         team: participant.team,
         isWinner: participant.isWinner,
+      })),
+    },
+  };
+}
+
+function parseAnswerStatus(raw: unknown): AnswerAttemptStatus | undefined {
+  if (typeof raw !== 'string') {
+    return undefined;
+  }
+  return ANSWER_ATTEMPT_STATUSES.includes(raw as AnswerAttemptStatus)
+    ? (raw as AnswerAttemptStatus)
+    : undefined;
+}
+
+function parseRoundIndex(raw: unknown): number | undefined {
+  const value = typeof raw === 'string' || typeof raw === 'number' ? Number(raw) : Number.NaN;
+  if (!Number.isInteger(value) || value < 1 || value > 10_000) {
+    return undefined;
+  }
+  return value;
+}
+
+function isAnswerHistoryAvailable(startedAt: Date, attemptCount: number): boolean {
+  if (attemptCount > 0) {
+    return true;
+  }
+  return startedAt.getTime() >= new Date(ANSWER_ATTEMPT_FEATURE_STARTED_AT).getTime();
+}
+
+export async function listAdminMatchAnswerAttempts(
+  matchId: string,
+  query: { page?: unknown; status?: unknown; roundIndex?: unknown } = {},
+): Promise<AdminActionResponse<AdminAnswerAttemptData>> {
+  const match = await prisma.match.findUnique({
+    where: { id: matchId },
+    select: { id: true, gameId: true, startedAt: true },
+  });
+
+  if (!match) {
+    return {
+      success: false,
+      error: { code: 'MATCH_NOT_FOUND', message: 'المباراة غير موجودة.' },
+    };
+  }
+
+  const page = parsePage(query.page);
+  const pageSize = ADMIN_ANSWER_ATTEMPT_PAGE_SIZE;
+  const status = parseAnswerStatus(query.status);
+  const roundIndex = parseRoundIndex(query.roundIndex);
+  const where: Prisma.AnswerAttemptWhereInput = {
+    matchId,
+    ...(status ? { status } : {}),
+    ...(roundIndex !== undefined ? { roundIndex } : {}),
+  };
+
+  const [total, rows, loggedCount] = await Promise.all([
+    prisma.answerAttempt.count({ where }),
+    prisma.answerAttempt.findMany({
+      where,
+      orderBy: [{ submittedAt: 'desc' }, { id: 'desc' }],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select: {
+        id: true,
+        submittedAt: true,
+        gameId: true,
+        playerDisplayName: true,
+        rawAnswer: true,
+        normalizedAnswer: true,
+        status: true,
+        rejectReason: true,
+        wasCorrect: true,
+        wasCounted: true,
+        pointsAwarded: true,
+        roundIndex: true,
+        roundId: true,
+        turnId: true,
+        promptId: true,
+        promptText: true,
+        teamId: true,
+      },
+    }),
+    prisma.answerAttempt.count({ where: { matchId } }),
+  ]);
+
+  return {
+    success: true,
+    data: {
+      matchId: match.id,
+      gameId: match.gameId,
+      startedAt: toIso(match.startedAt),
+      historyAvailable: isAnswerHistoryAvailable(match.startedAt, loggedCount),
+      page,
+      pageSize,
+      total,
+      attempts: rows.map((row) => ({
+        id: row.id,
+        submittedAt: toIso(row.submittedAt),
+        gameId: row.gameId,
+        playerDisplayName: row.playerDisplayName,
+        rawAnswer: row.rawAnswer,
+        normalizedAnswer: row.normalizedAnswer,
+        status: row.status,
+        rejectReason: row.rejectReason,
+        wasCorrect: row.wasCorrect,
+        wasCounted: row.wasCounted,
+        pointsAwarded: row.pointsAwarded,
+        roundIndex: row.roundIndex,
+        roundId: row.roundId,
+        turnId: row.turnId,
+        promptId: row.promptId,
+        promptText: row.promptText,
+        teamId: row.teamId,
       })),
     },
   };

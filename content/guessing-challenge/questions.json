@@ -190,7 +190,8 @@
     "question": "بيتزا",
     "acceptedAnswers": [
       "بيتزا",
-      "Pizza"
+      "Pizza",
+      "بيزا"
     ]
   },
   {
@@ -200,7 +201,12 @@
     "acceptedAnswers": [
       "برغر",
       "برجر",
-      "Burger"
+      "Burger",
+      "برقر",
+      "همبرغر",
+      "همبرجر",
+      "Hamburger",
+      "Hamburgers"
     ]
   },
   {
@@ -209,7 +215,8 @@
     "question": "شاورما",
     "acceptedAnswers": [
       "شاورما",
-      "Shawarma"
+      "Shawarma",
+      "شاورمه"
     ]
   },
   {
@@ -251,7 +258,10 @@
     "categoryId": "food",
     "question": "كنافة",
     "acceptedAnswers": [
-      "كنافة"
+      "كنافة",
+      "Kunafa",
+      "Kanafeh",
+      "Knafeh"
     ]
   },
   {
@@ -270,7 +280,10 @@
     "acceptedAnswers": [
       "آيس كريم",
       "مثلجات",
-      "Ice cream"
+      "Ice cream",
+      "بوظة",
+      "آيسكريم",
+      "Icecream"
     ]
   },
   {
@@ -281,7 +294,10 @@
       "دونات",
       "دونت",
       "Donut",
-      "Doughnut"
+      "Doughnut",
+      "Donuts",
+      "Doughnuts",
+      "دوناتس"
     ]
   },
   {
@@ -291,7 +307,8 @@
     "acceptedAnswers": [
       "بان كيك",
       "Pancake",
-      "Pancakes"
+      "Pancakes",
+      "بانكيك"
     ]
   },
   {
@@ -301,7 +318,8 @@
     "acceptedAnswers": [
       "وافل",
       "Waffle",
-      "Waffles"
+      "Waffles",
+      "وافلز"
     ]
   },
   {
@@ -311,7 +329,10 @@
     "acceptedAnswers": [
       "سمبوسة",
       "سمبوسك",
-      "Samosa"
+      "Samosa",
+      "سمبوسا",
+      "ساموسا",
+      "Samosas"
     ]
   },
   {
@@ -321,7 +342,9 @@
     "acceptedAnswers": [
       "تشيز كيك",
       "Cheesecake",
-      "Cheese cake"
+      "Cheese cake",
+      "تشيزكيك",
+      "Cheesecakes"
     ]
   },
   {
@@ -330,7 +353,11 @@
     "question": "بطيخ",
     "acceptedAnswers": [
       "بطيخ",
-      "حبحب"
+      "حبحب",
+      "جح",
+      "بطيخة",
+      "Watermelon",
+      "بطيخ أحمر"
     ]
   },
   {
@@ -358,7 +385,10 @@
     "acceptedAnswers": [
       "فشار",
       "بوشار",
-      "Popcorn"
+      "Popcorn",
+      "بوب كورن",
+      "بوبكورن",
+      "Pop Corn"
     ]
   },
   {
@@ -366,7 +396,13 @@
     "categoryId": "food",
     "question": "شوكولاتة",
     "acceptedAnswers": [
-      "شوكولاتة"
+      "شوكولاتة",
+      "Chocolate",
+      "شوكلا",
+      "شوكولات",
+      "شوكليت",
+      "Chocolat",
+      "شوكلاته"
     ]
   },
   {
@@ -570,7 +606,8 @@
       "رونالدو",
       "كريستيانو",
       "Cristiano Ronaldo",
-      "CR7"
+      "CR7",
+      "Cristiano"
     ]
   },
   {
@@ -581,7 +618,9 @@
       "ليونيل ميسي",
       "ليونيل",
       "ميسي",
-      "Lionel Messi"
+      "Lionel Messi",
+      "Leo Messi",
+      "Messi"
     ]
   },
   {
@@ -590,7 +629,10 @@
     "question": "نيمار",
     "acceptedAnswers": [
       "نيمار",
-      "Neymar"
+      "Neymar",
+      "Neymar Jr",
+      "Neymar Junior",
+      "نيمار جونيور"
     ]
   },
   {
@@ -602,7 +644,9 @@
       "كيليان",
       "مبابي",
       "Kylian Mbappe",
-      "Kylian Mbappé"
+      "Kylian Mbappé",
+      "Mbappe",
+      "Mbappé"
     ]
   },
   {
@@ -612,7 +656,9 @@
     "acceptedAnswers": [
       "محمد صلاح",
       "صلاح",
-      "Mohamed Salah"
+      "Mohamed Salah",
+      "Mo Salah",
+      "Mohammed Salah"
     ]
   },
   {
@@ -622,7 +668,8 @@
     "acceptedAnswers": [
       "كريم بنزيما",
       "بنزيما",
-      "Karim Benzema"
+      "Karim Benzema",
+      "Benzema"
     ]
   },
   {
@@ -633,7 +680,9 @@
       "لوكا مودريتش",
       "مودريتش",
       "Luka Modric",
-      "Luka Modrić"
+      "Luka Modrić",
+      "Modric",
+      "Modrić"
     ]
   },
   {
@@ -643,7 +692,8 @@
     "acceptedAnswers": [
       "روبرت ليفاندوفسكي",
       "ليفاندوفسكي",
-      "Robert Lewandowski"
+      "Robert Lewandowski",
+      "Lewandowski"
     ]
   },
   {
@@ -653,7 +703,8 @@
     "acceptedAnswers": [
       "إيرلينغ هالاند",
       "هالاند",
-      "Erling Haaland"
+      "Erling Haaland",
+      "Haaland"
     ]
   },
   {
@@ -664,7 +715,11 @@
       "فينيسيوس جونيور",
       "فينيسيوس",
       "Vinicius Junior",
-      "Vinícius Júnior"
+      "Vinícius Júnior",
+      "Vini",
+      "Vini Jr",
+      "Vinicius",
+      "Vinicius Jr"
     ]
   },
   {
@@ -674,7 +729,8 @@
     "acceptedAnswers": [
       "رونالدينيو",
       "رونالدينهو",
-      "Ronaldinho"
+      "Ronaldinho",
+      "رونالدينو"
     ]
   },
   {
@@ -684,7 +740,8 @@
     "acceptedAnswers": [
       "زين الدين زيدان",
       "زيدان",
-      "Zinedine Zidane"
+      "Zinedine Zidane",
+      "Zidane"
     ]
   },
   {
@@ -694,7 +751,8 @@
     "acceptedAnswers": [
       "ديفيد بيكهام",
       "بيكهام",
-      "David Beckham"
+      "David Beckham",
+      "Beckham"
     ]
   },
   {
@@ -705,7 +763,8 @@
       "أندريس إنييستا",
       "إنييستا",
       "Iniesta",
-      "Andrés Iniesta"
+      "Andrés Iniesta",
+      "Andres Iniesta"
     ]
   },
   {
@@ -714,7 +773,8 @@
     "question": "تشافي",
     "acceptedAnswers": [
       "تشافي",
-      "Xavi"
+      "Xavi",
+      "شافي"
     ]
   },
   {
@@ -724,7 +784,8 @@
     "acceptedAnswers": [
       "سيرجيو راموس",
       "راموس",
-      "Sergio Ramos"
+      "Sergio Ramos",
+      "Ramos"
     ]
   },
   {
@@ -734,7 +795,8 @@
     "acceptedAnswers": [
       "بوفون",
       "جانلويجي بوفون",
-      "Gianluigi Buffon"
+      "Gianluigi Buffon",
+      "Buffon"
     ]
   },
   {
@@ -744,7 +806,8 @@
     "acceptedAnswers": [
       "رونالدو نازاريو",
       "رونالدو البرازيلي",
-      "Ronaldo Nazário"
+      "Ronaldo Nazário",
+      "Ronaldo Nazario"
     ]
   },
   {
@@ -753,7 +816,8 @@
     "question": "بيليه",
     "acceptedAnswers": [
       "بيليه",
-      "Pelé"
+      "Pelé",
+      "Pele"
     ]
   },
   {
@@ -763,7 +827,9 @@
     "acceptedAnswers": [
       "مارادونا",
       "دييغو مارادونا",
-      "Diego Maradona"
+      "Diego Maradona",
+      "Maradona",
+      "دييجو مارادونا"
     ]
   },
   {
@@ -783,7 +849,9 @@
     "acceptedAnswers": [
       "Game of Thrones",
       "Game",
-      "جيم أوف ثرونز"
+      "جيم أوف ثرونز",
+      "غيم اوف ثرونز",
+      "GOT"
     ]
   },
   {
@@ -833,7 +901,8 @@
       "La Casa de Papel",
       "Money Heist",
       "لا كاسا دي بابيل",
-      "لاكاسا دي بابيل"
+      "لاكاسا دي بابيل",
+      "لا كاسا دي بابل"
     ]
   },
   {
@@ -899,7 +968,8 @@
     "acceptedAnswers": [
       "Vikings",
       "فايكنغز",
-      "فايكنجز"
+      "فايكنجز",
+      "فايكنقز"
     ]
   },
   {
@@ -958,7 +1028,8 @@
       "Minecraft",
       "Mine craft",
       "ماينكرافت",
-      "ماين كرافت"
+      "ماين كرافت",
+      "ماين كرفات"
     ]
   },
   {
@@ -967,7 +1038,10 @@
     "question": "Fortnite",
     "acceptedAnswers": [
       "Fortnite",
-      "فورتنايت"
+      "فورتنايت",
+      "فورت نايت",
+      "Fortnite Battle Royale",
+      "Fortnite BR"
     ]
   },
   {
@@ -989,7 +1063,11 @@
       "GTA 5",
       "GTA V",
       "قراند 5",
-      "Grand Theft Auto V"
+      "Grand Theft Auto V",
+      "Grand Theft Auto 5",
+      "جراند 5",
+      "جي تي اي 5",
+      "جي تي اي V"
     ]
   },
   {
@@ -1020,7 +1098,9 @@
     "acceptedAnswers": [
       "Rocket League",
       "روكيت ليق",
-      "روكيت ليغ"
+      "روكيت ليغ",
+      "RocketLeague",
+      "روكيت ليج"
     ]
   },
   {
@@ -1029,7 +1109,9 @@
     "question": "Valorant",
     "acceptedAnswers": [
       "Valorant",
-      "فالورانت"
+      "فالورانت",
+      "Valo",
+      "فالورنت"
     ]
   },
   {
@@ -1038,7 +1120,12 @@
     "question": "League of Legends",
     "acceptedAnswers": [
       "League of Legends",
-      "LoL"
+      "LoL",
+      "LeagueOfLegends",
+      "لول",
+      "ليغ أوف ليجندز",
+      "ليق أوف ليجندز",
+      "ليج أوف ليجندز"
     ]
   },
   {
@@ -1049,7 +1136,11 @@
       "Counter-Strike",
       "كاونتر سترايك",
       "CS",
-      "CS2"
+      "CS2",
+      "CounterStrike",
+      "CS 2",
+      "كاونترسترايك",
+      "كاونتر سترايك 2"
     ]
   },
   {
@@ -1058,7 +1149,8 @@
     "question": "Overwatch",
     "acceptedAnswers": [
       "Overwatch",
-      "أوفرواتش"
+      "أوفرواتش",
+      "اوفر واتش"
     ]
   },
   {
@@ -1068,7 +1160,10 @@
     "acceptedAnswers": [
       "Marvel Rivals",
       "مارفل رايفلز",
-      "مارفل ريفالز"
+      "مارفل ريفالز",
+      "MarvelRivals",
+      "Marvel Rivals game",
+      "مارفل ريفلز"
     ]
   },
   {
@@ -1077,7 +1172,12 @@
     "question": "Among Us",
     "acceptedAnswers": [
       "Among Us",
-      "امونغ اس"
+      "امونغ اس",
+      "AmongUs",
+      "امونق اس",
+      "امونق اوس",
+      "أمونج أس",
+      "امونج اوس"
     ]
   },
   {
@@ -1086,7 +1186,15 @@
     "question": "The Last of Us",
     "acceptedAnswers": [
       "The Last of Us",
-      "ذا لاست أوف أس"
+      "ذا لاست أوف أس",
+      "TheLastOfUs",
+      "Last of Us",
+      "TLOU",
+      "ذا لاست اف اس",
+      "ذا لاست اوف يوس",
+      "ذا لاست اوف اوس",
+      "لاست أوف أس",
+      "لاست اوف يوس"
     ]
   },
   {
@@ -1096,7 +1204,15 @@
     "acceptedAnswers": [
       "Red Dead Redemption 2",
       "ريد ديد 2",
-      "RDR2"
+      "RDR2",
+      "Red Dead Redemption II",
+      "Red Dead 2",
+      "RDR 2",
+      "RDR II",
+      "ريد ديد ريدمبشن 2",
+      "ريد ديد ريدمشن 2",
+      "ريد ديد ردمبشن 2",
+      "ريد ديد ريدمبشن تو"
     ]
   },
   {
@@ -1107,7 +1223,12 @@
       "Resident Evil",
       "ريزدنت إيفل",
       "رزدنت ايفل",
-      "RE"
+      "RE",
+      "ResidentEvil",
+      "Biohazard",
+      "بايوهازرد",
+      "بايو هازرد",
+      "بايوهازارد"
     ]
   },
   {
@@ -1117,7 +1238,13 @@
     "acceptedAnswers": [
       "Assassin's Creed",
       "اساسنز كريد",
-      "Assassin"
+      "Assassin",
+      "Assassin Creed",
+      "AssassinCreed",
+      "اساسن كريد",
+      "أسسن كريد",
+      "اسسين كريد",
+      "اسسنز كريد"
     ]
   },
   {
@@ -1127,7 +1254,15 @@
     "acceptedAnswers": [
       "God of War",
       "قاد أوف وور",
-      "جاد أوف وور"
+      "جاد أوف وور",
+      "GodOfWar",
+      "غود أوف وار",
+      "غود أوف وور",
+      "جود أوف وار",
+      "جود أوف وور",
+      "قود أوف وار",
+      "قود أوف وور",
+      "إله الحرب"
     ]
   },
   {
@@ -1137,7 +1272,13 @@
     "acceptedAnswers": [
       "Elden Ring",
       "إلدن رينغ",
-      "الدن رينق"
+      "الدن رينق",
+      "EldenRing",
+      "الدن رينغ",
+      "إلدن رينج",
+      "الدن رينج",
+      "إلدين رينغ",
+      "إلدين رينج"
     ]
   },
   {
@@ -1197,7 +1338,9 @@
       "بلاي ستيشن",
       "PlayStation",
       "Sony",
-      "سوني"
+      "سوني",
+      "PS",
+      "Play Station"
     ]
   },
   {
@@ -1226,7 +1369,12 @@
     "question": "لابتوب",
     "acceptedAnswers": [
       "لابتوب",
-      "Laptop"
+      "Laptop",
+      "لاب توب",
+      "Notebook",
+      "نوتبوك",
+      "نوت بوك",
+      "Laptop Computer"
     ]
   },
   {
@@ -1236,7 +1384,11 @@
     "acceptedAnswers": [
       "كمبيوتر",
       "Computer",
-      "PC"
+      "PC",
+      "حاسوب",
+      "كومبيوتر",
+      "بي سي",
+      "حاسب آلي"
     ]
   },
   {
@@ -1245,7 +1397,10 @@
     "question": "روبوت",
     "acceptedAnswers": [
       "روبوت",
-      "Robot"
+      "Robot",
+      "إنسان آلي",
+      "روبوتات",
+      "Robots"
     ]
   },
   {
@@ -1254,7 +1409,8 @@
     "question": "درون",
     "acceptedAnswers": [
       "درون",
-      "Drone"
+      "Drone",
+      "طائرة بدون طيار"
     ]
   },
   {
@@ -1264,7 +1420,10 @@
     "acceptedAnswers": [
       "ساعة",
       "ساعة ذكية",
-      "Smartwatch"
+      "Smartwatch",
+      "Smart Watch",
+      "سمارت واتش",
+      "ساعة سمارت"
     ]
   },
   {
@@ -1284,7 +1443,9 @@
     "acceptedAnswers": [
       "كاميرا",
       "كامره",
-      "Camera"
+      "Camera",
+      "كميرا",
+      "كاميرة"
     ]
   },
   {
@@ -1293,7 +1454,8 @@
     "question": "طابعة",
     "acceptedAnswers": [
       "طابعة",
-      "Printer"
+      "Printer",
+      "برنتر"
     ]
   },
   {
@@ -1302,7 +1464,12 @@
     "question": "فلاش ميموري",
     "acceptedAnswers": [
       "فلاش ميموري",
-      "Flash Memory"
+      "Flash Memory",
+      "Flash Drive",
+      "USB Flash",
+      "Thumb Drive",
+      "USB Stick",
+      "يو اس بي فلاش"
     ]
   },
   {
@@ -1311,7 +1478,10 @@
     "question": "باور بانك",
     "acceptedAnswers": [
       "باور بانك",
-      "Power Bank"
+      "Power Bank",
+      "باوربانك",
+      "PowerBank",
+      "بنك طاقة"
     ]
   },
   {
@@ -1321,12 +1491,15 @@
     "acceptedAnswers": [
       "نظارة واقع افتراضي",
       "VR",
-      "VR Headset"
+      "VR Headset",
+      "نظارة VR",
+      "في ار",
+      "VR Glasses"
     ]
   },
   {"id":"animals-owl","categoryId":"animals","question":"بومة","acceptedAnswers":["بومة","Owl"]},
   {"id":"animals-hedgehog","categoryId":"animals","question":"قنفذ","acceptedAnswers":["قنفذ","Hedgehog"]},
-  {"id":"animals-peacock","categoryId":"animals","question":"طاووس","acceptedAnswers":["طاووس","Peacock"]},
+  {"id":"animals-peacock","categoryId":"animals","question":"طاووس","acceptedAnswers":["طاووس","Peacock","الطاؤوس"]},
   {"id":"animals-hippo","categoryId":"animals","question":"فرس النهر","acceptedAnswers":["فرس النهر","Hippo","Hippopotamus"]},
   {"id":"animals-rhino","categoryId":"animals","question":"وحيد القرن","acceptedAnswers":["وحيد القرن","Rhino","Rhinoceros"]},
   {"id":"animals-bat","categoryId":"animals","question":"خفاش","acceptedAnswers":["خفاش","Bat","وطواط"]},
@@ -1334,17 +1507,17 @@
   {"id":"animals-hyena","categoryId":"animals","question":"ضبع","acceptedAnswers":["ضبع","Hyena"]},
   {"id":"animals-hamster","categoryId":"animals","question":"هامستر","acceptedAnswers":["هامستر","Hamster"]},
   {"id":"animals-gazelle","categoryId":"animals","question":"غزال","acceptedAnswers":["غزال","Gazelle"]},
-  {"id":"animals-cheetah","categoryId":"animals","question":"فهد","acceptedAnswers":["فهد","Cheetah","الشيتا"]},
-  {"id":"animals-parrot","categoryId":"animals","question":"ببغاء","acceptedAnswers":["ببغاء","Parrot"]},
+  {"id":"animals-cheetah","categoryId":"animals","question":"فهد","acceptedAnswers":["فهد","Cheetah","الشيتا","الفهد الصياد"]},
+  {"id":"animals-parrot","categoryId":"animals","question":"ببغاء","acceptedAnswers":["ببغاء","Parrot","ببغا"]},
   {"id":"animals-frog","categoryId":"animals","question":"ضفدع","acceptedAnswers":["ضفدع","Frog"]},
-  {"id":"animals-bee","categoryId":"animals","question":"نحلة","acceptedAnswers":["نحلة","Bee"]},
+  {"id":"animals-bee","categoryId":"animals","question":"نحلة","acceptedAnswers":["نحلة","Bee","النحل"]},
   {"id":"animals-butterfly","categoryId":"animals","question":"فراشة","acceptedAnswers":["فراشة","Butterfly"]},
   {"id":"animals-ant","categoryId":"animals","question":"نملة","acceptedAnswers":["نملة","Ant"]},
   {"id":"food-harees","categoryId":"food","question":"هريس","acceptedAnswers":["هريس","Harees"]},
   {"id":"food-masoub","categoryId":"food","question":"معصوب","acceptedAnswers":["معصوب","Masoub"]},
-  {"id":"food-dates","categoryId":"food","question":"تمر","acceptedAnswers":["تمر","Dates"]},
+  {"id":"food-dates","categoryId":"food","question":"تمر","acceptedAnswers":["تمر","Dates","تمور","Date"]},
   {"id":"food-mutabbaq","categoryId":"food","question":"مطبق","acceptedAnswers":["مطبق","Mutabbaq"]},
-  {"id":"food-mansaf","categoryId":"food","question":"منسف","acceptedAnswers":["منسف","Mansaf"]},
+  {"id":"food-mansaf","categoryId":"food","question":"منسف","acceptedAnswers":["منسف","Mansaf","منسف أردني","Jordanian Mansaf"]},
   {"id":"food-kibbeh","categoryId":"food","question":"كبة","acceptedAnswers":["كبة","Kibbeh"]},
   {"id":"food-maqluba","categoryId":"food","question":"مقلوبة","acceptedAnswers":["مقلوبة","Maqluba","Maklouba"]},
   {"id":"food-om-ali","categoryId":"food","question":"أم علي","acceptedAnswers":["أم علي","Om Ali","Umm Ali"]},
@@ -1353,12 +1526,12 @@
   {"id":"food-muhallabia","categoryId":"food","question":"مهلبية","acceptedAnswers":["مهلبية","Muhallabia","Mahalabia"]},
   {"id":"food-lentil-soup","categoryId":"food","question":"شوربة عدس","acceptedAnswers":["شوربة عدس","شوربة العدس","عدس","Lentil soup"]},
   {"id":"countries-canada","categoryId":"countries","question":"كندا","acceptedAnswers":["كندا","Canada"]},
-  {"id":"countries-australia","categoryId":"countries","question":"أستراليا","acceptedAnswers":["أستراليا","Australia"]},
+  {"id":"countries-australia","categoryId":"countries","question":"أستراليا","acceptedAnswers":["أستراليا","Australia","أوستراليا"]},
   {"id":"countries-mexico","categoryId":"countries","question":"المكسيك","acceptedAnswers":["المكسيك","Mexico"]},
   {"id":"countries-greece","categoryId":"countries","question":"اليونان","acceptedAnswers":["اليونان","Greece"]},
   {"id":"countries-portugal","categoryId":"countries","question":"البرتغال","acceptedAnswers":["البرتغال","Portugal"]},
   {"id":"countries-south-korea","categoryId":"countries","question":"كوريا الجنوبية","acceptedAnswers":["كوريا الجنوبية","South Korea"]},
-  {"id":"countries-singapore","categoryId":"countries","question":"سنغافورة","acceptedAnswers":["سنغافورة","Singapore"]},
+  {"id":"countries-singapore","categoryId":"countries","question":"سنغافورة","acceptedAnswers":["سنغافورة","Singapore","سينغافوره"]},
   {"id":"countries-argentina","categoryId":"countries","question":"الأرجنتين","acceptedAnswers":["الأرجنتين","Argentina"]},
   {"id":"countries-iraq","categoryId":"countries","question":"العراق","acceptedAnswers":["العراق","Iraq"]},
   {"id":"countries-lebanon","categoryId":"countries","question":"لبنان","acceptedAnswers":["لبنان","Lebanon"]},
@@ -1372,26 +1545,26 @@
   {"id":"countries-palestine","categoryId":"countries","question":"فلسطين","acceptedAnswers":["فلسطين","Palestine"]},
   {"id":"countries-sweden","categoryId":"countries","question":"السويد","acceptedAnswers":["السويد","Sweden"]},
   {"id":"countries-switzerland","categoryId":"countries","question":"سويسرا","acceptedAnswers":["سويسرا","Switzerland"]},
-  {"id":"football-kaka","categoryId":"football","question":"كاكا","acceptedAnswers":["كاكا","Kaká"]},
-  {"id":"football-neuer","categoryId":"football","question":"مانويل نوير","acceptedAnswers":["مانويل نوير","نوير","Manuel Neuer"]},
-  {"id":"football-de-bruyne","categoryId":"football","question":"كيفن دي بروين","acceptedAnswers":["كيفن دي بروين","دي بروين","Kevin De Bruyne"]},
-  {"id":"football-van-dijk","categoryId":"football","question":"فيرجيل فان دايك","acceptedAnswers":["فيرجيل فان دايك","فان دايك","Virgil van Dijk"]},
-  {"id":"football-bellingham","categoryId":"football","question":"جود بيلينغهام","acceptedAnswers":["جود بيلينغهام","جود بيلينجهام","بيلينغهام","بيلينجهام","Jude Bellingham"]},
-  {"id":"football-ibrahimovic","categoryId":"football","question":"زلاتان إبراهيموفيتش","acceptedAnswers":["زلاتان إبراهيموفيتش","إبراهيموفيتش","زلاتان","Zlatan Ibrahimovic","Zlatan"]},
-  {"id":"football-henry","categoryId":"football","question":"تييري هنري","acceptedAnswers":["تييري هنري","هنري","Thierry Henry"]},
-  {"id":"football-kante","categoryId":"football","question":"نغولو كانتي","acceptedAnswers":["نغولو كانتي","كانتي","N'Golo Kante","N'Golo Kanté"]},
-  {"id":"football-mahrez","categoryId":"football","question":"رياض محرز","acceptedAnswers":["رياض محرز","محرز","Riyad Mahrez"]},
-  {"id":"football-mane","categoryId":"football","question":"ساديو ماني","acceptedAnswers":["ساديو ماني","ماني","Sadio Mane","Sadio Mané"]},
-  {"id":"football-hakimi","categoryId":"football","question":"أشرف حكيمي","acceptedAnswers":["أشرف حكيمي","حكيمي","Achraf Hakimi"]},
-  {"id":"football-dawsari","categoryId":"football","question":"سالم الدوسري","acceptedAnswers":["سالم الدوسري","سالم","Salem Al-Dawsari"]},
-  {"id":"football-son","categoryId":"football","question":"سون هيونغ مين","acceptedAnswers":["سون هيونغ مين","سون","Son Heung-min"]},
-  {"id":"football-suarez","categoryId":"football","question":"لويس سواريز","acceptedAnswers":["لويس سواريز","سواريز","Luis Suarez","Luis Suárez"]},
-  {"id":"football-aguero","categoryId":"football","question":"سيرجيو أغويرو","acceptedAnswers":["سيرجيو أغويرو","أغويرو","Aguero","Sergio Aguero","Sergio Agüero"]},
-  {"id":"football-kroos","categoryId":"football","question":"توني كروس","acceptedAnswers":["توني كروس","كروس","Toni Kroos"]},
+  {"id":"football-kaka","categoryId":"football","question":"كاكا","acceptedAnswers":["كاكا","Kaká","Kaka"]},
+  {"id":"football-neuer","categoryId":"football","question":"مانويل نوير","acceptedAnswers":["مانويل نوير","نوير","Manuel Neuer","Neuer"]},
+  {"id":"football-de-bruyne","categoryId":"football","question":"كيفن دي بروين","acceptedAnswers":["كيفن دي بروين","دي بروين","Kevin De Bruyne","De Bruyne"]},
+  {"id":"football-van-dijk","categoryId":"football","question":"فيرجيل فان دايك","acceptedAnswers":["فيرجيل فان دايك","فان دايك","Virgil van Dijk","Van Dijk"]},
+  {"id":"football-bellingham","categoryId":"football","question":"جود بيلينغهام","acceptedAnswers":["جود بيلينغهام","جود بيلينجهام","بيلينغهام","بيلينجهام","Jude Bellingham","Bellingham"]},
+  {"id":"football-ibrahimovic","categoryId":"football","question":"زلاتان إبراهيموفيتش","acceptedAnswers":["زلاتان إبراهيموفيتش","إبراهيموفيتش","زلاتان","Zlatan Ibrahimovic","Zlatan","Ibrahimovic","Ibra"]},
+  {"id":"football-henry","categoryId":"football","question":"تييري هنري","acceptedAnswers":["تييري هنري","هنري","Thierry Henry","Thierry"]},
+  {"id":"football-kante","categoryId":"football","question":"نغولو كانتي","acceptedAnswers":["نغولو كانتي","كانتي","N'Golo Kante","N'Golo Kanté","Kante","Kanté"]},
+  {"id":"football-mahrez","categoryId":"football","question":"رياض محرز","acceptedAnswers":["رياض محرز","محرز","Riyad Mahrez","Mahrez"]},
+  {"id":"football-mane","categoryId":"football","question":"ساديو ماني","acceptedAnswers":["ساديو ماني","ماني","Sadio Mane","Sadio Mané","Mane","Mané"]},
+  {"id":"football-hakimi","categoryId":"football","question":"أشرف حكيمي","acceptedAnswers":["أشرف حكيمي","حكيمي","Achraf Hakimi","Hakimi"]},
+  {"id":"football-dawsari","categoryId":"football","question":"سالم الدوسري","acceptedAnswers":["سالم الدوسري","سالم","Salem Al-Dawsari","Al Dawsari"]},
+  {"id":"football-son","categoryId":"football","question":"سون هيونغ مين","acceptedAnswers":["سون هيونغ مين","سون","Son Heung-min","Son"]},
+  {"id":"football-suarez","categoryId":"football","question":"لويس سواريز","acceptedAnswers":["لويس سواريز","سواريز","Luis Suarez","Luis Suárez","Suarez","Suárez"]},
+  {"id":"football-aguero","categoryId":"football","question":"سيرجيو أغويرو","acceptedAnswers":["سيرجيو أغويرو","أغويرو","Aguero","Sergio Aguero","Sergio Agüero","Agüero"]},
+  {"id":"football-kroos","categoryId":"football","question":"توني كروس","acceptedAnswers":["توني كروس","كروس","Toni Kroos","Kroos"]},
   {"id":"football-griezmann","categoryId":"football","question":"أنطوان غريزمان","acceptedAnswers":["أنطوان غريزمان","غريزمان","Griezmann","Antoine Griezmann"]},
   {"id":"football-kane","categoryId":"football","question":"هاري كين","acceptedAnswers":["هاري كين","كين","Harry Kane"]},
-  {"id":"football-di-maria","categoryId":"football","question":"أنخيل دي ماريا","acceptedAnswers":["أنخيل دي ماريا","دي ماريا","Ángel Di María","Di Maria"]},
-  {"id":"football-rooney","categoryId":"football","question":"واين روني","acceptedAnswers":["واين روني","روني","Wayne Rooney"]},
+  {"id":"football-di-maria","categoryId":"football","question":"أنخيل دي ماريا","acceptedAnswers":["أنخيل دي ماريا","دي ماريا","Ángel Di María","Di Maria","Angel Di Maria"]},
+  {"id":"football-rooney","categoryId":"football","question":"واين روني","acceptedAnswers":["واين روني","روني","Wayne Rooney","Rooney"]},
   {"id":"series-friends","categoryId":"series","question":"Friends","acceptedAnswers":["Friends","فريندز","أصدقاء"]},
   {"id":"series-office","categoryId":"series","question":"The Office","acceptedAnswers":["The Office","ذا أوفيس","المكتب"]},
   {"id":"series-himym","categoryId":"series","question":"How I Met Your Mother","acceptedAnswers":["How I Met Your Mother","هاو آي مت يور ماذر","كيف قابلت أمك"]},
@@ -1403,20 +1576,20 @@
   {"id":"series-blacklist","categoryId":"series","question":"The Blacklist","acceptedAnswers":["The Blacklist","ذا بلاك ليست","بلاك ليست"]},
   {"id":"series-mentalist","categoryId":"series","question":"The Mentalist","acceptedAnswers":["The Mentalist","ذا منتاليست","منتاليست"]},
   {"id":"series-chernobyl","categoryId":"series","question":"Chernobyl","acceptedAnswers":["Chernobyl","تشيرنوبل","تشيرنوبيل"]},
-  {"id":"games-mario","categoryId":"games","question":"Super Mario","acceptedAnswers":["Super Mario","Mario","ماريو"]},
-  {"id":"games-zelda","categoryId":"games","question":"The Legend of Zelda","acceptedAnswers":["The Legend of Zelda","Zelda","زيلدا"]},
-  {"id":"games-pokemon","categoryId":"games","question":"Pokémon","acceptedAnswers":["Pokémon","Pokemon","بوكيمون"]},
-  {"id":"games-roblox","categoryId":"games","question":"Roblox","acceptedAnswers":["Roblox","روبلوكس"]},
-  {"id":"games-free-fire","categoryId":"games","question":"Free Fire","acceptedAnswers":["Free Fire","فري فاير"]},
-  {"id":"games-clash-clans","categoryId":"games","question":"Clash of Clans","acceptedAnswers":["Clash of Clans","كلاش أوف كلانس"]},
-  {"id":"games-genshin","categoryId":"games","question":"Genshin Impact","acceptedAnswers":["Genshin Impact","جينشن"]},
-  {"id":"games-tekken","categoryId":"games","question":"Tekken","acceptedAnswers":["Tekken","تيكن"]},
+  {"id":"games-mario","categoryId":"games","question":"Super Mario","acceptedAnswers":["Super Mario","Mario","ماريو","SuperMario","Super Mario Bros","Super Mario Brothers","سوبر ماريو","سوبرماريو","سوبر ماريو بروس","سوبر ماريو برذرز","سوبر ماريو براذرز","ماريو بروس","ماريو برذرز","ماريو بروذرز","ماريو براذرز"]},
+  {"id":"games-zelda","categoryId":"games","question":"The Legend of Zelda","acceptedAnswers":["The Legend of Zelda","Zelda","زيلدا","Legend of Zelda","TLOZ","LOZ","ليجند أوف زيلدا","ليجند اف زيلدا","أسطورة زيلدا"]},
+  {"id":"games-pokemon","categoryId":"games","question":"Pokémon","acceptedAnswers":["Pokémon","Pokemon","بوكيمون","بوكمان","بوكيمونز"]},
+  {"id":"games-roblox","categoryId":"games","question":"Roblox","acceptedAnswers":["Roblox","روبلوكس","روبلكس","روبلاكس","ربلوكس"]},
+  {"id":"games-free-fire","categoryId":"games","question":"Free Fire","acceptedAnswers":["Free Fire","فري فاير","FreeFire","Garena Free Fire","فريفاير"]},
+  {"id":"games-clash-clans","categoryId":"games","question":"Clash of Clans","acceptedAnswers":["Clash of Clans","كلاش أوف كلانس","ClashOfClans","كلاش اف كلانس","كلاش اوف كلانز","كلاش كلانس"]},
+  {"id":"games-genshin","categoryId":"games","question":"Genshin Impact","acceptedAnswers":["Genshin Impact","جينشن","GenshinImpact","Genshin","جينشين","جينشين إمباكت"]},
+  {"id":"games-tekken","categoryId":"games","question":"Tekken","acceptedAnswers":["Tekken","تيكن","تيكين"]},
   {"id":"games-efootball","categoryId":"games","question":"PES","acceptedAnswers":["PES","eFootball","بيس"]},
-  {"id":"games-sims","categoryId":"games","question":"The Sims","acceptedAnswers":["The Sims","ذا سيمز"]},
-  {"id":"games-dark-souls","categoryId":"games","question":"Dark Souls","acceptedAnswers":["Dark Souls","دارك سولز"]},
-  {"id":"games-clash-royale","categoryId":"games","question":"Clash Royale","acceptedAnswers":["Clash Royale","كلاش رويال"]},
-  {"id":"games-candy-crush","categoryId":"games","question":"Candy Crush","acceptedAnswers":["Candy Crush","كاندي كراش"]},
-  {"id":"games-subway","categoryId":"games","question":"Subway Surfers","acceptedAnswers":["Subway Surfers","سبواي سيرفرز"]},
+  {"id":"games-sims","categoryId":"games","question":"The Sims","acceptedAnswers":["The Sims","ذا سيمز","TheSims","Sims","ذا سيمس","سيمز","سيمس"]},
+  {"id":"games-dark-souls","categoryId":"games","question":"Dark Souls","acceptedAnswers":["Dark Souls","دارك سولز","DarkSouls","دارك سولس"]},
+  {"id":"games-clash-royale","categoryId":"games","question":"Clash Royale","acceptedAnswers":["Clash Royale","كلاش رويال","ClashRoyale","Clash Royale Game","كلاش روييل"]},
+  {"id":"games-candy-crush","categoryId":"games","question":"Candy Crush","acceptedAnswers":["Candy Crush","كاندي كراش","CandyCrush","Candy Crush Saga","CandyCrushSaga","كاندي كرش","كاندي كراش ساغا","كاندي كراش صاغا"]},
+  {"id":"games-subway","categoryId":"games","question":"Subway Surfers","acceptedAnswers":["Subway Surfers","سبواي سيرفرز","SubwaySurfers","Subway Surfer","سابواي سيرفرز","سابوي سيرفرز","صبواي سيرفرز","سبواي سيرفر","سابواي سيرفر","ساب واي سيرفرز"]},
   {"id":"tech-whatsapp","categoryId":"tech","question":"واتساب","acceptedAnswers":["واتساب","WhatsApp"]},
   {"id":"tech-youtube","categoryId":"tech","question":"يوتيوب","acceptedAnswers":["يوتيوب","YouTube"]},
   {"id":"tech-tiktok","categoryId":"tech","question":"تيك توك","acceptedAnswers":["تيك توك","TikTok"]},
@@ -1424,17 +1597,17 @@
   {"id":"tech-snapchat","categoryId":"tech","question":"سناب شات","acceptedAnswers":["سناب شات","Snapchat"]},
   {"id":"tech-google","categoryId":"tech","question":"جوجل","acceptedAnswers":["جوجل","Google"]},
   {"id":"tech-wifi","categoryId":"tech","question":"واي فاي","acceptedAnswers":["واي فاي","WiFi","Wi-Fi"]},
-  {"id":"tech-charger","categoryId":"tech","question":"شاحن","acceptedAnswers":["شاحن","Charger"]},
+  {"id":"tech-charger","categoryId":"tech","question":"شاحن","acceptedAnswers":["شاحن","Charger","تشارجر"]},
   {"id":"tech-router","categoryId":"tech","question":"راوتر","acceptedAnswers":["راوتر","Router"]},
-  {"id":"tech-tv","categoryId":"tech","question":"تلفاز","acceptedAnswers":["تلفاز","TV","Television"]},
-  {"id":"tech-tablet","categoryId":"tech","question":"تابلت","acceptedAnswers":["تابلت","Tablet"]},
+  {"id":"tech-tv","categoryId":"tech","question":"تلفاز","acceptedAnswers":["تلفاز","TV","Television","تلفزيون","تي في"]},
+  {"id":"tech-tablet","categoryId":"tech","question":"تابلت","acceptedAnswers":["تابلت","Tablet","جهاز لوحي","Tablet PC"]},
   {"id":"tech-airpods","categoryId":"tech","question":"إيربودز","acceptedAnswers":["إيربودز","AirPods"]},
   {"id":"tech-ai","categoryId":"tech","question":"ذكاء اصطناعي","acceptedAnswers":["ذكاء اصطناعي","AI","Artificial Intelligence"]},
-  {"id":"tech-remote","categoryId":"tech","question":"ريموت","acceptedAnswers":["ريموت","Remote"]},
-  {"id":"tech-battery","categoryId":"tech","question":"بطارية","acceptedAnswers":["بطارية","Battery"]},
-  {"id":"tech-calculator","categoryId":"tech","question":"آلة حاسبة","acceptedAnswers":["آلة حاسبة","Calculator"]},
-  {"id":"tech-keyboard","categoryId":"tech","question":"لوحة مفاتيح","acceptedAnswers":["لوحة مفاتيح","Keyboard","كيبورد"]},
-  {"id":"tech-mouse","categoryId":"tech","question":"ماوس","acceptedAnswers":["ماوس","Mouse"]},
+  {"id":"tech-remote","categoryId":"tech","question":"ريموت","acceptedAnswers":["ريموت","Remote","Remote Control","ريموت كنترول","ريموت كونترول"]},
+  {"id":"tech-battery","categoryId":"tech","question":"بطارية","acceptedAnswers":["بطارية","Battery","باتري"]},
+  {"id":"tech-calculator","categoryId":"tech","question":"آلة حاسبة","acceptedAnswers":["آلة حاسبة","Calculator","حاسبة","كالكيوليتر","كلكوليتر"]},
+  {"id":"tech-keyboard","categoryId":"tech","question":"لوحة مفاتيح","acceptedAnswers":["لوحة مفاتيح","Keyboard","كيبورد","كي بورد","كيبورد كمبيوتر"]},
+  {"id":"tech-mouse","categoryId":"tech","question":"ماوس","acceptedAnswers":["ماوس","Mouse","فأرة كمبيوتر","فأرة","ماوس كمبيوتر","فأرة الحاسوب","Computer Mouse"]},
   {"id":"tech-usb","categoryId":"tech","question":"يو اس بي","acceptedAnswers":["يو اس بي","USB"]},
   {"id":"tech-sim","categoryId":"tech","question":"شريحة جوال","acceptedAnswers":["شريحة جوال","SIM","SIM Card"]},
   {"id":"tech-radio","categoryId":"tech","question":"راديو","acceptedAnswers":["راديو","Radio"]}
