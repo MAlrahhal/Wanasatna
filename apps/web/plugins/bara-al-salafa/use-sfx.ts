@@ -53,6 +53,9 @@ function decide(prev: Snap, next: Snap) {
       turnKey: next.turnKey,
       spectator: next.spectator,
     }),
+    next.phase === 'reveal-impostor' && prev.phase !== 'reveal-impostor'
+      ? { id: 'imposter-reveal' as const, eventKey: `reveal:bara:${next.round}` }
+      : null,
     decideRoundResult({
       prevReady: true,
       prevPhase: prev.phase,

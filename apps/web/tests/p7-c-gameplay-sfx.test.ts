@@ -456,6 +456,16 @@ void (async () => {
     );
     assert.match(read('plugins/imposter-draw/use-sfx.ts'), /imposter-reveal/);
     assert.match(read('plugins/imposter-draw/use-sfx.ts'), /reveal:imposter-draw:/);
+    assert.match(read('plugins/bara-al-salafa/use-sfx.ts'), /imposter-reveal/);
+    assert.match(read('plugins/bara-al-salafa/use-sfx.ts'), /reveal:bara:/);
+    assert.match(read('plugins/fast-answer/use-sfx.ts'), /decidePublicCorrect/);
+    assert.match(read('plugins/draw-guess/use-sfx.ts'), /decidePublicCorrect/);
+    assert.match(read('plugins/guessing-challenge/use-sfx.ts'), /decidePublicCorrect/);
+    assert.doesNotMatch(read('plugins/judge/use-sfx.ts'), /decidePublicCorrect|'correct'/);
+    assert.doesNotMatch(read('plugins/who-wrote-it/use-sfx.ts'), /'correct'/);
+    assert.doesNotMatch(read('plugins/bara-al-salafa/use-sfx.ts'), /'correct'/);
+    assert.doesNotMatch(read('plugins/timing-challenge/use-sfx.ts'), /'correct'|imposter-reveal/);
+    assert.match(read('lib/game/use-shared-countdown-sfx.ts'), /decided\.play === 3/);
     assert.doesNotMatch(read('plugins/imposter-draw/use-sfx.ts'), /RESULT_PHASES/);
     assert.doesNotMatch(read('plugins/guessing-challenge/playing-screen.tsx'), /playGameSound/);
     assert.doesNotMatch(read('plugins/bara-al-salafa/countdown-screen.tsx'), /playGameSound/);

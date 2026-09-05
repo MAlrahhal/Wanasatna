@@ -157,6 +157,12 @@ def main() -> None:
     shutil.copy2(SRC / "Correct.mp3", OUT / "correct.mp3")
     print(f"correct.mp3 {mp3_duration_seconds(OUT / 'correct.mp3'):.3f}s")
 
+    params, samples = read_wav(SRC / "mixkit-simple-game-countdown-921.wav")
+    # 3-2-1 beeps at 0s/1s/2s, GO at 3.00-3.16s, then unused silence.
+    countdown = fade(params, slice_frames(params, samples, 0.0, 3.22), 0.002, 0.02)
+    write_wav(OUT / "countdown-tick.wav", params, countdown)
+    print(f"countdown-tick.wav {duration(params, countdown):.3f}s")
+
     leftover = OUT / "correct.wav"
     if leftover.exists():
         leftover.unlink()

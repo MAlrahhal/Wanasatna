@@ -4,7 +4,6 @@ import { useMemo } from 'react';
 import type { JudgePlayerView } from '@wanasatna/shared';
 import {
   decideFinalCue,
-  decidePublicCorrect,
   decideRoundResult,
   decideYourTurn,
   localWonMatch,
@@ -19,7 +18,6 @@ type Snap = {
   roundId: string;
   acting: boolean;
   spectator: boolean;
-  hasWinner: boolean;
   localWon: boolean;
   round: number;
 };
@@ -32,12 +30,6 @@ function decide(prev: Snap, next: Snap) {
       acting: next.acting,
       turnKey: `${next.roundId}:judge`,
       spectator: next.spectator,
-    }),
-    decidePublicCorrect({
-      prevReady: true,
-      wasCorrect: prev.hasWinner,
-      isCorrect: next.hasWinner,
-      eventKey: `correct:judge:${next.roundId}`,
     }),
     decideRoundResult({
       prevReady: true,
@@ -76,7 +68,6 @@ export function useJudgeSfx(
       roundId: view.roundId ?? `r${view.currentRound}`,
       acting: view.isJudge && view.gamePhase === 'judging' && !view.isMatchSpectator,
       spectator: view.isMatchSpectator,
-      hasWinner: Boolean(view.winnerName),
       localWon: localWonMatch(view.resultsLeaderboard, playerId),
       round: view.currentRound,
     };

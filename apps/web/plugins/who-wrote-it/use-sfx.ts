@@ -17,7 +17,6 @@ type Snap = {
   roundId: string;
   spectator: boolean;
   localWon: boolean;
-  localCorrect: boolean;
   round: number;
 };
 
@@ -29,12 +28,6 @@ function decide(prev: Snap, next: Snap) {
       phase: next.phase,
       eventKey: `result:who-wrote-it:${next.roundId}`,
     }),
-    next.phase === 'round-results' &&
-    prev.phase !== 'round-results' &&
-    next.localCorrect &&
-    !next.spectator
-      ? { id: 'correct' as const, eventKey: `correct:who-wrote-it:${next.roundId}` }
-      : null,
     decideFinalCue({
       prevReady: true,
       prevPhase: prev.phase,
@@ -65,8 +58,6 @@ export function useWhoWroteItSfx(
       roundId: view.roundId ?? `r${view.currentRound}`,
       spectator: view.isMatchSpectator,
       localWon: localWonMatch(view.resultsLeaderboard, playerId),
-      localCorrect:
-        (view.roundResults.find((entry) => entry.playerId === playerId)?.correctCount ?? 0) > 0,
       round: view.currentRound,
     };
   }, [view, playerId]);

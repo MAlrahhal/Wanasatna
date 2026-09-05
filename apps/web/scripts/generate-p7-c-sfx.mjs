@@ -75,7 +75,6 @@ function writeWav(name, samples) {
 }
 
 const written = [
-  writeWav('countdown-tick', tone(1180, 110, { attack: 0.004, gain: 0.42 })),
   writeWav(
     'go',
     concat([
