@@ -90,24 +90,8 @@ const written = [
       tone(587, 140, { gain: 0.55 }),
     ]),
   ),
-  writeWav(
-    'correct',
-    concat([
-      tone(523, 80, { gain: 0.5 }),
-      tone(659, 90, { gain: 0.55 }),
-      tone(784, 120, { gain: 0.5 }),
-    ], 8),
-  ),
   writeWav('wrong', tone(349, 200, { gain: 0.48, slide: -90 })),
   writeWav('time-up', tone(311, 360, { attack: 0.012, gain: 0.52, slide: -40 })),
-  writeWav(
-    'round-result',
-    concat([
-      tone(440, 120, { gain: 0.48 }),
-      tone(554, 160, { gain: 0.5 }),
-      tone(440, 140, { gain: 0.42 }),
-    ], 10),
-  ),
   writeWav(
     'match-win',
     concat([

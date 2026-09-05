@@ -17,17 +17,19 @@ import {
 } from '../lib/game/sfx-policy';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const SFX_IDS = [
-  'countdown-tick',
-  'go',
-  'your-turn',
-  'correct',
-  'wrong',
-  'time-up',
-  'round-result',
-  'match-win',
-  'notify',
-] as const;
+const SFX_FILES = {
+  'countdown-tick': 'countdown-tick.wav',
+  go: 'go.wav',
+  'your-turn': 'your-turn.wav',
+  correct: 'correct.mp3',
+  wrong: 'wrong.wav',
+  'time-up': 'time-up.wav',
+  'round-result': 'round-result.wav',
+  'match-win': 'match-win.wav',
+  notify: 'notify.wav',
+  'timing-window': 'timing-window.wav',
+  'imposter-reveal': 'imposter-reveal.wav',
+} as const;
 
 class MemoryStorage {
   private readonly data = new Map<string, string>();
@@ -129,21 +131,22 @@ void (async () => {
     }
   }
 
-  await test('nine original SFX files exist; temp WAV gone', () => {
+  await test('SFX files exist and registry paths match', () => {
     let total = 0;
-    for (const id of SFX_IDS) {
-      const path = join(root, 'public', 'audio', 'sfx', `${id}.wav`);
+    for (const [id, filename] of Object.entries(SFX_FILES)) {
+      const path = join(root, 'public', 'audio', 'sfx', filename);
       assert.equal(existsSync(path), true, id);
       total += statSync(path).size;
     }
     assert.equal(existsSync(join(root, 'public', 'sounds', 'timer-start.wav')), false);
-    assert.ok(total <= 300 * 1024, `total ${total}`);
+    assert.equal(existsSync(join(root, 'public', 'audio', 'sfx', 'correct.wav')), false);
+    assert.ok(total <= 2 * 1024 * 1024, `total ${total}`);
   });
 
   await test('registry paths match files and no obsolete aliases', () => {
     const sounds = read('lib/game/sounds.ts');
-    for (const id of SFX_IDS) {
-      assert.match(sounds, new RegExp(`/audio/sfx/${id}\\.wav`));
+    for (const filename of Object.values(SFX_FILES)) {
+      assert.match(sounds, new RegExp(`/audio/sfx/${filename.replace('.', '\\.')}`));
     }
     assert.doesNotMatch(sounds, /timer-start|\/sounds\//);
     assert.doesNotMatch(sounds, /'card-request'|setGameAudioVolume/);
@@ -441,17 +444,19 @@ void (async () => {
     assert.doesNotMatch(read('plugins/draw-guess/use-sfx.ts'), /'wrong'/);
     assert.doesNotMatch(read('plugins/timing-challenge/use-sfx.ts'), /time-up|countdown-tick|your-turn/);
     assert.doesNotMatch(read('plugins/timing-challenge/use-timing-start-sound.ts'), /countdown-tick/);
-    assert.match(read('plugins/timing-challenge/use-timing-start-sound.ts'), /playTimingCue\('go'/);
-    assert.match(read('plugins/timing-challenge/use-timing-start-sound.ts'), /playTimingCue\('time-up'/);
+    assert.match(read('plugins/timing-challenge/use-timing-start-sound.ts'), /playTimingCue\('timing-window'/);
     assert.match(read('plugins/timing-challenge/use-timing-start-sound.ts'), /playGameSound\(id/);
     assert.match(read('plugins/timing-challenge/use-timing-start-sound.ts'), /if \(!prev\)/);
     assert.match(read('plugins/timing-challenge/use-timing-start-sound.ts'), /useLayoutEffect/);
     assert.match(read('plugins/timing-challenge/timing-window-sfx.ts'), /timeup:timing:/);
-    assert.match(read('plugins/timing-challenge/stop-timer-screen.tsx'), /playGameSound\('go'/);
+    assert.match(read('plugins/timing-challenge/stop-timer-screen.tsx'), /playGameSound\('timing-window'/);
     assert.match(
       read('plugins/timing-challenge/stop-timer-screen.tsx'),
       /timingStartEventKey\(roundId, 'stop-timer'\)/,
     );
+    assert.match(read('plugins/imposter-draw/use-sfx.ts'), /imposter-reveal/);
+    assert.match(read('plugins/imposter-draw/use-sfx.ts'), /reveal:imposter-draw:/);
+    assert.doesNotMatch(read('plugins/imposter-draw/use-sfx.ts'), /RESULT_PHASES/);
     assert.doesNotMatch(read('plugins/guessing-challenge/playing-screen.tsx'), /playGameSound/);
     assert.doesNotMatch(read('plugins/bara-al-salafa/countdown-screen.tsx'), /playGameSound/);
     const panel = read('plugins/guessing-challenge/special-cards-panel.tsx');

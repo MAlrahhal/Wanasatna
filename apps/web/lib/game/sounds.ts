@@ -11,7 +11,9 @@ export type GameSoundId =
   | 'time-up'
   | 'round-result'
   | 'match-win'
-  | 'notify';
+  | 'notify'
+  | 'timing-window'
+  | 'imposter-reveal';
 
 export type GameAudioPreferences = {
   muted: boolean;
@@ -34,12 +36,14 @@ const SOUND_SRC: Record<GameSoundId, string> = {
   'countdown-tick': '/audio/sfx/countdown-tick.wav',
   go: '/audio/sfx/go.wav',
   'your-turn': '/audio/sfx/your-turn.wav',
-  correct: '/audio/sfx/correct.wav',
+  correct: '/audio/sfx/correct.mp3',
   wrong: '/audio/sfx/wrong.wav',
   'time-up': '/audio/sfx/time-up.wav',
   'round-result': '/audio/sfx/round-result.wav',
   'match-win': '/audio/sfx/match-win.wav',
   notify: '/audio/sfx/notify.wav',
+  'timing-window': '/audio/sfx/timing-window.wav',
+  'imposter-reveal': '/audio/sfx/imposter-reveal.wav',
 };
 
 const SOUND_GAIN: Record<GameSoundId, number> = {
@@ -52,13 +56,17 @@ const SOUND_GAIN: Record<GameSoundId, number> = {
   'round-result': 0.72,
   go: 0.78,
   'match-win': 0.92,
+  'timing-window': 0.82,
+  'imposter-reveal': 0.7,
 };
 
 const SOUND_PRIORITY: Record<GameSoundId, number> = {
   'match-win': 90,
   'time-up': 80,
+  'timing-window': 75,
   go: 70,
   'your-turn': 60,
+  'imposter-reveal': 55,
   correct: 50,
   wrong: 40,
   'round-result': 30,

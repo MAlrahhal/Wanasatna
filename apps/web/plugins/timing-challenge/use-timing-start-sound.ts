@@ -66,12 +66,12 @@ export function useTimingStartSound(view: TimingChallengePlayerView | null): voi
     }
 
     if (shouldPlayTimingStartSound(prev, next)) {
-      playTimingCue('go', timingStartEventKey(view.roundId, view.mode));
+      playTimingCue('timing-window', timingStartEventKey(view.roundId, view.mode));
       return;
     }
 
     if (shouldPlayTimingEndSound(prev, next)) {
-      playTimingCue('time-up', timingEndEventKey(view.roundId));
+      playTimingCue('timing-window', timingEndEventKey(view.roundId));
     }
   }, [view]);
 }

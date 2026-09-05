@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import type { ImposterDrawPlayerView } from '@wanasatna/shared';
 import {
   decideFinalCue,
+  decideRoundResult,
   decideYourTurn,
   localWonMatch,
 } from '@/lib/game/sfx-policy';
@@ -11,7 +12,6 @@ import { useDeadlineTimeUpSfx } from '@/lib/game/use-deadline-time-up-sfx';
 import { useViewTransitionSfx } from '@/lib/game/use-view-sfx';
 
 const TIMED = new Set(['drawing-turns', 'voting', 'impostor-guess']);
-const RESULT_PHASES = new Set(['reveal', 'round-results']);
 
 type Snap = {
   phase: ImposterDrawPlayerView['gamePhase'];
@@ -23,7 +23,6 @@ type Snap = {
 };
 
 function decide(prev: Snap, next: Snap) {
-  const enteredResult = RESULT_PHASES.has(next.phase) && !RESULT_PHASES.has(prev.phase);
   return [
     decideYourTurn({
       prevReady: true,
@@ -32,9 +31,15 @@ function decide(prev: Snap, next: Snap) {
       turnKey: next.turnId,
       spectator: next.spectator,
     }),
-    enteredResult
-      ? { id: 'round-result' as const, eventKey: `result:imposter-draw:${next.round}` }
+    next.phase === 'reveal' && prev.phase !== 'reveal'
+      ? { id: 'imposter-reveal' as const, eventKey: `reveal:imposter-draw:${next.round}` }
       : null,
+    decideRoundResult({
+      prevReady: true,
+      prevPhase: prev.phase,
+      phase: next.phase,
+      eventKey: `result:imposter-draw:${next.round}`,
+    }),
     decideFinalCue({
       prevReady: true,
       prevPhase: prev.phase,

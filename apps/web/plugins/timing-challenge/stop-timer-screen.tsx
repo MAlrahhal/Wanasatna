@@ -30,7 +30,7 @@ type StopTimerScreenProps = {
 
 function playLocalTimerStartCue(roundId: string): void {
   unlockGameAudio();
-  playGameSound('go', { eventKey: timingStartEventKey(roundId, 'stop-timer') });
+  playGameSound('timing-window', { eventKey: timingStartEventKey(roundId, 'stop-timer') });
 }
 
 export function StopTimerScreen({

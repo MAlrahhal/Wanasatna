@@ -292,14 +292,13 @@ void (async () => {
     const ready = read('plugins/timing-challenge/ready-screen.tsx');
     const stop = read('plugins/timing-challenge/stop-timer-screen.tsx');
     const panel = read('plugins/guessing-challenge/special-cards-panel.tsx');
-    assert.match(timing, /playTimingCue\('go'/);
-    assert.match(timing, /playTimingCue\('time-up'/);
+    assert.match(timing, /playTimingCue\('timing-window'/);
     assert.match(timing, /playGameSound\(id/);
     assert.match(timing, /if \(!prev\)/);
     assert.match(timing, /useLayoutEffect/);
     assert.match(ready, /unlockGameAudio\(\)/);
     assert.match(stop, /playLocalTimerStartCue/);
-    assert.match(stop, /playGameSound\('go'/);
+    assert.match(stop, /playGameSound\('timing-window'/);
     assert.match(stop, /timingStartEventKey\(roundId, 'stop-timer'\)/);
     assert.match(stop, /unlockGameAudio\(\)/);
     assert.match(panel, /playSoftCardRequestPing\(/);

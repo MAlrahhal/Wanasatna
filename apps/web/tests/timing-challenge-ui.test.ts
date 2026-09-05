@@ -170,7 +170,7 @@ test('stop-timer screen plays go on the local start gesture before onStart', asy
     'utf8',
   );
   assert.match(src, /function playLocalTimerStartCue/);
-  assert.match(src, /playGameSound\('go'/);
+  assert.match(src, /playGameSound\('timing-window'/);
   assert.match(src, /timingStartEventKey\(roundId, 'stop-timer'\)/);
   assert.match(src, /playLocalTimerStartCue\(roundId\);\s*\n\s*onStart\(\)/);
   assert.match(src, /playLocalTimerStartCue\(current\.roundId\);\s*\n\s*current\.onStart\(\)/);
@@ -193,10 +193,14 @@ test('root layout mounts global background layer', async () => {
   assert.match(layout, /wanas-site-bg-pattern/);
 });
 
-test('original go SFX exists, is non-empty, and temp timer-start WAV is gone', async () => {
+test('timing-window cue exists; original go SFX remains; temp timer-start WAV is gone', async () => {
   const { existsSync, statSync } = await import('node:fs');
   const { join } = await import('node:path');
-  const goPath = join(__dirname, '..', 'public', 'audio', 'sfx', 'go.wav');
+  const sfx = join(__dirname, '..', 'public', 'audio', 'sfx');
+  const timingPath = join(sfx, 'timing-window.wav');
+  const goPath = join(sfx, 'go.wav');
+  assert.equal(existsSync(timingPath), true);
+  assert.ok(statSync(timingPath).size > 1000);
   assert.equal(existsSync(goPath), true);
   assert.ok(statSync(goPath).size > 1000);
   assert.equal(existsSync(join(__dirname, '..', 'public', 'sounds', 'timer-start.wav')), false);
