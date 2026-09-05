@@ -47,7 +47,7 @@ const SOUND_SRC: Record<GameSoundId, string> = {
 };
 
 const SOUND_GAIN: Record<GameSoundId, number> = {
-  'countdown-tick': 0.52,
+  'countdown-tick': 0.72,
   notify: 0.48,
   wrong: 0.62,
   'your-turn': 0.72,
@@ -62,6 +62,7 @@ const SOUND_GAIN: Record<GameSoundId, number> = {
 
 const SOUND_PRIORITY: Record<GameSoundId, number> = {
   'match-win': 90,
+  'countdown-tick': 85,
   'time-up': 80,
   'timing-window': 75,
   go: 70,
@@ -70,7 +71,6 @@ const SOUND_PRIORITY: Record<GameSoundId, number> = {
   correct: 50,
   wrong: 40,
   'round-result': 30,
-  'countdown-tick': 20,
   notify: 10,
 };
 
@@ -247,6 +247,25 @@ export function isGameAudioUnlocked(): boolean {
   return unlocked;
 }
 
+export function preloadGameSound(id: GameSoundId): void {
+  const nodes = ensureEngine();
+  const src = SOUND_SRC[id];
+  const node = nodes?.find((entry) => !entry.busy) ?? nodes?.[0];
+  if (!node || !src) {
+    return;
+  }
+  try {
+    const href = typeof window !== 'undefined' ? window.location?.href : '';
+    const absSrc = href ? new URL(src, href).href : src;
+    if (node.el.src !== absSrc && !String(node.el.src).endsWith(src)) {
+      node.el.preload = 'auto';
+      node.el.src = src;
+    }
+  } catch {
+    // Best-effort warmup.
+  }
+}
+
 /** Silent unlock after a real user gesture. Idempotent. Never throws. */
 export function unlockGameAudio(): void {
   if (!isBrowser() || unlocked || unlocking) {
@@ -365,7 +384,17 @@ export function playGameSound(id: GameSoundId, options?: PlayGameSoundOptions): 
     lastPlayedAt.set(id, now);
     node.gain = SOUND_GAIN[id];
     node.priority = priority;
-    node.el.src = src;
+    let absSrc = src;
+    try {
+      if (typeof window !== 'undefined' && window.location?.href) {
+        absSrc = new URL(src, window.location.href).href;
+      }
+    } catch {
+      absSrc = src;
+    }
+    if (node.el.src !== absSrc && !node.el.src.endsWith(src)) {
+      node.el.src = src;
+    }
     applyNodeVolume(node);
     node.el.currentTime = 0;
     node.busy = true;

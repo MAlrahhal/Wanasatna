@@ -301,8 +301,7 @@ void (async () => {
     assert.match(stop, /playGameSound\('timing-window'/);
     assert.match(stop, /timingStartEventKey\(roundId, 'stop-timer'\)/);
     assert.match(stop, /unlockGameAudio\(\)/);
-    assert.match(panel, /playSoftCardRequestPing\(/);
-    assert.match(panel, /lastPingKey/);
+    assert.doesNotMatch(panel, /playSoftCardRequestPing/);
     assert.doesNotMatch(timing, /countdown-tick|your-turn/);
   });
 

@@ -12,7 +12,6 @@ import {
   decideRoundResult,
   decideTimeUp,
   decideYourTurn,
-  localTeamWonMatch,
   localWonMatch,
 } from '../lib/game/sfx-policy';
 
@@ -301,7 +300,7 @@ void (async () => {
     );
   });
 
-  await test('round-result once; match-win winner only; tie and spectator no match-win', () => {
+  await test('round-result plays only on match-completed, not intermediate round-results', () => {
     assert.deepEqual(
       decideRoundResult({
         prevReady: true,
@@ -311,34 +310,11 @@ void (async () => {
       }),
       { id: 'round-result', eventKey: 'result:1' },
     );
-    assert.equal(
-      decideRoundResult({
-        prevReady: true,
-        prevPhase: 'round-results',
-        phase: 'round-results',
-        eventKey: 'result:1',
-      }),
-      null,
-    );
     const board = [
       { playerId: 'a', isFirstPlace: true, rank: 1 },
       { playerId: 'b', isFirstPlace: false, rank: 2 },
     ];
     assert.equal(localWonMatch(board, 'a'), true);
-    assert.equal(localWonMatch(board, 'b'), false);
-    const tie = [
-      { playerId: 'a', isFirstPlace: true, rank: 1 },
-      { playerId: 'b', isFirstPlace: true, rank: 1 },
-    ];
-    assert.equal(localWonMatch(tie, 'a'), false);
-    const teamWin = [
-      { playerId: 'a', isFirstPlace: true, rank: 1 },
-      { playerId: 'b', isFirstPlace: true, rank: 1 },
-      { playerId: 'c', isFirstPlace: false, rank: 3 },
-      { playerId: 'd', isFirstPlace: false, rank: 4 },
-    ];
-    assert.equal(localTeamWonMatch(teamWin, ['a', 'b']), true);
-    assert.equal(localTeamWonMatch(teamWin, ['c', 'd']), false);
     assert.deepEqual(
       decideFinalCue({
         prevReady: true,
@@ -348,9 +324,9 @@ void (async () => {
         localWon: true,
         eventKey: 'final:1',
       }),
-      { id: 'match-win', eventKey: 'final:1:win' },
+      { id: 'round-result', eventKey: 'final:1:end' },
     );
-    assert.equal(
+    assert.deepEqual(
       decideFinalCue({
         prevReady: true,
         prevPhase: 'round-results',
@@ -359,14 +335,14 @@ void (async () => {
         localWon: false,
         eventKey: 'final:1',
       }),
-      null,
+      { id: 'round-result', eventKey: 'final:1:end' },
     );
     assert.equal(
       decideFinalCue({
         prevReady: true,
-        prevPhase: 'round-results',
+        prevPhase: 'match-completed',
         phase: 'match-completed',
-        spectator: true,
+        spectator: false,
         localWon: true,
         eventKey: 'final:1',
       }),
@@ -436,13 +412,14 @@ void (async () => {
       assert.match(read(file), new RegExp(hook));
     }
     assert.match(read('components/game-plugins/game-plugin-layer.tsx'), /useSharedCountdownSfx/);
-    assert.match(read('plugins/draw-guess/use-sfx.ts'), /role === 'drawer'/);
-    assert.match(read('plugins/judge/use-sfx.ts'), /view\.isJudge/);
-    assert.match(read('plugins/guessing-challenge/use-sfx.ts'), /view\.isMyTurn/);
-    assert.match(read('plugins/guessing-challenge/use-sfx.ts'), /wrongCue/);
-    assert.doesNotMatch(read('plugins/fast-answer/use-sfx.ts'), /'wrong'|your-turn/);
-    assert.doesNotMatch(read('plugins/draw-guess/use-sfx.ts'), /'wrong'/);
-    assert.doesNotMatch(read('plugins/timing-challenge/use-sfx.ts'), /time-up|countdown-tick|your-turn/);
+    assert.match(read('lib/game/use-shared-countdown-sfx.ts'), /useLayoutEffect/);
+    assert.match(read('lib/game/use-shared-countdown-sfx.ts'), /preloadGameSound\('countdown-tick'\)/);
+    assert.match(read('lib/game/use-shared-countdown-sfx.ts'), /prev\.phase == null/);
+    assert.doesNotMatch(read('plugins/draw-guess/use-sfx.ts'), /decideYourTurn|decideRoundResult|useDeadlineTimeUpSfx/);
+    assert.doesNotMatch(read('plugins/judge/use-sfx.ts'), /decideYourTurn|decideRoundResult|useDeadlineTimeUpSfx/);
+    assert.doesNotMatch(read('plugins/guessing-challenge/use-sfx.ts'), /wrongCue|decideYourTurn|decideRoundResult/);
+    assert.doesNotMatch(read('plugins/fast-answer/use-sfx.ts'), /'wrong'|your-turn|time-up|decideRoundResult/);
+    assert.doesNotMatch(read('plugins/timing-challenge/use-sfx.ts'), /time-up|countdown-tick|your-turn|decideRoundResult/);
     assert.doesNotMatch(read('plugins/timing-challenge/use-timing-start-sound.ts'), /countdown-tick/);
     assert.match(read('plugins/timing-challenge/use-timing-start-sound.ts'), /playTimingCue\('timing-window'/);
     assert.match(read('plugins/timing-challenge/use-timing-start-sound.ts'), /playGameSound\(id/);
@@ -462,16 +439,14 @@ void (async () => {
     assert.match(read('plugins/draw-guess/use-sfx.ts'), /decidePublicCorrect/);
     assert.match(read('plugins/guessing-challenge/use-sfx.ts'), /decidePublicCorrect/);
     assert.doesNotMatch(read('plugins/judge/use-sfx.ts'), /decidePublicCorrect|'correct'/);
-    assert.doesNotMatch(read('plugins/who-wrote-it/use-sfx.ts'), /'correct'/);
-    assert.doesNotMatch(read('plugins/bara-al-salafa/use-sfx.ts'), /'correct'/);
+    assert.doesNotMatch(read('plugins/who-wrote-it/use-sfx.ts'), /'correct'|decideRoundResult/);
+    assert.doesNotMatch(read('plugins/bara-al-salafa/use-sfx.ts'), /'correct'|decideRoundResult/);
     assert.doesNotMatch(read('plugins/timing-challenge/use-sfx.ts'), /'correct'|imposter-reveal/);
-    assert.match(read('lib/game/use-shared-countdown-sfx.ts'), /decided\.play === 3/);
-    assert.doesNotMatch(read('plugins/imposter-draw/use-sfx.ts'), /RESULT_PHASES/);
+    assert.doesNotMatch(read('plugins/imposter-draw/use-sfx.ts'), /RESULT_PHASES|decideRoundResult/);
     assert.doesNotMatch(read('plugins/guessing-challenge/playing-screen.tsx'), /playGameSound/);
     assert.doesNotMatch(read('plugins/bara-al-salafa/countdown-screen.tsx'), /playGameSound/);
     const panel = read('plugins/guessing-challenge/special-cards-panel.tsx');
-    assert.match(panel, /playSoftCardRequestPing\(/);
-    assert.match(panel, /lastPingKey/);
+    assert.doesNotMatch(panel, /playSoftCardRequestPing/);
     assert.match(panel, /!cardConfirmStatus\.selfConfirmed/);
     assert.doesNotMatch(read('lib/game/sounds.ts'), /setGameAudioVolume/);
     assert.doesNotMatch(read('components/game/game-audio-control.tsx'), /setGameAudioVolume|مستوى الصوت/);

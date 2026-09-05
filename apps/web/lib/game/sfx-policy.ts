@@ -134,12 +134,6 @@ export function decideFinalCue(args: {
   if (!args.prevReady || args.phase !== 'match-completed' || args.prevPhase === 'match-completed') {
     return null;
   }
-  if (!args.spectator && args.localWon) {
-    return { id: 'match-win', eventKey: `${args.eventKey}:win` };
-  }
-  if (args.prevPhase === 'round-results') {
-    return null;
-  }
   return { id: 'round-result', eventKey: `${args.eventKey}:end` };
 }
 

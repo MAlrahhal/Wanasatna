@@ -2,6 +2,7 @@
 
 import type { GamePhase } from '@wanasatna/shared';
 import { useGameShell } from '@/contexts/game-shell-context';
+import { unlockGameAudio } from '@/lib/game/sounds';
 
 type GameShellHostControlsProps = {
   phase: GamePhase;
@@ -44,7 +45,10 @@ export function GameShellHostControls({
     return (
       <button
         type="button"
-        onClick={() => void startCountdown()}
+        onClick={() => {
+          unlockGameAudio();
+          void startCountdown();
+        }}
         className="inline-flex h-10 items-center justify-center rounded-lg border border-border bg-background px-4 text-sm font-medium text-foreground"
       >
         بدء العدّ التنازلي

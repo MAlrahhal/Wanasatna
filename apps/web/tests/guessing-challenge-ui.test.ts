@@ -158,7 +158,7 @@ test('C/D/E/F/G playing screen wires GameplayScene + side special cards + matchM
   assert.match(specialPanel, /data-compact="true"/);
   assert.match(specialPanel, /gc-teammate-card-request/);
   assert.match(specialPanel, /تحتاج موافقتك/);
-  assert.match(specialPanel, /playSoftCardRequestPing/);
+  assert.doesNotMatch(specialPanel, /playSoftCardRequestPing/);
   assert.match(specialPanel, /gc-once-per-match-warning/);
   assert.match(specialPanel, /عرض البطاقة/);
   assert.match(specialPanel, /يريد استخدام/);
@@ -351,12 +351,10 @@ test('2v2 seating faces opponents; shared card + name anchors', () => {
   assert.match(inner, /no local third-person body/);
 });
 
-test('card request sound helper exists once-per-request', () => {
-  const sounds = readFileSync(join(root, 'lib/game/sounds.ts'), 'utf8');
+test('card request sound is not used in gameplay', () => {
   const panel = readPlugin('special-cards-panel.tsx');
-  assert.match(sounds, /playSoftCardRequestPing/);
-  assert.match(panel, /lastPingKey/);
-  assert.match(panel, /playSoftCardRequestPing\(/);
+  assert.doesNotMatch(panel, /lastPingKey/);
+  assert.doesNotMatch(panel, /playSoftCardRequestPing/);
 });
 
 test('authoritative generations are sent with every gameplay mutation', () => {

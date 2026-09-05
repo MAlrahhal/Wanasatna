@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { GuessingChallengeCardConfirmStatus } from '@wanasatna/shared';
 import { Button } from '@/components/ui/button';
-import { playSoftCardRequestPing } from '@/lib/game/sounds';
 import { cn } from '@/lib/utils';
 
 type CardVariant = 'yellow' | 'red';
@@ -61,8 +60,6 @@ export function GuessingChallengeSpecialCardsPanel({
 }: GuessingChallengeSpecialCardsPanelProps) {
   const [detailCard, setDetailCard] = useState<CardVariant | null>(null);
   const [mounted, setMounted] = useState(false);
-  const lastPingKey = useRef<string | null>(null);
-
   const wasReviewingRequest = useRef(false);
 
   useEffect(() => {
@@ -84,25 +81,6 @@ export function GuessingChallengeSpecialCardsPanel({
 
   const teammateRequest =
     cardConfirmStatus && !cardConfirmStatus.selfConfirmed ? cardConfirmStatus : null;
-
-  useEffect(() => {
-    if (!teammateRequest) {
-      return;
-    }
-    // Deduplicate by request identity only — not confirmedCount (avoids re-ping on re-render).
-    const key = `${teammateRequest.card}:${teammateRequest.requestingPlayerId}`;
-    if (lastPingKey.current === key) {
-      return;
-    }
-    lastPingKey.current = key;
-    playSoftCardRequestPing({ eventKey: `notify:${key}` });
-  }, [teammateRequest]);
-
-  useEffect(() => {
-    if (!cardConfirmStatus) {
-      lastPingKey.current = null;
-    }
-  }, [cardConfirmStatus]);
 
   const detail = detailCard ? CARD_COPY[detailCard] : null;
   const detailAvailable =

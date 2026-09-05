@@ -13,6 +13,7 @@ import {
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { LobbyPlayer } from '@/lib/lobby/types';
 import { getRoomErrorMessage } from '@/lib/room/error-messages';
+import { unlockGameAudio } from '@/lib/game/sounds';
 import {
   GAME_SHELL_NAVIGATE_EVENT,
   END_ROOM_EVENT,
@@ -895,6 +896,8 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     if (!isHost) {
       return;
     }
+
+    unlockGameAudio();
 
     if (!selectedGameId) {
       setErrorMessage(getGameShellErrorMessage('GAME_NOT_SELECTED'));
