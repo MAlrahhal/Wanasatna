@@ -18,6 +18,7 @@ import {
   GUESSING_CHALLENGE_USE_YELLOW_CARD_EVENT,
 } from '@wanasatna/shared';
 import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
+import { bindPluginViewResync } from '@/lib/game-plugins/bind-plugin-view-resync';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
 import { clearGcLooks, setGcLook } from './real3d/look-runtime';
@@ -108,9 +109,6 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
     }
 
     const socket = getRoomSocket();
-    const onPhaseChanged = () => {
-      void syncView();
-    };
     const onLookUpdate = (payload: GuessingChallengeLookUpdatePayload) => {
       if (
         !payload ||
@@ -123,14 +121,14 @@ export function useGuessingChallengePlayerView(enabled: boolean) {
       setGcLook(payload.playerId, payload.yaw, payload.pitch);
     };
 
-    socket.on(GUESSING_CHALLENGE_PHASE_CHANGED_EVENT, onPhaseChanged);
-    socket.on(GUESSING_CHALLENGE_LOOK_UPDATE_EVENT, onLookUpdate);
-    void syncView();
-
-    return () => {
-      socket.off(GUESSING_CHALLENGE_PHASE_CHANGED_EVENT, onPhaseChanged);
-      socket.off(GUESSING_CHALLENGE_LOOK_UPDATE_EVENT, onLookUpdate);
-    };
+    return bindPluginViewResync(socket, GUESSING_CHALLENGE_PHASE_CHANGED_EVENT, syncView, {
+      extraBind: () => {
+        socket.on(GUESSING_CHALLENGE_LOOK_UPDATE_EVENT, onLookUpdate);
+        return () => {
+          socket.off(GUESSING_CHALLENGE_LOOK_UPDATE_EVENT, onLookUpdate);
+        };
+      },
+    });
   }, [enabled, syncView]);
 
   useEffect(() => {

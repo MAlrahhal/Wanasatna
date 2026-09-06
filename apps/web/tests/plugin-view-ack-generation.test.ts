@@ -8,6 +8,8 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { AckGenerationGate, runLatestAck } from '../lib/game-plugins/ack-generation';
+import { bindPluginViewResync, type PluginResyncSocket } from '../lib/game-plugins/bind-plugin-view-resync';
+import { GAME_SHELL_STATE_EVENT } from '@wanasatna/shared';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -38,6 +40,34 @@ function pluginViewFiles(): string[] {
         return false;
       }
     });
+}
+
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((innerResolve) => {
+    resolve = innerResolve;
+  });
+  return { promise, resolve };
+}
+
+function createFakeSocket() {
+  const listeners = new Map<string, Set<() => void>>();
+
+  return {
+    on(event: string, handler: () => void) {
+      const set = listeners.get(event) ?? new Set();
+      set.add(handler);
+      listeners.set(event, set);
+    },
+    off(event: string, handler: () => void) {
+      listeners.get(event)?.delete(handler);
+    },
+    emit(event: string) {
+      for (const handler of [...(listeners.get(event) ?? [])]) {
+        handler();
+      }
+    },
+  };
 }
 
 async function main(): Promise<void> {
@@ -116,7 +146,7 @@ async function main(): Promise<void> {
   assert.deepEqual(applied, ['turn-start']);
 });
 
-  await test('all plugin player-view hooks register PHASE_CHANGED before the first SYNC', () => {
+  await test('all plugin player-view hooks re-SYNC on PHASE_CHANGED and GAME_SHELL_STATE', () => {
   const files = pluginViewFiles();
   assert.ok(files.length >= 8, `expected plugin hooks, found ${files.length}`);
 
@@ -124,17 +154,86 @@ async function main(): Promise<void> {
     const source = readFileSync(file, 'utf8');
     assert.match(source, /AckGenerationGate/, file);
     assert.match(source, /runLatestAck/, file);
-
-    const onIdx = source.search(/socket\.on\(\s*[A-Z_]+_PHASE_CHANGED_EVENT/);
-    assert.ok(onIdx >= 0, `missing PHASE_CHANGED listener in ${file}`);
-    const afterOn = source.slice(onIdx);
-    const syncIdx = afterOn.indexOf('void syncView()');
-    const cleanupIdx = afterOn.indexOf('return () =>');
-    assert.ok(syncIdx >= 0 && cleanupIdx >= 0 && syncIdx < cleanupIdx, file);
+    assert.match(source, /bindPluginViewResync/, file);
   }
+
+  const helper = readFileSync(join(root, 'lib/game-plugins/bind-plugin-view-resync.ts'), 'utf8');
+  assert.match(helper, /GAME_SHELL_STATE_EVENT/);
+  assert.match(helper, /phaseChangedEvent/);
+  assert.match(helper, /void syncView\(\)/);
 });
 
-  await test('reconnect delivers GAME_SHELL_STATE; plugins recover via SYNC not event replay', () => {
+  await test('GAME_SHELL_STATE starts a newer SYNC that drops a delayed older ACK', async () => {
+  const gate = new AckGenerationGate();
+  let applied = '';
+  const first = createDeferred<string>();
+  let started = 0;
+
+  const socket = createFakeSocket();
+  const syncView = () => {
+    void runLatestAck(gate, async () => {
+      started += 1;
+      if (started === 1) {
+        return first.promise;
+      }
+      return 'turn-2';
+    }).then((value) => {
+      if (value !== undefined) {
+        applied = value;
+      }
+    });
+  };
+
+  const unbind = bindPluginViewResync(
+    socket as unknown as PluginResyncSocket,
+    'plugin-phase-changed',
+    syncView,
+  );
+  socket.emit(GAME_SHELL_STATE_EVENT);
+  await Promise.resolve();
+  first.resolve('stale-turn-1');
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(applied, 'turn-2');
+  unbind();
+});
+
+  await test('duplicate PHASE_CHANGED still keeps the latest in-flight SYNC', async () => {
+  const gate = new AckGenerationGate();
+  let applied = '';
+  const first = createDeferred<string>();
+  let started = 0;
+
+  const socket = createFakeSocket();
+  const syncView = () => {
+    void runLatestAck(gate, async () => {
+      started += 1;
+      if (started === 1) {
+        return first.promise;
+      }
+      return 'after-second-phase';
+    }).then((value) => {
+      if (value !== undefined) {
+        applied = value;
+      }
+    });
+  };
+
+  const unbind = bindPluginViewResync(
+    socket as unknown as PluginResyncSocket,
+    'plugin-phase-changed',
+    syncView,
+  );
+  socket.emit('plugin-phase-changed');
+  await Promise.resolve();
+  first.resolve('after-first-phase');
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(applied, 'after-second-phase');
+  unbind();
+});
+
+  await test('reconnect and bound ROOM_SYNC deliver GAME_SHELL_STATE; plugins recover via SYNC not event replay', () => {
   const handlers = readFileSync(
     join(root, '..', 'server', 'src', 'modules', 'room', 'room.socket.handlers.ts'),
     'utf8',
@@ -144,6 +243,14 @@ async function main(): Promise<void> {
   const pluginPhase = reconnect.search(/PHASE_CHANGED_EVENT/);
   assert.ok(shellEmit >= 0);
   assert.equal(pluginPhase, -1);
+
+  const roomSyncEnd = handlers.indexOf('export function registerDisconnectHandler');
+  const syncBody = handlers.slice(
+    handlers.indexOf('export function registerRoomSyncHandler'),
+    roomSyncEnd,
+  );
+  assert.match(syncBody, /GAME_SHELL_STATE_EVENT/);
+  assert.doesNotMatch(syncBody, /PHASE_CHANGED_EVENT/);
 
   const timingLifecycle = readFileSync(
     join(root, '..', 'server', 'src', 'modules', 'game', 'plugins', 'timing-challenge', 'match-lifecycle.ts'),

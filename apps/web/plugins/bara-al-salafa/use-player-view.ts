@@ -15,6 +15,7 @@ import {
   BARA_AL_SALAFA_SYNC_EVENT,
 } from '@wanasatna/shared';
 import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
+import { bindPluginViewResync } from '@/lib/game-plugins/bind-plugin-view-resync';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
 import { isStaleBaraRoleView } from './stale-round-view';
@@ -116,22 +117,15 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
     }
 
     const socket = getRoomSocket();
-
-    const onPhaseChanged = () => {
-      const currentView = viewRef.current;
-      if (currentView?.gamePhase === 'round-results') {
-        awaitingRoundFromRef.current = currentView.currentRound;
-        setIsLoading(true);
-      }
-      void syncView();
-    };
-
-    socket.on(BARA_AL_SALAFA_PHASE_CHANGED_EVENT, onPhaseChanged);
-    void syncView();
-
-    return () => {
-      socket.off(BARA_AL_SALAFA_PHASE_CHANGED_EVENT, onPhaseChanged);
-    };
+    return bindPluginViewResync(socket, BARA_AL_SALAFA_PHASE_CHANGED_EVENT, syncView, {
+      onPhaseChanged: () => {
+        const currentView = viewRef.current;
+        if (currentView?.gamePhase === 'round-results') {
+          awaitingRoundFromRef.current = currentView.currentRound;
+          setIsLoading(true);
+        }
+      },
+    });
   }, [enabled, syncView]);
 
 

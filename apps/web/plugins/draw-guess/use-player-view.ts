@@ -19,6 +19,7 @@ import {
   DRAW_GUESS_UNDO_EVENT,
 } from '@wanasatna/shared';
 import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
+import { bindPluginViewResync } from '@/lib/game-plugins/bind-plugin-view-resync';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
 import type { DrawingCanvasHandle } from './drawing-canvas';
@@ -99,10 +100,6 @@ export function useDrawGuessPlayerView(
 
     const socket = getRoomSocket();
 
-    const onPhaseChanged = () => {
-      void syncView();
-    };
-
     const onCanvasUpdated = (payload: DrawGuessCanvasUpdatedPayload) => {
       if (!payload || !Array.isArray(payload.strokes)) {
         return;
@@ -136,16 +133,16 @@ export function useDrawGuessPlayerView(
       canvasRef?.current?.appendRemotePoints(payload.strokeId, payload.points);
     };
 
-    socket.on(DRAW_GUESS_PHASE_CHANGED_EVENT, onPhaseChanged);
-    socket.on(DRAW_GUESS_CANVAS_UPDATED_EVENT, onCanvasUpdated);
-    socket.on(DRAW_GUESS_STROKE_POINTS_EVENT, onStrokePoints);
-    void syncView();
-
-    return () => {
-      socket.off(DRAW_GUESS_PHASE_CHANGED_EVENT, onPhaseChanged);
-      socket.off(DRAW_GUESS_CANVAS_UPDATED_EVENT, onCanvasUpdated);
-      socket.off(DRAW_GUESS_STROKE_POINTS_EVENT, onStrokePoints);
-    };
+    return bindPluginViewResync(socket, DRAW_GUESS_PHASE_CHANGED_EVENT, syncView, {
+      extraBind: () => {
+        socket.on(DRAW_GUESS_CANVAS_UPDATED_EVENT, onCanvasUpdated);
+        socket.on(DRAW_GUESS_STROKE_POINTS_EVENT, onStrokePoints);
+        return () => {
+          socket.off(DRAW_GUESS_CANVAS_UPDATED_EVENT, onCanvasUpdated);
+          socket.off(DRAW_GUESS_STROKE_POINTS_EVENT, onStrokePoints);
+        };
+      },
+    });
   }, [canvasRef, enabled, syncView]);
 
   useEffect(() => {

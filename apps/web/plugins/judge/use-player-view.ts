@@ -10,6 +10,7 @@ import {
   JUDGE_SYNC_EVENT,
 } from '@wanasatna/shared';
 import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
+import { bindPluginViewResync } from '@/lib/game-plugins/bind-plugin-view-resync';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
 
@@ -80,16 +81,7 @@ export function useJudgePlayerView(enabled: boolean) {
     }
 
     const socket = getRoomSocket();
-    const onPhaseChanged = () => {
-      void syncView();
-    };
-
-    socket.on(JUDGE_PHASE_CHANGED_EVENT, onPhaseChanged);
-    void syncView();
-
-    return () => {
-      socket.off(JUDGE_PHASE_CHANGED_EVENT, onPhaseChanged);
-    };
+    return bindPluginViewResync(socket, JUDGE_PHASE_CHANGED_EVENT, syncView);
   }, [enabled, syncView]);
 
 

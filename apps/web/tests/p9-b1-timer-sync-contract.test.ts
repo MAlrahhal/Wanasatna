@@ -41,9 +41,8 @@ const plugins = [
 for (const plugin of plugins) {
   test(`${plugin.id}: PHASE_CHANGED still syncs and cleans up`, () => {
     const hook = readHook(plugin.id);
-    assert.match(hook, new RegExp(`socket\\.on\\(${plugin.event},\\s*onPhaseChanged\\)`));
-    assert.match(hook, /void syncView\(\)/);
-    assert.match(hook, new RegExp(`socket\\.off\\(${plugin.event},\\s*onPhaseChanged\\)`));
+    assert.match(hook, /bindPluginViewResync/);
+    assert.match(hook, new RegExp(`bindPluginViewResync\\(\\s*socket,\\s*${plugin.event}`));
     assert.doesNotMatch(hook, /setInterval\(updateRemaining,\s*250\)/);
     assert.doesNotMatch(hook, /setRemainingSeconds/);
   });

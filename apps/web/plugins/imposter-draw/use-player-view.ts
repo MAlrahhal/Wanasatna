@@ -21,6 +21,7 @@ import {
   IMPOSTER_DRAW_UNDO_EVENT,
 } from '@wanasatna/shared';
 import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
+import { bindPluginViewResync } from '@/lib/game-plugins/bind-plugin-view-resync';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
 
@@ -100,10 +101,6 @@ export function useImposterDrawPlayerView(
 
     const socket = getRoomSocket();
 
-    const onPhaseChanged = () => {
-      void syncView();
-    };
-
     const onCanvasUpdated = (payload: ImposterDrawCanvasUpdatedPayload) => {
       if (!payload || !Array.isArray(payload.strokes)) {
         return;
@@ -140,16 +137,16 @@ export function useImposterDrawPlayerView(
       canvasRef?.current?.appendRemotePoints(payload.strokeId, payload.points);
     };
 
-    socket.on(IMPOSTER_DRAW_PHASE_CHANGED_EVENT, onPhaseChanged);
-    socket.on(IMPOSTER_DRAW_CANVAS_UPDATED_EVENT, onCanvasUpdated);
-    socket.on(IMPOSTER_DRAW_STROKE_POINTS_EVENT, onStrokePoints);
-    void syncView();
-
-    return () => {
-      socket.off(IMPOSTER_DRAW_PHASE_CHANGED_EVENT, onPhaseChanged);
-      socket.off(IMPOSTER_DRAW_CANVAS_UPDATED_EVENT, onCanvasUpdated);
-      socket.off(IMPOSTER_DRAW_STROKE_POINTS_EVENT, onStrokePoints);
-    };
+    return bindPluginViewResync(socket, IMPOSTER_DRAW_PHASE_CHANGED_EVENT, syncView, {
+      extraBind: () => {
+        socket.on(IMPOSTER_DRAW_CANVAS_UPDATED_EVENT, onCanvasUpdated);
+        socket.on(IMPOSTER_DRAW_STROKE_POINTS_EVENT, onStrokePoints);
+        return () => {
+          socket.off(IMPOSTER_DRAW_CANVAS_UPDATED_EVENT, onCanvasUpdated);
+          socket.off(IMPOSTER_DRAW_STROKE_POINTS_EVENT, onStrokePoints);
+        };
+      },
+    });
   }, [canvasRef, enabled, syncView]);
 
   useEffect(() => {

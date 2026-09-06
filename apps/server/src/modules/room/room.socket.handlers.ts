@@ -673,6 +673,12 @@ export function registerRoomSyncHandler(_io: Server, socket: Socket): void {
             roomId: roomId!,
             players: freshPlayers,
           });
+
+          // Same recovery signal as reconnect: mounted plugins re-SYNC on GAME_SHELL_STATE.
+          const shell = getGameShellByRoomId(roomId!);
+          if (shell) {
+            socket.emit(GAME_SHELL_STATE_EVENT, { state: shell });
+          }
         }
 
         sendResponse(callback, response);
