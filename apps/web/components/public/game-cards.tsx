@@ -47,7 +47,18 @@ export function GamePreviewCard({ game, className }: GamePreviewCardProps) {
         )}
         <StatusBadge variant={badgeVariant} />
       </div>
-      <h3 className="text-wanas-text-primary text-base font-bold">{game.title}</h3>
+      <h3 className="text-wanas-text-primary text-base font-bold">
+        {isPlayableGameId(game.id) ? (
+          <Link
+            href={getGameInformationPath(game.id)}
+            className="hover:text-wanas-primary-dark hover:underline"
+          >
+            {game.title}
+          </Link>
+        ) : (
+          game.title
+        )}
+      </h3>
       <p className="text-wanas-text-muted mt-1.5 line-clamp-2 flex-1 text-sm leading-6">
         {game.description}
       </p>

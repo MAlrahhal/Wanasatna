@@ -1,10 +1,13 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { GameCatalogCard } from '@/components/public/game-cards';
 import { PageHero } from '@/components/public/page-hero';
 import { SectionHeader } from '@/components/public/section-header';
 import { filterCatalogGames, getAllCatalogGames } from '@/lib/public/game-catalog';
+import { listIntentSeoPages } from '@/lib/public/intent-seo-content';
+import { PUBLIC_ROUTES } from '@/lib/public/routes';
 import { cn } from '@/lib/utils';
 
 type Filter = 'all' | 'available' | 'coming-soon';
@@ -25,8 +28,26 @@ export function GamesPageClient() {
         title="الألعاب الجماعية في وناستنا"
         description="ثمان ألعاب جاهزة للعب مع أصحابك من المتصفح. اقرأ فكرة كل لعبة، كم لاعب تناسب، وبعدين أنشئ غرفة أو انضم برمز."
         variant="compact"
-        className="mb-10"
+        className="mb-8"
       />
+
+      <nav aria-label="صفحات حسب طريقة اللعب" className="mb-10 flex flex-wrap gap-2">
+        {listIntentSeoPages().map((item) => (
+          <Link
+            key={item.id}
+            href={item.path}
+            className="border-wanas-border bg-wanas-surface text-wanas-text-secondary hover:border-wanas-accent hover:text-wanas-text-primary inline-flex rounded-full border px-4 py-2 text-sm font-bold"
+          >
+            {item.title}
+          </Link>
+        ))}
+        <Link
+          href={PUBLIC_ROUTES.home}
+          className="border-wanas-border bg-wanas-surface text-wanas-text-secondary hover:border-wanas-accent hover:text-wanas-text-primary inline-flex rounded-full border px-4 py-2 text-sm font-bold"
+        >
+          أنشئ غرفة
+        </Link>
+      </nav>
 
       <div className="mb-8 flex flex-wrap gap-2">
         {filters.map((item) => (

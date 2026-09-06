@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { PLAYABLE_GAME_IDS } from '@wanasatna/shared';
 import { faqItems } from '../lib/public/faq-data';
 import { getGameSeoPage, listGameSeoPages } from '../lib/public/game-seo-content';
+import { listIntentSeoPages } from '../lib/public/intent-seo-content';
 import { getHomeRoomActionsHref } from '../lib/public/scroll-to-room-actions';
 import {
   buildPublicSocialMetadata,
@@ -16,6 +17,12 @@ import {
   FAQ_PAGE_DESCRIPTION,
   FAQ_PAGE_TITLE,
   GAME_INFORMATION_PATHS,
+  GAMES_BROWSER_DESCRIPTION,
+  GAMES_BROWSER_TITLE,
+  GAMES_FRIENDS_DESCRIPTION,
+  GAMES_FRIENDS_TITLE,
+  GAMES_GATHERINGS_DESCRIPTION,
+  GAMES_GATHERINGS_TITLE,
   GAMES_PAGE_DESCRIPTION,
   GAMES_PAGE_TITLE,
   HOME_DESCRIPTION,
@@ -54,6 +61,9 @@ function read(relativePath: string): string {
 const INTENDED_INDEXABLE_PATHS = [
   '/',
   '/games',
+  '/games/friends',
+  '/games/browser',
+  '/games/gatherings',
   '/faq',
   '/contact',
   '/privacy',
@@ -83,16 +93,20 @@ const seoSurfaceFiles = [
   'app/(public)/privacy/page.tsx',
   'app/(public)/terms/page.tsx',
   'app/(public)/games/[gameId]/page.tsx',
+  'app/(public)/games/friends/page.tsx',
+  'app/(public)/games/browser/page.tsx',
+  'app/(public)/games/gatherings/page.tsx',
+  'lib/public/intent-seo-content.ts',
 ];
 
-test('indexable routes are exactly the intended 14 production URLs', () => {
+test('indexable routes are exactly the intended 17 production URLs', () => {
   const paths = [...INDEXABLE_PUBLIC_PATHS, ...GAME_INFORMATION_PATHS];
   assert.deepEqual([...paths].sort(), [...INTENDED_INDEXABLE_PATHS].sort());
-  assert.equal(new Set(paths).size, 14);
+  assert.equal(new Set(paths).size, 17);
   assert.equal(PLAYABLE_GAME_IDS.length, 8);
 
   const urls = paths.map((path) => (path === '/' ? `${SITE_ORIGIN}/` : `${SITE_ORIGIN}${path}`));
-  assert.equal(new Set(urls).size, 14);
+  assert.equal(new Set(urls).size, 17);
   for (const url of urls) {
     assert.match(url, /^https:\/\/wanasatna\.com\//);
     assert.doesNotMatch(url, /localhost|railway|127\.0\.0\.1|\?|#/i);
@@ -125,29 +139,41 @@ test('metadata uniqueness, canonicals, OG, and Twitter', () => {
   const publicTitles = [
     HOME_TITLE,
     `${GAMES_PAGE_TITLE} | وناستنا`,
+    `${GAMES_FRIENDS_TITLE} | وناستنا`,
+    `${GAMES_BROWSER_TITLE} | وناستنا`,
+    `${GAMES_GATHERINGS_TITLE} | وناستنا`,
     `${FAQ_PAGE_TITLE} | وناستنا`,
     `${CONTACT_PAGE_TITLE} | وناستنا`,
     `${PRIVACY_PAGE_TITLE} | وناستنا`,
     `${TERMS_PAGE_TITLE} | وناستنا`,
   ];
-  assert.equal(new Set(publicTitles).size, 6);
+  assert.equal(new Set(publicTitles).size, 9);
 
   const descriptions = [
     HOME_DESCRIPTION,
     GAMES_PAGE_DESCRIPTION,
+    GAMES_FRIENDS_DESCRIPTION,
+    GAMES_BROWSER_DESCRIPTION,
+    GAMES_GATHERINGS_DESCRIPTION,
     FAQ_PAGE_DESCRIPTION,
     CONTACT_PAGE_DESCRIPTION,
     PRIVACY_PAGE_DESCRIPTION,
     TERMS_PAGE_DESCRIPTION,
     ...listGameSeoPages().map((page) => page.metaDescription),
   ];
-  assert.equal(new Set(descriptions).size, 14);
+  assert.equal(new Set(descriptions).size, 17);
 
   const titles = [HOME_TITLE, ...listGameSeoPages().map((page) => `${page.title} | وناستنا`)];
   assert.equal(new Set(titles).size, 9);
 
   assert.match(read('app/(public)/page.tsx'), /canonical: '\/'/);
   assert.match(read('app/(public)/games/page.tsx'), /canonical: '\/games'/);
+  assert.match(read('app/(public)/games/friends/page.tsx'), /canonical: PUBLIC_ROUTES.gamesFriends/);
+  assert.match(read('app/(public)/games/browser/page.tsx'), /canonical: PUBLIC_ROUTES.gamesBrowser/);
+  assert.match(
+    read('app/(public)/games/gatherings/page.tsx'),
+    /canonical: PUBLIC_ROUTES.gamesGatherings/,
+  );
   assert.match(read('app/(public)/faq/page.tsx'), /canonical: '\/faq'/);
   assert.match(read('app/(public)/contact/page.tsx'), /canonical: '\/contact'/);
   assert.match(read('app/(public)/privacy/page.tsx'), /canonical: '\/privacy'/);
@@ -169,6 +195,21 @@ test('metadata uniqueness, canonicals, OG, and Twitter', () => {
       title: `${GAMES_PAGE_TITLE} | وناستنا`,
       description: GAMES_PAGE_DESCRIPTION,
       url: '/games',
+    },
+    {
+      title: `${GAMES_FRIENDS_TITLE} | وناستنا`,
+      description: GAMES_FRIENDS_DESCRIPTION,
+      url: '/games/friends',
+    },
+    {
+      title: `${GAMES_BROWSER_TITLE} | وناستنا`,
+      description: GAMES_BROWSER_DESCRIPTION,
+      url: '/games/browser',
+    },
+    {
+      title: `${GAMES_GATHERINGS_TITLE} | وناستنا`,
+      description: GAMES_GATHERINGS_DESCRIPTION,
+      url: '/games/gatherings',
     },
     {
       title: `${FAQ_PAGE_TITLE} | وناستنا`,
@@ -208,11 +249,14 @@ test('metadata uniqueness, canonicals, OG, and Twitter', () => {
     assert.equal(social.twitter?.card, 'summary_large_image');
     assert.deepEqual(social.twitter?.images, [SOCIAL_IMAGE]);
   }
-  assert.equal(socialPages.length, 14);
+  assert.equal(socialPages.length, 17);
 
   for (const file of [
     'app/(public)/page.tsx',
     'app/(public)/games/page.tsx',
+    'app/(public)/games/friends/page.tsx',
+    'app/(public)/games/browser/page.tsx',
+    'app/(public)/games/gatherings/page.tsx',
     'app/(public)/faq/page.tsx',
     'app/(public)/contact/page.tsx',
     'app/(public)/privacy/page.tsx',
@@ -256,6 +300,15 @@ test('game copy stays game-specific; GC remains 2/4; no Admin 20-player leak', (
   const pages = listGameSeoPages();
   const intros = pages.map((page) => page.intro);
   assert.equal(new Set(intros).size, 8);
+  for (const page of pages) {
+    assert.ok(page.relatedIds.length >= 2 && page.relatedIds.length <= 4, page.id);
+    assert.ok(page.faqs.length >= 2, page.id);
+  }
+
+  const intents = listIntentSeoPages();
+  assert.equal(intents.length, 3);
+  assert.equal(new Set(intents.map((page) => page.intro)).size, 3);
+  assert.equal(new Set(intents.map((page) => page.metaDescription)).size, 3);
 
   const gc = getGameSeoPage('guessing-challenge');
   assert.ok(gc);

@@ -1,6 +1,9 @@
 export const PUBLIC_ROUTES = {
   home: '/',
   games: '/games',
+  gamesFriends: '/games/friends',
+  gamesBrowser: '/games/browser',
+  gamesGatherings: '/games/gatherings',
   faq: '/faq',
   contact: '/contact',
   privacy: '/privacy',

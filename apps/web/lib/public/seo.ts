@@ -16,6 +16,18 @@ export const GAMES_PAGE_TITLE = 'الألعاب الجماعية';
 export const GAMES_PAGE_DESCRIPTION =
   'الألعاب الجماعية في وناستنا: تعرّف على كل لعبة، كم لاعب تناسب، وكيف تبدأ مع أصحابك من المتصفح.';
 
+export const GAMES_FRIENDS_TITLE = 'ألعاب جماعية للأصدقاء';
+export const GAMES_FRIENDS_DESCRIPTION =
+  'ألعاب جماعية للأصدقاء من المتصفح: أنشئ غرفة، شارك الرمز، والعبوا على ديسكورد أو من بعيد بدون تسجيل.';
+
+export const GAMES_BROWSER_TITLE = 'ألعاب جماعية بدون تحميل';
+export const GAMES_BROWSER_DESCRIPTION =
+  'ألعاب جماعية أونلاين بدون تحميل: العب مع أصحابك من المتصفح على الجوال أو الكمبيوتر، بدون تطبيق أو تسجيل.';
+
+export const GAMES_GATHERINGS_TITLE = 'ألعاب سهرات وجمعات';
+export const GAMES_GATHERINGS_DESCRIPTION =
+  'ألعاب سهرات وجمعات من المتصفح: نقاش ورسم وأسئلة للقروب في البيت أو الاستراحة، بدون تحميل.';
+
 export const FAQ_PAGE_TITLE = 'الأسئلة الشائعة';
 export const FAQ_PAGE_DESCRIPTION =
   'كيف تنشئ روم وكيف يدخل أصحابك، وهل تحتاج حساب أو تحميل — إجابات قصيرة عن اللعب في وناستنا.';
@@ -70,6 +82,9 @@ export function buildPublicSocialMetadata({
 export const INDEXABLE_PUBLIC_PATHS = [
   PUBLIC_ROUTES.home,
   PUBLIC_ROUTES.games,
+  PUBLIC_ROUTES.gamesFriends,
+  PUBLIC_ROUTES.gamesBrowser,
+  PUBLIC_ROUTES.gamesGatherings,
   PUBLIC_ROUTES.faq,
   PUBLIC_ROUTES.contact,
   PUBLIC_ROUTES.privacy,

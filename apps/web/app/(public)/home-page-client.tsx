@@ -139,12 +139,32 @@ export function HomePageClient() {
               title="ألعاب مميزة"
               description="جرّب أبرز الألعاب المتاحة الآن — المزيد في صفحة الألعاب."
             />
-            <Link
-              href={PUBLIC_ROUTES.games}
-              className="border-wanas-border bg-wanas-surface text-wanas-text-primary hover:border-wanas-accent hover:bg-wanas-surface-soft inline-flex h-11 items-center justify-center rounded-[var(--wanas-radius-control)] border px-5 text-sm font-bold transition-colors"
-            >
-              عرض كل الألعاب
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={PUBLIC_ROUTES.games}
+                className="border-wanas-border bg-wanas-surface text-wanas-text-primary hover:border-wanas-accent hover:bg-wanas-surface-soft inline-flex h-11 items-center justify-center rounded-[var(--wanas-radius-control)] border px-5 text-sm font-bold transition-colors"
+              >
+                عرض كل الألعاب
+              </Link>
+              <Link
+                href={PUBLIC_ROUTES.gamesFriends}
+                className="text-wanas-primary-dark inline-flex h-11 items-center px-2 text-sm font-bold underline-offset-2 hover:underline"
+              >
+                للأصدقاء
+              </Link>
+              <Link
+                href={PUBLIC_ROUTES.gamesGatherings}
+                className="text-wanas-primary-dark inline-flex h-11 items-center px-2 text-sm font-bold underline-offset-2 hover:underline"
+              >
+                سهرات وجمعات
+              </Link>
+              <Link
+                href={PUBLIC_ROUTES.gamesBrowser}
+                className="text-wanas-primary-dark inline-flex h-11 items-center px-2 text-sm font-bold underline-offset-2 hover:underline"
+              >
+                بدون تحميل
+              </Link>
+            </div>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {featuredGames.map((game) => (

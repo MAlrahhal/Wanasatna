@@ -7,6 +7,11 @@ import { BRAND_NAME_AR } from '@/lib/public/brand';
 import { PUBLIC_ROUTES, getGameInformationPath } from '@/lib/public/routes';
 import { SITE_ORIGIN } from '@/lib/public/seo';
 
+export type GameSeoFaq = {
+  question: string;
+  answer: string;
+};
+
 export type GameSeoPage = {
   id: PlayableGameId;
   title: string;
@@ -15,7 +20,13 @@ export type GameSeoPage = {
   idea: string;
   steps: string[];
   playerNeed: string;
+  minPlayers: number;
+  maxPlayers: number;
+  noDownload: string;
+  noAccount: string;
+  howFriendsJoin: string;
   whenFits: string[];
+  faqs: GameSeoFaq[];
   relatedIds: PlayableGameId[];
 };
 
@@ -36,8 +47,28 @@ const pages: Record<PlayableGameId, GameSeoPage> = {
       'خمّنوا مين برا السالفة، واللي برا يحاول يمر كأنه منهم.',
     ],
     playerNeed: 'تحتاج ٣ إلى ٨ لاعبين عشان النقاش يصير ممتع.',
+    minPlayers: 3,
+    maxPlayers: 8,
+    noDownload: 'تشتغل من المتصفح على الجوال أو الكمبيوتر، بدون تطبيق.',
+    noAccount: 'ما تحتاج حساب. اكتب اسمك وادخل الروم.',
+    howFriendsJoin: 'شارك رمز الغرفة من ست خانات. أصحابك يدخلون من الرئيسية بنفس الرمز.',
     whenFits: ['أصحاب', 'تجمعات', 'ديسكورد'],
-    relatedIds: ['imposter-draw', 'who-wrote-it'],
+    faqs: [
+      {
+        question: 'وش الفرق بين اللي على السالفة واللي برا؟',
+        answer:
+          'اللي على السالفة يعرفون الموضوع ويتكلمون حوله بحذر. اللي برا ما يعرف السالفة ويحاول يمر مع النقاش بدون ما ينكشف.',
+      },
+      {
+        question: 'كم لاعب يناسب برا السالفة؟',
+        answer: 'من ٣ إلى ٨ لاعبين. أقل من كذا النقاش يصير ضيق، وأكثر من كذا يصعب تتابع الأصوات.',
+      },
+      {
+        question: 'تصلح للسهره ولا لديسكورد؟',
+        answer: 'الاثنين. تقدرون تكونون في نفس الغرفة أو كل واحد على سماعة، المهم صوت واضح للنقاش.',
+      },
+    ],
+    relatedIds: ['imposter-draw', 'who-wrote-it', 'judge'],
   },
   'draw-guess': {
     id: 'draw-guess',
@@ -55,8 +86,27 @@ const pages: Record<PlayableGameId, GameSeoPage> = {
       'تنعرض النتائج وتنتقلون للجولة التالية.',
     ],
     playerNeed: 'تشتغل من لاعبين اثنين إلى ثمانية.',
+    minPlayers: 2,
+    maxPlayers: 8,
+    noDownload: 'الرسم والتخمين داخل المتصفح. ما فيه تثبيت.',
+    noAccount: 'الدخول باسم فقط، بدون تسجيل.',
+    howFriendsJoin: 'المضيف ينشئ غرفة ويرسل الرمز. الباقي ينضمون من الصفحة الرئيسية.',
     whenFits: ['أصحاب', 'تجمعات'],
-    relatedIds: ['imposter-draw'],
+    faqs: [
+      {
+        question: 'لازم أرسم زين عشان نلعب؟',
+        answer: 'لا. الفكرة إن الرسمة توصل المعنى، والغلط فيها جزء من الوناسة.',
+      },
+      {
+        question: 'مين يرسم في كل جولة؟',
+        answer: 'الدور ينتقل بين اللاعبين. واحد يرسم والباقي يخمنون من اللوحة.',
+      },
+      {
+        question: 'تشتغل على الجوال؟',
+        answer: 'نعم، من متصفح الجوال. الرسم باللمس، والتخمين بالكتابة.',
+      },
+    ],
+    relatedIds: ['imposter-draw', 'fast-answer', 'timing-challenge'],
   },
   'imposter-draw': {
     id: 'imposter-draw',
@@ -74,8 +124,27 @@ const pages: Record<PlayableGameId, GameSeoPage> = {
       'تصوّتون، وتنكشف النتيجة قبل الجولة الجاية.',
     ],
     playerNeed: 'تحتاج ٣ إلى ٨ لاعبين.',
+    minPlayers: 3,
+    maxPlayers: 8,
+    noDownload: 'اللوحات تفتح في المتصفح. ما تحتاج برنامج رسم.',
+    noAccount: 'ما فيه تسجيل. الاسم يكفي لدخول الغرفة.',
+    howFriendsJoin: 'أرسل رمز الغرفة في الشات أو ديسكورد، ويدخلون من الرئيسية.',
     whenFits: ['أصحاب', 'ديسكورد'],
-    relatedIds: ['bara-al-salafa', 'draw-guess'],
+    faqs: [
+      {
+        question: 'وش يشوف الإمبوستر؟',
+        answer: 'ما يعرف الموضوع اللي الباقي يرسمونه، فيحاول يقلّد أسلوب الرسوم بدون ما يفضح نفسه.',
+      },
+      {
+        question: 'ليش نحتاج ثلاثة لاعبين على الأقل؟',
+        answer: 'عشان يبقى إمبوستر ومجموعة ترسم الموضوع. أقل من كذا التصويت ما له معنى.',
+      },
+      {
+        question: 'الكل يرسم في نفس الوقت؟',
+        answer: 'نعم. بعد الرسم تشوفون اللوحات وتصوّتون على مين الإمبوستر.',
+      },
+    ],
+    relatedIds: ['bara-al-salafa', 'draw-guess', 'who-wrote-it'],
   },
   'timing-challenge': {
     id: 'timing-challenge',
@@ -93,8 +162,28 @@ const pages: Record<PlayableGameId, GameSeoPage> = {
       'تنحسب النقاط حسب القرب من الوقت الصحيح.',
     ],
     playerNeed: 'تشتغل من لاعبين اثنين إلى ثمانية.',
+    minPlayers: 2,
+    maxPlayers: 8,
+    noDownload: 'المؤقت داخل الصفحة. ما تحتاج تطبيق ساعة أو تحميل.',
+    noAccount: 'ادخلوا بأسمائكم من الرئيسية بدون حساب.',
+    howFriendsJoin: 'الغرفة لها رمز. اللي برا يكتبه في بطاقة الانضمام على الرئيسية.',
     whenFits: ['أصحاب', 'تجمعات'],
-    relatedIds: ['fast-answer'],
+    faqs: [
+      {
+        question: 'وش الأوضاع المتاحة؟',
+        answer:
+          'وضع تخمين المدة، ووضع إيقاف المؤقت عند اللحظة المطلوبة. المضيف يختار الوضع من إعدادات اللوبي.',
+      },
+      {
+        question: 'كيف تنحسب النقاط؟',
+        answer: 'الأقرب للوقت الصحيح يكسب الجولة. ما تعتمد على سرعة الكتابة.',
+      },
+      {
+        question: 'تصلح لجولة قصيرة؟',
+        answer: 'نعم. جولات سريعة تقدر تحطونها بين ألعاب أطول مثل برا السالفة أو الرسم.',
+      },
+    ],
+    relatedIds: ['fast-answer', 'draw-guess', 'guessing-challenge'],
   },
   'fast-answer': {
     id: 'fast-answer',
@@ -112,8 +201,27 @@ const pages: Record<PlayableGameId, GameSeoPage> = {
       'أول إجابة صحيحة تحتسب، وتكملون باقي الجولات.',
     ],
     playerNeed: 'تشتغل من لاعبين اثنين إلى ثمانية.',
+    minPlayers: 2,
+    maxPlayers: 8,
+    noDownload: 'الأسئلة تظهر في المتصفح. بدون تطبيق مسابقات.',
+    noAccount: 'ما تحتاج تسجّل. الاسم ورمز الغرفة يكفون.',
+    howFriendsJoin: 'شارك الرمز في قروب الأصحاب. كل واحد يدخل من وناستنا بنفس الرمز.',
     whenFits: ['أصحاب', 'تجمعات', 'ديسكورد'],
-    relatedIds: ['timing-challenge'],
+    faqs: [
+      {
+        question: 'أول إجابة صحيحة هي اللي تحتسب؟',
+        answer: 'نعم. السرعة مع الصحة. الإجابة الغلط ما تمنع الباقي من المحاولة في نفس الجولة حسب سير اللعب.',
+      },
+      {
+        question: 'تصلح للجوال؟',
+        answer: 'نعم. الكتابة على الجوال كافية، والجولات قصيرة.',
+      },
+      {
+        question: 'كم لاعب يدخل؟',
+        answer: 'من اثنين إلى ثمانية في الغرفة العامة.',
+      },
+    ],
+    relatedIds: ['timing-challenge', 'guessing-challenge', 'draw-guess'],
   },
   'who-wrote-it': {
     id: 'who-wrote-it',
@@ -131,8 +239,27 @@ const pages: Record<PlayableGameId, GameSeoPage> = {
       'خمّنوا مين كتب كل جملة، وبعدين تنكشف النتائج.',
     ],
     playerNeed: 'تحتاج ٣ إلى ٨ لاعبين.',
+    minPlayers: 3,
+    maxPlayers: 8,
+    noDownload: 'الكتابة داخل المتصفح. ما تحتاج ورقة أو تطبيق خارجي.',
+    noAccount: 'بدون تسجيل. الاسم الظاهر في الغرفة يكفي.',
+    howFriendsJoin: 'المضيف يرسل رمز الغرفة. تدخلون من الرئيسية وتختارون اللعبة في اللوبي.',
     whenFits: ['أصحاب', 'تجمعات'],
-    relatedIds: ['judge'],
+    faqs: [
+      {
+        question: 'الإجابات تظهر بأسماء؟',
+        answer: 'لا. تظهر بدون أسماء أولًا، وبعد التخمين تنكشف مين كتب كل جملة.',
+      },
+      {
+        question: 'ليش ثلاثة لاعبين على الأقل؟',
+        answer: 'عشان يبقى أكثر من أسلوب كتابة، والتخمين يصير له معنى.',
+      },
+      {
+        question: 'تصلح لمجموعة تعرف بعض؟',
+        answer: 'هذه قوتها. كل ما كنتم أعرف بأسلوب بعض، التخمين يصير أمتع.',
+      },
+    ],
+    relatedIds: ['judge', 'bara-al-salafa', 'imposter-draw'],
   },
   judge: {
     id: 'judge',
@@ -150,8 +277,27 @@ const pages: Record<PlayableGameId, GameSeoPage> = {
       'صاحب الإجابة المختارة يكسب الجولة، ويتبدل الدور.',
     ],
     playerNeed: 'تحتاج ٣ إلى ٨ لاعبين.',
+    minPlayers: 3,
+    maxPlayers: 8,
+    noDownload: 'الموضوع والإجابات على الصفحة. بدون تحميل.',
+    noAccount: 'ما فيه حساب. تدخلون بأسماء وتبدؤون من اللوبي.',
+    howFriendsJoin: 'رمز الغرفة يوصل للكل. ينضمون من الرئيسية قبل ما يختار المضيف القاضي.',
     whenFits: ['أصحاب', 'تجمعات'],
-    relatedIds: ['who-wrote-it'],
+    faqs: [
+      {
+        question: 'القاضي ثابت طول المباراة؟',
+        answer: 'لا. الدور يتنقل. كل جولة يقدر يكون فيها قاضي مختلف حسب سير اللعب.',
+      },
+      {
+        question: 'فيه إجابة صحيحة؟',
+        answer: 'مو شرط. القاضي يختار اللي تعجبه، سواء كانت أظرف أو أقرب للمزاج.',
+      },
+      {
+        question: 'كم لاعب تحتاج؟',
+        answer: 'من ٣ إلى ٨. واحد قاضي والباقي يكتبون.',
+      },
+    ],
+    relatedIds: ['who-wrote-it', 'bara-al-salafa', 'fast-answer'],
   },
   'guessing-challenge': {
     id: 'guessing-challenge',
@@ -170,8 +316,27 @@ const pages: Record<PlayableGameId, GameSeoPage> = {
     ],
     playerNeed:
       'تحتاج بالضبط ٢ أو ٤ لاعبين نشطين. الوضع إما 1 ضد 1 أو 2 ضد 2، بين فريق أزرق وفريق أحمر.',
+    minPlayers: 2,
+    maxPlayers: 4,
+    noDownload: 'المشهد واللعب من المتصفح. بدون تثبيت.',
+    noAccount: 'بدون تسجيل. الاسم يكفي، والعدد لازم ٢ أو ٤.',
+    howFriendsJoin: 'اجمعوا اثنين أو أربعة في الغرفة عبر الرمز، بعدين ابدؤوا من اللوبي.',
     whenFits: ['أصحاب', 'ديسكورد'],
-    relatedIds: ['fast-answer'],
+    faqs: [
+      {
+        question: 'ليش بس ٢ أو ٤ لاعبين؟',
+        answer: 'اللعبة مواجهة: 1 ضد 1 أو 2 ضد 2 بين الأزرق والأحمر. العدد غير كذا ما يناسب وضع الفرق.',
+      },
+      {
+        question: 'وش يعني أعرف هويتي؟',
+        answer: 'كل طرف يحاول يوصل لهويته من الأسئلة والتخمين قبل ما الخصم يسبق.',
+      },
+      {
+        question: 'تصلح لروم ثمانية؟',
+        answer: 'لا. خلّوا الغرفة اثنين أو أربعة لاعبين نشطين بهاللعبة.',
+      },
+    ],
+    relatedIds: ['fast-answer', 'timing-challenge', 'draw-guess'],
   },
 };
 
@@ -202,6 +367,20 @@ export function buildGamePageJsonLd(page: GameSeoPage) {
         '@type': 'WebSite',
         name: BRAND_NAME_AR,
         url: `${SITE_ORIGIN}/`,
+      },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'VideoGame',
+      name: page.title,
+      description: page.metaDescription,
+      url,
+      inLanguage: 'ar',
+      gamePlatform: 'Web browser',
+      numberOfPlayers: {
+        '@type': 'QuantitativeValue',
+        minValue: page.minPlayers,
+        maxValue: page.maxPlayers,
       },
     },
     {

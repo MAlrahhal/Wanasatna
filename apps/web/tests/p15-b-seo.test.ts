@@ -60,6 +60,12 @@ const publicSeoFiles = [
   'app/(public)/games/page.tsx',
   'app/(public)/games/games-page-client.tsx',
   'app/(public)/games/[gameId]/page.tsx',
+  'app/(public)/games/friends/page.tsx',
+  'app/(public)/games/browser/page.tsx',
+  'app/(public)/games/gatherings/page.tsx',
+  'lib/public/intent-seo-content.ts',
+  'components/public/intent-landing-page.tsx',
+  'components/public/seo-breadcrumb.tsx',
   'app/(public)/faq/page.tsx',
   'app/(public)/contact/page.tsx',
   'app/(public)/contact/contact-page-client.tsx',
@@ -170,6 +176,7 @@ test('13 no fake ratings', () => {
   const json = JSON.stringify(listGameSeoPages().map((page) => buildGamePageJsonLd(page)));
   assert.doesNotMatch(json, /AggregateRating|ratingValue|Offer|reviewRating/i);
   assert.match(json, /WebPage/);
+  assert.match(json, /VideoGame/);
   assert.match(json, /BreadcrumbList/);
   const route = read('app/(public)/games/[gameId]/page.tsx');
   assert.doesNotMatch(route, /AggregateRating/);
@@ -229,6 +236,8 @@ test('18 headings semantic', () => {
   assert.match(view, /كم لاعب تحتاج؟/);
   assert.match(view, /متى تناسب؟/);
   assert.match(view, /ابدأ اللعب/);
+  assert.match(view, /العب الآن/);
+  assert.match(view, /SeoBreadcrumb/);
   assert.match(view, /<h2/);
   assert.match(faq, /PageHero/);
   assert.match(contact, /PageHero/);

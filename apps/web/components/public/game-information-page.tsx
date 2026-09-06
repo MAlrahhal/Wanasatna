@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import { getGameCatalogEntry } from '@/lib/public/game-catalog';
 import { getGameSeoPage, type GameSeoPage } from '@/lib/public/game-seo-content';
+import { listIntentSeoPages } from '@/lib/public/intent-seo-content';
 import { PUBLIC_ROUTES, getGameInformationPath } from '@/lib/public/routes';
 import { getHomeRoomActionsHref } from '@/lib/public/scroll-to-room-actions';
 import { GameArtwork } from '@/components/game/game-artwork';
+import { SeoBreadcrumb } from '@/components/public/seo-breadcrumb';
 
 type GameInformationPageProps = {
   page: GameSeoPage;
@@ -14,14 +16,17 @@ export function GameInformationPage({ page }: GameInformationPageProps) {
   const related = page.relatedIds
     .map((id) => getGameSeoPage(id))
     .filter((item): item is GameSeoPage => item !== null);
+  const intents = listIntentSeoPages();
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-12">
-      <p className="text-wanas-text-muted mb-6 text-sm font-semibold">
-        <Link href={PUBLIC_ROUTES.games} className="hover:text-wanas-primary-dark hover:underline">
-          كل الألعاب
-        </Link>
-      </p>
+      <SeoBreadcrumb
+        items={[
+          { href: PUBLIC_ROUTES.home, label: 'الرئيسية' },
+          { href: PUBLIC_ROUTES.games, label: 'الألعاب' },
+          { label: page.title },
+        ]}
+      />
 
       <header className="border-wanas-border bg-wanas-hero mb-8 rounded-[1.5rem] border px-5 py-8 sm:px-8">
         {entry.imagePath ? (
@@ -66,12 +71,33 @@ export function GameInformationPage({ page }: GameInformationPageProps) {
         </section>
 
         <section>
+          <h2 className="text-wanas-text-primary mb-2 text-xl font-extrabold">كيف تدخلون؟</h2>
+          <ul className="list-disc space-y-1 pr-5">
+            <li>{page.howFriendsJoin}</li>
+            <li>{page.noDownload}</li>
+            <li>{page.noAccount}</li>
+          </ul>
+        </section>
+
+        <section>
           <h2 className="text-wanas-text-primary mb-2 text-xl font-extrabold">متى تناسب؟</h2>
           <ul className="list-disc space-y-1 pr-5">
             {page.whenFits.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
+        </section>
+
+        <section>
+          <h2 className="text-wanas-text-primary mb-3 text-xl font-extrabold">أسئلة عن اللعبة</h2>
+          <dl className="space-y-4">
+            {page.faqs.map((item) => (
+              <div key={item.question}>
+                <dt className="text-wanas-text-primary font-bold">{item.question}</dt>
+                <dd className="mt-1">{item.answer}</dd>
+              </div>
+            ))}
+          </dl>
         </section>
 
         <section className="border-wanas-border bg-wanas-surface rounded-[20px] border p-5">
@@ -83,6 +109,12 @@ export function GameInformationPage({ page }: GameInformationPageProps) {
             <Link
               href={getHomeRoomActionsHref()}
               className="bg-wanas-accent hover:bg-wanas-accent-hover inline-flex h-11 items-center justify-center rounded-2xl px-5 text-sm font-bold text-white"
+            >
+              العب الآن
+            </Link>
+            <Link
+              href={getHomeRoomActionsHref()}
+              className="border-wanas-border bg-wanas-surface text-wanas-text-primary inline-flex h-11 items-center justify-center rounded-2xl border px-5 text-sm font-bold"
             >
               ابدأ من الرئيسية
             </Link>
@@ -112,6 +144,30 @@ export function GameInformationPage({ page }: GameInformationPageProps) {
             </ul>
           </section>
         ) : null}
+
+        <section>
+          <h2 className="text-wanas-text-primary mb-3 text-xl font-extrabold">تصفح حسب الوضع</h2>
+          <ul className="flex flex-wrap gap-3">
+            {intents.map((item) => (
+              <li key={item.id}>
+                <Link
+                  href={item.path}
+                  className="text-wanas-primary-dark text-sm font-bold underline-offset-2 hover:underline"
+                >
+                  {item.title}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link
+                href={PUBLIC_ROUTES.games}
+                className="text-wanas-primary-dark text-sm font-bold underline-offset-2 hover:underline"
+              >
+                كل الألعاب
+              </Link>
+            </li>
+          </ul>
+        </section>
       </div>
     </main>
   );
