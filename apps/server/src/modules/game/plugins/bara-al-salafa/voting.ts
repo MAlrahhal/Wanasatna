@@ -1,4 +1,22 @@
 import type { BaraAlSalafaMatchState, GameShellState } from '@wanasatna/shared';
+import { isActiveMatchParticipant } from '@wanasatna/shared';
+
+export function isEligibleBaraVoter(
+  shell: GameShellState,
+  match: BaraAlSalafaMatchState,
+  playerId: string,
+): boolean {
+  if (!isActiveMatchParticipant(shell, playerId)) {
+    return false;
+  }
+
+  const player = shell.players.find((entry) => entry.id === playerId);
+  if (!player || !player.isConnected || player.isSpectator) {
+    return false;
+  }
+
+  return match.playerIds.includes(playerId);
+}
 
 export function getConnectedParticipantIds(
   shell: GameShellState,

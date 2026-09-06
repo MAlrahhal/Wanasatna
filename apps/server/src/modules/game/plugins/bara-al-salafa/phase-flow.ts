@@ -17,7 +17,7 @@ import {
 } from './free-questions.js';
 import { timedPhaseClock } from '../../runtime/phase-deadline.js';
 import { withRound } from './round-state.js';
-import { applyVote, haveAllConnectedParticipantsVoted } from './voting.js';
+import { applyVote, haveAllConnectedParticipantsVoted, isEligibleBaraVoter } from './voting.js';
 import {
   applyRoleUnderstood,
   haveAllConnectedParticipantsAcknowledgedRole,
@@ -318,6 +318,10 @@ export function applyVoteSubmission(
   }
 
   if (match.round.submittedVoterIds.includes(voterId)) {
+    return match;
+  }
+
+  if (!isEligibleBaraVoter(shell, match, voterId)) {
     return match;
   }
 

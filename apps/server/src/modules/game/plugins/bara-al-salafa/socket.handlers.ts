@@ -29,6 +29,7 @@ import {
   playerRecoveryBlockedError,
 } from '../../runtime/player-recovery.js';
 import { getConnectedParticipantIds } from './free-questions.js';
+import { isEligibleBaraVoter } from './voting.js';
 import { ensureBaraAlSalafaMatchStateWithTimer } from './init-match.js';
 import {
   applyDirectedQuestionAdvance,
@@ -623,7 +624,17 @@ export function registerBaraAlSalafaSocketHandlers(io: Server, socket: Socket): 
 
       const match = getBaraAlSalafaState(roomId!);
 
-      if (!match || match.round.gamePhase !== 'voting') {
+      if (!match) {
+        sendGameResponse(callback, gameNotReadyError());
+        return;
+      }
+
+      if (!isEligibleBaraVoter(shell, match, playerId!)) {
+        sendGameResponse(callback, notParticipantError());
+        return;
+      }
+
+      if (match.round.gamePhase !== 'voting') {
         sendGameResponse(callback, gameNotReadyError());
         return;
       }
@@ -634,21 +645,6 @@ export function registerBaraAlSalafaSocketHandlers(io: Server, socket: Socket): 
           error: {
             code: 'ALREADY_SUBMITTED',
             message: 'لقد صوّتت بالفعل.',
-          },
-        });
-        return;
-      }
-
-      const connectedPlayer = shell.players.find(
-        (player) => player.id === playerId && player.isConnected,
-      );
-
-      if (!connectedPlayer || !match.playerIds.includes(playerId!)) {
-        sendGameResponse(callback, {
-          success: false,
-          error: {
-            code: 'NOT_PARTICIPANT',
-            message: 'أنت لست مشاركاً في هذه الجولة.',
           },
         });
         return;

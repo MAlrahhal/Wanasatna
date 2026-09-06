@@ -23,7 +23,7 @@ import {
   syncMatchPlayersFromShell,
   withRound,
 } from './round-state.js';
-import { deleteBaraAlSalafaState, setBaraAlSalafaState } from './store.js';
+import { deleteBaraAlSalafaState, getBaraAlSalafaState, setBaraAlSalafaState } from './store.js';
 import {
   clearPhaseTimerRuntime,
   restartPhaseTimer,
@@ -42,6 +42,15 @@ export function startNextRound(
   bundle: GameContentBundle,
   settings: GameContentSettings,
 ): BaraAlSalafaMatchState {
+  const live = getBaraAlSalafaState(roomId);
+  if (
+    live &&
+    (live.currentRound > match.currentRound ||
+      (live.currentRound === match.currentRound && live.round.gamePhase !== 'round-results'))
+  ) {
+    return live;
+  }
+
   const syncedMatch = syncMatchPlayersFromShell(match, shell.players);
   const nextRoundNumber = syncedMatch.currentRound + 1;
   const nextRound = createRoundState(

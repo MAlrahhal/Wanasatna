@@ -5,6 +5,7 @@
 import assert from 'node:assert/strict';
 import {
   BARA_AL_SALAFA_SUBMIT_ROLE_UNDERSTOOD_EVENT,
+  BARA_AL_SALAFA_SUBMIT_VOTE_EVENT,
   BARA_AL_SALAFA_SYNC_EVENT,
   GAME_SHELL_SYNC_EVENT,
 } from '@wanasatna/shared';
@@ -255,6 +256,14 @@ async function main(): Promise<void> {
     );
     assert.equal(actionRes.success, false);
     assert.equal(actionRes.error?.code, 'NOT_PARTICIPANT');
+
+    const voteRes = await ack<{ success: boolean; error?: { code: string } }>(
+      waiter.socket,
+      BARA_AL_SALAFA_SUBMIT_VOTE_EVENT,
+      { targetPlayerId: host.id },
+    );
+    assert.equal(voteRes.success, false);
+    assert.equal(voteRes.error?.code, 'NOT_PARTICIPANT');
 
     host.socket.disconnect();
     clients.forEach((c) => c.socket.disconnect());

@@ -17,6 +17,7 @@ import {
 import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
+import { isStaleBaraRoleView } from './stale-round-view';
 
 async function fetchPlayerView(): Promise<{
   view: BaraAlSalafaPlayerView | null;
@@ -40,18 +41,33 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
   const hasViewRef = useRef(false);
+  const viewRef = useRef<BaraAlSalafaPlayerView | null>(null);
+  const awaitingRoundFromRef = useRef<number | null>(null);
   const syncGateRef = useRef(new AckGenerationGate());
 
-  // Background re-syncs (real phase changes) must never
-  // flip the screen back to a loading/error state: loading and errors only
-  // surface before the first view exists, and a transient failed re-sync
-  // keeps the last good view instead of blanking the phase screen.
+  const commitView = useCallback((next: BaraAlSalafaPlayerView) => {
+    viewRef.current = next;
+    hasViewRef.current = true;
+    if (!isStaleBaraRoleView(awaitingRoundFromRef.current, next)) {
+      awaitingRoundFromRef.current = null;
+      setIsLoading(false);
+    }
+    setView(next);
+    setErrorMessage(null);
+  }, []);
+
+  // Background re-syncs must not blank a live phase on a transient failure.
+  // Exception: after round-results ends, keep a recovery/loading state until the
+  // new round's authoritative view arrives so the previous secret role is not shown.
   const syncView = useCallback(async () => {
     const isInitialLoad = !hasViewRef.current;
+    const awaitingFromRound = awaitingRoundFromRef.current;
 
-    if (isInitialLoad) {
+    if (isInitialLoad || awaitingFromRound !== null) {
       setIsLoading(true);
-      setErrorMessage(null);
+      if (isInitialLoad) {
+        setErrorMessage(null);
+      }
     }
 
     const result = await runLatestAck(syncGateRef.current, fetchPlayerView);
@@ -61,22 +77,31 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
     }
 
     if (result.view) {
-      hasViewRef.current = true;
-      setView(result.view);
-      setErrorMessage(null);
-    } else if (isInitialLoad) {
-      setErrorMessage(result.errorMessage);
+      if (isStaleBaraRoleView(awaitingRoundFromRef.current, result.view)) {
+        setIsLoading(true);
+        return;
+      }
+      commitView(result.view);
+      return;
     }
 
     if (isInitialLoad) {
+      setErrorMessage(result.errorMessage);
       setIsLoading(false);
+      return;
     }
-  }, []);
+
+    if (awaitingRoundFromRef.current !== null) {
+      setIsLoading(true);
+    }
+  }, [commitView]);
 
   useEffect(() => {
     if (!enabled) {
       syncGateRef.current.invalidate();
       hasViewRef.current = false;
+      viewRef.current = null;
+      awaitingRoundFromRef.current = null;
       setView(null);
       setErrorMessage(null);
       setIsLoading(false);
@@ -93,6 +118,11 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
     const socket = getRoomSocket();
 
     const onPhaseChanged = () => {
+      const currentView = viewRef.current;
+      if (currentView?.gamePhase === 'round-results') {
+        awaitingRoundFromRef.current = currentView.currentRound;
+        setIsLoading(true);
+      }
       void syncView();
     };
 
@@ -123,9 +153,9 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
       return;
     }
 
-    setView(response.data.view);
+    commitView(response.data.view);
     setIsSubmittingAction(false);
-  }, [enabled, isSubmittingAction]);
+  }, [commitView, enabled, isSubmittingAction]);
 
   const advanceDirectedQuestion = useCallback(async () => {
     if (!enabled || isSubmittingAction) {
@@ -145,9 +175,9 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
       return;
     }
 
-    setView(response.data.view);
+    commitView(response.data.view);
     setIsSubmittingAction(false);
-  }, [enabled, isSubmittingAction]);
+  }, [commitView, enabled, isSubmittingAction]);
 
   const continueFromRoundResults = useCallback(async () => {
     if (!enabled || isSubmittingAction) {
@@ -167,9 +197,9 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
       return;
     }
 
-    setView(response.data.view);
+    commitView(response.data.view);
     setIsSubmittingAction(false);
-  }, [enabled, isSubmittingAction]);
+  }, [commitView, enabled, isSubmittingAction]);
 
   const chooseFreeQuestionPlayer = useCallback(
     async (targetPlayerId: string) => {
@@ -191,10 +221,10 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
         return;
       }
 
-      setView(response.data.view);
+      commitView(response.data.view);
       setIsSubmittingAction(false);
     },
-    [enabled, isSubmittingAction],
+    [commitView, enabled, isSubmittingAction],
   );
 
   const skipFreeQuestionTurn = useCallback(async () => {
@@ -215,9 +245,9 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
       return;
     }
 
-    setView(response.data.view);
+    commitView(response.data.view);
     setIsSubmittingAction(false);
-  }, [enabled, isSubmittingAction]);
+  }, [commitView, enabled, isSubmittingAction]);
 
   const advanceFreeQuestion = useCallback(async () => {
     if (!enabled || isSubmittingAction) {
@@ -237,9 +267,9 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
       return;
     }
 
-    setView(response.data.view);
+    commitView(response.data.view);
     setIsSubmittingAction(false);
-  }, [enabled, isSubmittingAction]);
+  }, [commitView, enabled, isSubmittingAction]);
 
   const submitVote = useCallback(
     async (targetPlayerId: string) => {
@@ -261,10 +291,10 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
         return;
       }
 
-      setView(response.data.view);
+      commitView(response.data.view);
       setIsSubmittingAction(false);
     },
-    [enabled, isSubmittingAction],
+    [commitView, enabled, isSubmittingAction],
   );
 
   const submitImpostorGuess = useCallback(
@@ -287,10 +317,10 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
         return;
       }
 
-      setView(response.data.view);
+      commitView(response.data.view);
       setIsSubmittingAction(false);
     },
-    [enabled, isSubmittingAction],
+    [commitView, enabled, isSubmittingAction],
   );
 
   useEffect(() => {

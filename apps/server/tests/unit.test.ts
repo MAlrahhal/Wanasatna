@@ -14,7 +14,7 @@ import {
   buildResultsLeaderboardEntries,
   computePlayerRoundPoints,
 } from '../src/modules/game/plugins/bara-al-salafa/scoring.js';
-import { applyVote, haveAllConnectedParticipantsVoted } from '../src/modules/game/plugins/bara-al-salafa/voting.js';
+import { applyVote, haveAllConnectedParticipantsVoted, isEligibleBaraVoter } from '../src/modules/game/plugins/bara-al-salafa/voting.js';
 import {
   applyRoleUnderstood,
   haveAllConnectedParticipantsAcknowledgedRole,
@@ -32,7 +32,19 @@ import {
   BARA_AL_SALAFA_MATCH_RESULTS_DURATION_SECONDS,
   MAX_ROOM_PLAYERS,
 } from '@wanasatna/shared';
-import { resolveTotalRounds } from '../src/modules/game/plugins/bara-al-salafa/round-state.js';
+import { resolveTotalRounds, createRoundState } from '../src/modules/game/plugins/bara-al-salafa/round-state.js';
+import { applyVoteSubmission } from '../src/modules/game/plugins/bara-al-salafa/phase-flow.js';
+import { startNextRound } from '../src/modules/game/plugins/bara-al-salafa/match-lifecycle.js';
+import { ensureBaraAlSalafaMatchState } from '../src/modules/game/plugins/bara-al-salafa/init-match.js';
+import {
+  deleteBaraAlSalafaState,
+  getBaraAlSalafaState,
+  setBaraAlSalafaState,
+} from '../src/modules/game/plugins/bara-al-salafa/store.js';
+import { clearPhaseTimerRuntime } from '../src/modules/game/plugins/bara-al-salafa/phase-timer.js';
+import { loadGameContentBundle, loadGameContentSettings } from '../src/modules/content/index.js';
+import { replaceGameShellForTests, deleteGameShell } from '../src/modules/game/game.service.js';
+import type { Server } from 'socket.io';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -619,6 +631,208 @@ test('round-results: reveals word, impostor, guess result, points, leaderboard',
   assert.equal(byId.p1!.roundPoints, 100);
   assert.equal(byId.p2!.roundPoints, 100);
   assert.equal(byId.p3!.roundPoints, 0);
+});
+
+function fakeIo(): Server {
+  return {
+    to: () => ({
+      emit: () => undefined,
+    }),
+  } as unknown as Server;
+}
+
+function loadBaraContent() {
+  return {
+    bundle: loadGameContentBundle('bara-al-salafa'),
+    settings: loadGameContentSettings('bara-al-salafa'),
+  };
+}
+
+test('submit-vote: spectator is NOT_PARTICIPANT and leaves votes unchanged', () => {
+  const shell = makeShell();
+  shell.players.push({
+    id: 'spec',
+    name: 'مشاهد',
+    isHost: false,
+    isConnected: true,
+    isReady: false,
+    isSpectator: true,
+  });
+  const match = makeMatch({
+    gamePhase: 'voting',
+    votes: { p1: 'p2' },
+    submittedVoterIds: ['p1'],
+  });
+
+  assert.equal(isEligibleBaraVoter(shell, match, 'spec'), false);
+
+  const next = applyVoteSubmission(fakeIo(), 'room-spec-vote', match, shell, 'spec', 'p2');
+  assert.deepEqual(next.round.votes, { p1: 'p2' });
+  assert.deepEqual(next.round.submittedVoterIds, ['p1']);
+});
+
+test('submit-vote: leave then rejoin as spectator is rejected', () => {
+  const shell = makeShell();
+  shell.players.push({
+    id: 'p4',
+    name: 'عائد',
+    isHost: false,
+    isConnected: true,
+    isReady: false,
+    isSpectator: true,
+  });
+  const match = makeMatch({ gamePhase: 'voting' });
+
+  assert.equal(shell.matchParticipantIds?.includes('p4'), false);
+  assert.equal(match.playerIds.includes('p4'), false);
+  assert.equal(isEligibleBaraVoter(shell, match, 'p4'), false);
+
+  const next = applyVoteSubmission(fakeIo(), 'room-rejoin-vote', match, shell, 'p4', 'p1');
+  assert.deepEqual(next.round.votes, {});
+  assert.deepEqual(next.round.submittedVoterIds, []);
+});
+
+test('submit-vote: locked participant can vote after reconnect', () => {
+  const shell = makeShell();
+  const match = makeMatch({ gamePhase: 'voting' });
+  const p2 = shell.players.find((player) => player.id === 'p2')!;
+
+  p2.isConnected = false;
+  assert.equal(isEligibleBaraVoter(shell, match, 'p2'), false);
+  assert.ok(shell.matchParticipantIds?.includes('p2'));
+  assert.ok(match.playerIds.includes('p2'));
+
+  p2.isConnected = true;
+  p2.isSpectator = false;
+  assert.equal(isEligibleBaraVoter(shell, match, 'p2'), true);
+
+  const next = applyVoteSubmission(fakeIo(), 'room-reconnect-vote', match, shell, 'p2', 'p1');
+  assert.equal(next.round.votes.p2, 'p1');
+  assert.deepEqual(next.round.submittedVoterIds, ['p2']);
+  deleteBaraAlSalafaState('room-reconnect-vote');
+});
+
+test('submit-vote: isSpectator wins even when id is still in match.playerIds', () => {
+  const shell = makeShell();
+  const p1 = shell.players.find((player) => player.id === 'p1')!;
+  p1.isSpectator = true;
+  const match = makeMatch({
+    gamePhase: 'voting',
+    votes: { p3: 'p2' },
+    submittedVoterIds: ['p3'],
+  });
+
+  assert.ok(match.playerIds.includes('p1'));
+  assert.ok(shell.matchParticipantIds?.includes('p1'));
+  assert.equal(isEligibleBaraVoter(shell, match, 'p1'), false);
+
+  const next = applyVoteSubmission(fakeIo(), 'room-flag-vote', match, shell, 'p1', 'p2');
+  assert.deepEqual(next.round.votes, { p3: 'p2' });
+  assert.deepEqual(next.round.submittedVoterIds, ['p3']);
+});
+
+test('submit-vote handler rejects ineligible voters with NOT_PARTICIPANT', () => {
+  const handlers = readFileSync(
+    new URL('../src/modules/game/plugins/bara-al-salafa/socket.handlers.ts', import.meta.url),
+    'utf8',
+  );
+  const start = handlers.indexOf('socket.on(BARA_AL_SALAFA_SUBMIT_VOTE_EVENT');
+  assert.ok(start >= 0);
+  const voteHandler = handlers.slice(start);
+  const nextHandler = voteHandler.indexOf('socket.on(', 1);
+  const voteOnly = nextHandler >= 0 ? voteHandler.slice(0, nextHandler) : voteHandler;
+  assert.match(voteOnly, /isEligibleBaraVoter/);
+  assert.match(voteOnly, /notParticipantError\(\)/);
+  assert.doesNotMatch(voteOnly, /match\.playerIds\.includes\(playerId!\) && player\.isConnected/);
+});
+
+test('createRoundState assigns exactly one connected impostor', () => {
+  const { bundle, settings } = loadBaraContent();
+  const shell = makeShell();
+  shell.players.push({
+    id: 'p4',
+    name: 'غائب',
+    isHost: false,
+    isConnected: false,
+    isReady: false,
+  });
+  const connectedIds = shell.players.filter((player) => player.isConnected).map((player) => player.id);
+
+  for (let i = 0; i < 8; i += 1) {
+    const round = createRoundState(shell.players, bundle, settings, undefined, [], `bara-round-${i}`);
+    assert.equal(typeof round.impostorPlayerId, 'string');
+    assert.ok(connectedIds.includes(round.impostorPlayerId));
+    assert.notEqual(round.impostorPlayerId, 'p4');
+  }
+});
+
+test('ensureBaraAlSalafaMatchState does not reroll an existing round', () => {
+  const roomId = 'room-bara-ensure';
+  const match = makeMatch();
+  match.round.impostorPlayerId = 'p2';
+  setBaraAlSalafaState(roomId, match);
+
+  const first = ensureBaraAlSalafaMatchState(roomId);
+  const second = ensureBaraAlSalafaMatchState(roomId);
+
+  assert.equal(first, match);
+  assert.equal(second, first);
+  assert.equal(first?.round.impostorPlayerId, 'p2');
+  assert.equal(first?.round.word, 'مكة');
+  assert.equal(first?.currentRound, 1);
+  deleteBaraAlSalafaState(roomId);
+});
+
+test('duplicate startNextRound does not install another round', () => {
+  const roomId = 'room-bara-next';
+  const shell = makeShell();
+  shell.roomId = roomId;
+  replaceGameShellForTests(shell);
+
+  const match = makeMatch({ gamePhase: 'round-results' });
+  match.currentRound = 1;
+  setBaraAlSalafaState(roomId, match);
+
+  const { bundle, settings } = loadBaraContent();
+  const io = fakeIo();
+
+  try {
+    const first = startNextRound(io, roomId, match, shell, bundle, settings);
+    assert.equal(first.currentRound, 2);
+    const impostorId = first.round.impostorPlayerId;
+    const word = first.round.word;
+
+    const staleDuplicate = startNextRound(io, roomId, match, shell, bundle, settings);
+    assert.equal(staleDuplicate.currentRound, 2);
+    assert.equal(staleDuplicate.round.impostorPlayerId, impostorId);
+    assert.equal(staleDuplicate.round.word, word);
+
+    const liveDuplicate = startNextRound(io, roomId, first, shell, bundle, settings);
+    assert.equal(liveDuplicate.currentRound, 2);
+    assert.equal(liveDuplicate.round.impostorPlayerId, impostorId);
+    assert.equal(getBaraAlSalafaState(roomId)?.currentRound, 2);
+  } finally {
+    clearPhaseTimerRuntime(roomId);
+    deleteBaraAlSalafaState(roomId);
+    deleteGameShell(roomId);
+  }
+});
+
+test('player views: only impostorPlayerId receives the impostor role', () => {
+  const shell = makeShell();
+  const match = makeMatch({ gamePhase: 'description' });
+  match.round.impostorPlayerId = 'p2';
+
+  for (const playerId of match.playerIds) {
+    const view = buildBaraAlSalafaPlayerView(match, playerId, shell);
+    if (playerId === match.round.impostorPlayerId) {
+      assert.equal(view.role, 'impostor');
+      assert.equal(view.displayText, 'أنت برا السالفة');
+    } else {
+      assert.equal(view.role, 'player');
+      assert.equal(view.displayText, match.round.word);
+    }
+  }
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

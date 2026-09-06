@@ -111,6 +111,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
 
   const treatAsSpectator =
     view?.isMatchSpectator === true ||
+    player?.isSpectator === true ||
     (!view && Boolean(errorMessage?.includes(NOT_PARTICIPANT_ERROR)));
 
   useEffect(() => {
@@ -281,7 +282,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     return null;
   }
 
-  if (treatAsSpectator && (!view || view.gamePhase === 'description')) {
+  if (treatAsSpectator && (!view || view.gamePhase === 'description' || view.gamePhase === 'voting')) {
     return (
       <WaitingSpectatorScreen
         civilianWord={view?.spectatorCivilianWord}
@@ -405,6 +406,20 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
   if (view.gamePhase === 'voting') {
     if (!room || !player) {
       return null;
+    }
+
+    if (view.isMatchSpectator) {
+      return (
+        <WaitingSpectatorScreen
+          civilianWord={view.spectatorCivilianWord}
+          outsiderConcept={view.spectatorOutsiderConcept}
+          categoryName={view.categoryName}
+          currentRound={view.currentRound}
+          totalRounds={view.totalRounds}
+          roomCode={room.code}
+          deadlineAtMs={view.deadlineAtMs}
+        />
+      );
     }
 
     const votingProps = mapVotingLiveProps(
