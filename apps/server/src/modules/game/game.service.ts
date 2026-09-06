@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { PlayerStatus } from '@prisma/client';
+import { PlayerStatus, type Prisma } from '@prisma/client';
 import {
   DEFAULT_GAME_SHELL_COUNTDOWN_SECONDS,
   DEFAULT_GAME_SHELL_TIMER_SECONDS,
@@ -15,6 +15,11 @@ import { prisma } from '../../lib/prisma.js';
 import { abortPersistedMatch, beginPersistedMatch } from '../match/match-history.service.js';
 import { clearAnswerLogContext } from './runtime/answer-attempt-log.js';
 import { hydrateRoomGameSettings } from '../room/room-game-settings.store.js';
+import {
+  isRetryableTransactionError,
+  lockRoomRow,
+  ROOM_TX_RETRY_LIMIT,
+} from '../room/services/room-tx.js';
 import { resolveGameEnabledForStart } from './game-availability.service.js';
 import { validateGameStart } from './runtime/validate-game-start.js';
 
@@ -85,8 +90,16 @@ function assertPhase(
   return null;
 }
 
-async function loadRoomPlayers(roomId: string, hostPlayerId: string): Promise<GameShellPlayer[]> {
-  const players = await prisma.player.findMany({
+type RoomPlayerQueryDb = {
+  player: Pick<Prisma.TransactionClient['player'], 'findMany'>;
+};
+
+async function loadRoomPlayers(
+  roomId: string,
+  hostPlayerId: string,
+  db: RoomPlayerQueryDb = prisma,
+): Promise<GameShellPlayer[]> {
+  const players = await db.player.findMany({
     where: {
       roomId,
       status: {
@@ -191,34 +204,88 @@ export async function initGameShell(
     return disabled;
   }
 
-  const players = await loadRoomPlayers(roomId, hostCheck.hostPlayerId);
+  let installedShellId: string | null = null;
 
-  if (!players.some((player) => player.id === playerId)) {
-    return gameServiceError('PLAYER_NOT_FOUND', 'Player not found in room.');
+  for (let attempt = 0; attempt < ROOM_TX_RETRY_LIMIT; attempt += 1) {
+    installedShellId = null;
+
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        const locked = await lockRoomRow(tx, roomId);
+
+        if (!locked) {
+          return gameServiceError('NOT_IN_ROOM', 'Room not found.');
+        }
+
+        const room = await tx.room.findUnique({
+          where: { id: roomId },
+          select: { hostPlayerId: true },
+        });
+
+        if (!room) {
+          return gameServiceError('NOT_IN_ROOM', 'Room not found.');
+        }
+
+        if (room.hostPlayerId !== playerId) {
+          return gameServiceError('NOT_HOST', 'Only the host can perform this action.');
+        }
+
+        // Re-check after the room lock: a concurrent start may have installed a
+        // shell during rejectIfGameDisabled / the previous attempt.
+        if (shellsByRoomId.has(roomId)) {
+          return gameServiceError(
+            'SHELL_ALREADY_EXISTS',
+            'A game shell already exists for this room.',
+          );
+        }
+
+        const players = await loadRoomPlayers(roomId, room.hostPlayerId, tx);
+
+        if (!players.some((player) => player.id === playerId)) {
+          return gameServiceError('PLAYER_NOT_FOUND', 'Player not found in room.');
+        }
+
+        const shell: GameShellRecord = {
+          shellId: randomUUID(),
+          roomId,
+          gameId: payload.gameId ?? null,
+          phase: 'WAITING',
+          hostPlayerId: room.hostPlayerId,
+          players,
+          readyPlayerIds: [],
+          countdownSeconds: payload.countdownSeconds ?? DEFAULT_GAME_SHELL_COUNTDOWN_SECONDS,
+          countdownRemainingSeconds: null,
+          gameTimerSeconds: payload.gameTimerSeconds ?? DEFAULT_GAME_SHELL_TIMER_SECONDS,
+          gameTimerRemainingSeconds: null,
+          startedAt: null,
+          finishedAt: null,
+          updatedAt: nowIso(),
+          matchParticipantIds: null,
+        };
+
+        // Hold the in-memory shell before FOR UPDATE releases so join/start serialize.
+        saveShell(shell);
+        installedShellId = shell.shellId;
+
+        return {
+          success: true as const,
+          data: { state: shell },
+        };
+      });
+
+      return result;
+    } catch (error) {
+      if (installedShellId && getGameShellByRoomId(roomId)?.shellId === installedShellId) {
+        deleteGameShell(roomId);
+      }
+
+      if (!isRetryableTransactionError(error) || attempt === ROOM_TX_RETRY_LIMIT - 1) {
+        break;
+      }
+    }
   }
 
-  const shell: GameShellRecord = {
-    shellId: randomUUID(),
-    roomId,
-    gameId: payload.gameId ?? null,
-    phase: 'WAITING',
-    hostPlayerId: hostCheck.hostPlayerId,
-    players,
-    readyPlayerIds: [],
-    countdownSeconds: payload.countdownSeconds ?? DEFAULT_GAME_SHELL_COUNTDOWN_SECONDS,
-    countdownRemainingSeconds: null,
-    gameTimerSeconds: payload.gameTimerSeconds ?? DEFAULT_GAME_SHELL_TIMER_SECONDS,
-    gameTimerRemainingSeconds: null,
-    startedAt: null,
-    finishedAt: null,
-    updatedAt: nowIso(),
-    matchParticipantIds: null,
-  };
-
-  return {
-    success: true,
-    data: { state: saveShell(shell) },
-  };
+  return gameServiceError('INTERNAL_ERROR', GAME_AVAILABILITY_UNVERIFIED_MESSAGE);
 }
 
 export async function syncGameShell(
