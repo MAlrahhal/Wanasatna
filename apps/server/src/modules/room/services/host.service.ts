@@ -88,9 +88,9 @@ export async function transferHost(
 }
 
 /**
- * Room-host transfer after a confirmed DISCONNECTED presence write.
- * Does not remove the player, and does not fall back to another DISCONNECTED seat.
- * No-ops if the player reconnected or is no longer the current host.
+ * Transfers host only when the current host is still DISCONNECTED.
+ * Socket disconnect must not call this — refresh/reconnect stays the same host
+ * until leave, kick, or reconnect-window expiry.
  */
 export async function transferHostIfCurrentHostDisconnected(
   roomId: string,

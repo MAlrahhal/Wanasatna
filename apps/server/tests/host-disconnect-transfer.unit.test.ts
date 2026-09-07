@@ -147,13 +147,12 @@ function playingShell(input: {
 }
 
 async function main(): Promise<void> {
-  await test('source: disconnect transfers host only after confirmed DISCONNECTED', () => {
+  await test('source: socket disconnect does not transfer host on temporary DISCONNECTED', () => {
     const handlers = read('src/modules/room/room.socket.handlers.ts');
     const disconnectFn = handlers.slice(handlers.indexOf('export function registerDisconnectHandler'));
     assert.match(disconnectFn, /applySocketDisconnectPresence/);
     assert.match(disconnectFn, /presence !== 'disconnected'/);
-    assert.match(disconnectFn, /transferHostIfCurrentHostDisconnected/);
-    assert.match(disconnectFn, /HOST_CHANGED_EVENT/);
+    assert.doesNotMatch(disconnectFn, /transferHostIfCurrentHostDisconnected/);
 
     const presence = read('src/modules/room/services/presence-disconnect.service.ts');
     assert.doesNotMatch(presence, /transferHost/);

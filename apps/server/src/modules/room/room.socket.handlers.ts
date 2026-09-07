@@ -37,7 +37,6 @@ import { announcePermanentPlayerRemoval } from './services/disconnected-player-e
 import { announceKickedPlayer, announceRoomClosed } from './room-socket-announce.js';
 import { endRoomByHost } from './services/end-room.service.js';
 import { applySocketDisconnectPresence } from './services/presence-disconnect.service.js';
-import { transferHostIfCurrentHostDisconnected } from './services/host.service.js';
 import {
   kickPlayer,
   lockRoom,
@@ -726,16 +725,8 @@ export function registerDisconnectHandler(io: Server, socket: Socket): void {
         playerId,
       });
 
-      let hostChanged = null;
-      try {
-        hostChanged = await transferHostIfCurrentHostDisconnected(roomId, playerId);
-      } catch {
-        // Presence snapshot must still run if host transfer hits a retryable race.
-      }
-      if (hostChanged) {
-        io.to(getRoomChannel(roomId)).emit(HOST_CHANGED_EVENT, hostChanged);
-      }
-
+      // Temporary disconnect (refresh/reconnect) must not transfer host or
+      // permanently remove the seat. Host transfer stays on leave/kick/expiry.
       await broadcastRoomPlayersSnapshot(io, roomId);
       await evaluatePlayerRecovery(io, roomId);
     } catch {
