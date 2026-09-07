@@ -235,8 +235,15 @@ export function getRequiredAnswererIds(
   match: JudgeMatchState,
   shell: GameShellState,
 ): string[] {
-  return getConnectedParticipantIds(match, shell).filter(
-    (playerId) => playerId !== match.round.judgePlayerId,
+  const spectatorIds = new Set(
+    shell.players.filter((player) => player.isSpectator).map((player) => player.id),
+  );
+
+  return match.playerIds.filter(
+    (playerId) =>
+      playerId !== match.round.judgePlayerId &&
+      !isDeparted(match, playerId) &&
+      !spectatorIds.has(playerId),
   );
 }
 

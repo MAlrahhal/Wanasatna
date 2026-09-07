@@ -259,10 +259,16 @@ test('random prefers unused category before reuse', () => {
   assert.equal(reused, 'daily');
 });
 
-test('AFK connected player does not count as submitted; disconnected does not stall', () => {
+test('AFK connected player does not count as submitted; grace-period disconnect still required', () => {
   const match = submitAnswerToMatch(makeMatch(), 'p1', 'إجابة محمد');
   assert.equal(allRequiredHaveAnswered(match, makeShell(['p1', 'p2', 'p3', 'p4'])), false);
-  assert.equal(allRequiredHaveAnswered(match, makeShell(['p1', 'p2', 'p3', 'p4'], ['p1', 'p2'])), true);
+  assert.equal(allRequiredHaveAnswered(match, makeShell(['p1', 'p2', 'p3', 'p4'], ['p1', 'p2'])), false);
+});
+
+test('departed unanswered player does not stall answering', () => {
+  const match = markPlayerDeparted(submitAnswerToMatch(makeMatch(), 'p1', 'إجابة محمد'), 'p3');
+  const afterP4 = submitAnswerToMatch(match, 'p4', 'إجابة عبدالله');
+  assert.equal(allRequiredHaveAnswered(afterP4, makeShell(['p1', 'p2', 'p3', 'p4'], ['p1', 'p2', 'p4'])), true);
 });
 
 test('privacy: answering view hides other answers/owners', () => {
