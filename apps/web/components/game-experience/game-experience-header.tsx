@@ -3,9 +3,11 @@
 import type { ReactElement, ReactNode } from 'react';
 import { cloneElement, isValidElement, useState } from 'react';
 import { GameAudioControl } from '@/components/game/game-audio-control';
+import { GameHowToPlayControl } from '@/components/game/game-how-to-play';
 import { DeadlineTimerChip } from '@/components/game/game-timer-chip';
 import { Button } from '@/components/ui/button';
 import { UiDialog } from '@/components/ui/dialog';
+import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
 import { normalizeExperiencePhaseLabel } from '@/lib/game/experience-meta';
 import type { GameExperienceMeta } from '@/lib/game/shell-types';
@@ -38,10 +40,12 @@ export function GameExperienceHeader({
   mobilePanelControls,
   className,
 }: GameExperienceHeaderProps) {
-  const { isHost, room, leaveRoom, player } = useRoom();
+  const { isHost, room, leaveRoom } = useRoom();
+  const { state: shellState } = useGameShell();
   const [roomDialogOpen, setRoomDialogOpen] = useState(false);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const gameId = shellState?.gameId ?? null;
 
   const showRound =
     typeof meta.currentRound === 'number' &&
@@ -158,6 +162,7 @@ export function GameExperienceHeader({
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
+              <GameHowToPlayControl gameId={gameId} compact />
               <GameAudioControl />
               {renderRoomAction(true)}
               {renderLeaveAction()}
@@ -224,6 +229,7 @@ export function GameExperienceHeader({
             ) : null}
             {renderRoundChip()}
             {renderTimerChip()}
+            <GameHowToPlayControl gameId={gameId} />
             <GameAudioControl />
             {renderRoomAction(false)}
             {renderLeaveAction()}
