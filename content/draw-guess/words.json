@@ -85,7 +85,8 @@
     "text": "كلب",
     "categoryId": "animals",
     "aliases": [
-      "Dog"
+      "Dog",
+      "كلبة"
     ]
   },
   {
@@ -346,7 +347,8 @@
     "categoryId": "food",
     "aliases": [
       "Shawarma",
-      "شاورمه"
+      "شاورمه",
+      "شاوارما"
     ]
   },
   {
@@ -360,14 +362,18 @@
   {
     "id": "food-5",
     "text": "مندي",
-    "categoryId": "food"
+    "categoryId": "food",
+    "aliases": [
+      "Mandi"
+    ]
   },
   {
     "id": "food-6",
     "text": "فلافل",
     "categoryId": "food",
     "aliases": [
-      "طعمية"
+      "طعمية",
+      "Falafel"
     ]
   },
   {
@@ -522,7 +528,8 @@
     "text": "ليمون",
     "categoryId": "food",
     "aliases": [
-      "Lemon"
+      "Lemon",
+      "ليمونة"
     ]
   },
   {
@@ -675,7 +682,10 @@
   {
     "id": "places-1",
     "text": "مستشفى",
-    "categoryId": "places"
+    "categoryId": "places",
+    "aliases": [
+      "مشفى"
+    ]
   },
   {
     "id": "places-2",
@@ -690,20 +700,29 @@
   {
     "id": "places-4",
     "text": "ملعب كرة قدم",
-    "categoryId": "places"
+    "categoryId": "places",
+    "aliases": [
+      "ملعب كرة القدم"
+    ]
   },
   {
     "id": "places-5",
     "text": "حديقة حيوان",
     "categoryId": "places",
     "aliases": [
-      "حديقة حيوانات"
+      "حديقة حيوانات",
+      "حديقة الحيوان",
+      "حديقة الحيوانات"
     ]
   },
   {
     "id": "places-6",
     "text": "مدينة ملاهي",
-    "categoryId": "places"
+    "categoryId": "places",
+    "aliases": [
+      "ملاهي",
+      "مدينة الملاهي"
+    ]
   },
   {
     "id": "places-7",
@@ -713,7 +732,11 @@
   {
     "id": "places-8",
     "text": "أهرامات",
-    "categoryId": "places"
+    "categoryId": "places",
+    "aliases": [
+      "أهرام",
+      "هرم"
+    ]
   },
   {
     "id": "places-9",
@@ -874,7 +897,8 @@
       "Keyboard",
       "كيبورد",
       "كي بورد",
-      "كيبورد كمبيوتر"
+      "كيبورد كمبيوتر",
+      "لوحة المفاتيح"
     ]
   },
   {
@@ -899,7 +923,8 @@
       "Monitor",
       "مونيتور",
       "شاشة كمبيوتر",
-      "Display"
+      "Display",
+      "شاشة الكمبيوتر"
     ]
   },
   {
@@ -985,7 +1010,8 @@
       "Gamepad",
       "كونترولر",
       "يد ألعاب",
-      "Game Controller"
+      "Game Controller",
+      "يد التحكم"
     ]
   },
   {

@@ -262,6 +262,29 @@ test('قطة aliases accept قط without morphological stemming', () => {
   assert.equal(isCorrectGuess('فيل', 'قطة', aliases), false);
 });
 
+test('approved high-confidence aliases match; unrelated guesses stay wrong', () => {
+  const cases = [
+    ['كلب', 'كلبة'],
+    ['شاورما', 'شاوارما'],
+    ['مندي', 'Mandi'],
+    ['مستشفى', 'مشفى'],
+    ['ملعب كرة قدم', 'ملعب كرة القدم'],
+    ['حديقة حيوان', 'حديقة الحيوان'],
+    ['مدينة ملاهي', 'ملاهي'],
+    ['أهرامات', 'هرم'],
+    ['لوحة مفاتيح', 'لوحة المفاتيح'],
+  ] as const;
+
+  for (const [canonical, alias] of cases) {
+    const aliases = getDrawGuessAliases(canonical);
+    assert.ok(aliases.includes(alias), `${canonical} missing alias ${alias}`);
+    assert.equal(isCorrectGuess(alias, canonical), false);
+    assert.equal(isCorrectGuess(alias, canonical, aliases), true);
+    assert.equal(isCorrectGuess(canonical, canonical, aliases), true);
+    assert.equal(isCorrectGuess('أسد', canonical, aliases), false);
+  }
+});
+
 test('guess length: 1-char and 150 accepted by matcher; 151 is oversized', () => {
   assert.equal(isOversizedGameAnswer('أ'), false);
   assert.equal(isOversizedGameAnswer('قطة'), false);
