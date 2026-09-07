@@ -249,6 +249,19 @@ test('guess normalization Arabic variants', () => {
   assert.equal(isCorrectGuess('فيل', 'أسد'), false);
 });
 
+test('قطة aliases accept قط without morphological stemming', () => {
+  const aliases = getDrawGuessAliases('قطة');
+  assert.ok(aliases.includes('قط'));
+  assert.equal(isCorrectGuess('قطة', 'قطة', aliases), true);
+  assert.equal(isCorrectGuess('قط', 'قطة'), false);
+  assert.equal(isCorrectGuess('قط', 'قطة', aliases), true);
+  assert.equal(isCorrectGuess('القطة', 'قطة', aliases), true);
+  assert.equal(isCorrectGuess('قطه', 'قطة', aliases), true);
+  assert.equal(isCorrectGuess('كلب', 'قطة', aliases), false);
+  assert.equal(isCorrectGuess('أسد', 'قطة', aliases), false);
+  assert.equal(isCorrectGuess('فيل', 'قطة', aliases), false);
+});
+
 test('guess length: 1-char and 150 accepted by matcher; 151 is oversized', () => {
   assert.equal(isOversizedGameAnswer('أ'), false);
   assert.equal(isOversizedGameAnswer('قطة'), false);

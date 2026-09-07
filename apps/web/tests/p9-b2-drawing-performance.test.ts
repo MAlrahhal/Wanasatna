@@ -124,12 +124,14 @@ for (const [label, hook, pointsEvent, strokeEvent] of [
 ] as const) {
   test(`${label}: point traffic is fire-and-forget and does not replace player view`, () => {
     const pointsHandlerStart = hook.indexOf('const onStrokePoints');
-    const pointsHandlerEnd = hook.indexOf(`socket.on(${pointsEvent}`);
-    assert.ok(pointsHandlerStart >= 0 && pointsHandlerEnd > pointsHandlerStart);
-    const onStrokePoints = hook.slice(pointsHandlerStart, pointsHandlerEnd);
+    assert.ok(pointsHandlerStart >= 0, `${label} missing onStrokePoints`);
+    const pointsHandlerEnd = hook.indexOf('};', pointsHandlerStart);
+    assert.ok(pointsHandlerEnd > pointsHandlerStart);
+    const onStrokePoints = hook.slice(pointsHandlerStart, pointsHandlerEnd + 2);
     assert.match(onStrokePoints, /appendRemotePoints/);
     assert.doesNotMatch(onStrokePoints, /setView/);
     assert.doesNotMatch(onStrokePoints, /syncView/);
+    assert.doesNotMatch(onStrokePoints, /bindPluginViewResync/);
 
     assert.match(hook, new RegExp(`getRoomSocket\\(\\)\\.emit\\(${pointsEvent}`));
     assert.doesNotMatch(

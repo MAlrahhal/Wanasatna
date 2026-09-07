@@ -74,12 +74,19 @@
   {
     "id": "animals-10",
     "text": "قطة",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "قط",
+      "Cat"
+    ]
   },
   {
     "id": "animals-11",
     "text": "كلب",
-    "categoryId": "animals"
+    "categoryId": "animals",
+    "aliases": [
+      "Dog"
+    ]
   },
   {
     "id": "animals-12",
@@ -178,7 +185,8 @@
     "text": "بقرة",
     "categoryId": "animals",
     "aliases": [
-      "Cow"
+      "Cow",
+      "بقر"
     ]
   },
   {
@@ -211,7 +219,8 @@
     "text": "بومة",
     "categoryId": "animals",
     "aliases": [
-      "Owl"
+      "Owl",
+      "بوم"
     ]
   },
   {
@@ -296,7 +305,8 @@
     "text": "بط",
     "categoryId": "animals",
     "aliases": [
-      "Duck"
+      "Duck",
+      "بطة"
     ]
   },
   {
@@ -489,7 +499,11 @@
   {
     "id": "food-19",
     "text": "بيضة",
-    "categoryId": "food"
+    "categoryId": "food",
+    "aliases": [
+      "بيض",
+      "Egg"
+    ]
   },
   {
     "id": "food-20",
@@ -557,7 +571,10 @@
   {
     "id": "nature-10",
     "text": "غيمة",
-    "categoryId": "nature"
+    "categoryId": "nature",
+    "aliases": [
+      "غيم"
+    ]
   },
   {
     "id": "nature-11",
@@ -617,7 +634,8 @@
     "text": "نخلة",
     "categoryId": "nature",
     "aliases": [
-      "Palm"
+      "Palm",
+      "نخل"
     ]
   },
   {
@@ -625,7 +643,8 @@
     "text": "وردة",
     "categoryId": "nature",
     "aliases": [
-      "Rose"
+      "Rose",
+      "ورد"
     ]
   },
   {
@@ -633,7 +652,8 @@
     "text": "شجرة",
     "categoryId": "nature",
     "aliases": [
-      "Tree"
+      "Tree",
+      "شجر"
     ]
   },
   {
