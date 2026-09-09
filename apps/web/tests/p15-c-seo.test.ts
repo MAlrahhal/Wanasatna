@@ -12,6 +12,8 @@ import { listIntentSeoPages } from '../lib/public/intent-seo-content';
 import { getHomeRoomActionsHref } from '../lib/public/scroll-to-room-actions';
 import {
   buildPublicSocialMetadata,
+  ABOUT_PAGE_DESCRIPTION,
+  ABOUT_PAGE_TITLE,
   CONTACT_PAGE_DESCRIPTION,
   CONTACT_PAGE_TITLE,
   FAQ_PAGE_DESCRIPTION,
@@ -64,6 +66,7 @@ const INTENDED_INDEXABLE_PATHS = [
   '/games/friends',
   '/games/browser',
   '/games/gatherings',
+  '/about',
   '/faq',
   '/contact',
   '/privacy',
@@ -88,6 +91,7 @@ const seoSurfaceFiles = [
   'app/not-found.tsx',
   'app/(public)/page.tsx',
   'app/(public)/games/page.tsx',
+  'app/(public)/about/page.tsx',
   'app/(public)/faq/page.tsx',
   'app/(public)/contact/page.tsx',
   'app/(public)/privacy/page.tsx',
@@ -99,14 +103,14 @@ const seoSurfaceFiles = [
   'lib/public/intent-seo-content.ts',
 ];
 
-test('indexable routes are exactly the intended 17 production URLs', () => {
+test('indexable routes are exactly the intended 18 production URLs', () => {
   const paths = [...INDEXABLE_PUBLIC_PATHS, ...GAME_INFORMATION_PATHS];
   assert.deepEqual([...paths].sort(), [...INTENDED_INDEXABLE_PATHS].sort());
-  assert.equal(new Set(paths).size, 17);
+  assert.equal(new Set(paths).size, 18);
   assert.equal(PLAYABLE_GAME_IDS.length, 8);
 
   const urls = paths.map((path) => (path === '/' ? `${SITE_ORIGIN}/` : `${SITE_ORIGIN}${path}`));
-  assert.equal(new Set(urls).size, 17);
+  assert.equal(new Set(urls).size, 18);
   for (const url of urls) {
     assert.match(url, /^https:\/\/wanasatna\.com\//);
     assert.doesNotMatch(url, /localhost|railway|127\.0\.0\.1|\?|#/i);
@@ -142,12 +146,13 @@ test('metadata uniqueness, canonicals, OG, and Twitter', () => {
     `${GAMES_FRIENDS_TITLE} | وناستنا`,
     `${GAMES_BROWSER_TITLE} | وناستنا`,
     `${GAMES_GATHERINGS_TITLE} | وناستنا`,
+    `${ABOUT_PAGE_TITLE} | وناستنا`,
     `${FAQ_PAGE_TITLE} | وناستنا`,
     `${CONTACT_PAGE_TITLE} | وناستنا`,
     `${PRIVACY_PAGE_TITLE} | وناستنا`,
     `${TERMS_PAGE_TITLE} | وناستنا`,
   ];
-  assert.equal(new Set(publicTitles).size, 9);
+  assert.equal(new Set(publicTitles).size, 10);
 
   const descriptions = [
     HOME_DESCRIPTION,
@@ -155,13 +160,14 @@ test('metadata uniqueness, canonicals, OG, and Twitter', () => {
     GAMES_FRIENDS_DESCRIPTION,
     GAMES_BROWSER_DESCRIPTION,
     GAMES_GATHERINGS_DESCRIPTION,
+    ABOUT_PAGE_DESCRIPTION,
     FAQ_PAGE_DESCRIPTION,
     CONTACT_PAGE_DESCRIPTION,
     PRIVACY_PAGE_DESCRIPTION,
     TERMS_PAGE_DESCRIPTION,
     ...listGameSeoPages().map((page) => page.metaDescription),
   ];
-  assert.equal(new Set(descriptions).size, 17);
+  assert.equal(new Set(descriptions).size, 18);
 
   const titles = [HOME_TITLE, ...listGameSeoPages().map((page) => `${page.title} | وناستنا`)];
   assert.equal(new Set(titles).size, 9);
@@ -174,6 +180,7 @@ test('metadata uniqueness, canonicals, OG, and Twitter', () => {
     read('app/(public)/games/gatherings/page.tsx'),
     /canonical: PUBLIC_ROUTES.gamesGatherings/,
   );
+  assert.match(read('app/(public)/about/page.tsx'), /canonical: PUBLIC_ROUTES.about/);
   assert.match(read('app/(public)/faq/page.tsx'), /canonical: '\/faq'/);
   assert.match(read('app/(public)/contact/page.tsx'), /canonical: '\/contact'/);
   assert.match(read('app/(public)/privacy/page.tsx'), /canonical: '\/privacy'/);
@@ -210,6 +217,11 @@ test('metadata uniqueness, canonicals, OG, and Twitter', () => {
       title: `${GAMES_GATHERINGS_TITLE} | وناستنا`,
       description: GAMES_GATHERINGS_DESCRIPTION,
       url: '/games/gatherings',
+    },
+    {
+      title: `${ABOUT_PAGE_TITLE} | وناستنا`,
+      description: ABOUT_PAGE_DESCRIPTION,
+      url: '/about',
     },
     {
       title: `${FAQ_PAGE_TITLE} | وناستنا`,
@@ -249,7 +261,7 @@ test('metadata uniqueness, canonicals, OG, and Twitter', () => {
     assert.equal(social.twitter?.card, 'summary_large_image');
     assert.deepEqual(social.twitter?.images, [SOCIAL_IMAGE]);
   }
-  assert.equal(socialPages.length, 17);
+  assert.equal(socialPages.length, 18);
 
   for (const file of [
     'app/(public)/page.tsx',
@@ -257,6 +269,7 @@ test('metadata uniqueness, canonicals, OG, and Twitter', () => {
     'app/(public)/games/friends/page.tsx',
     'app/(public)/games/browser/page.tsx',
     'app/(public)/games/gatherings/page.tsx',
+    'app/(public)/about/page.tsx',
     'app/(public)/faq/page.tsx',
     'app/(public)/contact/page.tsx',
     'app/(public)/privacy/page.tsx',
@@ -294,6 +307,10 @@ test('legal pages are public, indexable, and match current product behavior', ()
 
   assert.match(footer, /PUBLIC_ROUTES\.privacy/);
   assert.match(footer, /PUBLIC_ROUTES\.terms/);
+  assert.match(footer, /PUBLIC_ROUTES\.about/);
+  assert.match(footer, /PUBLIC_ROUTES\.games/);
+  assert.match(footer, /PUBLIC_ROUTES\.faq/);
+  assert.match(footer, /PUBLIC_ROUTES\.contact/);
 });
 
 test('game copy stays game-specific; GC remains 2/4; no Admin 20-player leak', () => {
@@ -323,6 +340,14 @@ test('game copy stays game-specific; GC remains 2/4; no Admin 20-player leak', (
     .join('\n');
   assert.doesNotMatch(blob, /20 لاعب|٢٠ لاعب|عشرين|Admin|أدمن|تجريبي/);
   assert.doesNotMatch(read('lib/public/game-seo-content.ts'), /اكتب أو اختر/);
+
+  const imposter = getGameSeoPage('imposter-draw');
+  assert.ok(imposter);
+  const imposterBlob = `${imposter.intro}${imposter.idea}${imposter.steps.join('')}${imposter.difference ?? ''}`;
+  assert.match(imposterBlob, /نفس اللوحة/);
+  assert.doesNotMatch(imposterBlob, /الكل يرسم في نفس الوقت على لوحته/);
+  assert.ok(imposter.scoring && imposter.scoring.length > 0);
+  assert.ok(getGameSeoPage('guessing-challenge')?.cards && getGameSeoPage('guessing-challenge')!.cards!.length > 0);
 });
 
 test('internal links, FAQ/contact truth, structured data, 404', () => {
@@ -346,6 +371,9 @@ test('internal links, FAQ/contact truth, structured data, 404', () => {
 
   const json = `${JSON.stringify(websiteJsonLd)}${read('lib/public/game-seo-content.ts')}`;
   assert.match(json, /WebSite/);
+  assert.match(read('app/(public)/faq/page.tsx'), /buildFaqPageJsonLd/);
+  assert.match(read('lib/public/faq-data.ts'), /FAQPage/);
+  assert.match(read('app/(public)/about/page.tsx'), /عن وناستنا/);
   assert.equal(websiteJsonLd.alternateName, 'Wanasatna');
   assert.doesNotThrow(() => JSON.parse(JSON.stringify(websiteJsonLd)));
   assert.doesNotMatch(json, /AggregateRating|ratingValue|"Offer"|reviewRating/i);

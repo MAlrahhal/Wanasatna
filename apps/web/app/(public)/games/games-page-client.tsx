@@ -4,10 +4,13 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { GameCatalogCard } from '@/components/public/game-cards';
 import { PageHero } from '@/components/public/page-hero';
+import { PublicComparisonTable } from '@/components/public/public-comparison-table';
 import { SectionHeader } from '@/components/public/section-header';
+import { SeoBreadcrumb } from '@/components/public/seo-breadcrumb';
 import { filterCatalogGames, getAllCatalogGames } from '@/lib/public/game-catalog';
+import { GAME_SELECTION_GUIDE_ROWS } from '@/lib/public/game-selection-guide';
 import { listIntentSeoPages } from '@/lib/public/intent-seo-content';
-import { PUBLIC_ROUTES } from '@/lib/public/routes';
+import { PUBLIC_ROUTES, getGameInformationPath } from '@/lib/public/routes';
 import { cn } from '@/lib/utils';
 
 type Filter = 'all' | 'available' | 'coming-soon';
@@ -24,9 +27,16 @@ export function GamesPageClient() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12">
+      <SeoBreadcrumb
+        items={[
+          { href: PUBLIC_ROUTES.home, label: 'الرئيسية' },
+          { label: 'الألعاب' },
+        ]}
+      />
+
       <PageHero
         title="الألعاب الجماعية في وناستنا"
-        description="ثمان ألعاب جاهزة للعب مع أصحابك من المتصفح. اقرأ فكرة كل لعبة، كم لاعب تناسب، وبعدين أنشئ غرفة أو انضم برمز."
+        description="ثمان ألعاب جاهزة للعب مع أصحابك من المتصفح. قارنوا العدد وأسلوب اللعب، بعدين افتحوا صفحة اللعبة."
         variant="compact"
         className="mb-8"
       />
@@ -48,6 +58,22 @@ export function GamesPageClient() {
           أنشئ غرفة
         </Link>
       </nav>
+
+      <section className="mb-10">
+        <SectionHeader
+          title="أي لعبة نختار؟"
+          description="جدول سريع حسب العدد وأسلوب اللعب. التفاصيل في صفحة كل لعبة."
+          className="mb-4"
+        />
+        <PublicComparisonTable
+          caption="مقارنة ألعاب وناستنا حسب العدد وأسلوب اللعب"
+          columns={['اللعبة', 'اللاعبون', 'الأسلوب', 'ملاحظة']}
+          rows={GAME_SELECTION_GUIDE_ROWS.map((row) => ({
+            href: getGameInformationPath(row.id),
+            cells: [row.title, row.players, row.style, row.note],
+          }))}
+        />
+      </section>
 
       <div className="mb-8 flex flex-wrap gap-2">
         {filters.map((item) => (

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { PublicComparisonTable } from '@/components/public/public-comparison-table';
 import { SeoBreadcrumb } from '@/components/public/seo-breadcrumb';
 import { getGameSeoPage } from '@/lib/public/game-seo-content';
 import {
@@ -43,6 +44,22 @@ export function IntentLandingPage({ page }: IntentLandingPageProps) {
         </section>
 
         <section>
+          <h2 className="text-wanas-text-primary mb-2 text-xl font-extrabold">{page.chooserTitle}</h2>
+          <p className="mb-4">{page.chooserIntro}</p>
+          <PublicComparisonTable
+            caption={page.chooserTitle}
+            columns={page.chooserColumns}
+            rows={page.chooserRows.map((row) => {
+              const game = getGameSeoPage(row.id);
+              return {
+                href: getGameInformationPath(row.id),
+                cells: [game?.title ?? row.id, row.players, row.note],
+              };
+            })}
+          />
+        </section>
+
+        <section>
           <h2 className="text-wanas-text-primary mb-3 text-xl font-extrabold">ألعاب تناسب هالوضع</h2>
           <ul className="space-y-4">
             {page.recommended.map((item) => {
@@ -79,7 +96,12 @@ export function IntentLandingPage({ page }: IntentLandingPageProps) {
 
         <section className="border-wanas-border bg-wanas-surface rounded-[20px] border p-5">
           <h2 className="text-wanas-text-primary mb-2 text-xl font-extrabold">ابدأ اللعب</h2>
-          <p className="mb-4">أنشئ غرفة أو انضم برمز من الرئيسية، بعدين اختاروا اللعبة من اللوبي.</p>
+          <p className="mb-4">
+            اختاروا اللعبة من اللوبي بعد ما تدخلون الغرفة.{' '}
+            <Link href={PUBLIC_ROUTES.faq} className="text-wanas-primary-dark font-bold hover:underline">
+              كيف تنشئون غرفة؟
+            </Link>
+          </p>
           <div className="flex flex-wrap gap-3">
             <Link
               href={getHomeRoomActionsHref()}

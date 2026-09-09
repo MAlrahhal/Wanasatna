@@ -14,27 +14,31 @@ export const TITLE_TEMPLATE = `%s | ${BRAND_NAME_AR}`;
 
 export const GAMES_PAGE_TITLE = 'الألعاب الجماعية';
 export const GAMES_PAGE_DESCRIPTION =
-  'الألعاب الجماعية في وناستنا: تعرّف على كل لعبة، كم لاعب تناسب، وكيف تبدأ مع أصحابك من المتصفح.';
+  'قارن ألعاب وناستنا حسب العدد وأسلوب اللعب، ثم افتح صفحة كل لعبة واقرأ كيف تشتغل قبل ما تبدؤون.';
 
 export const GAMES_FRIENDS_TITLE = 'ألعاب جماعية للأصدقاء';
 export const GAMES_FRIENDS_DESCRIPTION =
-  'ألعاب جماعية للأصدقاء من المتصفح: أنشئ غرفة، شارك الرمز، والعبوا على ديسكورد أو من بعيد بدون تسجيل.';
+  'ألعاب جماعية للأصدقاء عن بُعد: اختر حسب العدد والنقاش أو الجولات السريعة، ثم ابدأ غرفة من المتصفح.';
 
 export const GAMES_BROWSER_TITLE = 'ألعاب جماعية بدون تحميل';
 export const GAMES_BROWSER_DESCRIPTION =
-  'ألعاب جماعية أونلاين بدون تحميل: العب مع أصحابك من المتصفح على الجوال أو الكمبيوتر، بدون تطبيق أو تسجيل.';
+  'ألعاب وناستنا من المتصفح: رسم باللمس، كتابة للأسئلة، ومؤقت داخل الصفحة — بدون متجر تطبيقات.';
 
 export const GAMES_GATHERINGS_TITLE = 'ألعاب سهرات وجمعات';
 export const GAMES_GATHERINGS_DESCRIPTION =
-  'ألعاب سهرات وجمعات من المتصفح: نقاش ورسم وأسئلة للقروب في البيت أو الاستراحة، بدون تحميل.';
+  'ألعاب سهرات: متى تكفي شاشة مشتركة، ومتى كل واحد يحتاج جهازه — حسب الرسم والقاضي والأدوار المخفية.';
+
+export const ABOUT_PAGE_TITLE = 'عن وناستنا';
+export const ABOUT_PAGE_DESCRIPTION =
+  'تعرّف على وناستنا: منصة ألعاب جماعية عربية من المتصفح، وكيف تشتغل الغرفة مع الأصدقاء.';
 
 export const FAQ_PAGE_TITLE = 'الأسئلة الشائعة';
 export const FAQ_PAGE_DESCRIPTION =
-  'كيف تنشئ روم وكيف يدخل أصحابك، وهل تحتاج حساب أو تحميل — إجابات قصيرة عن اللعب في وناستنا.';
+  'كيف تنشئ غرفة، كيف يدخل أصحابك، وهل تحتاج حساب أو تطبيق — إجابات عن اللعب في وناستنا.';
 
 export const CONTACT_PAGE_TITLE = 'تواصل معنا';
 export const CONTACT_PAGE_DESCRIPTION =
-  'الدعم والتواصل مع فريق وناستنا يتم عبر سيرفر Discord الرسمي.';
+  'تواصل مع وناستنا عبر سيرفر Discord الرسمي للإبلاغ عن مشكلة أو إرسال ملاحظة.';
 
 export const PRIVACY_PAGE_TITLE = 'سياسة الخصوصية';
 export const PRIVACY_PAGE_DESCRIPTION =
@@ -85,6 +89,7 @@ export const INDEXABLE_PUBLIC_PATHS = [
   PUBLIC_ROUTES.gamesFriends,
   PUBLIC_ROUTES.gamesBrowser,
   PUBLIC_ROUTES.gamesGatherings,
+  PUBLIC_ROUTES.about,
   PUBLIC_ROUTES.faq,
   PUBLIC_ROUTES.contact,
   PUBLIC_ROUTES.privacy,

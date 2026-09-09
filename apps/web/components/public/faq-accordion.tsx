@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useId, useState } from 'react';
 import type { FaqCategory, FaqItem } from '@/lib/public/faq-data';
 import { faqCategories, faqItems } from '@/lib/public/faq-data';
@@ -127,7 +128,21 @@ function FaqAccordionItem({
         hidden={!isOpen}
         className="border-t border-wanas-background px-5 py-4 text-sm leading-7 text-wanas-text-muted"
       >
-        {item.answer}
+        <p>{item.answer}</p>
+        {item.relatedLinks && item.relatedLinks.length > 0 ? (
+          <ul className="mt-3 flex flex-wrap gap-3">
+            {item.relatedLinks.map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  className="text-wanas-primary-dark font-bold underline-offset-2 hover:underline"
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
     </article>
   );

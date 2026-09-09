@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 const footerLinks = [
   { href: PUBLIC_ROUTES.home, label: 'الرئيسية' },
   { href: PUBLIC_ROUTES.games, label: 'الألعاب' },
+  { href: PUBLIC_ROUTES.about, label: 'عن وناستنا' },
   { href: PUBLIC_ROUTES.faq, label: 'الأسئلة الشائعة' },
   { href: PUBLIC_ROUTES.contact, label: 'تواصل معنا' },
   { href: PUBLIC_ROUTES.privacy, label: 'سياسة الخصوصية' },

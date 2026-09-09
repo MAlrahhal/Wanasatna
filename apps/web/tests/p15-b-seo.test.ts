@@ -66,6 +66,9 @@ const publicSeoFiles = [
   'lib/public/intent-seo-content.ts',
   'components/public/intent-landing-page.tsx',
   'components/public/seo-breadcrumb.tsx',
+  'lib/public/game-selection-guide.ts',
+  'components/public/public-comparison-table.tsx',
+  'app/(public)/about/page.tsx',
   'app/(public)/faq/page.tsx',
   'app/(public)/contact/page.tsx',
   'app/(public)/contact/contact-page-client.tsx',
@@ -85,6 +88,8 @@ test('1 /games has unique metadata', () => {
   assert.notEqual(GAMES_PAGE_DESCRIPTION, HOME_DESCRIPTION);
   assert.match(read('app/(public)/games/games-page-client.tsx'), /<PageHero/);
   assert.match(read('app/(public)/games/games-page-client.tsx'), /الألعاب الجماعية في وناستنا/);
+  assert.match(read('app/(public)/games/games-page-client.tsx'), /أي لعبة نختار؟/);
+  assert.match(read('app/(public)/games/games-page-client.tsx'), /SeoBreadcrumb/);
 });
 
 test('2 /faq unique metadata', () => {
@@ -100,6 +105,14 @@ test('3 /contact unique metadata', () => {
   assert.match(page, /CONTACT_PAGE_TITLE/);
   assert.match(page, /CONTACT_PAGE_DESCRIPTION/);
   assert.match(page, /canonical: '\/contact'/);
+});
+
+test('3b /about unique metadata', () => {
+  const page = read('app/(public)/about/page.tsx');
+  assert.match(page, /ABOUT_PAGE_TITLE/);
+  assert.match(page, /ABOUT_PAGE_DESCRIPTION/);
+  assert.match(page, /canonical: PUBLIC_ROUTES.about/);
+  assert.notEqual(FAQ_PAGE_TITLE, 'عن وناستنا');
 });
 
 test('4-7 eight game pages resolve with unique title, description, canonical', () => {
@@ -240,6 +253,8 @@ test('18 headings semantic', () => {
   assert.match(view, /SeoBreadcrumb/);
   assert.match(view, /<h2/);
   assert.match(faq, /PageHero/);
+  assert.match(faq, /SeoBreadcrumb/);
+  assert.match(faq, /buildFaqPageJsonLd/);
   assert.match(contact, /PageHero/);
 });
 

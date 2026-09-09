@@ -65,27 +65,54 @@ export function GameInformationPage({ page }: GameInformationPageProps) {
           </ol>
         </section>
 
+        {page.roles && page.roles.length > 0 ? (
+          <section>
+            <h2 className="text-wanas-text-primary mb-3 text-xl font-extrabold">الأدوار</h2>
+            <ul className="list-disc space-y-1 pr-5">
+              {page.roles.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        {page.cards && page.cards.length > 0 ? (
+          <section>
+            <h2 className="text-wanas-text-primary mb-3 text-xl font-extrabold">الكروت والقدرات</h2>
+            <ul className="list-disc space-y-1 pr-5">
+              {page.cards.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        {page.scoring && page.scoring.length > 0 ? (
+          <section>
+            <h2 className="text-wanas-text-primary mb-3 text-xl font-extrabold">كيف تنحسب النقاط؟</h2>
+            <ul className="list-disc space-y-1 pr-5">
+              {page.scoring.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
         <section>
           <h2 className="text-wanas-text-primary mb-2 text-xl font-extrabold">كم لاعب تحتاج؟</h2>
           <p>{page.playerNeed}</p>
         </section>
 
-        <section>
-          <h2 className="text-wanas-text-primary mb-2 text-xl font-extrabold">كيف تدخلون؟</h2>
-          <ul className="list-disc space-y-1 pr-5">
-            <li>{page.howFriendsJoin}</li>
-            <li>{page.noDownload}</li>
-            <li>{page.noAccount}</li>
-          </ul>
-        </section>
+        {page.difference ? (
+          <section>
+            <h2 className="text-wanas-text-primary mb-2 text-xl font-extrabold">وش يميزها؟</h2>
+            <p>{page.difference}</p>
+          </section>
+        ) : null}
 
         <section>
           <h2 className="text-wanas-text-primary mb-2 text-xl font-extrabold">متى تناسب؟</h2>
-          <ul className="list-disc space-y-1 pr-5">
-            {page.whenFits.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
+          <p>{page.whenFits}</p>
         </section>
 
         <section>
@@ -103,7 +130,10 @@ export function GameInformationPage({ page }: GameInformationPageProps) {
         <section className="border-wanas-border bg-wanas-surface rounded-[20px] border p-5">
           <h2 className="text-wanas-text-primary mb-2 text-xl font-extrabold">ابدأ اللعب</h2>
           <p className="mb-4">
-            أنشئ غرفة أو انضم برمز من الصفحة الرئيسية، بعدين اختاروا اللعبة من اللوبي.
+            أنشئ غرفة أو انضم برمز من الرئيسية، بعدين اختاروا اللعبة من اللوبي.{' '}
+            <Link href={PUBLIC_ROUTES.faq} className="text-wanas-primary-dark font-bold hover:underline">
+              كيف تدخلون الغرفة؟
+            </Link>
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
@@ -111,12 +141,6 @@ export function GameInformationPage({ page }: GameInformationPageProps) {
               className="bg-wanas-accent hover:bg-wanas-accent-hover inline-flex h-11 items-center justify-center rounded-2xl px-5 text-sm font-bold text-white"
             >
               العب الآن
-            </Link>
-            <Link
-              href={getHomeRoomActionsHref()}
-              className="border-wanas-border bg-wanas-surface text-wanas-text-primary inline-flex h-11 items-center justify-center rounded-2xl border px-5 text-sm font-bold"
-            >
-              ابدأ من الرئيسية
             </Link>
             <Link
               href={PUBLIC_ROUTES.games}

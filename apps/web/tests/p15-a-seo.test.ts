@@ -76,6 +76,7 @@ test('6-12 robots and sitemap allow public, exclude private/runtime', () => {
 
   assert.equal(PUBLIC_ROUTES.home, '/');
   assert.ok(PUBLIC_ROUTES.games);
+  assert.ok(PUBLIC_ROUTES.about);
   assert.ok(PUBLIC_ROUTES.faq);
   assert.ok(PUBLIC_ROUTES.contact);
 });
