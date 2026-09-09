@@ -7,9 +7,17 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { AckGenerationGate, runLatestAck } from '../lib/game-plugins/ack-generation';
-import { bindPluginViewResync, type PluginResyncSocket } from '../lib/game-plugins/bind-plugin-view-resync';
+import {
+  AckGenerationGate,
+  isRateLimitedPluginSyncResult,
+  runLatestAck,
+} from '../lib/game-plugins/ack-generation';
+import {
+  bindPluginViewResync,
+  type PluginResyncSocket,
+} from '../lib/game-plugins/bind-plugin-view-resync';
 import { GAME_SHELL_STATE_EVENT } from '@wanasatna/shared';
+import { SYSTEM_COPY } from '../lib/ui/system-copy';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -48,6 +56,10 @@ function createDeferred<T>() {
     resolve = innerResolve;
   });
   return { promise, resolve };
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function createFakeSocket() {
@@ -160,18 +172,20 @@ async function main(): Promise<void> {
   const helper = readFileSync(join(root, 'lib/game-plugins/bind-plugin-view-resync.ts'), 'utf8');
   assert.match(helper, /GAME_SHELL_STATE_EVENT/);
   assert.match(helper, /phaseChangedEvent/);
-  assert.match(helper, /void syncView\(\)/);
+  assert.match(helper, /inFlight/);
+  assert.match(helper, /pending/);
+  assert.match(helper, /PLUGIN_SYNC_RATE_LIMIT_RETRY_MS/);
 });
 
-  await test('GAME_SHELL_STATE starts a newer SYNC that drops a delayed older ACK', async () => {
+  await test('GAME_SHELL_STATE coalesces until the in-flight SYNC finishes, then follow-up', async () => {
   const gate = new AckGenerationGate();
   let applied = '';
   const first = createDeferred<string>();
   let started = 0;
 
   const socket = createFakeSocket();
-  const syncView = () => {
-    void runLatestAck(gate, async () => {
+  const syncView = () =>
+    runLatestAck(gate, async () => {
       started += 1;
       if (started === 1) {
         return first.promise;
@@ -182,7 +196,6 @@ async function main(): Promise<void> {
         applied = value;
       }
     });
-  };
 
   const unbind = bindPluginViewResync(
     socket as unknown as PluginResyncSocket,
@@ -191,22 +204,23 @@ async function main(): Promise<void> {
   );
   socket.emit(GAME_SHELL_STATE_EVENT);
   await Promise.resolve();
+  assert.equal(started, 1);
   first.resolve('stale-turn-1');
-  await Promise.resolve();
-  await Promise.resolve();
+  await delay(0);
+  assert.equal(started, 2);
   assert.equal(applied, 'turn-2');
   unbind();
 });
 
-  await test('duplicate PHASE_CHANGED still keeps the latest in-flight SYNC', async () => {
+  await test('duplicate PHASE_CHANGED coalesces into one follow-up SYNC', async () => {
   const gate = new AckGenerationGate();
   let applied = '';
   const first = createDeferred<string>();
   let started = 0;
 
   const socket = createFakeSocket();
-  const syncView = () => {
-    void runLatestAck(gate, async () => {
+  const syncView = () =>
+    runLatestAck(gate, async () => {
       started += 1;
       if (started === 1) {
         return first.promise;
@@ -217,7 +231,6 @@ async function main(): Promise<void> {
         applied = value;
       }
     });
-  };
 
   const unbind = bindPluginViewResync(
     socket as unknown as PluginResyncSocket,
@@ -226,12 +239,141 @@ async function main(): Promise<void> {
   );
   socket.emit('plugin-phase-changed');
   await Promise.resolve();
+  assert.equal(started, 1);
   first.resolve('after-first-phase');
-  await Promise.resolve();
-  await Promise.resolve();
+  await delay(0);
+  assert.equal(started, 2);
   assert.equal(applied, 'after-second-phase');
   unbind();
 });
+
+  await test('QA-34: mount + GAME_SHELL_STATE + PHASE_CHANGED burst is two SYNCs not five', async () => {
+    const socket = createFakeSocket();
+    let started = 0;
+    const first = createDeferred<void>();
+
+    const unbind = bindPluginViewResync(
+      socket as unknown as PluginResyncSocket,
+      'plugin-phase-changed',
+      () => {
+        started += 1;
+        if (started === 1) {
+          return first.promise;
+        }
+      },
+    );
+
+    socket.emit(GAME_SHELL_STATE_EVENT);
+    socket.emit('plugin-phase-changed');
+    socket.emit(GAME_SHELL_STATE_EVENT);
+    socket.emit(GAME_SHELL_STATE_EVENT);
+    await Promise.resolve();
+    assert.equal(started, 1);
+    first.resolve();
+    await delay(0);
+    assert.equal(started, 2);
+    unbind();
+  });
+
+  await test('QA-34: RATE_LIMITED ACK does not destroy an in-flight successful view', async () => {
+    const gate = new AckGenerationGate();
+    let applied = '';
+
+    const success = runLatestAck(
+      gate,
+      async () => {
+        await delay(20);
+        return { view: 'playing', errorMessage: null };
+      },
+      isRateLimitedPluginSyncResult,
+    ).then((result) => {
+      if (result?.view) {
+        applied = String(result.view);
+      }
+    });
+
+    const limited = runLatestAck(
+      gate,
+      async () => ({ view: null, errorMessage: SYSTEM_COPY.rateLimited }),
+      isRateLimitedPluginSyncResult,
+    );
+
+    await Promise.all([success, limited]);
+    assert.equal(applied, 'playing');
+  });
+
+  await test('QA-34: initial RATE_LIMITED recovers with one bounded retry', async () => {
+    const socket = createFakeSocket();
+    let started = 0;
+    let applied = '';
+
+    const unbind = bindPluginViewResync(
+      socket as unknown as PluginResyncSocket,
+      'plugin-phase-changed',
+      () => {
+        started += 1;
+        if (started === 1) {
+          return 'rate-limited' as const;
+        }
+        applied = 'recovered';
+      },
+      { rateLimitRetryMs: 10, maxRateLimitRetries: 2 },
+    );
+
+    await delay(40);
+    assert.equal(started, 2);
+    assert.equal(applied, 'recovered');
+    unbind();
+  });
+
+  await test('QA-34: RATE_LIMITED retries are bounded (no tight loop)', async () => {
+    const socket = createFakeSocket();
+    let started = 0;
+
+    const unbind = bindPluginViewResync(
+      socket as unknown as PluginResyncSocket,
+      'plugin-phase-changed',
+      () => {
+        started += 1;
+        return 'rate-limited' as const;
+      },
+      { rateLimitRetryMs: 10, maxRateLimitRetries: 2 },
+    );
+
+    await delay(80);
+    assert.equal(started, 3);
+    await delay(40);
+    assert.equal(started, 3);
+    unbind();
+  });
+
+  await test('QA-34: /game keeps GameShellProvider mounted across reconnecting → connected', () => {
+    const page = readFileSync(join(root, 'app/(room)/game/game-page-client.tsx'), 'utf8');
+    assert.match(page, /status === 'reconnecting' \? \(/);
+    assert.doesNotMatch(page, /status === 'reconnecting' && room && player/);
+  });
+
+  await test('QA-34: /game skips TEAM_SYNC; shell skips SYNC when already ready', () => {
+    const roomContext = readFileSync(join(root, 'contexts/room-context.tsx'), 'utf8');
+    assert.match(roomContext, /pathname === '\/game' \|\| pathname === '\/marathon'/);
+    assert.match(roomContext, /skipTeamSync/);
+
+    const shell = readFileSync(join(root, 'contexts/game-shell-context.tsx'), 'utf8');
+    assert.match(
+      shell,
+      /syncViewRef\.current\.status === 'ready' && syncViewRef\.current\.state/,
+    );
+  });
+
+  await test('QA-34: all eight plugin hooks treat RATE_LIMITED as retryable', () => {
+    const files = pluginViewFiles();
+    assert.ok(files.length >= 8, `expected plugin hooks, found ${files.length}`);
+    for (const file of files) {
+      const source = readFileSync(file, 'utf8');
+      assert.match(source, /isRateLimitedPluginSyncResult/, file);
+      assert.match(source, /return 'rate-limited'/, file);
+    }
+  });
 
   await test('reconnect and bound ROOM_SYNC deliver GAME_SHELL_STATE; plugins recover via SYNC not event replay', () => {
   const handlers = readFileSync(

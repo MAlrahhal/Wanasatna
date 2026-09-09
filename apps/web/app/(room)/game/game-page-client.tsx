@@ -65,18 +65,7 @@ function GameShellConnectedScreen() {
     return <RoomSystemState kind="closed" message={errorMessage} />;
   }
 
-  if (status === 'reconnecting' && room && player) {
-    return (
-      <GameShellProvider hostPlayerId={room.hostPlayerId} currentPlayerId={player.id}>
-        <div className="px-4 pt-4 sm:px-6">
-          <SystemStatus tone="reconnecting" title={SYSTEM_COPY.reconnecting} className="mx-auto max-w-md" />
-        </div>
-        <GameContent />
-      </GameShellProvider>
-    );
-  }
-
-  if (status === 'reconnecting') {
+  if (status === 'reconnecting' && (!room || !player)) {
     return <RoomSystemState kind="reconnecting" />;
   }
 
@@ -96,6 +85,11 @@ function GameShellConnectedScreen() {
 
   return (
     <GameShellProvider hostPlayerId={room.hostPlayerId} currentPlayerId={player.id}>
+      {status === 'reconnecting' ? (
+        <div className="px-4 pt-4 sm:px-6">
+          <SystemStatus tone="reconnecting" title={SYSTEM_COPY.reconnecting} className="mx-auto max-w-md" />
+        </div>
+      ) : null}
       <GameContent />
     </GameShellProvider>
   );

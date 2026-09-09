@@ -82,7 +82,7 @@ test('mobile primary tabs are games + players only; chat is a drawer', () => {
   assert.match(screen, /\['players', 'اللاعبون'\]/);
   assert.doesNotMatch(screen, /\['chat', 'الدردشة'\]/);
   assert.doesNotMatch(screen, /'games' \| 'players' \| 'chat'/);
-  assert.match(screen, /xl:order-3 xl:block/);
+  assert.match(screen, /xl:order-3 xl:flex/);
   assert.match(screen, /<LobbyChat/);
   assert.match(screen, /minmax\(168px,200px\)/);
   assert.match(screen, /aria-label="الدردشة"/);

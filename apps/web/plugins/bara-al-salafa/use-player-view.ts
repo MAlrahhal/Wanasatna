@@ -14,7 +14,11 @@ import {
   BARA_AL_SALAFA_SUBMIT_VOTE_EVENT,
   BARA_AL_SALAFA_SYNC_EVENT,
 } from '@wanasatna/shared';
-import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
+import {
+  AckGenerationGate,
+  isRateLimitedPluginSyncResult,
+  runLatestAck,
+} from '@/lib/game-plugins/ack-generation';
 import { bindPluginViewResync } from '@/lib/game-plugins/bind-plugin-view-resync';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
@@ -71,7 +75,11 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
       }
     }
 
-    const result = await runLatestAck(syncGateRef.current, fetchPlayerView);
+    const result = await runLatestAck(
+      syncGateRef.current,
+      fetchPlayerView,
+      isRateLimitedPluginSyncResult,
+    );
 
     if (result === undefined) {
       return;
@@ -84,6 +92,10 @@ export function useBaraAlSalafaPlayerView(enabled: boolean) {
       }
       commitView(result.view);
       return;
+    }
+
+    if (isRateLimitedPluginSyncResult(result)) {
+      return 'rate-limited';
     }
 
     if (isInitialLoad) {

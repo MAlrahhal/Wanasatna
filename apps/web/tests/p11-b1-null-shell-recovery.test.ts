@@ -335,6 +335,14 @@ test('7. RATE_LIMITED does not redirect Lobby', () => {
   assert.equal(shouldRecoverGameRouteToLobby('/game', rateLimitedWhileLive.status), false);
 });
 
+test('7b. mount GAME_SHELL_SYNC is skipped when live state already applied', () => {
+  const context = read('contexts/game-shell-context.tsx');
+  assert.match(
+    context,
+    /syncViewRef\.current\.status === 'ready' && syncViewRef\.current\.state/,
+  );
+});
+
 test('8. reconnect while game exists stays on /game', () => {
   const view = sync(createPendingShellSyncView(), {
     success: true,

@@ -9,7 +9,11 @@ import {
   JUDGE_SUBMIT_ANSWER_EVENT,
   JUDGE_SYNC_EVENT,
 } from '@wanasatna/shared';
-import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
+import {
+  AckGenerationGate,
+  isRateLimitedPluginSyncResult,
+  runLatestAck,
+} from '@/lib/game-plugins/ack-generation';
 import { bindPluginViewResync } from '@/lib/game-plugins/bind-plugin-view-resync';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
@@ -44,7 +48,11 @@ export function useJudgePlayerView(enabled: boolean) {
       setErrorMessage(null);
     }
 
-    const result = await runLatestAck(syncGateRef.current, fetchPlayerView);
+    const result = await runLatestAck(
+      syncGateRef.current,
+      fetchPlayerView,
+      isRateLimitedPluginSyncResult,
+    );
 
     if (result === undefined) {
       return;
@@ -54,6 +62,8 @@ export function useJudgePlayerView(enabled: boolean) {
       hasViewRef.current = true;
       setView(result.view);
       setErrorMessage(null);
+    } else if (isRateLimitedPluginSyncResult(result)) {
+      return 'rate-limited';
     } else if (isInitialLoad) {
       setErrorMessage(result.errorMessage);
     }

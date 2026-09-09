@@ -160,6 +160,10 @@ export function GameShellProvider({
       return;
     }
 
+    if (syncViewRef.current.status === 'ready' && syncViewRef.current.state) {
+      return;
+    }
+
     void syncShell();
   }, [currentPlayerId, syncShell]);
 

@@ -9,7 +9,11 @@ import {
   WHO_WROTE_IT_SUBMIT_OWNER_GUESS_EVENT,
   WHO_WROTE_IT_SYNC_EVENT,
 } from '@wanasatna/shared';
-import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
+import {
+  AckGenerationGate,
+  isRateLimitedPluginSyncResult,
+  runLatestAck,
+} from '@/lib/game-plugins/ack-generation';
 import { bindPluginViewResync } from '@/lib/game-plugins/bind-plugin-view-resync';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
@@ -54,7 +58,11 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
       setErrorMessage(null);
     }
 
-    const result = await runLatestAck(syncGateRef.current, fetchPlayerView);
+    const result = await runLatestAck(
+      syncGateRef.current,
+      fetchPlayerView,
+      isRateLimitedPluginSyncResult,
+    );
 
     if (result === undefined) {
       return;
@@ -62,6 +70,8 @@ export function useWhoWroteItPlayerView(enabled: boolean) {
 
     if (result.view) {
       applyView(result.view);
+    } else if (isRateLimitedPluginSyncResult(result)) {
+      return 'rate-limited';
     } else if (isInitialLoad) {
       setErrorMessage(result.errorMessage);
     }

@@ -465,7 +465,12 @@ test('unused match category is still preferred when both have room-fresh items',
 
 test('Draw & Guess random mode uses shared drawable room history for category eligibility', () => {
   const roomId = 'room-draw-cat-fresh';
-  for (const entry of drawContent.bundle.words.filter((item) => item.categoryId === 'animals')) {
+  const cap = ROOM_CONTENT_HISTORY_LIMIT[ROOM_CONTENT_HISTORY_KEY.DRAWABLE_WORDS];
+  const animals = drawContent.bundle.words.filter((item) => item.categoryId === 'animals');
+  const places = drawContent.bundle.words.filter((item) => item.categoryId === 'places');
+  assert.ok(animals.length > cap);
+  assert.ok(places.length > 0 && places.length <= cap);
+  for (const entry of places) {
     recordRoomContentHistory(
       roomId,
       ROOM_CONTENT_HISTORY_KEY.DRAWABLE_WORDS,
@@ -473,12 +478,17 @@ test('Draw & Guess random mode uses shared drawable room history for category el
     );
   }
   const picked = pickDrawGuessWord(roomId, []);
-  assert.notEqual(picked.categoryId, 'animals');
+  assert.notEqual(picked.categoryId, 'places');
 });
 
 test('Imposter Draw random mode uses the same shared drawable room history', () => {
   const roomId = 'room-imposter-cat-fresh';
-  for (const entry of imposterContent.bundle.words.filter((item) => item.categoryId === 'animals')) {
+  const cap = ROOM_CONTENT_HISTORY_LIMIT[ROOM_CONTENT_HISTORY_KEY.DRAWABLE_WORDS];
+  const animals = imposterContent.bundle.words.filter((item) => item.categoryId === 'animals');
+  const places = imposterContent.bundle.words.filter((item) => item.categoryId === 'places');
+  assert.ok(animals.length > cap);
+  assert.ok(places.length > 0 && places.length <= cap);
+  for (const entry of places) {
     recordRoomContentHistory(
       roomId,
       ROOM_CONTENT_HISTORY_KEY.DRAWABLE_WORDS,
@@ -486,7 +496,7 @@ test('Imposter Draw random mode uses the same shared drawable room history', () 
     );
   }
   const picked = pickImposterDrawImage(roomId, []);
-  assert.notEqual(picked.categoryId, 'animals');
+  assert.notEqual(picked.categoryId, 'places');
 });
 
 test('locked category still picks from that category even when it is room-recent', () => {

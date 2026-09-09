@@ -8,7 +8,11 @@ import {
   FAST_ANSWER_SUBMIT_ANSWER_EVENT,
   FAST_ANSWER_SYNC_EVENT,
 } from '@wanasatna/shared';
-import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
+import {
+  AckGenerationGate,
+  isRateLimitedPluginSyncResult,
+  runLatestAck,
+} from '@/lib/game-plugins/ack-generation';
 import { bindPluginViewResync } from '@/lib/game-plugins/bind-plugin-view-resync';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
@@ -56,7 +60,11 @@ export function useFastAnswerPlayerView(enabled: boolean) {
       setErrorMessage(null);
     }
 
-    const result = await runLatestAck(syncGateRef.current, fetchPlayerView);
+    const result = await runLatestAck(
+      syncGateRef.current,
+      fetchPlayerView,
+      isRateLimitedPluginSyncResult,
+    );
 
     if (result === undefined) {
       return;
@@ -67,6 +75,8 @@ export function useFastAnswerPlayerView(enabled: boolean) {
       roundIdRef.current = result.view.roundId;
       setView(result.view);
       setErrorMessage(null);
+    } else if (isRateLimitedPluginSyncResult(result)) {
+      return 'rate-limited';
     } else if (isInitialLoad) {
       setErrorMessage(result.errorMessage);
     }

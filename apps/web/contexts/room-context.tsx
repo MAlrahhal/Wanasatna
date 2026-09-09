@@ -707,19 +707,23 @@ export function RoomProvider({ children }: { children: ReactNode }) {
 
     registerSocketListeners();
 
-    void (async () => {
-      const sync = await emitGameShellWithAck<{ snapshot: PregameTeamSnapshot | null }>(
-        TEAM_SYNC_EVENT,
-      );
-      if (sync.success) {
-        setTeamSnapshot(sync.data.snapshot);
-      }
-    })();
+    const skipTeamSync = pathname === '/game' || pathname === '/marathon';
+
+    if (!skipTeamSync) {
+      void (async () => {
+        const sync = await emitGameShellWithAck<{ snapshot: PregameTeamSnapshot | null }>(
+          TEAM_SYNC_EVENT,
+        );
+        if (sync.success) {
+          setTeamSnapshot(sync.data.snapshot);
+        }
+      })();
+    }
 
     return () => {
       removeSocketListenersRef.current?.();
     };
-  }, [registerSocketListeners, status]);
+  }, [pathname, registerSocketListeners, status]);
 
   const lockRoom = useCallback(async () => {
     const response = await emitRoomAck<{ roomId: string; isLocked: boolean }>(LOCK_ROOM_EVENT);

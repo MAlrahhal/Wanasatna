@@ -11,7 +11,11 @@ import {
   TIMING_CHALLENGE_SUBMIT_GUESS_EVENT,
   TIMING_CHALLENGE_SYNC_EVENT,
 } from '@wanasatna/shared';
-import { AckGenerationGate, runLatestAck } from '@/lib/game-plugins/ack-generation';
+import {
+  AckGenerationGate,
+  isRateLimitedPluginSyncResult,
+  runLatestAck,
+} from '@/lib/game-plugins/ack-generation';
 import { bindPluginViewResync } from '@/lib/game-plugins/bind-plugin-view-resync';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
@@ -50,7 +54,11 @@ export function useTimingChallengePlayerView(enabled: boolean) {
       setErrorMessage(null);
     }
 
-    const result = await runLatestAck(syncGateRef.current, fetchPlayerView);
+    const result = await runLatestAck(
+      syncGateRef.current,
+      fetchPlayerView,
+      isRateLimitedPluginSyncResult,
+    );
 
     if (result === undefined) {
       return;
@@ -61,6 +69,8 @@ export function useTimingChallengePlayerView(enabled: boolean) {
       roundIdRef.current = result.view.roundId;
       setView(result.view);
       setErrorMessage(null);
+    } else if (isRateLimitedPluginSyncResult(result)) {
+      return 'rate-limited';
     } else if (isInitialLoad) {
       setErrorMessage(result.errorMessage);
     }

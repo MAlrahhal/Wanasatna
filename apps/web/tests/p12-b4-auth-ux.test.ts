@@ -140,13 +140,16 @@ test('22-28 Guest name field: no account prefill, editable nickname, Create/Join
     null,
   );
   assert.doesNotMatch(hook, /nextPrefillDisplayName/);
-  assert.match(hook, /nameEditedRef\.current = true/);
+  assert.doesNotMatch(hook, /nameEditedRef/);
   assert.doesNotMatch(hook, /useOptionalAuth/);
   assert.doesNotMatch(home, /fetchAuthMe|\/api\/auth/);
   assert.doesNotMatch(hook, /registerAccount|updateUser|PATCH/);
+  assert.match(hook, /const \[createPlayerName, setCreatePlayerName\] = useState\(''\)/);
+  assert.match(hook, /const \[joinPlayerName, setJoinPlayerName\] = useState\(''\)/);
+  assert.match(hook, /const trimmedName = createPlayerName\.trim\(\)/);
+  assert.match(hook, /const trimmedName = joinPlayerName\.trim\(\)/);
   assert.match(hook, /manager\.create\(trimmedName\)/);
   assert.match(hook, /manager\.enterFromJoinForm\(trimmedCode, trimmedName\)/);
-  assert.match(hook, /const trimmedName = playerName\.trim\(\)/);
   assert.doesNotMatch(hook, /userId|&name=|action=create/);
 });
 
