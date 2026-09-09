@@ -295,6 +295,32 @@ test('shared locked-match mapper is used by every game leaderboard map', () => {
   }
 });
 
+test('final-results screens preserve payload ties instead of inventing a sole winner', () => {
+  const webRoot = join(testDir, '..');
+  const resultsScreen = readFileSync(
+    join(webRoot, 'plugins/bara-al-salafa/match-results-screen.tsx'),
+    'utf8',
+  );
+  assert.match(resultsScreen, /leaderboard\.filter\(\(entry\) => entry\.isFirstPlace\)/);
+  assert.match(resultsScreen, /isTie \? 'تعادل في المركز الأول!'/);
+
+  const gameScreens = [
+    'plugins/judge/game-screen.tsx',
+    'plugins/who-wrote-it/game-screen.tsx',
+    'plugins/fast-answer/game-screen.tsx',
+    'plugins/draw-guess/game-screen.tsx',
+    'plugins/imposter-draw/game-screen.tsx',
+    'plugins/timing-challenge/game-screen.tsx',
+    'plugins/guessing-challenge/game-screen.tsx',
+    'plugins/bara-al-salafa/live-phase-adapters.ts',
+  ];
+
+  for (const relativePath of gameScreens) {
+    const source = readFileSync(join(webRoot, relativePath), 'utf8');
+    assert.match(source, /isFirstPlace: entry\.isFirstPlace/, relativePath);
+  }
+});
+
 test('I round results screen no longer renders cumulative leaderboard section', () => {
   const source = readFileSync(
     join(testDir, '../plugins/bara-al-salafa/round-results-screen.tsx'),

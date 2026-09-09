@@ -16,6 +16,7 @@ import { createOpaqueAnswerId, validateSubmittedAnswer } from '../src/modules/ga
 import { JUDGE_RANDOM_CATEGORY_ID, chooseRoundCategoryId } from '../src/modules/game/plugins/judge/prompts.js';
 import {
   applyRoundScores,
+  buildResultsLeaderboardEntries,
   buildRoundResultEntries,
 } from '../src/modules/game/plugins/judge/scoring.js';
 import {
@@ -442,6 +443,68 @@ test('judge view flags isJudge correctly', () => {
   assert.equal(buildJudgePlayerView(match, 'p1', shell).isJudge, false);
   assert.equal(buildJudgePlayerView(match, 'p1', shell).canSubmitAnswer, true);
   assert.equal(buildJudgePlayerView(match, 'p2', shell).canSubmitAnswer, false);
+});
+
+test('final results: 0-0-0 is a three-way first-place tie, not a name-order winner', () => {
+  const match = makeMatch({
+    playerIds: ['p1', 'p2', 'p3'],
+    scores: { p1: 0, p2: 0, p3: 0 },
+  });
+  const entries = buildResultsLeaderboardEntries(match);
+  const view = buildJudgePlayerView(match, 'p1', makeShell(['p1', 'p2', 'p3']));
+
+  assert.equal(entries.length, 3);
+  assert.deepEqual(
+    entries.map((entry) => entry.rank),
+    [1, 1, 1],
+  );
+  assert.equal(entries.every((entry) => entry.isFirstPlace), true);
+  assert.equal(entries.filter((entry) => entry.isFirstPlace).length, 3);
+  assert.deepEqual(view.resultsLeaderboard, entries);
+});
+
+test('final results: two players at 100 share first place', () => {
+  const match = makeMatch({
+    playerIds: ['p1', 'p2', 'p3'],
+    scores: { p1: 100, p2: 100, p3: 0 },
+  });
+  const entries = buildResultsLeaderboardEntries(match);
+  const firsts = entries.filter((entry) => entry.isFirstPlace);
+
+  assert.equal(firsts.length, 2);
+  assert.equal(firsts.every((entry) => entry.totalPoints === 100 && entry.rank === 1), true);
+  assert.equal(entries.find((entry) => entry.playerId === 'p3')?.rank, 3);
+  assert.equal(entries.find((entry) => entry.playerId === 'p3')?.isFirstPlace, false);
+});
+
+test('final results: 100-100-50 uses competition ranks 1,1,3', () => {
+  const match = makeMatch({
+    playerIds: ['p1', 'p2', 'p3'],
+    scores: { p1: 50, p2: 100, p3: 100 },
+  });
+  const entries = buildResultsLeaderboardEntries(match);
+  const byId = Object.fromEntries(entries.map((entry) => [entry.playerId, entry]));
+
+  assert.equal(byId.p2?.rank, 1);
+  assert.equal(byId.p3?.rank, 1);
+  assert.equal(byId.p1?.rank, 3);
+  assert.equal(byId.p2?.isFirstPlace, true);
+  assert.equal(byId.p3?.isFirstPlace, true);
+  assert.equal(byId.p1?.isFirstPlace, false);
+});
+
+test('final results: 100-50-0 keeps a single winner', () => {
+  const match = makeMatch({
+    playerIds: ['p1', 'p2', 'p3'],
+    scores: { p1: 50, p2: 0, p3: 100 },
+  });
+  const entries = buildResultsLeaderboardEntries(match);
+
+  assert.equal(entries.filter((entry) => entry.isFirstPlace).length, 1);
+  assert.equal(entries[0]?.playerId, 'p3');
+  assert.equal(entries[0]?.rank, 1);
+  assert.equal(entries[1]?.rank, 2);
+  assert.equal(entries[2]?.rank, 3);
 });
 
 test('random public category label stays عشوائي on the view', () => {

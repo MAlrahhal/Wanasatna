@@ -86,11 +86,21 @@ export function buildLeaderboardEntries(
 }
 
 export function buildResultsLeaderboardEntries(match: WhoWroteItMatchState) {
-  return buildLeaderboardEntries(match).map((entry, index) => ({
-    playerId: entry.playerId,
-    name: entry.name,
-    totalPoints: entry.score,
-    rank: index + 1,
-    isFirstPlace: index === 0,
-  }));
+  const sortedEntries = buildLeaderboardEntries(match);
+  let previousRank = 1;
+
+  return sortedEntries.map((entry, index) => {
+    const rank =
+      index > 0 && entry.score === sortedEntries[index - 1]!.score ? previousRank : index + 1;
+
+    previousRank = rank;
+
+    return {
+      playerId: entry.playerId,
+      name: entry.name,
+      totalPoints: entry.score,
+      rank,
+      isFirstPlace: rank === 1,
+    };
+  });
 }

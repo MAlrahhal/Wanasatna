@@ -24,6 +24,7 @@ import {
 import { chooseRoundCategoryId } from '../src/modules/game/plugins/who-wrote-it/prompts.js';
 import {
   applyRoundScores,
+  buildResultsLeaderboardEntries,
   buildRoundResultEntries,
   computePlayerRoundPoints,
   countCorrectGuesses,
@@ -442,6 +443,39 @@ test('round results copy: next vs final', () => {
   const final = buildRoundResultsContinueCopy({ isFinalRound: true, isHost: true });
   assert.equal(final.roundResultsContinueLabel, 'عرض النتائج الآن');
   assert.equal(final.roundResultsWaitingMessage, 'سيتم عرض النتائج النهائية تلقائياً...');
+});
+
+test('final results: equal scores share first place (competition ranks)', () => {
+  const allZero = buildResultsLeaderboardEntries(
+    makeMatch({
+      playerIds: ['p1', 'p2', 'p3'],
+      scores: { p1: 0, p2: 0, p3: 0 },
+    }),
+  );
+  assert.equal(allZero.every((entry) => entry.rank === 1 && entry.isFirstPlace), true);
+
+  const twoFirst = buildResultsLeaderboardEntries(
+    makeMatch({
+      playerIds: ['p1', 'p2', 'p3'],
+      scores: { p1: 100, p2: 100, p3: 50 },
+    }),
+  );
+  const byId = Object.fromEntries(twoFirst.map((entry) => [entry.playerId, entry]));
+  assert.equal(byId.p1?.rank, 1);
+  assert.equal(byId.p2?.rank, 1);
+  assert.equal(byId.p3?.rank, 3);
+  assert.equal(byId.p1?.isFirstPlace, true);
+  assert.equal(byId.p2?.isFirstPlace, true);
+  assert.equal(byId.p3?.isFirstPlace, false);
+
+  const single = buildResultsLeaderboardEntries(
+    makeMatch({
+      playerIds: ['p1', 'p2', 'p3'],
+      scores: { p1: 50, p2: 0, p3: 100 },
+    }),
+  );
+  assert.equal(single.filter((entry) => entry.isFirstPlace).length, 1);
+  assert.equal(single[0]?.playerId, 'p3');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
