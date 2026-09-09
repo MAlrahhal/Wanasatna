@@ -1,4 +1,4 @@
-import { ADMIN_ROOM_CLOSED_MESSAGE } from '@wanasatna/shared';
+import { ADMIN_ROOM_CLOSED_MESSAGE, INSUFFICIENT_PLAYERS_ABORT_MESSAGE } from '@wanasatna/shared';
 
 export const SYSTEM_COPY = {
   loading: 'جاري التحميل…',
@@ -104,6 +104,10 @@ export function presentRoomActionError(message: string | null | undefined): {
 
   if (safe === SYSTEM_COPY.gameEndedReturnLobby) {
     return { title: SYSTEM_COPY.gameEndedReturnLobby };
+  }
+
+  if (safe === INSUFFICIENT_PLAYERS_ABORT_MESSAGE) {
+    return { title: INSUFFICIENT_PLAYERS_ABORT_MESSAGE };
   }
 
   if (safe === SYSTEM_COPY.gameLoadFailed) {

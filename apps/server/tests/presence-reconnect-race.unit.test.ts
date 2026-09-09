@@ -93,7 +93,8 @@ async function main(): Promise<void> {
     assert.match(handlers, /applySocketDisconnectPresence/);
     assert.match(handlers, /disconnect-restored-after-rebind/);
     assert.doesNotMatch(handlers, /transferHostIfCurrentHostDisconnected/);
-    assert.match(handlers, /GAME_SHELL_STATE_EVENT/);
+  assert.match(handlers, /emitGameShellStateToSocket/);
+    assert.match(handlers, /emitPlayerRecoverySnapshotToSocket/);
 
     const presenceHelper = read('src/modules/room/services/presence-disconnect.service.ts');
     assert.doesNotMatch(presenceHelper, /transferHost/);

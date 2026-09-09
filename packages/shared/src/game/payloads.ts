@@ -11,7 +11,7 @@ export type SetGameShellReadyPayload = {
 };
 
 export type GameShellStatePayload = {
-  state: GameShellState;
+  state: GameShellState | null;
 };
 
 export type StartGameShellFromLobbyPayload = {
@@ -28,6 +28,9 @@ export type StartGameShellFromLobbyPayload = {
 };
 
 export type GameShellAbortReason = 'host_aborted' | 'insufficient_players';
+
+export const INSUFFICIENT_PLAYERS_ABORT_MESSAGE =
+  'تم إنهاء اللعبة لعدم توفر عدد كافٍ من اللاعبين.';
 
 export type GameShellNavigatePayload = {
   path: '/game' | '/lobby' | '/marathon';

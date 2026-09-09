@@ -7,13 +7,17 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { GameShellState } from '@wanasatna/shared';
+import { INSUFFICIENT_PLAYERS_ABORT_MESSAGE } from '@wanasatna/shared';
 import {
   applyLiveShellState,
   applyShellSyncResponse,
   beginShellSync,
   createPendingShellSyncView,
+  isLobbyLifecycleNotice,
+  LOBBY_LIFECYCLE_NOTICE_DISMISS_MS,
   LOBBY_NOTICE_STORAGE_KEY,
   planNullShellLobbyRecovery,
+  shouldClearLobbyLifecycleNotice,
   shouldRecoverGameRouteToLobby,
   writeLobbyNotice,
   type ShellSyncView,
@@ -454,11 +458,12 @@ test('GameShellScreen treats pending as loading and empty as returning to Lobby'
 
 test('Lobby notice is informational, not a fatal crash error', () => {
   const banner = read('components/lobby/lobby-error-banner.tsx');
-  assert.match(banner, /SYSTEM_COPY\.gameEndedReturnLobby/);
-  assert.match(banner, /tone=\{isGameEndedNotice \? 'info' : 'error'\}/);
+  assert.match(banner, /isLobbyLifecycleNotice/);
+  assert.match(banner, /tone=\{isLifecycleNotice \? 'info' : 'error'\}/);
 
   const presented = read('lib/ui/system-copy.ts');
   assert.match(presented, /gameEndedReturnLobby: 'انتهت الجولة أو تمت إعادة تشغيل اللعبة، ورجعناك إلى اللوبي\.'/);
+  assert.match(presented, /INSUFFICIENT_PLAYERS_ABORT_MESSAGE/);
 });
 
 test('server null-shell contract remains success + state null', () => {
@@ -470,6 +475,155 @@ test('server null-shell contract remains success + state null', () => {
     service,
     /export async function syncGameShell\([\s\S]*?if \(!shell\) \{\s*return \{\s*success: true,\s*data: \{ state: null \},/,
   );
+});
+
+test('QA-35 A: aborted match reconnect converges to terminal empty shell, not PLAYING', () => {
+  const playing = applyLiveShellState(
+    createPendingShellSyncView(),
+    makeShell({ gameId: 'judge', phase: 'PLAYING' }),
+  );
+  assert.equal(playing.status, 'ready');
+  assert.equal(playing.state?.phase, 'PLAYING');
+
+  const afterAbort = applyLiveShellState(playing, null);
+  assert.equal(afterAbort.status, 'empty');
+  assert.equal(afterAbort.state, null);
+  assert.equal(afterAbort.errorMessage, null);
+  assert.equal(shouldRecoverGameRouteToLobby('/game', afterAbort.status), true);
+
+  const startedBeforeAbort = beginShellSync(playing);
+  const liveNull = applyLiveShellState(startedBeforeAbort.view, null);
+  const stalePlayingAck = applyShellSyncResponse({
+    requestGeneration: startedBeforeAbort.requestGeneration,
+    current: liveNull,
+    response: { success: true, state: makeShell({ gameId: 'judge', phase: 'PLAYING' }) },
+  });
+  assert.equal(stalePlayingAck.status, 'empty');
+  assert.equal(stalePlayingAck.state, null);
+
+  const plan = planNullShellLobbyRecovery({
+    pathname: '/game',
+    syncStatus: afterAbort.status,
+    roomCode: ROOM_CODE,
+  });
+  assert.equal(plan.recover, true);
+
+  const handlers = readFileSync(
+    join(root, '../server/src/modules/room/room.socket.handlers.ts'),
+    'utf8',
+  );
+  const reconnect = handlers.slice(handlers.indexOf('export function registerReconnectHandler'));
+  assert.match(reconnect, /emitGameShellStateToSocket/);
+  assert.match(reconnect, /emitPlayerRecoverySnapshotToSocket/);
+  assert.doesNotMatch(reconnect, /if \(shell\) \{\s*socket\.emit\(GAME_SHELL_STATE_EVENT/);
+
+  const timer = readFileSync(join(root, '../server/src/modules/game/game.timer.ts'), 'utf8');
+  assert.match(timer, /state: getGameShellByRoomId\(roomId\) \?\? null/);
+
+  const abort = readFileSync(
+    join(root, '../server/src/modules/game/runtime/abort-active-match.ts'),
+    'utf8',
+  );
+  assert.match(abort, /INSUFFICIENT_PLAYERS_ABORT_MESSAGE/);
+  assert.match(abort, /insufficient_players/);
+});
+
+test('QA-35 B: reconnect does not leave stale Judge terminal UI over current state', () => {
+  const playing = applyLiveShellState(
+    createPendingShellSyncView(),
+    makeShell({ gameId: 'judge', phase: 'PLAYING' }),
+  );
+  const cleared = applyLiveShellState(playing, null);
+  assert.equal(cleared.status, 'empty');
+  assert.equal(cleared.errorMessage, null);
+
+  const judgeScreen = read('plugins/judge/game-screen.tsx');
+  assert.match(judgeScreen, /pluginEnabled = isJudgeGame && shellPhase === 'PLAYING'/);
+  assert.match(judgeScreen, /errorMessage && !view/);
+
+  const overlay = read('components/game-experience/game-player-recovery-overlay.tsx');
+  assert.match(overlay, /if \(!recovery\.isActive\)/);
+  assert.match(overlay, /return null/);
+
+  const shellContext = read('contexts/game-shell-context.tsx');
+  assert.match(shellContext, /payload\.state \?\? null/);
+  assert.match(shellContext, /if \(!payload\.state\) \{\s*setPlayerRecovery\(null\)/);
+
+  const { session } = installBrowserStorage();
+  writeLobbyNotice(INSUFFICIENT_PLAYERS_ABORT_MESSAGE);
+  assert.equal(session.getItem(LOBBY_NOTICE_STORAGE_KEY), INSUFFICIENT_PLAYERS_ABORT_MESSAGE);
+  assert.equal(isLobbyLifecycleNotice(INSUFFICIENT_PLAYERS_ABORT_MESSAGE), true);
+  assert.equal(
+    shouldClearLobbyLifecycleNotice({
+      notice: INSUFFICIENT_PLAYERS_ABORT_MESSAGE,
+      roomStatus: 'connected',
+      wasReconnecting: true,
+      hasActiveShell: false,
+    }),
+    true,
+  );
+
+  const lobby = read('components/lobby/lobby-screen.tsx');
+  assert.match(lobby, /shouldClearLobbyLifecycleNotice/);
+  assert.match(lobby, /LOBBY_LIFECYCLE_NOTICE_DISMISS_MS/);
+  assert.equal(LOBBY_LIFECYCLE_NOTICE_DISMISS_MS, 2500);
+});
+
+test('QA-35 C: valid current shell after reconnect clears stale terminal state', () => {
+  const { session } = installBrowserStorage();
+  writeLobbyNotice(INSUFFICIENT_PLAYERS_ABORT_MESSAGE);
+  writeLobbyNotice(SYSTEM_COPY.gameEndedReturnLobby);
+  assert.equal(session.getItem(LOBBY_NOTICE_STORAGE_KEY), INSUFFICIENT_PLAYERS_ABORT_MESSAGE);
+
+  const aborted = applyLiveShellState(
+    applyLiveShellState(createPendingShellSyncView(), makeShell({ gameId: 'judge' })),
+    null,
+  );
+  const gameB = applyLiveShellState(
+    aborted,
+    makeShell({ shellId: 'shell-b', gameId: 'judge', phase: 'PLAYING' }),
+  );
+  assert.equal(gameB.status, 'ready');
+  assert.equal(gameB.state?.shellId, 'shell-b');
+  assert.equal(gameB.errorMessage, null);
+  assert.equal(shouldRecoverGameRouteToLobby('/game', gameB.status), false);
+  assert.equal(
+    shouldClearLobbyLifecycleNotice({
+      notice: INSUFFICIENT_PLAYERS_ABORT_MESSAGE,
+      roomStatus: 'connected',
+      wasReconnecting: false,
+      hasActiveShell: true,
+    }),
+    true,
+  );
+});
+
+test('QA-35 D: Judge reconnect while shell is PLAYING still stays on /game', () => {
+  const view = applyLiveShellState(
+    createPendingShellSyncView(),
+    makeShell({ gameId: 'judge', phase: 'PLAYING' }),
+  );
+  assert.equal(view.status, 'ready');
+  assert.equal(view.state?.gameId, 'judge');
+  assert.equal(view.state?.phase, 'PLAYING');
+  assert.deepEqual(
+    planNullShellLobbyRecovery({
+      pathname: '/game',
+      syncStatus: view.status,
+      roomCode: ROOM_CODE,
+    }),
+    { recover: false },
+  );
+
+  const context = read('contexts/game-shell-context.tsx');
+  assert.match(
+    context,
+    /syncViewRef\.current\.status === 'ready' && syncViewRef\.current\.state/,
+  );
+
+  const judgeView = read('plugins/judge/use-player-view.ts');
+  assert.match(judgeView, /bindPluginViewResync/);
+  assert.match(judgeView, /GAME_SHELL_STATE_EVENT|JUDGE_PHASE_CHANGED_EVENT/);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

@@ -1,8 +1,10 @@
 import type { GameShellState } from '@wanasatna/shared';
+import { INSUFFICIENT_PLAYERS_ABORT_MESSAGE } from '@wanasatna/shared';
 import { buildLobbyUrl } from '@/lib/room/session';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 
 export const LOBBY_NOTICE_STORAGE_KEY = 'wanasatna:lobby-notice';
+export const LOBBY_LIFECYCLE_NOTICE_DISMISS_MS = 2500;
 
 export type GameShellSyncStatus = 'pending' | 'ready' | 'empty' | 'error';
 
@@ -23,7 +25,19 @@ export function createPendingShellSyncView(generation = 0): ShellSyncView {
 }
 
 /** Live GAME_SHELL_STATE invalidates in-flight SYNC so a stale null cannot win. */
-export function applyLiveShellState(current: ShellSyncView, state: GameShellState): ShellSyncView {
+export function applyLiveShellState(
+  current: ShellSyncView,
+  state: GameShellState | null,
+): ShellSyncView {
+  if (!state) {
+    return {
+      status: 'empty',
+      state: null,
+      errorMessage: null,
+      generation: current.generation + 1,
+    };
+  }
+
   return {
     status: 'ready',
     state,
@@ -112,8 +126,40 @@ export function planNullShellLobbyRecovery(input: {
   };
 }
 
+export function isLobbyLifecycleNotice(message: string | null | undefined): boolean {
+  return (
+    message === SYSTEM_COPY.gameEndedReturnLobby || message === INSUFFICIENT_PLAYERS_ABORT_MESSAGE
+  );
+}
+
+export function shouldClearLobbyLifecycleNotice(input: {
+  notice: string | null;
+  roomStatus: string;
+  wasReconnecting: boolean;
+  hasActiveShell: boolean;
+}): boolean {
+  if (!input.notice || !isLobbyLifecycleNotice(input.notice)) {
+    return false;
+  }
+
+  if (input.hasActiveShell) {
+    return true;
+  }
+
+  return input.roomStatus === 'connected' && input.wasReconnecting;
+}
+
 export function writeLobbyNotice(message: string): void {
   try {
+    const existing = globalThis.sessionStorage.getItem(LOBBY_NOTICE_STORAGE_KEY);
+    if (
+      existing &&
+      isLobbyLifecycleNotice(existing) &&
+      existing !== SYSTEM_COPY.gameEndedReturnLobby &&
+      message === SYSTEM_COPY.gameEndedReturnLobby
+    ) {
+      return;
+    }
     globalThis.sessionStorage.setItem(LOBBY_NOTICE_STORAGE_KEY, message);
   } catch {
     /* storage unavailable */

@@ -1,6 +1,7 @@
 import { SystemStatus } from '@/components/ui/system-status';
 import { Button } from '@/components/ui/button';
 import { SYSTEM_COPY, presentRoomActionError } from '@/lib/ui/system-copy';
+import { isLobbyLifecycleNotice } from '@/lib/game-shell/null-shell-recovery';
 
 type LobbyErrorBannerProps = {
   message: string;
@@ -10,11 +11,11 @@ type LobbyErrorBannerProps = {
 
 export function LobbyErrorBanner({ message, showHomeAction = false, onHome }: LobbyErrorBannerProps) {
   const presented = presentRoomActionError(message);
-  const isGameEndedNotice = message === SYSTEM_COPY.gameEndedReturnLobby;
+  const isLifecycleNotice = isLobbyLifecycleNotice(message);
 
   return (
     <SystemStatus
-      tone={isGameEndedNotice ? 'info' : 'error'}
+      tone={isLifecycleNotice ? 'info' : 'error'}
       title={presented.title}
       description={presented.description}
       action={

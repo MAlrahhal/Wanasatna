@@ -130,6 +130,29 @@ export function clearPlayerRecoveryForTeardown(io: Server, roomId: string): void
   );
 }
 
+export function snapshotPlayerRecovery(roomId: string): GameShellPlayerRecoveryPayload {
+  const schedule = recoveryByRoomId.get(roomId);
+  const shell = getGameShellByRoomId(roomId);
+  const minimumCount =
+    schedule?.minimumCount ?? (shell ? (getGameMinPlayers(shell.gameId) ?? 0) : 0);
+  const connectedCount = shell ? countConnectedEligibleParticipants(shell) : 0;
+
+  return buildRecoveryPayload(
+    roomId,
+    connectedCount,
+    minimumCount,
+    schedule?.deadlineAt ?? null,
+    currentRecoverySequence(roomId),
+  );
+}
+
+export function emitPlayerRecoverySnapshotToSocket(
+  socket: { emit: (event: string, payload: GameShellPlayerRecoveryPayload) => void },
+  roomId: string,
+): void {
+  socket.emit(GAME_SHELL_PLAYER_RECOVERY_EVENT, snapshotPlayerRecovery(roomId));
+}
+
 export function isPlayerRecoveryActive(roomId: string): boolean {
   return recoveryByRoomId.has(roomId);
 }

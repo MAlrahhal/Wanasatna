@@ -1,5 +1,8 @@
 import type { Server } from 'socket.io';
-import type { GameShellAbortReason } from '@wanasatna/shared';
+import {
+  INSUFFICIENT_PLAYERS_ABORT_MESSAGE,
+  type GameShellAbortReason,
+} from '@wanasatna/shared';
 import { abortPersistedMatch } from '../../match/match-history.service.js';
 import { prisma } from '../../../lib/prisma.js';
 import { loadActiveRoomPlayers } from '../../room/room.utils.js';
@@ -11,7 +14,7 @@ import { recordAbortedMarathonLeg } from '../../marathon/marathon.runtime.js';
 
 const ABORT_MESSAGES: Record<GameShellAbortReason, string | undefined> = {
   host_aborted: undefined,
-  insufficient_players: 'تم إنهاء اللعبة لعدم توفر عدد كافٍ من اللاعبين.',
+  insufficient_players: INSUFFICIENT_PLAYERS_ABORT_MESSAGE,
 };
 
 function markMarathonAbortReason(reason: GameShellAbortReason, message: string): string {

@@ -102,8 +102,12 @@ export function GameShellProvider({
   useEffect(() => {
     const socket = getRoomSocket();
 
-    function onStateUpdate(payload: { state: GameShellState }) {
-      replaceSyncView(applyLiveShellState(syncViewRef.current, payload.state));
+    function onStateUpdate(payload: { state: GameShellState | null }) {
+      const next = applyLiveShellState(syncViewRef.current, payload.state ?? null);
+      replaceSyncView(next);
+      if (!payload.state) {
+        setPlayerRecovery(null);
+      }
     }
 
     function onRecoveryUpdate(payload: GameShellPlayerRecoveryPayload) {

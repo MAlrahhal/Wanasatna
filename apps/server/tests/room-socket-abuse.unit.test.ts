@@ -571,7 +571,7 @@ test('CREATE/JOIN/RECONNECT/SYNC rate-limit before mutation/DB', () => {
 test('GAME_SHELL_SYNC is caller-only; mutations still broadcast', () => {
   const sync = handlerBlock(shellHandlers, 'GAME_SHELL_SYNC_EVENT');
   assert.match(sync, /rejectIfGameSyncRateLimited/);
-  assert.match(sync, /socket\.emit\(GAME_SHELL_STATE_EVENT/);
+  assert.match(sync, /emitGameShellStateToSocket/);
   assert.doesNotMatch(sync, /broadcastGameShellState/);
 
   const ready = handlerBlock(shellHandlers, 'GAME_SHELL_SET_READY_EVENT');

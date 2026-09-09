@@ -7,7 +7,12 @@ import { useRoom } from '@/contexts/room-context';
 import { mockGameSettingsByGameId, mockLobbyGames } from '@/lib/lobby/mock-games';
 import { usePlayableGameAvailability } from '@/lib/games/use-game-availability';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
-import { LOBBY_NOTICE_STORAGE_KEY } from '@/lib/game-shell/null-shell-recovery';
+import {
+  LOBBY_LIFECYCLE_NOTICE_DISMISS_MS,
+  LOBBY_NOTICE_STORAGE_KEY,
+  isLobbyLifecycleNotice,
+  shouldClearLobbyLifecycleNotice,
+} from '@/lib/game-shell/null-shell-recovery';
 import { RoomSystemState } from '@/components/room/room-system-state';
 import { SystemStatus } from '@/components/ui/system-status';
 import { GameGrid } from './game-grid';
@@ -52,6 +57,7 @@ export function LobbyScreen() {
   const [recovered, setRecovered] = useState(false);
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const wasReconnecting = useRef(false);
+  const hasActiveMatch = isWaitingForNextMatch || activeMatchParticipantIds !== null;
 
   useEffect(() => {
     if (selectedGameId && !isGameEnabled(selectedGameId) && isHost) {
@@ -86,6 +92,28 @@ export function LobbyScreen() {
   }, [status]);
 
   useEffect(() => {
+    if (
+      shouldClearLobbyLifecycleNotice({
+        notice: lobbyNotice,
+        roomStatus: status,
+        wasReconnecting: false,
+        hasActiveShell: hasActiveMatch,
+      })
+    ) {
+      setLobbyNotice(null);
+    }
+  }, [hasActiveMatch, lobbyNotice, status]);
+
+  useEffect(() => {
+    if (!lobbyNotice || !isLobbyLifecycleNotice(lobbyNotice)) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => setLobbyNotice(null), LOBBY_LIFECYCLE_NOTICE_DISMISS_MS);
+    return () => window.clearTimeout(timer);
+  }, [lobbyNotice]);
+
+  useEffect(() => {
     if (!chatOpen) {
       return;
     }
@@ -108,7 +136,6 @@ export function LobbyScreen() {
   const selectedGameSettings = selectedGameId
     ? (mockGameSettingsByGameId[selectedGameId] ?? [])
     : [];
-  const hasActiveMatch = isWaitingForNextMatch || activeMatchParticipantIds !== null;
 
   if (sessionEndReason === 'kick') {
     return <RoomSystemState kind="kicked" />;

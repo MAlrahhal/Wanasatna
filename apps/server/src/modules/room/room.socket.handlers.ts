@@ -2,7 +2,6 @@ import type { Server, Socket } from 'socket.io';
 import {
   CREATE_ROOM_EVENT,
   END_ROOM_EVENT,
-  GAME_SHELL_STATE_EVENT,
   HOST_CHANGED_EVENT,
   JOIN_ROOM_EVENT,
   KICK_PLAYER_EVENT,
@@ -24,7 +23,11 @@ import {
 import { resolveSocketAccountUser } from '../auth/socket-auth.js';
 import { getGameShellByRoomId } from '../game/game.service.js';
 import { ensureGameShellLifecycleProgress } from '../game/game.lifecycle.js';
-import { evaluatePlayerRecovery } from '../game/runtime/player-recovery.js';
+import { emitGameShellStateToSocket } from '../game/game.timer.js';
+import {
+  emitPlayerRecoverySnapshotToSocket,
+  evaluatePlayerRecovery,
+} from '../game/runtime/player-recovery.js';
 import {
   consumeCreateRoomLimit,
   consumeJoinRoomLimit,
@@ -588,13 +591,9 @@ export function registerReconnectHandler(io: Server, socket: Socket): void {
         await roomMutationRuntime.broadcastRoomPlayersSnapshot(io, postAckRoomId);
 
         ensureGameShellLifecycleProgress(io, postAckRoomId);
-        const shell = getGameShellByRoomId(postAckRoomId);
-
-        if (shell) {
-          socket.emit(GAME_SHELL_STATE_EVENT, { state: shell });
-        }
-
         await evaluatePlayerRecovery(io, postAckRoomId);
+        emitGameShellStateToSocket(socket, postAckRoomId);
+        emitPlayerRecoverySnapshotToSocket(socket, postAckRoomId);
       } catch (error) {
         opsLogger.warn('room-reconnect-side-effect-failed', 'تعذر إكمال مزامنة ما بعد العودة.', {
           operation: 'reconnect-post-ack',
@@ -674,10 +673,9 @@ export function registerRoomSyncHandler(_io: Server, socket: Socket): void {
           });
 
           // Same recovery signal as reconnect: mounted plugins re-SYNC on GAME_SHELL_STATE.
-          const shell = getGameShellByRoomId(roomId!);
-          if (shell) {
-            socket.emit(GAME_SHELL_STATE_EVENT, { state: shell });
-          }
+          // Always emit, including state: null, so a stale PLAYING view cannot survive abort.
+          emitGameShellStateToSocket(socket, roomId!);
+          emitPlayerRecoverySnapshotToSocket(socket, roomId!);
         }
 
         sendResponse(callback, response);

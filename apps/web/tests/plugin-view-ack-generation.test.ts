@@ -381,9 +381,9 @@ async function main(): Promise<void> {
     'utf8',
   );
   const reconnect = handlers.slice(handlers.indexOf('export function registerReconnectHandler'));
-  const shellEmit = reconnect.indexOf('GAME_SHELL_STATE_EVENT');
+  assert.match(reconnect, /emitGameShellStateToSocket/);
+  assert.match(reconnect, /emitPlayerRecoverySnapshotToSocket/);
   const pluginPhase = reconnect.search(/PHASE_CHANGED_EVENT/);
-  assert.ok(shellEmit >= 0);
   assert.equal(pluginPhase, -1);
 
   const roomSyncEnd = handlers.indexOf('export function registerDisconnectHandler');
@@ -391,7 +391,8 @@ async function main(): Promise<void> {
     handlers.indexOf('export function registerRoomSyncHandler'),
     roomSyncEnd,
   );
-  assert.match(syncBody, /GAME_SHELL_STATE_EVENT/);
+  assert.match(syncBody, /emitGameShellStateToSocket/);
+  assert.match(syncBody, /emitPlayerRecoverySnapshotToSocket/);
   assert.doesNotMatch(syncBody, /PHASE_CHANGED_EVENT/);
 
   const timingLifecycle = readFileSync(
