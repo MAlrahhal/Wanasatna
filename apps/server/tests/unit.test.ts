@@ -481,8 +481,8 @@ test('privacy before guess: normals know word; impostor and reveal do not leak i
   assert.equal(buildBaraAlSalafaPlayerView(description, 'p1', shell).spectatorCivilianWord, null);
   assert.equal(buildBaraAlSalafaSpectatorView(description).revealedWord, null);
   assert.equal(buildBaraAlSalafaSpectatorView(description).displayText, '');
-  assert.equal(buildBaraAlSalafaSpectatorView(description).spectatorCivilianWord, 'مكة');
-  assert.equal(buildBaraAlSalafaSpectatorView(description).spectatorOutsiderConcept, 'أنت برا السالفة');
+  assert.equal(buildBaraAlSalafaSpectatorView(description).spectatorCivilianWord, null);
+  assert.equal(buildBaraAlSalafaSpectatorView(description).spectatorOutsiderConcept, null);
 
   const reveal = makeMatch({ gamePhase: 'reveal-impostor' });
   assert.equal(buildBaraAlSalafaPlayerView(reveal, 'p2', shell).revealedWord, null);
@@ -532,18 +532,181 @@ test('round-results host continue: next vs final round copy', () => {
   assert.equal(finalHost.roundResultsWaitingMessage, 'سيتم عرض النتائج النهائية تلقائياً...');
 });
 
-test('spectator view shows both concepts without a player role', () => {
-  const match = makeMatch({ gamePhase: 'voting' });
-  const view = buildBaraAlSalafaSpectatorView(match);
+test('spectator view is public-only and never carries a player role', () => {
+  const shell = makeShell();
+  const match = makeMatch({ gamePhase: 'voting', submittedVoterIds: ['p1'], votes: { p1: 'p2' } });
+  const view = buildBaraAlSalafaSpectatorView(match, shell);
   assert.equal(view.isMatchSpectator, true);
   assert.equal(view.displayText, '');
-  assert.equal(view.spectatorCivilianWord, 'مكة');
-  assert.equal(view.spectatorOutsiderConcept, 'أنت برا السالفة');
+  assert.equal(view.spectatorCivilianWord, null);
+  assert.equal(view.spectatorOutsiderConcept, null);
   assert.equal(view.revealedImpostorPlayerId, null);
   assert.equal(view.revealedWord, null);
   assert.equal(view.hasVoted, false);
+  assert.deepEqual(view.votablePlayers, []);
   assert.equal(view.isImpostorGuessActivePlayer, false);
   assert.equal(view.categoryName, 'أماكن');
+  assert.equal(view.submittedVotesCount, 1);
+  assert.equal(view.eligibleVotersCount, 3);
+});
+
+const DIRECTED_PAIRS = [
+  { askerPlayerId: 'p1', targetPlayerId: 'p2' },
+  { askerPlayerId: 'p2', targetPlayerId: 'p3' },
+  { askerPlayerId: 'p3', targetPlayerId: 'p1' },
+];
+
+function assertSpectatorHidesSecrets(
+  view: ReturnType<typeof buildBaraAlSalafaSpectatorView>,
+  options: { wordPublic: boolean; impostorPublic: boolean },
+): void {
+  const payload = JSON.stringify(view);
+  assert.equal(view.isMatchSpectator, true);
+  assert.equal(view.displayText, '');
+  assert.equal(view.role, 'player');
+  assert.equal(view.isDirectedQuestionActiveAsker, false);
+  assert.equal(view.isFreeQuestionActivePlayer, false);
+  assert.equal(view.isImpostorGuessActivePlayer, false);
+  assert.equal(view.canContinueFromRoundResults, false);
+  assert.equal(view.isHost, false);
+  assert.deepEqual(view.selectablePlayers, []);
+  assert.deepEqual(view.votablePlayers, []);
+  assert.deepEqual(view.impostorGuessOptions, []);
+  assert.equal(view.categoryName, 'أماكن');
+
+  if (!options.wordPublic) {
+    assert.equal(view.revealedWord, null);
+    assert.equal(view.spectatorCivilianWord, null);
+    assert.equal(view.spectatorOutsiderConcept, null);
+    assert.equal(payload.includes('مكة'), false, 'secret word must not be serialized before reveal');
+  } else {
+    assert.equal(view.revealedWord, 'مكة');
+    assert.equal(view.spectatorCivilianWord, 'مكة');
+  }
+
+  if (!options.impostorPublic) {
+    assert.equal(view.revealedImpostorPlayerId, null);
+    assert.equal(view.revealedImpostorName, null);
+  } else {
+    assert.equal(view.revealedImpostorPlayerId, 'p2');
+    assert.equal(view.revealedImpostorName, 'خالد');
+  }
+}
+
+test('spectator joining mid-match gets a usable public directed-questions view', () => {
+  const view = buildBaraAlSalafaSpectatorView(
+    makeMatch({
+      gamePhase: 'directed-questions',
+      directedQuestionPairs: DIRECTED_PAIRS,
+      currentSpeakerIndex: 0,
+    }),
+    makeShell(),
+  );
+
+  assertSpectatorHidesSecrets(view, { wordPublic: false, impostorPublic: false });
+  assert.equal(view.gamePhase, 'directed-questions');
+  assert.equal(view.directedQuestionAskerPlayerId, 'p1');
+  assert.equal(view.directedQuestionAskerName, 'محمد');
+  assert.equal(view.directedQuestionTargetPlayerId, 'p2');
+  assert.equal(view.directedQuestionTargetName, 'خالد');
+  assert.equal(view.directedQuestionCurrentTurn, 1);
+  assert.equal(view.directedQuestionTotalTurns, 3);
+  assert.ok(view.phaseLabel.includes('أسئلة موجهة'));
+});
+
+test('spectator live projection updates through public phases without leaking secrets', () => {
+  const shell = makeShell();
+  const description = buildBaraAlSalafaSpectatorView(makeMatch({ gamePhase: 'description' }), shell);
+  assertSpectatorHidesSecrets(description, { wordPublic: false, impostorPublic: false });
+  assert.equal(description.gamePhase, 'description');
+
+  const directed = buildBaraAlSalafaSpectatorView(
+    makeMatch({
+      gamePhase: 'directed-questions',
+      directedQuestionPairs: DIRECTED_PAIRS,
+    }),
+    shell,
+  );
+  assert.equal(directed.directedQuestionAskerPlayerId, 'p1');
+  assert.notEqual(directed.gamePhase, description.gamePhase);
+
+  const free = buildBaraAlSalafaSpectatorView(
+    makeMatch({
+      gamePhase: 'free-questions',
+      activeFreeQuestionPlayerId: 'p1',
+      pendingFreeQuestionTargetPlayerId: 'p3',
+    }),
+    shell,
+  );
+  assertSpectatorHidesSecrets(free, { wordPublic: false, impostorPublic: false });
+  assert.equal(free.activeFreeQuestionPlayerId, 'p1');
+  assert.equal(free.activeFreeQuestionPlayerName, 'محمد');
+  assert.equal(free.activeFreeQuestionTargetPlayerId, 'p3');
+  assert.equal(free.activeFreeQuestionTargetPlayerName, 'علي');
+
+  const voting = buildBaraAlSalafaSpectatorView(
+    makeMatch({ gamePhase: 'voting', submittedVoterIds: ['p1', 'p3'] }),
+    shell,
+  );
+  assertSpectatorHidesSecrets(voting, { wordPublic: false, impostorPublic: false });
+  assert.equal(voting.submittedVotesCount, 2);
+  assert.equal(voting.eligibleVotersCount, 3);
+
+  const reveal = buildBaraAlSalafaSpectatorView(makeMatch({ gamePhase: 'reveal-impostor' }), shell);
+  assertSpectatorHidesSecrets(reveal, { wordPublic: false, impostorPublic: true });
+  assert.equal(JSON.stringify(reveal).includes('مكة'), false);
+
+  const guess = buildBaraAlSalafaSpectatorView(
+    makeMatch({
+      gamePhase: 'impostor-guess',
+      impostorGuessOptions: ['مكة', 'جدة', 'الرياض'],
+    }),
+    shell,
+  );
+  assertSpectatorHidesSecrets(guess, { wordPublic: false, impostorPublic: true });
+  assert.equal(guess.instruction, 'برا السالفة يحاول تخمين الكلمة...');
+
+  const guessResult = buildBaraAlSalafaSpectatorView(
+    makeMatch({ gamePhase: 'impostor-guess-result', guessedCorrectly: false }),
+    shell,
+  );
+  assertSpectatorHidesSecrets(guessResult, { wordPublic: true, impostorPublic: true });
+  assert.equal(guessResult.guessResultMessage, 'إجابة خاطئة!');
+
+  const results = buildBaraAlSalafaSpectatorView(
+    applyRoundScores(makeMatch({ gamePhase: 'round-results', votes: { p1: 'p2' }, guessedCorrectly: false })),
+    shell,
+  );
+  assertSpectatorHidesSecrets(results, { wordPublic: true, impostorPublic: true });
+  assert.ok(results.roundResults.length > 0);
+  assert.equal(results.canContinueFromRoundResults, false);
+});
+
+test('spectator cannot be treated as an active voter or asker', () => {
+  const shell = makeShell();
+  shell.players.push({
+    id: 'spec',
+    name: 'مشاهد',
+    isHost: false,
+    isConnected: true,
+    isReady: false,
+    isSpectator: true,
+  });
+
+  const directed = buildBaraAlSalafaSpectatorView(
+    makeMatch({
+      gamePhase: 'directed-questions',
+      directedQuestionPairs: DIRECTED_PAIRS,
+    }),
+    shell,
+  );
+  assert.equal(directed.isDirectedQuestionActiveAsker, false);
+
+  const votingMatch = makeMatch({ gamePhase: 'voting' });
+  assert.equal(isEligibleBaraVoter(shell, votingMatch, 'spec'), false);
+  const voting = buildBaraAlSalafaSpectatorView(votingMatch, shell);
+  assert.equal(voting.hasVoted, false);
+  assert.deepEqual(voting.votablePlayers, []);
 });
 
 test('free product: fixed 3 rounds and timer constants', () => {

@@ -58,7 +58,7 @@ export function buildAdminSpectatePluginView(
     switch (shell.gameId) {
       case BARA_AL_SALAFA_GAME_ID: {
         const match = getBaraAlSalafaState(roomId);
-        return match ? toPluginView(shell.gameId, buildBaraAlSalafaSpectatorView(match)) : null;
+        return match ? toPluginView(shell.gameId, buildBaraAlSalafaSpectatorView(match, shell)) : null;
       }
       case DRAW_GUESS_GAME_ID: {
         const match = getDrawGuessState(roomId);

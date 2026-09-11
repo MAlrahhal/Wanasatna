@@ -185,9 +185,9 @@ export type BaraAlSalafaPlayerView = {
   roundResultsWaitingMessage: string | null;
   /** Mid-match joiner: no secrets, no actions. */
   isMatchSpectator: boolean;
-  /** Spectator-only: civilian word after roles/words exist. Null for participants. */
+  /** Spectator-only public word after it is revealed to the room. Null before then, and for participants. */
   spectatorCivilianWord: string | null;
-  /** Spectator-only: outsider concept after roles/words exist. Null for participants. */
+  /** Spectator-only public outsider copy after the word is revealed. Null before then, and for participants. */
   spectatorOutsiderConcept: string | null;
 };
 

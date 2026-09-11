@@ -28,6 +28,7 @@ export type VotingScreenProps = {
   questionHelper?: string;
   isSubmitting?: boolean;
   errorMessage?: string | null;
+  isSpectator?: boolean;
   onSelectPlayer?: (playerId: string) => void;
   onConfirmVote?: () => void;
   className?: string;
@@ -222,6 +223,33 @@ function VotingNotVotedView({
   );
 }
 
+function VotingSpectatorView({
+  submittedVotesCount,
+  eligibleVotersCount,
+  questionTitle,
+  questionHelper,
+}: Pick<
+  VotingScreenProps,
+  'submittedVotesCount' | 'eligibleVotersCount' | 'questionTitle' | 'questionHelper'
+>) {
+  return (
+    <div className="flex flex-col gap-6 sm:gap-7">
+      <VotingQuestionHero
+        questionTitle={questionTitle ?? 'من هو برا السالفة؟'}
+        questionHelper={questionHelper ?? 'اللاعبون يصوّتون الآن'}
+      />
+      <GameCard className="px-5 py-6 text-center sm:px-8 sm:py-10">
+        <div className="mx-auto max-w-sm">
+          <VotingProgress
+            submittedVotesCount={submittedVotesCount}
+            eligibleVotersCount={eligibleVotersCount}
+          />
+        </div>
+      </GameCard>
+    </div>
+  );
+}
+
 function VotingConfirmedView({
   players,
   confirmedPlayerId,
@@ -284,6 +312,7 @@ export function VotingScreen({
   questionHelper = 'صوّت لمين تتوقع أنه برا السالفة',
   isSubmitting = false,
   errorMessage = null,
+  isSpectator = false,
   onSelectPlayer,
   onConfirmVote,
   className,
@@ -308,7 +337,14 @@ export function VotingScreen({
         }
       />
 
-      {hasVoted ? (
+      {isSpectator ? (
+        <VotingSpectatorView
+          submittedVotesCount={submittedVotesCount}
+          eligibleVotersCount={eligibleVotersCount}
+          questionTitle={questionTitle}
+          questionHelper="اللاعبون يصوّتون الآن"
+        />
+      ) : hasVoted ? (
         <VotingConfirmedView
           players={players}
           confirmedPlayerId={confirmedPlayerId}

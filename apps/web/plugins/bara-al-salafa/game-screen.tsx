@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { BaraAlSalafaPlayerView, GamePluginScreenProps } from '@wanasatna/shared';
 import { BARA_AL_SALAFA_MATCH_RESULTS_DURATION_SECONDS } from '@wanasatna/shared';
 import { GameScreen } from '@/components/game/game-card';
-import { GameSystemError, GameSystemLoading } from '@/components/room/room-system-state';
+import { GameSystemError, GameSystemLoading, SpectatorNotice } from '@/components/room/room-system-state';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
@@ -161,10 +161,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
           ? 'round-results'
           : 'gameplay',
       phaseLabel: activeView.phaseLabel,
-      categoryLabel:
-        activeView.isMatchSpectator && activeView.spectatorCivilianWord
-          ? `${activeView.spectatorCivilianWord} / ${activeView.spectatorOutsiderConcept ?? ''}`
-          : activeView.categoryName
+      categoryLabel: activeView.categoryName
             ? `الفئة: ${activeView.categoryName}`
             : undefined,
       currentRound: activeView.currentRound,
@@ -282,11 +279,11 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     return null;
   }
 
-  if (treatAsSpectator && (!view || view.gamePhase === 'description' || view.gamePhase === 'voting')) {
+  if (treatAsSpectator && (!view || view.gamePhase === 'description')) {
     return (
       <WaitingSpectatorScreen
-        civilianWord={view?.spectatorCivilianWord}
-        outsiderConcept={view?.spectatorOutsiderConcept}
+        civilianWord={null}
+        outsiderConcept={null}
         categoryName={view?.categoryName}
         currentRound={view?.currentRound}
         totalRounds={view?.totalRounds}
@@ -296,7 +293,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     );
   }
 
-  if (isLoading) {
+  if (isLoading && !treatAsSpectator) {
     return <GameSystemLoading />;
   }
 
@@ -310,10 +307,13 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
 
   if (view.gamePhase === 'impostor-guess-result') {
     return (
-      <ImpostorGuessResultScreen
-        message={view.guessResultMessage ?? 'انتهت نتيجة التخمين'}
-        secretWord={view.revealedWord}
-      />
+      <div className="space-y-4">
+        {treatAsSpectator ? <SpectatorNotice /> : null}
+        <ImpostorGuessResultScreen
+          message={view.guessResultMessage ?? 'انتهت نتيجة التخمين'}
+          secretWord={view.revealedWord}
+        />
+      </div>
     );
   }
 
@@ -330,6 +330,20 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     );
 
     if (!roundResultsProps) {
+      if (treatAsSpectator) {
+        return (
+          <WaitingSpectatorScreen
+            civilianWord={view.spectatorCivilianWord}
+            outsiderConcept={view.spectatorOutsiderConcept}
+            categoryName={view.categoryName}
+            currentRound={view.currentRound}
+            totalRounds={view.totalRounds}
+            roomCode={room.code}
+            deadlineAtMs={view.deadlineAtMs}
+          />
+        );
+      }
+
       return (
         <GameSystemLoading />
       );
@@ -337,10 +351,13 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
 
     return (
       <div className="space-y-4">
+        {treatAsSpectator ? <SpectatorNotice /> : null}
         <RoundResultsScreen
           {...roundResultsProps}
           onContinue={
-            view.canContinueFromRoundResults && !isSubmittingAction
+            !treatAsSpectator &&
+            view.canContinueFromRoundResults &&
+            !isSubmittingAction
               ? () => void continueFromRoundResults()
               : undefined
           }
@@ -361,12 +378,31 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     const revealImpostorProps = mapRevealImpostorLiveProps(view, room.code, view.deadlineAtMs);
 
     if (!revealImpostorProps) {
+      if (treatAsSpectator) {
+        return (
+          <WaitingSpectatorScreen
+            civilianWord={null}
+            outsiderConcept={null}
+            categoryName={view.categoryName}
+            currentRound={view.currentRound}
+            totalRounds={view.totalRounds}
+            roomCode={room.code}
+            deadlineAtMs={view.deadlineAtMs}
+          />
+        );
+      }
+
       return (
         <GameSystemLoading />
       );
     }
 
-    return <RevealImpostorScreen {...revealImpostorProps} />;
+    return (
+      <div className="space-y-4">
+        {treatAsSpectator ? <SpectatorNotice /> : null}
+        <RevealImpostorScreen {...revealImpostorProps} />
+      </div>
+    );
   }
 
   if (view.gamePhase === 'impostor-guess') {
@@ -378,10 +414,12 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
 
     return (
       <div className="space-y-4">
+        {treatAsSpectator ? <SpectatorNotice /> : null}
         <ImpostorGuessScreen
           {...impostorGuessProps}
           selectedWord={guessSelection}
           onSelectWord={
+            !treatAsSpectator &&
             impostorGuessProps.isImpostor &&
             !impostorGuessProps.hasSubmitted &&
             !isSubmittingAction
@@ -389,6 +427,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
               : undefined
           }
           onSubmit={
+            !treatAsSpectator &&
             impostorGuessProps.isImpostor &&
             !impostorGuessProps.hasSubmitted &&
             !isSubmittingAction
@@ -409,16 +448,26 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     }
 
     if (view.isMatchSpectator) {
+      const votingProps = mapVotingLiveProps(
+        view,
+        players,
+        player.id,
+        room.code,
+        view.deadlineAtMs,
+        false,
+        null,
+      );
+
       return (
-        <WaitingSpectatorScreen
-          civilianWord={view.spectatorCivilianWord}
-          outsiderConcept={view.spectatorOutsiderConcept}
-          categoryName={view.categoryName}
-          currentRound={view.currentRound}
-          totalRounds={view.totalRounds}
-          roomCode={room.code}
-          deadlineAtMs={view.deadlineAtMs}
-        />
+        <div className="space-y-4">
+          <SpectatorNotice />
+          <VotingScreen
+            {...votingProps}
+            selectedPlayerId={null}
+            onSelectPlayer={undefined}
+            onConfirmVote={undefined}
+          />
+        </div>
       );
     }
 
@@ -454,8 +503,8 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     if (view.isMatchSpectator) {
       return (
         <WaitingSpectatorScreen
-          civilianWord={view.spectatorCivilianWord}
-          outsiderConcept={view.spectatorOutsiderConcept}
+          civilianWord={null}
+          outsiderConcept={null}
           categoryName={view.categoryName}
           currentRound={view.currentRound}
           totalRounds={view.totalRounds}
@@ -506,6 +555,20 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     );
 
     if (!directedQuestionsProps) {
+      if (treatAsSpectator) {
+        return (
+          <WaitingSpectatorScreen
+            civilianWord={null}
+            outsiderConcept={null}
+            categoryName={view.categoryName}
+            currentRound={view.currentRound}
+            totalRounds={view.totalRounds}
+            roomCode={room.code}
+            deadlineAtMs={view.deadlineAtMs}
+          />
+        );
+      }
+
       return (
         <GameSystemLoading />
       );
@@ -513,11 +576,14 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
 
     return (
       <div className="space-y-4">
+        {treatAsSpectator ? <SpectatorNotice /> : null}
         <DirectedQuestionsScreen
           {...directedQuestionsProps}
           isSubmittingAdvance={isSubmittingAction}
           onAdvanceNext={
-            view.isDirectedQuestionActiveAsker && !isSubmittingAction
+            !treatAsSpectator &&
+            view.isDirectedQuestionActiveAsker &&
+            !isSubmittingAction
               ? () => void advanceDirectedQuestion()
               : undefined
           }
@@ -537,6 +603,20 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     const activePlayerId = resolveFreeQuestionActivePlayerId(view, player.id, players);
 
     if (!activePlayerId) {
+      if (treatAsSpectator) {
+        return (
+          <WaitingSpectatorScreen
+            civilianWord={null}
+            outsiderConcept={null}
+            categoryName={view.categoryName}
+            currentRound={view.currentRound}
+            totalRounds={view.totalRounds}
+            roomCode={room.code}
+            deadlineAtMs={view.deadlineAtMs}
+          />
+        );
+      }
+
       return (
         <GameSystemLoading />
       );
@@ -546,11 +626,12 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
     const activePlayer = participatingPlayers.find((participant) => participant.id === activePlayerId);
     const activePlayerName =
       view.activeFreeQuestionPlayerName ?? activePlayer?.name ?? 'اللاعب';
-    const isActivePlayer = view.isFreeQuestionActivePlayer;
+    const isActivePlayer = !treatAsSpectator && view.isFreeQuestionActivePlayer;
     const isConversationActive = Boolean(view.activeFreeQuestionTargetPlayerId);
 
     return (
       <div className="space-y-4">
+        {treatAsSpectator ? <SpectatorNotice /> : null}
         <FreeQuestionsScreen
           players={participatingPlayers}
           currentPlayerId={player.id}

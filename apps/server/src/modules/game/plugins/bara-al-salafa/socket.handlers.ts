@@ -168,7 +168,7 @@ export function registerBaraAlSalafaSocketHandlers(io: Server, socket: Socket): 
       if (!isActiveMatchParticipant(shell, playerId!)) {
         sendGameResponse(callback, {
           success: true,
-          data: { view: buildBaraAlSalafaSpectatorView(match) },
+          data: { view: buildBaraAlSalafaSpectatorView(match, shell) },
         });
         return;
       }

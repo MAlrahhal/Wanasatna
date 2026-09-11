@@ -113,14 +113,27 @@ async function main(): Promise<void> {
           role?: string;
           spectatorCivilianWord?: string | null;
           spectatorOutsiderConcept?: string | null;
+          revealedWord?: string | null;
+          revealedImpostorPlayerId?: string | null;
+          categoryName?: string | null;
+          gamePhase?: string;
         };
       };
     }>(waiter.socket, BARA_AL_SALAFA_SYNC_EVENT);
     assert.equal(syncRes.success, true);
     assert.equal(syncRes.data?.view?.isMatchSpectator, true);
     assert.equal(syncRes.data?.view?.displayText, '');
-    assert.ok(syncRes.data?.view?.spectatorCivilianWord);
-    assert.equal(syncRes.data?.view?.spectatorOutsiderConcept, 'أنت برا السالفة');
+    assert.equal(syncRes.data?.view?.spectatorCivilianWord, null);
+    assert.equal(syncRes.data?.view?.spectatorOutsiderConcept, null);
+    assert.equal(syncRes.data?.view?.revealedWord, null);
+    assert.equal(syncRes.data?.view?.revealedImpostorPlayerId, null);
+    assert.ok(syncRes.data?.view?.categoryName);
+    assert.ok(syncRes.data?.view?.gamePhase);
+
+    const secretWordLeak = JSON.stringify(syncRes.data?.view ?? {}).includes('مكة');
+    if (syncRes.data?.view?.gamePhase !== 'impostor-guess-result' && syncRes.data?.view?.gamePhase !== 'round-results') {
+      assert.equal(secretWordLeak, false);
+    }
 
     host.socket.disconnect();
     clients.forEach((c) => c.socket.disconnect());

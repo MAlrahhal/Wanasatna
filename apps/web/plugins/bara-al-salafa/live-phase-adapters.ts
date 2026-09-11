@@ -84,7 +84,10 @@ export function mapVotingLiveProps(
     roomCode,
     isSubmitting,
     errorMessage,
-    questionHelper: 'صوّت لمين تتوقع أنه برا السالفة',
+    isSpectator: view.isMatchSpectator,
+    questionHelper: view.isMatchSpectator
+      ? 'اللاعبون يصوّتون الآن'
+      : 'صوّت لمين تتوقع أنه برا السالفة',
   };
 }
 

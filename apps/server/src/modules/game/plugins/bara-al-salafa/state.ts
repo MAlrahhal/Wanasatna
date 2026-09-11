@@ -343,27 +343,209 @@ function visiblePhaseClock(round: BaraAlSalafaMatchState['round']): {
   };
 }
 
+/** Never a real player id; used only so shared builders stay read-only. */
+const SPECTATOR_ACTOR_ID = '__match_spectator__';
+
+function isImpostorIdentityPublic(phase: BaraAlSalafaMatchState['round']['gamePhase']): boolean {
+  return (
+    phase === 'reveal-impostor' ||
+    phase === 'impostor-guess' ||
+    phase === 'impostor-guess-result' ||
+    phase === 'round-results'
+  );
+}
+
+function isSecretWordPublic(phase: BaraAlSalafaMatchState['round']['gamePhase']): boolean {
+  return phase === 'impostor-guess-result' || phase === 'round-results';
+}
+
+function resolveSpectatorShell(
+  match: BaraAlSalafaMatchState,
+  shell?: GameShellState,
+): GameShellState {
+  if (shell) {
+    return shell;
+  }
+
+  return {
+    shellId: 'bara-spectator-projection',
+    roomId: 'bara-spectator-projection',
+    gameId: 'bara-al-salafa',
+    phase: 'PLAYING',
+    hostPlayerId: match.playerIds[0] ?? '',
+    players: match.playerIds.map((id, index) => ({
+      id,
+      name: match.playerNames[id] ?? 'لاعب',
+      isHost: index === 0,
+      isConnected: true,
+      isReady: false,
+    })),
+    readyPlayerIds: [],
+    countdownSeconds: 3,
+    countdownRemainingSeconds: null,
+    gameTimerSeconds: 60,
+    gameTimerRemainingSeconds: null,
+    startedAt: null,
+    finishedAt: null,
+    updatedAt: new Date().toISOString(),
+    matchParticipantIds: [...match.playerIds],
+  };
+}
+
+function spectatorPublicSecrets(
+  match: BaraAlSalafaMatchState,
+): Pick<
+  BaraAlSalafaPlayerView,
+  | 'spectatorCivilianWord'
+  | 'spectatorOutsiderConcept'
+  | 'revealedWord'
+  | 'revealedImpostorPlayerId'
+  | 'revealedImpostorName'
+> {
+  const phase = match.round.gamePhase;
+  const impostorName = match.playerNames[match.round.impostorPlayerId] ?? 'لاعب';
+  const wordPublic = isSecretWordPublic(phase);
+  const impostorPublic = isImpostorIdentityPublic(phase);
+
+  return {
+    spectatorCivilianWord: wordPublic ? match.round.word : null,
+    spectatorOutsiderConcept: wordPublic ? IMPOSTOR_MESSAGE : null,
+    revealedWord: wordPublic ? match.round.word : null,
+    revealedImpostorPlayerId: impostorPublic ? match.round.impostorPlayerId : null,
+    revealedImpostorName: impostorPublic ? impostorName : null,
+  };
+}
+
 export function buildBaraAlSalafaSpectatorView(
   match: BaraAlSalafaMatchState,
+  shell?: GameShellState,
 ): BaraAlSalafaPlayerView {
-  return {
+  const round = match.round;
+  const effectiveShell = resolveSpectatorShell(match, shell);
+  const publicSecrets = spectatorPublicSecrets(match);
+
+  const baseView: BaraAlSalafaPlayerView = {
     role: 'player',
     displayText: '',
-    gamePhase: match.round.gamePhase,
-    phaseLabel: 'الجولة جارية',
-    ...visiblePhaseClock(match.round),
-    categoryName: match.round.categoryName,
+    gamePhase: round.gamePhase,
+    phaseLabel: buildRoundPhaseLabel(match),
+    ...visiblePhaseClock(round),
+    categoryName: round.categoryName,
     instruction: 'أنت تشاهد المباراة',
     currentSpeakerName: null,
     currentRound: match.currentRound,
     totalRounds: match.totalRounds,
     matchStatus: match.matchStatus,
     ...EMPTY_INTERACTION_VIEW,
+    ...publicSecrets,
     isMatchSpectator: true,
-    spectatorCivilianWord: match.round.word || null,
-    spectatorOutsiderConcept: match.round.word ? IMPOSTOR_MESSAGE : null,
     leaderboard: buildLeaderboardEntries(match),
   };
+
+  if (round.gamePhase === 'description') {
+    return {
+      ...baseView,
+      instruction: 'اللاعبون يتعرفون على أدوارهم',
+      ...buildDescriptionView(match, effectiveShell, SPECTATOR_ACTOR_ID),
+    };
+  }
+
+  if (round.gamePhase === 'directed-questions') {
+    return {
+      ...baseView,
+      ...buildDirectedQuestionsView(match, SPECTATOR_ACTOR_ID),
+      isDirectedQuestionActiveAsker: false,
+    };
+  }
+
+  if (round.gamePhase === 'free-questions') {
+    return {
+      ...baseView,
+      currentSpeakerName: null,
+      ...buildFreeQuestionsView(match, effectiveShell, SPECTATOR_ACTOR_ID),
+      isFreeQuestionActivePlayer: false,
+      selectablePlayers: [],
+    };
+  }
+
+  if (round.gamePhase === 'voting') {
+    const connectedParticipantIds = getConnectedParticipantIds(effectiveShell, match);
+
+    return {
+      ...baseView,
+      currentSpeakerName: null,
+      instruction: VOTING_INSTRUCTION,
+      hasVoted: false,
+      votablePlayers: [],
+      submittedVotesCount: round.submittedVoterIds.length,
+      eligibleVotersCount: connectedParticipantIds.length,
+      confirmedVoteTargetPlayerId: null,
+    };
+  }
+
+  if (round.gamePhase === 'reveal-impostor') {
+    return {
+      ...baseView,
+      instruction: null,
+    };
+  }
+
+  if (round.gamePhase === 'impostor-guess') {
+    return {
+      ...baseView,
+      instruction: IMPOSTOR_GUESS_SPECTATOR_INSTRUCTION,
+      isImpostorGuessActivePlayer: false,
+      impostorGuessOptions: [],
+      hasSubmittedImpostorGuess: false,
+    };
+  }
+
+  if (round.gamePhase === 'impostor-guess-result') {
+    return {
+      ...baseView,
+      instruction: null,
+      impostorGuessedCorrectly: round.guessedCorrectly,
+      guessResultMessage: round.guessedCorrectly === true ? 'إجابة صحيحة!' : 'إجابة خاطئة!',
+    };
+  }
+
+  if (round.gamePhase === 'round-results') {
+    return {
+      ...baseView,
+      instruction: null,
+      impostorGuessedCorrectly: round.guessedCorrectly,
+      roundResults: buildRoundResultEntries(match),
+      resultsLeaderboard: buildResultsLeaderboardEntries(match),
+      isFinalResults: false,
+      ...buildRoundResultsContinueCopy({
+        isFinalRound: match.currentRound >= match.totalRounds,
+        isHost: false,
+      }),
+    };
+  }
+
+  if (round.gamePhase === 'match-completed') {
+    return {
+      ...baseView,
+      instruction: null,
+      revealedWord: null,
+      revealedImpostorPlayerId: null,
+      revealedImpostorName: null,
+      spectatorCivilianWord: null,
+      spectatorOutsiderConcept: null,
+      impostorGuessedCorrectly: null,
+      roundResults: [],
+      resultsLeaderboard: buildResultsLeaderboardEntries(match),
+      matchPlayerCount: match.playerIds.length,
+      isFinalResults: true,
+      isHost: false,
+      canContinueFromRoundResults: false,
+      roundResultsContinueLabel: null,
+      roundResultsWaitingMessage: MATCH_COMPLETED_WAITING_MESSAGE,
+    };
+  }
+
+  return baseView;
 }
 
 export function buildBaraAlSalafaPlayerView(
