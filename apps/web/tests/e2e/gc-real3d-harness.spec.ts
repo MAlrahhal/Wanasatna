@@ -102,8 +102,23 @@ test.describe('GC Real3D harness visuals', () => {
     await expect(scene).toBeVisible({ timeout: 20_000 });
     await expect(scene).toHaveAttribute('data-view-mode', 'spectator');
     await expect(scene).toHaveAttribute('data-spectator-entity', 'false');
-    await expect(page.getByTestId('gc-spectator-blue-identity-text')).toHaveText('بيتزا');
-    await expect(page.getByTestId('gc-spectator-red-identity-text')).toHaveText('برجر');
+    await expect(page.getByTestId('gc-spectator-identity-hud')).toBeVisible();
+    await expect(page.getByTestId('gc-spectator-blue-identity-hud')).toHaveAttribute(
+      'data-side',
+      'left',
+    );
+    await expect(page.getByTestId('gc-spectator-red-identity-hud')).toHaveAttribute(
+      'data-side',
+      'right',
+    );
+    await expect(page.getByTestId('gc-spectator-blue-identity-hud-label')).toHaveText(
+      'هوية الأزرق',
+    );
+    await expect(page.getByTestId('gc-spectator-red-identity-hud-label')).toHaveText('هوية الأحمر');
+    await expect(page.getByTestId('gc-spectator-blue-identity-hud-value')).toHaveText('بيتزا');
+    await expect(page.getByTestId('gc-spectator-red-identity-hud-value')).toHaveText('برجر');
+    await expect(page.getByTestId('gc-spectator-blue-identity-text')).toHaveCount(0);
+    await expect(page.getByTestId('gc-spectator-red-identity-text')).toHaveCount(0);
     const names = [
       ['gc-spectator-blue-name-0', 'سارة'],
       ['gc-spectator-blue-name-1', 'محمد'],
@@ -140,7 +155,7 @@ test.describe('GC Real3D harness visuals', () => {
     });
 
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/dev/guessing-challenge-scene?panel=spectator&mode=2v2', {
+    await page.goto('/dev/guessing-challenge-scene?panel=spectator&mode=2v2&identity=image', {
       waitUntil: 'networkidle',
     });
     const scene = page.getByTestId('gc-real3d-scene');
@@ -152,11 +167,22 @@ test.describe('GC Real3D harness visuals', () => {
     await expect(page.getByTestId('gc-spectator-red-name-0')).toBeVisible();
     await expect(page.getByTestId('gc-spectator-red-name-1')).toBeVisible();
     await expect(page.getByTestId('gc-recenter-camera')).toBeVisible();
+    await expect(page.getByTestId('gc-spectator-blue-identity-hud-value')).toHaveText('بيتزا');
+    await expect(page.getByTestId('gc-spectator-red-identity-hud-value')).toHaveText(
+      'شعار وناستنا',
+    );
+    await expect(page.getByTestId('gc-spectator-red-identity-hud-image')).toBeVisible();
     expect(await canvas.evaluate((element) => getComputedStyle(element).touchAction)).toBe('none');
 
     const beforeDrag = await canvas.screenshot();
     const box = await canvas.boundingBox();
     expect(box).toBeTruthy();
+    const blueHudBox = await page.getByTestId('gc-spectator-blue-identity-hud').boundingBox();
+    const redHudBox = await page.getByTestId('gc-spectator-red-identity-hud').boundingBox();
+    expect(blueHudBox).toBeTruthy();
+    expect(redHudBox).toBeTruthy();
+    expect(blueHudBox!.x + blueHudBox!.width).toBeLessThan(redHudBox!.x);
+    expect(Math.max(blueHudBox!.height, redHudBox!.height)).toBeLessThan(box!.height * 0.3);
     const badgeBoxes = new Map<string, { x: number; y: number; width: number; height: number }>();
     for (const testId of [
       'gc-spectator-blue-name-0',
@@ -175,6 +201,10 @@ test.describe('GC Real3D harness visuals', () => {
         `${testId} stays inside the right canvas edge`,
       ).toBeLessThanOrEqual(box!.x + box!.width);
     }
+    const firstNameY = Math.min(...[...badgeBoxes.values()].map((badge) => badge.y));
+    expect(
+      Math.max(blueHudBox!.y + blueHudBox!.height, redHudBox!.y + redHudBox!.height),
+    ).toBeLessThan(firstNameY);
     for (const teamId of ['blue', 'red']) {
       const rear = badgeBoxes.get(`gc-spectator-${teamId}-name-0`)!;
       const front = badgeBoxes.get(`gc-spectator-${teamId}-name-1`)!;

@@ -13,6 +13,11 @@ import type { GuessingChallengeSceneProps } from '@/plugins/guessing-challenge/s
 
 const IDENTITY = { type: 'text' as const, value: 'برجر', imageUrl: null };
 const SELF_ID = { type: 'text' as const, value: 'بيتزا', imageUrl: null };
+const IMAGE_IDENTITY = {
+  type: 'image' as const,
+  value: 'شعار وناستنا',
+  imageUrl: '/brand/wanasatna-logo.png',
+};
 
 type HarnessPanel = 'scene' | 'playing' | 'results' | 'final' | 'spectator';
 
@@ -24,6 +29,7 @@ function readHarnessQuery() {
       seat: 0 as const,
       look: { yaw: 0, pitch: 0 },
       approval: false,
+      spectatorImage: false,
       panel: 'scene' as HarnessPanel,
     };
   }
@@ -46,6 +52,7 @@ function readHarnessQuery() {
     seat: query.get('seat') === '1' ? (1 as const) : (0 as const),
     look,
     approval: query.get('approval') === '1',
+    spectatorImage: query.get('identity') === 'image',
     panel:
       panel === 'playing' || panel === 'results' || panel === 'final' || panel === 'spectator'
         ? panel
@@ -181,6 +188,7 @@ export function GuessingChallengeSceneHarness() {
   const [selfSeat, setSelfSeat] = useState<0 | 1>(0);
   const [demoLook, setDemoLook] = useState({ yaw: 0, pitch: 0 });
   const [showApproval, setShowApproval] = useState(false);
+  const [showSpectatorImage, setShowSpectatorImage] = useState(false);
   const [panel, setPanel] = useState<HarnessPanel>('scene');
 
   useEffect(() => {
@@ -190,6 +198,7 @@ export function GuessingChallengeSceneHarness() {
     setSelfSeat(query.seat);
     setDemoLook(query.look);
     setShowApproval(query.approval);
+    setShowSpectatorImage(query.spectatorImage);
     setPanel(query.panel);
   }, []);
 
@@ -329,7 +338,7 @@ export function GuessingChallengeSceneHarness() {
       red: {
         teamId: 'red' as const,
         teamLabel: 'الفريق الأحمر',
-        identity: IDENTITY,
+        identity: showSpectatorImage ? IMAGE_IDENTITY : IDENTITY,
         players: [
           { playerId: 'r0', name: 'علي', seat: 0 as const, lookYaw: 0, lookPitch: 0 },
           ...(mode === '2v2'

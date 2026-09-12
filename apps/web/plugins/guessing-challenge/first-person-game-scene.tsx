@@ -5,6 +5,7 @@ import { CharacterFigure } from './character-figure';
 import { GuessingChallengeIdentityCard } from './identity-card';
 import type { GuessingChallengeSceneProps } from './scene-props';
 import { SpecialCardButton } from './special-card-button';
+import { GuessingChallengeSpectatorIdentityHud } from './spectator-identity-hud';
 import './first-person-scene.css';
 
 export type FirstPersonGameSceneProps = GuessingChallengeSceneProps;
@@ -52,7 +53,7 @@ export function FirstPersonGameScene({
   if (viewMode === 'spectator' && spectatorTeams) {
     return (
       <section
-        className={cn('gc-fp-scene', className)}
+        className={cn('gc-fp-scene relative', className)}
         aria-label="مشهد مراقبة تحدي التخمين"
         data-testid="gc-first-person-scene"
         data-mode={mode}
@@ -60,7 +61,11 @@ export function FirstPersonGameScene({
         data-view-mode="spectator"
         data-spectator-entity="false"
       >
-        <div className="grid min-h-[280px] grid-cols-2 gap-3 rounded-[1.5rem] bg-violet-950/80 p-3 sm:gap-5 sm:p-5">
+        <GuessingChallengeSpectatorIdentityHud teams={spectatorTeams} />
+        <div
+          className="grid min-h-[280px] grid-cols-2 gap-3 rounded-[1.5rem] bg-violet-950/80 p-3 pt-16 sm:gap-5 sm:p-5 sm:pt-20"
+          dir="ltr"
+        >
           {(['blue', 'red'] as const).map((teamId) => {
             const team = spectatorTeams[teamId];
             return (
@@ -68,13 +73,8 @@ export function FirstPersonGameScene({
                 key={teamId}
                 className="flex min-w-0 flex-col items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/5 p-3"
                 data-testid={`gc-spectator-${teamId}-team-fallback`}
+                dir="rtl"
               >
-                <GuessingChallengeIdentityCard
-                  label={team.teamLabel}
-                  identity={team.identity}
-                  size="distant"
-                  data-testid={`gc-spectator-${teamId}-identity`}
-                />
                 <div className="flex flex-wrap justify-center gap-2">
                   {team.players.map((player) => (
                     <CharacterFigure

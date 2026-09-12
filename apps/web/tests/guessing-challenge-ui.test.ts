@@ -15,11 +15,10 @@ import {
   resolveIdentityCardText,
   splitIdentityDisplayLines,
 } from '../plugins/guessing-challenge/identity-display';
+import { spectatorIdentityHudItems } from '../plugins/guessing-challenge/spectator-identity-hud';
 import { detectWebGLSupport } from '../plugins/guessing-challenge/scene-props';
 import {
   CAMERA_FOV,
-  SPECTATOR_CARD_HEIGHT,
-  SPECTATOR_CARD_WIDTH,
   SPECTATOR_CAMERA_POSITION,
   SPECTATOR_CAMERA_FOV,
   SPECTATOR_CAMERA_YAW,
@@ -29,8 +28,6 @@ import {
   cameraYawForView,
   mapRemoteLookPitch,
   mapRemoteLookYaw,
-  spectatorCardPosition,
-  spectatorCardRotation,
   spectatorPlayerPositions,
   spectatorTeamZ,
   teammateSeatPosition,
@@ -404,22 +401,83 @@ test('spectator screen uses the observer scene and replaces participant controls
   assert.match(game, /MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS/);
 });
 
-test('spectator scene renders both identity cards and all participant names without an observer avatar', () => {
+test('spectator scene removes physical identity cards and keeps all players without an observer avatar', () => {
   const inner = readPlugin('real3d/real3d-scene-inner.tsx');
   const fallback = readPlugin('first-person-game-scene.tsx');
+  const room = readPlugin('real3d/lounge-room.tsx');
+  const spectatorArea = inner.slice(
+    inner.indexOf('function SpectatorTeamArea'),
+    inner.indexOf('function SceneFramePulse'),
+  );
+  const spectatorFallbackStart = fallback.indexOf(
+    "if (viewMode === 'spectator' && spectatorTeams)",
+  );
+  const normalFallbackStart = fallback.indexOf('\n  return (', spectatorFallbackStart);
+  const spectatorFallback = fallback.slice(spectatorFallbackStart, normalFallbackStart);
+  const normalFallback = fallback.slice(normalFallbackStart);
+
   assert.match(inner, /props\.spectatorTeams\.blue/);
   assert.match(inner, /props\.spectatorTeams\.red/);
-  assert.match(inner, /gc-spectator-\$\{team\.teamId\}-identity/);
-  assert.match(inner, /team\.players\.map/);
+  assert.match(spectatorArea, /team\.players\.map/);
+  assert.doesNotMatch(spectatorArea, /IdentityCardMesh|spectatorCard|team\.identity/);
   assert.match(inner, /isSpectator \? null : \(\s*<FirstPersonHands/);
   assert.match(inner, /spectatorEntity: false/);
+  assert.match(inner, /hideRightBeanbag=\{isSpectator\}/);
+  assert.match(room, /hideRightBeanbag \? null : \(/);
   assert.match(fallback, /\(\['blue', 'red'\] as const\)\.map/);
+  assert.match(spectatorFallback, /GuessingChallengeSpectatorIdentityHud/);
+  assert.doesNotMatch(spectatorFallback, /GuessingChallengeIdentityCard/);
   assert.match(fallback, /data-spectator-entity="false"/);
   assert.doesNotMatch(inner, /spectatorName|spectatorAvatar|SpectatorAvatar/);
+
+  // Participant-only physical cards remain on both normal Real3D paths and the CSS fallback.
+  assert.match(inner, /is2v2 && opponents\.length >= 2[\s\S]*<IdentityCardMesh/);
+  assert.match(inner, /holdOwnCard/);
+  assert.match(normalFallback, /<GuessingChallengeIdentityCard/);
+});
+
+test('spectator identity HUD maps Blue left and Red right with text and image support', () => {
+  const teams = {
+    blue: {
+      teamId: 'blue' as const,
+      teamLabel: 'الفريق الأزرق',
+      identity: { type: 'text' as const, value: 'Narcos', imageUrl: null },
+      players: [],
+    },
+    red: {
+      teamId: 'red' as const,
+      teamLabel: 'الفريق الأحمر',
+      identity: {
+        type: 'image' as const,
+        value: 'The Blacklist',
+        imageUrl: '/identity/blacklist.png',
+      },
+      players: [],
+    },
+  };
+  const items = spectatorIdentityHudItems(teams);
+  assert.deepEqual(
+    items.map(({ teamId, side, label }) => ({ teamId, side, label })),
+    [
+      { teamId: 'blue', side: 'left', label: 'هوية الأزرق' },
+      { teamId: 'red', side: 'right', label: 'هوية الأحمر' },
+    ],
+  );
+  assert.equal(items[0]?.identity, teams.blue.identity);
+  assert.equal(items[1]?.identity, teams.red.identity);
+
+  const hud = readPlugin('spectator-identity-hud.tsx');
+  assert.match(hud, /item\.identity\.type === 'image'/);
+  assert.match(hud, /src=\{item\.identity\.imageUrl!\}/);
+  assert.match(hud, /dir="auto"/);
+  assert.match(hud, /line-clamp-2/);
+  assert.match(hud, /overflow-wrap:anywhere/);
+  assert.match(hud, /data-readonly="true"/);
+  assert.doesNotMatch(hud, /<button/);
 });
 
 test('spectator camera is side-offset between teams with constrained left/right head look', () => {
-  assert.deepEqual(SPECTATOR_CAMERA_POSITION, [4.3, 1.58, -0.335]);
+  assert.deepEqual(SPECTATOR_CAMERA_POSITION, [3.8, 1.58, -0.335]);
   assert.equal(SPECTATOR_CAMERA_FOV, 52);
   assert.deepEqual(cameraPositionForView('spectator', '1v1', 0), SPECTATOR_CAMERA_POSITION);
   assert.deepEqual(cameraPositionForView('spectator', '2v2', 1), SPECTATOR_CAMERA_POSITION);
@@ -452,10 +510,7 @@ test('spectator camera is side-offset between teams with constrained left/right 
   assert.match(controls, /recenter:/);
 });
 
-test('spectator framing and readable card transforms cover every supported team size', () => {
-  assert.equal(SPECTATOR_CARD_WIDTH, 0.66);
-  assert.equal(SPECTATOR_CARD_HEIGHT, 0.44);
-
+test('spectator player framing covers every supported team size without physical cards', () => {
   const observer = new THREE.Vector3(...SPECTATOR_CAMERA_POSITION);
   const desktopCamera = new THREE.PerspectiveCamera(SPECTATOR_CAMERA_FOV, 636 / 445, 0.15, 40);
   desktopCamera.position.copy(observer);
@@ -464,16 +519,6 @@ test('spectator framing and readable card transforms cover every supported team 
 
   for (const teamId of ['blue', 'red'] as const) {
     for (const playerCount of [1, 2]) {
-      const cardPosition = spectatorCardPosition(teamId, playerCount);
-      const cardRotation = spectatorCardRotation(teamId, cardPosition);
-      const exactFacingYaw = Math.atan2(observer.x - cardPosition[0], observer.z - cardPosition[2]);
-
-      assert.equal(cardPosition[1], 1.3);
-      assert.equal(cardPosition[0], playerCount === 1 ? 0.62 : 1.03);
-      assert.equal(cardRotation[0], -0.12);
-      assert.ok(Math.abs(Math.abs(cardRotation[1] - exactFacingYaw) - 0.055) < 1e-12);
-      assert.equal(cardRotation[2], teamId === 'blue' ? 0.035 : -0.035);
-
       const positions = spectatorPlayerPositions(teamId, playerCount);
       assert.equal(positions.length, playerCount);
       for (const position of positions) {
@@ -481,46 +526,20 @@ test('spectator framing and readable card transforms cover every supported team 
         assert.ok(Math.abs(head.x) < 0.75, 'player heads stay away from distorted frame edges');
         assert.ok(Math.abs(head.y) < 0.25, 'player heads remain comfortably framed');
       }
-
-      const cardCenter = new THREE.Vector3(...cardPosition).project(desktopCamera);
-      assert.ok(Math.abs(cardCenter.x) < 0.6, 'both cards fit together in the desktop frame');
-      assert.ok(Math.abs(cardCenter.y) < 0.35, 'card content stays vertically centered');
-
-      // The text-safe area sits in front of the nearest torso. Hands remain above this area.
-      const textHalfWidth = (SPECTATOR_CARD_WIDTH * 0.94 * (1024 - 140)) / 1024 / 2;
-      const faceHalfHeight = (SPECTATOR_CARD_HEIGHT * 0.9) / 2;
-      const euler = new THREE.Euler(...cardRotation);
-      let nearestTextX = Number.POSITIVE_INFINITY;
-      let highestCardY = Number.NEGATIVE_INFINITY;
-      for (const x of [-textHalfWidth, textHalfWidth]) {
-        for (const y of [-faceHalfHeight, faceHalfHeight]) {
-          const corner = new THREE.Vector3(x, y, 0.013)
-            .applyEuler(euler)
-            .add(new THREE.Vector3(...cardPosition));
-          nearestTextX = Math.min(nearestTextX, corner.x);
-          highestCardY = Math.max(highestCardY, corner.y);
-        }
-      }
-      const nearestTorsoFront = (playerCount === 1 ? 0 : 0.62) + 0.28;
-      assert.ok(nearestTextX > nearestTorsoFront, 'body geometry stays behind card text');
-      assert.ok(highestCardY < 1.56, 'hands stay above the card content instead of covering it');
     }
   }
 
-  // At a common portrait viewport both cards remain on screen; very narrow phones can inspect
-  // either team with an under-30-degree drag, well inside the spectator's +/-80-degree range.
+  // At a common portrait viewport all maximum-size team heads remain simultaneously visible.
   const mobileCamera = new THREE.PerspectiveCamera(SPECTATOR_CAMERA_FOV, 358 / 260, 0.15, 40);
   mobileCamera.position.copy(observer);
   mobileCamera.rotation.set(0, SPECTATOR_CAMERA_YAW, 0, 'YXZ');
   mobileCamera.updateMatrixWorld();
   for (const teamId of ['blue', 'red'] as const) {
-    const cardPosition = spectatorCardPosition(teamId, 2);
-    const neutralCard = new THREE.Vector3(...cardPosition).project(mobileCamera);
-    assert.ok(Math.abs(neutralCard.x) < 0.9, 'maximum-size team card remains on mobile canvas');
-
-    const deltaYaw = Math.atan2(cardPosition[2] - observer.z, observer.x - cardPosition[0]);
-    assert.ok(Math.abs(deltaYaw) < (31 * Math.PI) / 180);
-    assert.ok(Math.abs(deltaYaw) < (80 * Math.PI) / 180);
+    for (const position of spectatorPlayerPositions(teamId, 2)) {
+      const head = new THREE.Vector3(position[0], 1.67, position[2]).project(mobileCamera);
+      assert.ok(Math.abs(head.x) < 0.76, 'maximum-size team heads remain on mobile canvas');
+      assert.ok(Math.abs(head.y) < 0.25);
+    }
   }
 });
 

@@ -8,7 +8,13 @@ import { SRGBColorSpace } from 'three';
  * Cozy Fall Guys–inspired lounge: purple walls, wood floor, rug, wall branding, props.
  * Lightweight primitives only — no GLTF.
  */
-export function LoungeRoom({ compactGpu = false }: { compactGpu?: boolean }) {
+export function LoungeRoom({
+  compactGpu = false,
+  hideRightBeanbag = false,
+}: {
+  compactGpu?: boolean;
+  hideRightBeanbag?: boolean;
+}) {
   return (
     <group>
       {/* Wood floor */}
@@ -127,17 +133,19 @@ export function LoungeRoom({ compactGpu = false }: { compactGpu?: boolean }) {
         </mesh>
       </group>
 
-      {/* Sofa / beanbag right */}
-      <group position={[2.8, 0.28, -0.2]} rotation={[0, -0.55, 0]}>
-        <mesh castShadow={!compactGpu}>
-          <sphereGeometry args={[0.55, 14, 10]} />
-          <meshStandardMaterial color="#ea580c" roughness={0.9} />
-        </mesh>
-        <mesh position={[0, 0.15, -0.25]} scale={[1.05, 0.7, 0.55]} castShadow={!compactGpu}>
-          <sphereGeometry args={[0.45, 12, 8]} />
-          <meshStandardMaterial color="#c2410c" roughness={0.9} />
-        </mesh>
-      </group>
+      {/* Sofa / beanbag right — omitted only when it sits in front of the spectator camera. */}
+      {hideRightBeanbag ? null : (
+        <group position={[2.8, 0.28, -0.2]} rotation={[0, -0.55, 0]}>
+          <mesh castShadow={!compactGpu}>
+            <sphereGeometry args={[0.55, 14, 10]} />
+            <meshStandardMaterial color="#ea580c" roughness={0.9} />
+          </mesh>
+          <mesh position={[0, 0.15, -0.25]} scale={[1.05, 0.7, 0.55]} castShadow={!compactGpu}>
+            <sphereGeometry args={[0.45, 12, 8]} />
+            <meshStandardMaterial color="#c2410c" roughness={0.9} />
+          </mesh>
+        </group>
+      )}
 
       {/* Warm lamps */}
       <Lamp position={[-3.2, 0, -2.2]} compactGpu={compactGpu} />

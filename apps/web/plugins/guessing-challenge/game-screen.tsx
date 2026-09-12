@@ -68,7 +68,7 @@ export function GuessingChallengeSpectatorPlaying({
       ) : null}
       <p className="text-wanas-text-primary text-center text-sm font-semibold">
         {hasObserverTeams
-          ? 'اسحب المشهد يميناً ويساراً لمشاهدة الفريقين وهويتيهما.'
+          ? 'اسحب المشهد يميناً ويساراً لمشاهدة الفريقين بوضوح. تظهر هويتا الفريقين أعلى المشهد.'
           : `دور ${view.currentTurnPlayerName ?? 'فريق'}`}
       </p>
       <GameplayScene

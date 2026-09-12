@@ -13,6 +13,7 @@ import {
 import type { GuessingChallengeSceneProps, GuessingChallengeTeamSeat } from '../scene-props';
 import { FirstPersonGameScene } from '../first-person-game-scene';
 import { resolveIdentityCardText } from '../identity-display';
+import { GuessingChallengeSpectatorIdentityHud } from '../spectator-identity-hud';
 import { FirstPersonHands } from './first-person-hands';
 import { IdentityCardMesh } from './identity-card-mesh';
 import { LookControls, type LookControlsHandle } from './look-controls';
@@ -23,15 +24,11 @@ import { registerGcCanvasInvalidator } from './look-runtime';
 import { useCompactGcGpu, usePageVisible } from './gpu-profile';
 import {
   CAMERA_FOV,
-  SPECTATOR_CARD_HEIGHT,
-  SPECTATOR_CARD_WIDTH,
   cameraFovForView,
   cameraPositionForView,
   cameraYawForView,
   mapRemoteLookPitch,
   mapRemoteLookYaw,
-  spectatorCardPosition,
-  spectatorCardRotation,
   spectatorPlayerPositions,
   spectatorTeamZ,
   teammateSeatPosition,
@@ -104,26 +101,10 @@ function SpectatorTeamArea({
   const teamZ = spectatorTeamZ(team.teamId);
   const bodyYaw = isBlue ? Math.PI : 0;
   const facing = isBlue ? 'same-as-local' : 'toward-camera';
-  const cardPosition = spectatorCardPosition(team.teamId, team.players.length);
   const playerPositions = spectatorPlayerPositions(team.teamId, team.players.length);
 
   return (
     <group userData={{ testId: `gc-spectator-${team.teamId}-team`, teamId: team.teamId }}>
-      <group
-        position={cardPosition}
-        rotation={spectatorCardRotation(team.teamId, cardPosition)}
-        userData={{ testId: `gc-spectator-${team.teamId}-identity-card` }}
-      >
-        <IdentityCardMesh
-          text={resolveIdentityCardText(team.identity, false)}
-          label={team.teamLabel}
-          flipKey={`${team.teamId}-${team.identity.value ?? ''}`}
-          reduceMotion={reduceMotion}
-          width={SPECTATOR_CARD_WIDTH}
-          height={SPECTATOR_CARD_HEIGHT}
-          testId={`gc-spectator-${team.teamId}-identity`}
-        />
-      </group>
       {team.players.map((player, index) => (
         <LowPolyOpponent
           key={player.playerId}
@@ -142,7 +123,9 @@ function SpectatorTeamArea({
           rotationY={bodyYaw}
           testId={`gc-spectator-${team.teamId}-player-${index}`}
           nameTestId={`gc-spectator-${team.teamId}-name-${index}`}
-          nameBadgePosition={team.players.length > 1 && index === 0 ? [0, 0.58, 0.04] : undefined}
+          nameBadgePosition={
+            team.players.length > 1 ? [0, index === 0 ? 0.58 : 0.22, 0.26] : undefined
+          }
         />
       ))}
     </group>
@@ -344,7 +327,7 @@ function SceneContent({
         onLookChange={isSpectator ? undefined : props.onLookChange}
       />
 
-      <LoungeRoom compactGpu={compactGpu} />
+      <LoungeRoom compactGpu={compactGpu} hideRightBeanbag={isSpectator} />
 
       {isSpectator ? null : (
         <FirstPersonHands
@@ -499,15 +482,8 @@ export function Real3DSceneInner(props: GuessingChallengeSceneProps) {
       <span data-testid="gc-self-identity-text" hidden>
         {selfCardText}
       </span>
-      {props.spectatorTeams ? (
-        <>
-          <span data-testid="gc-spectator-blue-identity-text" hidden>
-            {resolveIdentityCardText(props.spectatorTeams.blue.identity, false)}
-          </span>
-          <span data-testid="gc-spectator-red-identity-text" hidden>
-            {resolveIdentityCardText(props.spectatorTeams.red.identity, false)}
-          </span>
-        </>
+      {props.viewMode === 'spectator' && props.spectatorTeams ? (
+        <GuessingChallengeSpectatorIdentityHud teams={props.spectatorTeams} />
       ) : null}
 
       <div className="gc-real3d-canvas-shell">
