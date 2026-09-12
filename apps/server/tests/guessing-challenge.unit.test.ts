@@ -119,6 +119,19 @@ function makeShell(
   };
 }
 
+function makeSpectatorShell(playerIds: string[] = ['p1', 'p2', 'p3', 'p4']): GameShellState {
+  const shell = makeShell(playerIds);
+  shell.players.push({
+    id: 'spectator',
+    name: 'مشاهد',
+    isConnected: true,
+    isHost: false,
+    isReady: true,
+    isSpectator: true,
+  });
+  return shell;
+}
+
 function makeRound(overrides?: Partial<GuessingChallengeRoundState>): GuessingChallengeRoundState {
   const idBlue = makeIdentity('id-blue', 'كريستيانو رونالدو', ['رونالدو', 'كريستيانو']);
   const idRed = makeIdentity('id-red', 'ليونيل ميسي', ['ميسي']);
@@ -343,6 +356,9 @@ test('H/I Player A view hides own identity, shows opponent', () => {
   assert.equal(view.opponent.visibleIdentity?.value, 'ليونيل ميسي');
   assert.equal(view.selfTeam, 'blue');
   assert.equal(view.mode, '1v1');
+  assert.equal(view.spectatorTeams, null);
+  assert.equal(view.spectatorBlueIdentity, null);
+  assert.equal(view.spectatorRedIdentity, null);
   assert.equal(viewContainsSecretLeak(view, match.round.identitiesByTeamId.blue!), false);
 });
 
@@ -624,6 +640,8 @@ test('2v2 team privacy — own team secret never leaked', () => {
   assert.equal(viewP1.opponents.length, 2);
   assert.equal(viewP1.opponent.visibleIdentity?.value, 'ليونيل ميسي');
   assert.equal(viewP3.opponent.visibleIdentity?.value, 'ليونيل ميسي');
+  assert.equal(viewP1.spectatorTeams, null);
+  assert.equal(viewP3.spectatorTeams, null);
   assert.equal(viewContainsSecretLeak(viewP1, match.round.identitiesByTeamId.blue!), false);
   assert.equal(viewContainsSecretLeak(viewP3, match.round.identitiesByTeamId.blue!), false);
 });
@@ -1010,20 +1028,29 @@ test('identity picker consumes remaining fresh alternative before reuse', () => 
   assert.notEqual(picked[0].id, picked[1].id);
 });
 
-test('spectator sees both identities only after public reveal and cannot act', () => {
+test('room spectator receives both teams, identities, names, and no action capabilities', () => {
   const match = makeMatch2v2();
-  const view = buildGuessingChallengePlayerView(
-    match,
-    'spectator',
-    makeShell(['p1', 'p2', 'p3', 'p4', 'spectator']),
-  );
+  const view = buildGuessingChallengePlayerView(match, 'spectator', makeSpectatorShell());
   assert.equal(view.isMatchSpectator, true);
   assert.equal(view.selfTeam, null);
   assert.equal(view.canGuess, false);
   assert.equal(view.canEndQuestion, false);
   assert.equal(view.canUseYellow, false);
-  assert.equal(view.spectatorBlueIdentity, null);
-  assert.equal(view.spectatorRedIdentity, null);
+  assert.equal(view.canUseRed, false);
+  assert.equal(view.cardConfirmStatus, null);
+  assert.equal(view.spectatorBlueIdentity?.value, match.round.identitiesByTeamId.blue.value);
+  assert.equal(view.spectatorRedIdentity?.value, match.round.identitiesByTeamId.red.value);
+  assert.equal(view.spectatorTeams?.blue.teamId, 'blue');
+  assert.equal(view.spectatorTeams?.red.teamId, 'red');
+  assert.deepEqual(
+    view.spectatorTeams?.blue.players.map((player) => player.name),
+    ['محمد', 'سارة'],
+  );
+  assert.deepEqual(
+    view.spectatorTeams?.red.players.map((player) => player.name),
+    ['خالد', 'نورة'],
+  );
+  assert.equal(JSON.stringify(view).includes('acceptedAnswers'), false);
 
   const revealed = buildGuessingChallengePlayerView(
     {
@@ -1034,12 +1061,21 @@ test('spectator sees both identities only after public reveal and cannot act', (
       },
     },
     'spectator',
-    makeShell(['p1', 'p2', 'p3', 'p4', 'spectator']),
+    makeSpectatorShell(),
   );
   assert.equal(revealed.spectatorBlueIdentity?.value, match.round.identitiesByTeamId.blue.value);
   assert.equal(revealed.spectatorRedIdentity?.value, match.round.identitiesByTeamId.red.value);
   assert.notEqual(revealed.spectatorBlueIdentity?.value, revealed.spectatorRedIdentity?.value);
   assert.equal(JSON.stringify(revealed).includes('acceptedAnswers'), false);
+});
+
+test('departed participant is not upgraded to the omniscient room-spectator projection', () => {
+  const match = markGuessingChallengePlayerDeparted(makeMatch2v2(), 'p3');
+  const view = buildGuessingChallengePlayerView(match, 'p3', makeShell(['p1', 'p2', 'p3', 'p4']));
+  assert.equal(view.isMatchSpectator, true);
+  assert.equal(view.spectatorTeams, null);
+  assert.equal(view.spectatorBlueIdentity, null);
+  assert.equal(view.spectatorRedIdentity, null);
 });
 
 test('departed teammate receives no future mirrored score', () => {

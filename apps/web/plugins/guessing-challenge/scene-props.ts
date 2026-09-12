@@ -1,4 +1,7 @@
-import type { GuessingChallengeVisibleIdentity } from '@wanasatna/shared';
+import type {
+  GuessingChallengeSpectatorTeamView,
+  GuessingChallengeVisibleIdentity,
+} from '@wanasatna/shared';
 
 export type GuessingChallengeTeamSeat = {
   playerId: string;
@@ -11,6 +14,8 @@ export type GuessingChallengeTeamSeat = {
 /** Shared safe props for CSS fallback and Real3D scene — never includes own secret pre-reveal. */
 export type GuessingChallengeSceneProps = {
   mode: 'playing' | 'reveal';
+  viewMode?: 'player' | 'spectator';
+  spectatorTeams?: Record<'blue' | 'red', GuessingChallengeSpectatorTeamView> | null;
   /** Match format. Existing `mode` stays playing/reveal; use this for 1v1 vs 2v2 layout. */
   matchMode?: '1v1' | '2v2';
   selfTeam?: 'blue' | 'red';
@@ -51,7 +56,9 @@ export function shouldUseCssGameplayFallback(input: {
   real3dImportFailed?: boolean;
   real3dRuntimeFailed?: boolean;
 }): boolean {
-  return !input.webglSupported || Boolean(input.real3dImportFailed) || Boolean(input.real3dRuntimeFailed);
+  return (
+    !input.webglSupported || Boolean(input.real3dImportFailed) || Boolean(input.real3dRuntimeFailed)
+  );
 }
 
 export function detectWebGLSupport(): boolean {

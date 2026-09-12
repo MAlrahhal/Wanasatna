@@ -1,7 +1,15 @@
 'use client';
 
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { GuessingChallengeSceneProps, GuessingChallengeTeamSeat } from '../scene-props';
 import { FirstPersonGameScene } from '../first-person-game-scene';
 import { resolveIdentityCardText } from '../identity-display';
@@ -15,9 +23,12 @@ import { registerGcCanvasInvalidator } from './look-runtime';
 import { useCompactGcGpu, usePageVisible } from './gpu-profile';
 import {
   CAMERA_FOV,
-  cameraPositionForSeat,
+  cameraFovForView,
+  cameraPositionForView,
+  cameraYawForView,
   mapRemoteLookPitch,
   mapRemoteLookYaw,
+  spectatorCardYaw,
   teammateSeatPosition,
 } from './seat-layout';
 import './real3d-scene.css';
@@ -25,6 +36,7 @@ import './real3d-scene.css';
 const YAW_1V1 = (38 * Math.PI) / 180;
 /** 90° yaw so the local player can look to the far room corner / teammate. */
 const YAW_2V2 = (90 * Math.PI) / 180;
+const YAW_SPECTATOR = (105 * Math.PI) / 180;
 const PITCH_LIMIT = (18 * Math.PI) / 180;
 const OPPONENT_REACH_RIGHT: [number, number, number] = [0.42, 0.48, 0.42];
 const OPPONENT_REACH_LEFT: [number, number, number] = [-0.42, 0.48, 0.42];
@@ -44,21 +56,102 @@ function usePrefersReducedMotion(): boolean {
   return reduced;
 }
 
-function opponentTint(
-  selfTeam: 'blue' | 'red' | undefined,
-): 'blue' | 'red' | 'opponent' {
+function opponentTint(selfTeam: 'blue' | 'red' | undefined): 'blue' | 'red' | 'opponent' {
   if (selfTeam === 'blue') return 'red';
   if (selfTeam === 'red') return 'blue';
   return 'opponent';
 }
 
-function CameraAnchor({ position }: { position: [number, number, number] }) {
+function CameraAnchor({
+  position,
+  yaw,
+  fov,
+}: {
+  position: [number, number, number];
+  yaw: number;
+  fov: number;
+}) {
   const camera = useThree((state) => state.camera);
   const [x, y, z] = position;
   useLayoutEffect(() => {
     camera.position.set(x, y, z);
-  }, [camera, x, y, z]);
+    camera.rotation.set(0, yaw, 0, 'YXZ');
+    if ('fov' in camera && camera.fov !== fov) {
+      camera.fov = fov;
+      camera.updateProjectionMatrix();
+    }
+  }, [camera, fov, x, y, z, yaw]);
   return null;
+}
+
+type SpectatorTeam = NonNullable<GuessingChallengeSceneProps['spectatorTeams']>['blue'];
+
+function SpectatorTeamArea({
+  team,
+  reduceMotion,
+  lookYawScale,
+}: {
+  team: SpectatorTeam;
+  reduceMotion: boolean;
+  lookYawScale: number;
+}) {
+  const isBlue = team.teamId === 'blue';
+  const teamZ = isBlue ? 1.48 : -2.15;
+  const bodyYaw = isBlue ? Math.PI : 0;
+  const facing = isBlue ? 'same-as-local' : 'toward-camera';
+  const cardPosition: [number, number, number] = [0, 1.12, isBlue ? 0.98 : -1.65];
+  const playerPositions: [number, number, number][] =
+    team.players.length > 1
+      ? isBlue
+        ? [
+            [-0.62, 0, 1.7],
+            [0.62, 0, 1.25],
+          ]
+        : [
+            [-0.62, 0, -2.35],
+            [0.62, 0, -1.9],
+          ]
+      : [[0, 0, teamZ]];
+
+  return (
+    <group userData={{ testId: `gc-spectator-${team.teamId}-team`, teamId: team.teamId }}>
+      <group
+        position={cardPosition}
+        rotation={[-0.08, spectatorCardYaw(cardPosition), 0]}
+        userData={{ testId: `gc-spectator-${team.teamId}-identity-card` }}
+      >
+        <IdentityCardMesh
+          text={resolveIdentityCardText(team.identity, false)}
+          label={team.teamLabel}
+          flipKey={`${team.teamId}-${team.identity.value ?? ''}`}
+          reduceMotion={reduceMotion}
+          width={0.8}
+          height={0.52}
+          testId={`gc-spectator-${team.teamId}-identity`}
+        />
+      </group>
+      {team.players.map((player, index) => (
+        <LowPolyOpponent
+          key={player.playerId}
+          name={player.name}
+          lookPlayerId={player.playerId}
+          holdOwnCard={false}
+          holdHand="both"
+          teamTint={team.teamId}
+          teamDot={team.teamId}
+          lookFacing={facing}
+          lookYaw={mapRemoteLookYaw(player.lookYaw ?? 0, facing)}
+          lookPitch={mapRemoteLookPitch(player.lookPitch ?? 0)}
+          lookYawScale={lookYawScale}
+          reduceMotion={reduceMotion}
+          position={playerPositions[index] ?? [0, 0, teamZ]}
+          rotationY={bodyYaw}
+          testId={`gc-spectator-${team.teamId}-player-${index}`}
+          nameTestId={`gc-spectator-${team.teamId}-name-${index}`}
+        />
+      ))}
+    </group>
+  );
 }
 
 function SceneFramePulse({ reduceMotion }: { reduceMotion: boolean }) {
@@ -204,6 +297,7 @@ function SceneContent({
   const revealed = props.mode === 'reveal';
   const matchMode = props.matchMode ?? '1v1';
   const is2v2 = matchMode === '2v2';
+  const isSpectator = props.viewMode === 'spectator' && Boolean(props.spectatorTeams);
   const oppTint = opponentTint(props.selfTeam);
   const oppDot = props.selfTeam === 'blue' ? 'red' : props.selfTeam === 'red' ? 'blue' : 'opponent';
 
@@ -222,14 +316,16 @@ function SceneContent({
     return list;
   }, [props.opponents, props.opponentName]);
 
-  const yawLimit = is2v2 ? YAW_2V2 : YAW_1V1;
-  const cameraPosition = cameraPositionForSeat(matchMode, props.selfSeat);
+  const yawLimit = isSpectator ? YAW_SPECTATOR : is2v2 ? YAW_2V2 : YAW_1V1;
+  const cameraPosition = cameraPositionForView(props.viewMode, matchMode, props.selfSeat);
+  const cameraYaw = cameraYawForView(props.viewMode);
+  const cameraFov = cameraFovForView(props.viewMode);
 
   return (
     <>
       <SceneFramePulse reduceMotion={reduceMotion} />
       <MobileShadowFreeze enabled={compactGpu} />
-      <CameraAnchor position={cameraPosition} />
+      <CameraAnchor position={cameraPosition} yaw={cameraYaw} fov={cameraFov} />
       <color attach="background" args={['#2e1065']} />
       <fog attach="fog" args={['#3b0764', 8, 18]} />
       <ambientLight intensity={0.45} color="#fce7f3" />
@@ -248,23 +344,38 @@ function SceneContent({
         reduceMotion={reduceMotion}
         yawLimit={yawLimit}
         pitchLimit={PITCH_LIMIT}
+        baseYaw={cameraYaw}
         onReady={onLookReady}
         onLookChange={props.onLookChange}
       />
 
       <LoungeRoom compactGpu={compactGpu} />
 
-      <FirstPersonHands
-        selfName={props.selfName}
-        selfHidden={props.selfHidden}
-        selfIdentity={props.selfIdentity}
-        revealed={revealed}
-        selfHighlight={props.selfHighlight}
-        reduceMotion={reduceMotion}
-      />
+      {isSpectator ? null : (
+        <FirstPersonHands
+          selfName={props.selfName}
+          selfHidden={props.selfHidden}
+          selfIdentity={props.selfIdentity}
+          revealed={revealed}
+          selfHighlight={props.selfHighlight}
+          reduceMotion={reduceMotion}
+        />
+      )}
 
-      {/* Opponents */}
-      {is2v2 && opponents.length >= 2 ? (
+      {isSpectator && props.spectatorTeams ? (
+        <group userData={{ testId: 'gc-spectator-observer-view', spectatorEntity: false }}>
+          <SpectatorTeamArea
+            team={props.spectatorTeams.blue}
+            reduceMotion={reduceMotion}
+            lookYawScale={yawLimit}
+          />
+          <SpectatorTeamArea
+            team={props.spectatorTeams.red}
+            reduceMotion={reduceMotion}
+            lookYawScale={yawLimit}
+          />
+        </group>
+      ) : is2v2 && opponents.length >= 2 ? (
         <group userData={{ testId: 'gc-opponent-pair' }}>
           {/* Shared identity card between opponents — held by inner hands */}
           <group
@@ -341,7 +452,7 @@ function SceneContent({
       )}
 
       {/* Teammate (2v2) — beside local seat, facing opponents; never under camera */}
-      {is2v2 && props.teammate ? (
+      {!isSpectator && is2v2 && props.teammate ? (
         <TeammateSeat
           teammate={props.teammate}
           selfTeam={props.selfTeam}
@@ -366,9 +477,7 @@ export function Real3DSceneInner(props: GuessingChallengeSceneProps) {
 
   const revealed = props.mode === 'reveal';
   const opponentCardText = resolveIdentityCardText(props.opponentIdentity, false);
-  const selfCardText = revealed
-    ? resolveIdentityCardText(props.selfIdentity, false)
-    : '';
+  const selfCardText = revealed ? resolveIdentityCardText(props.selfIdentity, false) : '';
 
   if (canvasFailed) {
     return (
@@ -384,6 +493,8 @@ export function Real3DSceneInner(props: GuessingChallengeSceneProps) {
       data-testid="gc-real3d-scene"
       data-mode={props.mode}
       data-match-mode={props.matchMode ?? '1v1'}
+      data-view-mode={props.viewMode ?? 'player'}
+      data-spectator-entity="false"
       style={{ position: 'relative', width: '100%' }}
     >
       {/* DOM probes for e2e — visual text is on the WebGL card texture */}
@@ -393,6 +504,16 @@ export function Real3DSceneInner(props: GuessingChallengeSceneProps) {
       <span data-testid="gc-self-identity-text" hidden>
         {selfCardText}
       </span>
+      {props.spectatorTeams ? (
+        <>
+          <span data-testid="gc-spectator-blue-identity-text" hidden>
+            {resolveIdentityCardText(props.spectatorTeams.blue.identity, false)}
+          </span>
+          <span data-testid="gc-spectator-red-identity-text" hidden>
+            {resolveIdentityCardText(props.spectatorTeams.red.identity, false)}
+          </span>
+        </>
+      ) : null}
 
       <div className="gc-real3d-canvas-shell">
         <Canvas
@@ -400,7 +521,7 @@ export function Real3DSceneInner(props: GuessingChallengeSceneProps) {
           shadows
           dpr={compactGpu ? [1, 1] : [1, 1.5]}
           camera={{
-            position: cameraPositionForSeat(props.matchMode, props.selfSeat),
+            position: cameraPositionForView(props.viewMode, props.matchMode, props.selfSeat),
             fov: CAMERA_FOV,
             near: 0.15,
             far: 40,
@@ -445,11 +566,11 @@ export function Real3DSceneInner(props: GuessingChallengeSceneProps) {
             data-testid="gc-turn-indicator"
             dir="rtl"
           >
-            <p className="text-xs font-semibold leading-5 break-words text-orange-100">
+            <p className="break-words text-xs font-semibold leading-5 text-orange-100">
               {props.turnTitle}
             </p>
             {props.turnInstruction ? (
-              <p className="mt-0.5 line-clamp-2 text-[0.7rem] leading-4 break-words text-violet-100/85 sm:line-clamp-none">
+              <p className="mt-0.5 line-clamp-2 break-words text-[0.7rem] leading-4 text-violet-100/85 sm:line-clamp-none">
                 {props.turnInstruction}
               </p>
             ) : null}

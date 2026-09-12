@@ -13,6 +13,7 @@ import type {
   GuessingChallengeRoundState,
   GuessingChallengeSeat,
   GuessingChallengeSpecialCard,
+  GuessingChallengeSpectatorTeamView,
   GuessingChallengeTeamId,
   GuessingChallengeVisibleIdentity,
 } from '@wanasatna/shared';
@@ -1056,6 +1057,26 @@ function buildWinnerName(match: GuessingChallengeMatchState): string | null {
   return TEAM_LABELS[match.round.winningTeamId];
 }
 
+function buildSpectatorTeamView(
+  match: GuessingChallengeMatchState,
+  teamId: GuessingChallengeTeamId,
+): GuessingChallengeSpectatorTeamView {
+  return {
+    teamId,
+    teamLabel: TEAM_LABELS[teamId],
+    identity: toVisibleIdentity(match.round.identitiesByTeamId[teamId]),
+    players: getEligibleTeamPlayerIds(match, teamId)
+      .sort((left, right) => (match.seatByPlayerId[left] ?? 0) - (match.seatByPlayerId[right] ?? 0))
+      .map((teamPlayerId) => ({
+        playerId: teamPlayerId,
+        name: match.playerNames[teamPlayerId] ?? 'لاعب',
+        seat: match.seatByPlayerId[teamPlayerId] ?? 0,
+        lookYaw: match.lookByPlayerId[teamPlayerId]?.yaw ?? 0,
+        lookPitch: match.lookByPlayerId[teamPlayerId]?.pitch ?? 0,
+      })),
+  };
+}
+
 export function buildGuessingChallengePlayerView(
   match: GuessingChallengeMatchState,
   playerId: string,
@@ -1067,6 +1088,9 @@ export function buildGuessingChallengePlayerView(
     match.playerIds.includes(playerId) &&
     !isGuessingChallengePlayerDeparted(match, playerId);
   const isMatchSpectator = !isParticipant;
+  const roomViewer = shell.players.find((player) => player.id === playerId);
+  const isRoomSpectator =
+    isMatchSpectator && roomViewer?.isSpectator === true && !match.playerIds.includes(playerId);
   const selfTeam = match.teamByPlayerId[playerId] ?? null;
   const selfSeat = match.seatByPlayerId[playerId] ?? null;
   const opponentTeamId = selfTeam ? getOpponentTeamId(selfTeam) : null;
@@ -1135,6 +1159,12 @@ export function buildGuessingChallengePlayerView(
       : null;
 
   const hideSecrets = isMatchSpectator && phase === 'playing';
+  const spectatorTeams = isRoomSpectator
+    ? {
+        blue: buildSpectatorTeamView(match, 'blue'),
+        red: buildSpectatorTeamView(match, 'red'),
+      }
+    : null;
 
   return {
     gamePhase: phase,
@@ -1216,14 +1246,9 @@ export function buildGuessingChallengePlayerView(
     resultsLeaderboard: buildResultsLeaderboardEntries(match),
     ...buildRoundResultsInteractionView(match, shell, playerId),
     isMatchSpectator,
-    spectatorBlueIdentity:
-      isMatchSpectator && revealed && !match.playerIds.includes(playerId)
-        ? toVisibleIdentity(match.round.identitiesByTeamId.blue)
-        : null,
-    spectatorRedIdentity:
-      isMatchSpectator && revealed && !match.playerIds.includes(playerId)
-        ? toVisibleIdentity(match.round.identitiesByTeamId.red)
-        : null,
+    spectatorTeams,
+    spectatorBlueIdentity: spectatorTeams?.blue.identity ?? null,
+    spectatorRedIdentity: spectatorTeams?.red.identity ?? null,
   };
 }
 

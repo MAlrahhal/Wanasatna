@@ -89,6 +89,15 @@ type SyncView = {
   roundResults: Array<{ playerId: string; roundPoints: number; isWinner: boolean }>;
   canContinueFromRoundResults: boolean;
   isMatchSpectator: boolean;
+  spectatorTeams: {
+    blue: {
+      identity: { value: string | null };
+      players: Array<{ playerId: string; name: string }>;
+    };
+    red: { identity: { value: string | null }; players: Array<{ playerId: string; name: string }> };
+  } | null;
+  spectatorBlueIdentity: { value: string | null } | null;
+  spectatorRedIdentity: { value: string | null } | null;
 };
 
 async function syncView(client: TestClient): Promise<SyncView> {
@@ -801,58 +810,113 @@ async function main(): Promise<void> {
     disconnectAll([a, b, c, d]);
   });
 
-  await runTest('spectator receives no secrets and cannot mutate gameplay', async () => {
-    const { a, b } = await startMatch1v1();
-    const spectator = emptyClient('مشاهد');
-    spectator.socket = await connectClient();
-    spectator.roomCode = a.roomCode;
-    trackClientEvents(spectator);
-    const join = await ack<{
-      success: boolean;
-      data: { player: { id: string }; room: { id: string }; reconnectToken?: string };
-    }>(spectator.socket, 'join-room', {
-      roomCode: a.roomCode,
-      playerName: spectator.name,
-    });
-    assert.equal(join.success, true);
-    spectator.id = join.data.player.id;
-    spectator.roomId = join.data.room.id;
-    spectator.reconnectToken = join.data.reconnectToken ?? '';
+  await runTest(
+    'spectator receives both team identities and remains server-side read-only',
+    async () => {
+      const { a, b } = await startMatch1v1();
+      const spectator = emptyClient('مشاهد');
+      spectator.socket = await connectClient();
+      spectator.roomCode = a.roomCode;
+      trackClientEvents(spectator);
+      const join = await ack<{
+        success: boolean;
+        data: { player: { id: string }; room: { id: string }; reconnectToken?: string };
+      }>(spectator.socket, 'join-room', {
+        roomCode: a.roomCode,
+        playerName: spectator.name,
+      });
+      assert.equal(join.success, true);
+      spectator.id = join.data.player.id;
+      spectator.roomId = join.data.room.id;
+      spectator.reconnectToken = join.data.reconnectToken ?? '';
 
-    const view = await syncView(spectator);
-    assert.equal(view.isMatchSpectator, true);
-    assert.equal(view.selfTeam, null);
-    assert.equal(view.opponent.visibleIdentity, null);
-    assert.equal(view.opponents.length, 0);
-    assert.equal(JSON.stringify(view).includes('acceptedAnswers'), false);
+      const view = await syncView(spectator);
+      assert.equal(view.isMatchSpectator, true);
+      assert.equal(view.selfTeam, null);
+      assert.equal(view.opponent.visibleIdentity, null);
+      assert.equal(view.opponents.length, 0);
+      assert.ok(view.spectatorBlueIdentity?.value);
+      assert.ok(view.spectatorRedIdentity?.value);
+      assert.notEqual(view.spectatorBlueIdentity.value, view.spectatorRedIdentity.value);
+      assert.equal(view.spectatorTeams?.blue.players.length, 1);
+      assert.equal(view.spectatorTeams?.red.players.length, 1);
+      assert.equal(view.spectatorTeams?.blue.identity.value, view.spectatorBlueIdentity.value);
+      assert.equal(view.spectatorTeams?.red.identity.value, view.spectatorRedIdentity.value);
+      assert.equal(JSON.stringify(view).includes('acceptedAnswers'), false);
 
-    const generation = await syncView(a);
-    const end = await ack<{ success: boolean }>(
-      spectator.socket,
-      GUESSING_CHALLENGE_END_QUESTION_EVENT,
-      { roundId: generation.roundId, turnId: generation.turnId },
-    );
-    const guess = await ack<{ success: boolean }>(
-      spectator.socket,
-      GUESSING_CHALLENGE_SUBMIT_FINAL_GUESS_EVENT,
-      { guess: 'ميسي', roundId: generation.roundId, turnId: generation.turnId },
-    );
-    const card = await ack<{ success: boolean }>(
-      spectator.socket,
-      GUESSING_CHALLENGE_USE_RED_CARD_EVENT,
-      { roundId: generation.roundId, turnId: generation.turnId },
-    );
-    const reject = await ack<{ success: boolean }>(
-      spectator.socket,
-      GUESSING_CHALLENGE_REJECT_CARD_EVENT,
-      { roundId: generation.roundId, turnId: generation.turnId, requestId: 'stale' },
-    );
-    assert.equal(end.success, false);
-    assert.equal(guess.success, false);
-    assert.equal(card.success, false);
-    assert.equal(reject.success, false);
-    disconnectAll([a, b, spectator]);
-  });
+      const participantView = await syncView(a);
+      const ownIdentity =
+        participantView.selfTeam === 'blue'
+          ? view.spectatorBlueIdentity.value
+          : view.spectatorRedIdentity.value;
+      assert.equal(JSON.stringify(participantView).includes(ownIdentity!), false);
+
+      const generation = await syncView(a);
+      const end = await ack<{ success: boolean }>(
+        spectator.socket,
+        GUESSING_CHALLENGE_END_QUESTION_EVENT,
+        { roundId: generation.roundId, turnId: generation.turnId },
+      );
+      const guess = await ack<{ success: boolean }>(
+        spectator.socket,
+        GUESSING_CHALLENGE_SUBMIT_FINAL_GUESS_EVENT,
+        { guess: 'ميسي', roundId: generation.roundId, turnId: generation.turnId },
+      );
+      const card = await ack<{ success: boolean }>(
+        spectator.socket,
+        GUESSING_CHALLENGE_USE_RED_CARD_EVENT,
+        { roundId: generation.roundId, turnId: generation.turnId },
+      );
+      const yellow = await ack<{ success: boolean }>(
+        spectator.socket,
+        GUESSING_CHALLENGE_USE_YELLOW_CARD_EVENT,
+        { roundId: generation.roundId, turnId: generation.turnId },
+      );
+      const reject = await ack<{ success: boolean }>(
+        spectator.socket,
+        GUESSING_CHALLENGE_REJECT_CARD_EVENT,
+        { roundId: generation.roundId, turnId: generation.turnId, requestId: 'stale' },
+      );
+      assert.equal(end.success, false);
+      assert.equal(guess.success, false);
+      assert.equal(card.success, false);
+      assert.equal(yellow.success, false);
+      assert.equal(reject.success, false);
+
+      const results = await finishCurrent1v1Round(a, b);
+      const spectatorContinue = await ack<{ success: boolean }>(
+        spectator.socket,
+        GUESSING_CHALLENGE_CONTINUE_ROUND_RESULTS_EVENT,
+        { roundId: results.roundId },
+      );
+      assert.equal(spectatorContinue.success, false);
+      assert.equal((await syncView(a)).gamePhase, 'round-results');
+      const continued = await continueResults(a);
+      assert.equal(continued.success, true);
+      const nextRound = await waitFor(
+        async () => {
+          const nextView = await syncView(spectator);
+          return nextView.gamePhase === 'playing' && nextView.currentRound === 2
+            ? nextView
+            : null;
+        },
+        8_000,
+        'spectator remains outside teams in round two',
+      );
+      assert.equal(nextRound.isMatchSpectator, true);
+      assert.equal(nextRound.selfTeam, null);
+      assert.deepEqual(
+        [
+          ...(nextRound.spectatorTeams?.blue.players ?? []),
+          ...(nextRound.spectatorTeams?.red.players ?? []),
+        ].map((player) => player.playerId),
+        [a.id, b.id],
+      );
+      assert.ok(nextRound.spectatorBlueIdentity?.value);
+      assert.ok(nextRound.spectatorRedIdentity?.value);
+      disconnectAll([a, b, spectator]);
+    },
+  );
 
   await runTest('one teammate leaves; full team leave terminates and cleans for Game B', async () => {
     const first = await startMatch2v2();

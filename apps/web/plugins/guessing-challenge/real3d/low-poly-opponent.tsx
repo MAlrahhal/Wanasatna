@@ -5,6 +5,7 @@ import { resolveIdentityCardText } from '../identity-display';
 import { BeanCharacter, type BeanTeamTint } from './bean-character';
 import { IdentityCardMesh } from './identity-card-mesh';
 import { OrangeArmchair } from './lounge-room';
+import type { RemoteAvatarFacing } from './seat-layout';
 
 export type SeatedOpponentProps = {
   name: string;
@@ -17,6 +18,7 @@ export type SeatedOpponentProps = {
   lookYaw?: number;
   lookPitch?: number;
   lookYawScale?: number;
+  lookFacing?: RemoteAvatarFacing;
   reachToward?: [number, number, number] | null;
   holdHand?: 'both' | 'left' | 'right';
   highlight?: boolean;
@@ -95,6 +97,7 @@ export function LowPolyOpponent({
   lookYaw = 0,
   lookPitch = 0,
   lookYawScale,
+  lookFacing = 'toward-camera',
   reachToward = null,
   holdHand = 'both',
   highlight = false,
@@ -116,7 +119,7 @@ export function LowPolyOpponent({
         <BeanCharacter
           teamTint={teamTint}
           lookPlayerId={lookPlayerId}
-          lookFacing="toward-camera"
+          lookFacing={lookFacing}
           lookYaw={lookYaw}
           lookPitch={lookPitch}
           lookYawScale={lookYawScale}

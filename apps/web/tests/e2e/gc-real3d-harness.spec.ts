@@ -92,4 +92,36 @@ test.describe('GC Real3D harness visuals', () => {
     // PNG with real geometry is much larger / more varied than flat clear color.
     expect(shot.byteLength).toBeGreaterThan(8_000);
   });
+
+  test('spectator occupies the neutral observer camera and sees both teams without an avatar', async ({
+    page,
+  }) => {
+    await page.goto('/dev/guessing-challenge-scene?panel=spectator&mode=2v2', {
+      waitUntil: 'networkidle',
+    });
+
+    const scene = page.getByTestId('gc-real3d-scene');
+    await expect(scene).toBeVisible({ timeout: 20_000 });
+    await expect(scene).toHaveAttribute('data-view-mode', 'spectator');
+    await expect(scene).toHaveAttribute('data-spectator-entity', 'false');
+    await expect(page.getByTestId('gc-spectator-blue-identity-text')).toHaveText('بيتزا');
+    await expect(page.getByTestId('gc-spectator-red-identity-text')).toHaveText('برجر');
+    const names = [
+      ['gc-spectator-blue-name-0', 'سارة'],
+      ['gc-spectator-blue-name-1', 'محمد'],
+      ['gc-spectator-red-name-0', 'علي'],
+      ['gc-spectator-red-name-1', 'نورة'],
+    ] as const;
+    for (const [testId, name] of names) {
+      const badge = page.getByTestId(testId);
+      await expect(badge).toBeVisible();
+      await expect(badge).toHaveText(name);
+    }
+    await expect(page.getByTestId('gc-fp-special-cards')).toHaveCount(0);
+
+    await page.screenshot({
+      path: path.join(OUT, 'spectator-2v2.png'),
+      fullPage: true,
+    });
+  });
 });

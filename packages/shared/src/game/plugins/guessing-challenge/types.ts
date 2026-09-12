@@ -144,6 +144,13 @@ export type GuessingChallengeTeammateView = {
   lookPitch: number;
 };
 
+export type GuessingChallengeSpectatorTeamView = {
+  teamId: GuessingChallengeTeamId;
+  teamLabel: string;
+  identity: GuessingChallengeVisibleIdentity;
+  players: GuessingChallengeTeammateView[];
+};
+
 export type GuessingChallengeCardConfirmStatus = {
   requestId: string;
   card: GuessingChallengeSpecialCard;
@@ -219,6 +226,8 @@ export type GuessingChallengePlayerView = {
   roundResultsContinueLabel: string | null;
   roundResultsWaitingMessage: string | null;
   isMatchSpectator: boolean;
+  /** Room-spectator-only omniscient team projection. Null for participants and admin projection. */
+  spectatorTeams: Record<GuessingChallengeTeamId, GuessingChallengeSpectatorTeamView> | null;
   /** Spectator-only: blue-side identity. Null for participants. */
   spectatorBlueIdentity: GuessingChallengeVisibleIdentity | null;
   /** Spectator-only: red-side identity. Null for participants. */

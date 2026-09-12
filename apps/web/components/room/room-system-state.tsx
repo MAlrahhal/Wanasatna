@@ -40,14 +40,14 @@ export function GameSystemError({
   );
 }
 
-export function SpectatorNotice() {
-  return (
-    <SystemStatus
-      tone="info"
-      title={SYSTEM_COPY.spectator}
-      description={SYSTEM_COPY.spectatorHint}
-    />
-  );
+export function SpectatorNotice({
+  title = SYSTEM_COPY.spectator,
+  description = SYSTEM_COPY.spectatorHint,
+}: {
+  title?: string;
+  description?: string;
+} = {}) {
+  return <SystemStatus tone="info" title={title} description={description} />;
 }
 
 export function RoomSystemState({ kind, message, onRetry }: RoomSystemStateProps) {
@@ -89,7 +89,12 @@ export function RoomSystemState({ kind, message, onRetry }: RoomSystemStateProps
           kind === 'connecting' || kind === 'reconnecting' ? undefined : (
             <div className="flex flex-col gap-2 sm:flex-row">
               {kind === 'error' && onRetry && !terminalNoRetry ? (
-                <Button type="button" variant="secondary" className="min-h-11 flex-1" onClick={onRetry}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="min-h-11 flex-1"
+                  onClick={onRetry}
+                >
                   {SYSTEM_COPY.retry}
                 </Button>
               ) : null}

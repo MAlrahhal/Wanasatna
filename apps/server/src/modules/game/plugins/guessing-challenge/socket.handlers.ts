@@ -612,6 +612,14 @@ export function registerGuessingChallengeSocketHandlers(io: Server, socket: Sock
       return;
     }
 
+    if (
+      !isActiveMatchParticipant(shell, playerId!) ||
+      !isEligibleGuessingChallengeActor(match, playerId!)
+    ) {
+      sendGameResponse(callback, notParticipantError());
+      return;
+    }
+
     if (payload?.roundId !== match.round.roundId) {
       sendGameResponse(callback, invalidActionError('انتهت هذه الجولة.'));
       return;

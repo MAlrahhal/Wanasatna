@@ -11,10 +11,18 @@ import { getGameCatalogEntry } from '@/lib/public/game-catalog';
 import { mockLobbyGames, mockGameSettingsByGameId } from '@/lib/lobby/mock-games';
 import { getHomeGameShowcase } from '@/lib/home/game-showcase';
 import { getGameRoundCategories } from '@/lib/game/round-categories/registry';
-import { resolveIdentityCardText, splitIdentityDisplayLines } from '../plugins/guessing-challenge/identity-display';
+import {
+  resolveIdentityCardText,
+  splitIdentityDisplayLines,
+} from '../plugins/guessing-challenge/identity-display';
 import { detectWebGLSupport } from '../plugins/guessing-challenge/scene-props';
 import {
+  SPECTATOR_CAMERA_POSITION,
+  SPECTATOR_CAMERA_FOV,
+  SPECTATOR_CAMERA_YAW,
+  cameraPositionForView,
   cameraPositionForSeat,
+  cameraYawForView,
   mapRemoteLookPitch,
   mapRemoteLookYaw,
   teammateSeatPosition,
@@ -78,10 +86,7 @@ test('A/B identity helper: own hidden, opponent visible text', () => {
     resolveIdentityCardText({ type: 'text', value: 'بطريق', imageUrl: null }, false),
     'بطريق',
   );
-  assert.deepEqual(splitIdentityDisplayLines('كريستيانو رونالدو'), [
-    'كريستيانو',
-    'رونالدو',
-  ]);
+  assert.deepEqual(splitIdentityDisplayLines('كريستيانو رونالدو'), ['كريستيانو', 'رونالدو']);
   assert.deepEqual(splitIdentityDisplayLines('صراع العروش'), ['صراع', 'العروش']);
   assert.deepEqual(splitIdentityDisplayLines('برج إيفل'), ['برج', 'إيفل']);
   assert.deepEqual(splitIdentityDisplayLines('ميسي'), ['ميسي']);
@@ -302,7 +307,7 @@ test('2v2 seating faces opponents; shared card + name anchors', () => {
   assert.match(inner, /userData=\{\{ testId: 'gc-teammate-seat'/);
   assert.match(inner, /userData=\{\{ testId: 'gc-opponent-pair' \}\}/);
   assert.match(inner, /teammateSeatPosition/);
-  assert.match(inner, /cameraPositionForSeat/);
+  assert.match(inner, /cameraPositionForView/);
   assert.match(inner, /mapRemoteLookYaw/);
   assert.match(inner, /same-as-local/);
   assert.match(inner, /toward-camera/);
@@ -368,20 +373,65 @@ test('authoritative generations are sent with every gameplay mutation', () => {
   assert.doesNotMatch(hook, /GUESSING_CHALLENGE_SET_CATEGORY_EVENT/);
 });
 
-test('minimal spectator screen replaces participant controls', () => {
+test('spectator screen uses the observer scene and replaces participant controls', () => {
   const game = readPlugin('game-screen.tsx');
+  const spectator = game.slice(
+    game.indexOf('export function GuessingChallengeSpectatorPlaying'),
+    game.indexOf('export function GuessingChallengeGameScreen'),
+  );
   assert.match(game, /view\.isMatchSpectator && view\.gamePhase === 'playing'/);
   assert.match(game, /SpectatorNotice/);
   assert.match(game, /GameplayScene/);
   assert.match(game, /showSpecialCards=\{false\}/);
-  assert.match(game, /spectatorBlueIdentity/);
-  assert.match(game, /هوية الأزرق/);
+  assert.match(game, /spectatorTeams=\{view\.spectatorTeams\}/);
+  assert.match(game, /viewMode=\{hasObserverTeams \? 'spectator' : 'player'\}/);
+  assert.match(game, /اسحب المشهد يميناً ويساراً/);
+  assert.doesNotMatch(spectator, /onUseYellow=/);
+  assert.doesNotMatch(spectator, /onUseRed=/);
   assert.match(game, /conciseGuessingChallengePhaseLabel/);
   assert.doesNotMatch(game, /phaseLabel: activeView\.phaseLabel/);
   assert.doesNotMatch(game, /الجولة جارية/);
   assert.match(game, /deadlineAtMs/);
   assert.match(game, /toExperienceTimer/);
   assert.match(game, /MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS/);
+});
+
+test('spectator scene renders both identity cards and all participant names without an observer avatar', () => {
+  const inner = readPlugin('real3d/real3d-scene-inner.tsx');
+  const fallback = readPlugin('first-person-game-scene.tsx');
+  assert.match(inner, /props\.spectatorTeams\.blue/);
+  assert.match(inner, /props\.spectatorTeams\.red/);
+  assert.match(inner, /gc-spectator-\$\{team\.teamId\}-identity/);
+  assert.match(inner, /team\.players\.map/);
+  assert.match(inner, /isSpectator \? null : \(\s*<FirstPersonHands/);
+  assert.match(inner, /spectatorEntity: false/);
+  assert.match(fallback, /\(\['blue', 'red'\] as const\)\.map/);
+  assert.match(fallback, /data-spectator-entity="false"/);
+  assert.doesNotMatch(inner, /spectatorName|spectatorAvatar|SpectatorAvatar/);
+});
+
+test('spectator camera is side-offset between teams with constrained left/right head look', () => {
+  assert.deepEqual(SPECTATOR_CAMERA_POSITION, [2.2, 1.35, -0.3]);
+  assert.equal(SPECTATOR_CAMERA_FOV, 65);
+  assert.deepEqual(cameraPositionForView('spectator', '1v1', 0), SPECTATOR_CAMERA_POSITION);
+  assert.deepEqual(cameraPositionForView('spectator', '2v2', 1), SPECTATOR_CAMERA_POSITION);
+  assert.equal(cameraYawForView('spectator'), SPECTATOR_CAMERA_YAW);
+  assert.equal(SPECTATOR_CAMERA_YAW, Math.PI / 2);
+
+  const camera = new THREE.Vector3(...SPECTATOR_CAMERA_POSITION);
+  const neutralForward = new THREE.Vector3(-1, 0, 0);
+  for (const teamZ of [1.48, -2.15]) {
+    const towardTeam = new THREE.Vector3(0, camera.y, teamZ).sub(camera).normalize();
+    const angle = neutralForward.angleTo(towardTeam);
+    assert.ok(angle < (55 * Math.PI) / 180, 'both teams are within a comfortable yaw from center');
+  }
+
+  const inner = readPlugin('real3d/real3d-scene-inner.tsx');
+  const controls = readPlugin('real3d/look-controls.tsx');
+  assert.match(inner, /YAW_SPECTATOR = \(105 \* Math\.PI\) \/ 180/);
+  assert.match(inner, /baseYaw=\{cameraYaw\}/);
+  assert.match(controls, /baseYawRef\.current \+ yaw\.current/);
+  assert.match(controls, /targetPitch\.current = THREE\.MathUtils\.clamp/);
 });
 
 test('playing copy makes yes/no social mechanic obvious', () => {
@@ -436,8 +486,14 @@ test('2v2 seats are mirrored and teammate is not in the camera near field', () =
     const tm = teammateSeatPosition(seat);
     const depth = cam[2] - tm[2];
     const side = Math.abs(tm[0] - cam[0]);
-    assert.ok(Math.abs(depth) < 0.25, `seat ${seat} teammate head-depth should match the local camera (eye-to-eye)`);
-    assert.ok(tm[2] > 1.35, `seat ${seat} teammate must sit beside the local seat, not across the room`);
+    assert.ok(
+      Math.abs(depth) < 0.25,
+      `seat ${seat} teammate head-depth should match the local camera (eye-to-eye)`,
+    );
+    assert.ok(
+      tm[2] > 1.35,
+      `seat ${seat} teammate must sit beside the local seat, not across the room`,
+    );
     assert.ok(side > 1.2 && side < 1.65, `seat ${seat} teammate must sit in the neighboring chair`);
     assert.ok(Math.abs(tm[0]) > Math.abs(cam[0]), 'teammate is outward of the local seat');
     const head = new THREE.Vector3(tm[0], 1.05, tm[2]);

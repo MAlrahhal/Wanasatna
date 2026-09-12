@@ -62,7 +62,12 @@ function createMockView(
   const isResults = phase === 'round-results' || phase === 'match-completed';
   return {
     gamePhase: phase,
-    phaseLabel: phase === 'playing' ? 'دورك' : phase === 'round-results' ? 'نتائج الجولة' : 'النتائج النهائية',
+    phaseLabel:
+      phase === 'playing'
+        ? 'دورك'
+        : phase === 'round-results'
+          ? 'نتائج الجولة'
+          : 'النتائج النهائية',
     phaseRemainingSeconds: phase === 'playing' ? 45 : phase === 'round-results' ? 10 : 30,
     deadlineAtMs: null,
     roundId: 'r1',
@@ -105,10 +110,33 @@ function createMockView(
     opponents:
       mode === '2v2'
         ? [
-            { playerId: 'o0', name: 'خالد', seat: 0, lookYaw: 0, lookPitch: 0, visibleIdentity: IDENTITY },
-            { playerId: 'o1', name: 'علي', seat: 1, lookYaw: 0, lookPitch: 0, visibleIdentity: IDENTITY },
+            {
+              playerId: 'o0',
+              name: 'خالد',
+              seat: 0,
+              lookYaw: 0,
+              lookPitch: 0,
+              visibleIdentity: IDENTITY,
+            },
+            {
+              playerId: 'o1',
+              name: 'علي',
+              seat: 1,
+              lookYaw: 0,
+              lookPitch: 0,
+              visibleIdentity: IDENTITY,
+            },
           ]
-        : [{ playerId: 'o0', name: 'علي', seat: 0, lookYaw: 0, lookPitch: 0, visibleIdentity: IDENTITY }],
+        : [
+            {
+              playerId: 'o0',
+              name: 'علي',
+              seat: 0,
+              lookYaw: 0,
+              lookPitch: 0,
+              visibleIdentity: IDENTITY,
+            },
+          ],
     yellowQuestionsRemaining: null,
     canEndQuestion: true,
     canGuess: true,
@@ -140,6 +168,7 @@ function createMockView(
     roundResultsContinueLabel: 'التالي الآن',
     roundResultsWaitingMessage: null,
     isMatchSpectator: false,
+    spectatorTeams: null,
     spectatorBlueIdentity: null,
     spectatorRedIdentity: null,
   };
@@ -179,8 +208,20 @@ export function GuessingChallengeSceneHarness() {
           lookPitch: demoLook.pitch,
         },
         opponents: [
-          { playerId: 'o0', name: 'خالد', seat: 0, lookYaw: demoLook.yaw, lookPitch: demoLook.pitch },
-          { playerId: 'o1', name: 'علي', seat: 1, lookYaw: demoLook.yaw * 0.4, lookPitch: demoLook.pitch },
+          {
+            playerId: 'o0',
+            name: 'خالد',
+            seat: 0,
+            lookYaw: demoLook.yaw,
+            lookPitch: demoLook.pitch,
+          },
+          {
+            playerId: 'o1',
+            name: 'علي',
+            seat: 1,
+            lookYaw: demoLook.yaw * 0.4,
+            lookPitch: demoLook.pitch,
+          },
         ],
         opponentName: 'خالد',
         selfName: 'سارة',
@@ -208,7 +249,13 @@ export function GuessingChallengeSceneHarness() {
       turnInstruction: 'اسأل خصمك سؤالاً إجابته نعم أو لا، وحاول تعرف شخصيتك.',
       showSpecialCards: false,
       opponents: [
-        { playerId: 'opponent', name: 'علي', seat: 0, lookYaw: demoLook.yaw, lookPitch: demoLook.pitch },
+        {
+          playerId: 'opponent',
+          name: 'علي',
+          seat: 0,
+          lookYaw: demoLook.yaw,
+          lookPitch: demoLook.pitch,
+        },
       ],
     };
   }, [mode, selfTeam, selfSeat, demoLook]);
@@ -267,15 +314,41 @@ export function GuessingChallengeSceneHarness() {
   }
 
   if (panel === 'spectator') {
+    const spectatorTeams = {
+      blue: {
+        teamId: 'blue' as const,
+        teamLabel: 'الفريق الأزرق',
+        identity: SELF_ID,
+        players: [
+          { playerId: 'b0', name: 'سارة', seat: 0 as const, lookYaw: 0, lookPitch: 0 },
+          ...(mode === '2v2'
+            ? [{ playerId: 'b1', name: 'محمد', seat: 1 as const, lookYaw: 0, lookPitch: 0 }]
+            : []),
+        ],
+      },
+      red: {
+        teamId: 'red' as const,
+        teamLabel: 'الفريق الأحمر',
+        identity: IDENTITY,
+        players: [
+          { playerId: 'r0', name: 'علي', seat: 0 as const, lookYaw: 0, lookPitch: 0 },
+          ...(mode === '2v2'
+            ? [{ playerId: 'r1', name: 'نورة', seat: 1 as const, lookYaw: 0, lookPitch: 0 }]
+            : []),
+        ],
+      },
+    };
     return (
       <main className="mx-auto flex min-h-screen min-w-0 max-w-4xl flex-col gap-3 p-4" dir="rtl">
         <SpectatorNotice />
         <GameplayScene
           mode="playing"
+          viewMode="spectator"
+          spectatorTeams={spectatorTeams}
           matchMode={mode}
           opponentName="علي"
           selfName="مشاهد"
-          opponentIdentity={null}
+          opponentIdentity={IDENTITY}
           selfIdentity={null}
           selfHidden
           isMyTurn={false}
@@ -288,7 +361,10 @@ export function GuessingChallengeSceneHarness() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen min-w-0 max-w-4xl flex-col gap-4 overflow-x-hidden p-4" dir="rtl">
+    <main
+      className="mx-auto flex min-h-screen min-w-0 max-w-4xl flex-col gap-4 overflow-x-hidden p-4"
+      dir="rtl"
+    >
       <h1 className="text-xl font-bold">GC Real3D harness</h1>
       <div className="flex flex-wrap gap-2">
         <button
@@ -313,16 +389,32 @@ export function GuessingChallengeSceneHarness() {
         >
           2v2
         </button>
-        <button type="button" className="rounded-lg border px-3 py-2" onClick={() => setSelfTeam('blue')}>
+        <button
+          type="button"
+          className="rounded-lg border px-3 py-2"
+          onClick={() => setSelfTeam('blue')}
+        >
           أزرق
         </button>
-        <button type="button" className="rounded-lg border px-3 py-2" onClick={() => setSelfTeam('red')}>
+        <button
+          type="button"
+          className="rounded-lg border px-3 py-2"
+          onClick={() => setSelfTeam('red')}
+        >
           أحمر
         </button>
-        <button type="button" className="rounded-lg border px-3 py-2" onClick={() => setSelfSeat(0)}>
+        <button
+          type="button"
+          className="rounded-lg border px-3 py-2"
+          onClick={() => setSelfSeat(0)}
+        >
           مقعد 0
         </button>
-        <button type="button" className="rounded-lg border px-3 py-2" onClick={() => setSelfSeat(1)}>
+        <button
+          type="button"
+          className="rounded-lg border px-3 py-2"
+          onClick={() => setSelfSeat(1)}
+        >
           مقعد 1
         </button>
         <button
@@ -353,7 +445,11 @@ export function GuessingChallengeSceneHarness() {
         >
           نظر أسفل
         </button>
-        <button type="button" className="rounded-lg border px-3 py-2" onClick={() => setDemoLook({ yaw: 0, pitch: 0 })}>
+        <button
+          type="button"
+          className="rounded-lg border px-3 py-2"
+          onClick={() => setDemoLook({ yaw: 0, pitch: 0 })}
+        >
           إعادة النظر
         </button>
         <button
@@ -366,9 +462,13 @@ export function GuessingChallengeSceneHarness() {
         </button>
       </div>
       <p data-testid="harness-mode">
-        mode={mode} team={selfTeam} seat={selfSeat} look={demoLook.yaw.toFixed(2)},{demoLook.pitch.toFixed(2)}
+        mode={mode} team={selfTeam} seat={selfSeat} look={demoLook.yaw.toFixed(2)},
+        {demoLook.pitch.toFixed(2)}
       </p>
-      <div className="relative min-w-0 overflow-x-hidden rounded-[1.5rem]" data-testid="harness-scene">
+      <div
+        className="relative min-w-0 overflow-x-hidden rounded-[1.5rem]"
+        data-testid="harness-scene"
+      >
         <GameplayScene {...props} />
         <GuessingChallengeSpecialCardsPanel
           className="absolute inset-0 z-10"

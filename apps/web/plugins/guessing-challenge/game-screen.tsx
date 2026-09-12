@@ -8,7 +8,11 @@ import {
   MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS,
 } from '@wanasatna/shared';
 import { GameScreen } from '@/components/game/game-card';
-import { GameSystemError, GameSystemLoading, SpectatorNotice } from '@/components/room/room-system-state';
+import {
+  GameSystemError,
+  GameSystemLoading,
+  SpectatorNotice,
+} from '@/components/room/room-system-state';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
@@ -20,7 +24,6 @@ import { toExperienceTimer } from '@/lib/game/deadline-clock';
 import { mapGuessingChallengeLeaderboard } from '@/lib/game/map-guessing-challenge-leaderboard';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import { MatchResultsScreen } from '@/plugins/bara-al-salafa/match-results-screen';
-import { Button } from '@/components/ui/button';
 import { GameplayScene } from './gameplay-scene';
 import { GuessingChallengePlayingScreen } from './playing-screen';
 import { GuessingChallengeRoundResultsScreen } from './round-results-screen';
@@ -53,54 +56,36 @@ export function GuessingChallengeSpectatorPlaying({
   view: GuessingChallengePlayerView;
   showSpectatorNotice?: boolean;
 }) {
-  const [side, setSide] = useState<'blue' | 'red'>('blue');
-  const identity = side === 'blue' ? view.spectatorBlueIdentity : view.spectatorRedIdentity;
-  const sideLabel = side === 'blue' ? 'الفريق الأزرق' : 'الفريق الأحمر';
-  const hasPublicIdentities = Boolean(view.spectatorBlueIdentity || view.spectatorRedIdentity);
+  const hasObserverTeams = Boolean(view.spectatorTeams);
 
   return (
     <GameScreen ariaLabel="مشاهدة تحدي التخمين" maxWidth="4xl" className="min-w-0 gap-3 sm:gap-4">
-      {showSpectatorNotice ? <SpectatorNotice /> : null}
-      {hasPublicIdentities ? (
-        <div className="flex flex-wrap justify-center gap-2">
-          <Button
-            type="button"
-            variant={side === 'blue' ? 'primary' : 'outline'}
-            className="min-h-11"
-            aria-pressed={side === 'blue'}
-            onClick={() => setSide('blue')}
-          >
-            هوية الأزرق
-          </Button>
-          <Button
-            type="button"
-            variant={side === 'red' ? 'primary' : 'outline'}
-            className="min-h-11"
-            aria-pressed={side === 'red'}
-            onClick={() => setSide('red')}
-          >
-            هوية الأحمر
-          </Button>
-        </div>
+      {showSpectatorNotice ? (
+        <SpectatorNotice
+          title="أنت متفرج طوال هذه المباراة"
+          description="شاهد الفريقين وهويتيهما من داخل المشهد. وضع المشاهدة للقراءة فقط."
+        />
       ) : null}
-      <p className="text-center text-sm font-semibold text-wanas-text-primary">
-        {hasPublicIdentities
-          ? `${sideLabel}: ${identity?.value ?? '؟؟؟'}`
+      <p className="text-wanas-text-primary text-center text-sm font-semibold">
+        {hasObserverTeams
+          ? 'اسحب المشهد يميناً ويساراً لمشاهدة الفريقين وهويتيهما.'
           : `دور ${view.currentTurnPlayerName ?? 'فريق'}`}
       </p>
       <GameplayScene
         mode="playing"
+        viewMode={hasObserverTeams ? 'spectator' : 'player'}
+        spectatorTeams={view.spectatorTeams}
         matchMode={view.mode}
         opponentName={view.currentTurnPlayerName ?? 'لاعب'}
         selfName="متفرج"
-        opponentIdentity={identity}
+        opponentIdentity={view.spectatorBlueIdentity}
         selfIdentity={null}
         selfHidden
         isMyTurn={false}
         turnTitle={`دور ${view.currentTurnPlayerName ?? 'فريق'}`}
         turnInstruction={
-          hasPublicIdentities
-            ? `تشاهد هوية ${sideLabel}. لا يمكنك السؤال أو التخمين أو استخدام البطاقات.`
+          hasObserverTeams
+            ? 'مراقبة فقط: هويات الفريقين ظاهرة، ولا يمكنك تنفيذ أي إجراء.'
             : 'تشاهد الجولة الحالية. لا يمكنك السؤال أو التخمين أو استخدام البطاقات.'
         }
         showSpecialCards={false}
@@ -181,9 +166,7 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
           ? 'round-results'
           : 'gameplay',
       phaseLabel: conciseGuessingChallengePhaseLabel(activeView),
-      categoryLabel: activeView.categoryLabel
-        ? `الفئة: ${activeView.categoryLabel}`
-        : undefined,
+      categoryLabel: activeView.categoryLabel ? `الفئة: ${activeView.categoryLabel}` : undefined,
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
       timer: toExperienceTimer(activeView.deadlineAtMs, {
@@ -216,13 +199,7 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
       await returnToLobby();
     }
     setIsReturningToLobby(false);
-  }, [
-    continueFromRoundResults,
-    isHost,
-    isReturningToLobby,
-    returnToLobby,
-    view?.gamePhase,
-  ]);
+  }, [continueFromRoundResults, isHost, isReturningToLobby, returnToLobby, view?.gamePhase]);
 
   if (!isGuessingGame || !room || !player) {
     return null;
@@ -263,9 +240,7 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
             : undefined
         }
         returnStatusMessage={
-          activeFinalResultsView.isHost
-            ? null
-            : 'العودة إلى اللوبي تلقائياً خلال ثوانٍ…'
+          activeFinalResultsView.isHost ? null : 'العودة إلى اللوبي تلقائياً خلال ثوانٍ…'
         }
       />
     );

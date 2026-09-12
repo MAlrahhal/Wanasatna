@@ -11,6 +11,8 @@ export type FirstPersonGameSceneProps = GuessingChallengeSceneProps;
 
 export function FirstPersonGameScene({
   mode,
+  viewMode = 'player',
+  spectatorTeams = null,
   matchMode = '1v1',
   selfTeam,
   selfSeat = 0,
@@ -47,6 +49,58 @@ export function FirstPersonGameScene({
 
   const teammateOnRight = selfSeat === 0;
 
+  if (viewMode === 'spectator' && spectatorTeams) {
+    return (
+      <section
+        className={cn('gc-fp-scene', className)}
+        aria-label="مشهد مراقبة تحدي التخمين"
+        data-testid="gc-first-person-scene"
+        data-mode={mode}
+        data-match-mode={matchMode}
+        data-view-mode="spectator"
+        data-spectator-entity="false"
+      >
+        <div className="grid min-h-[280px] grid-cols-2 gap-3 rounded-[1.5rem] bg-violet-950/80 p-3 sm:gap-5 sm:p-5">
+          {(['blue', 'red'] as const).map((teamId) => {
+            const team = spectatorTeams[teamId];
+            return (
+              <div
+                key={teamId}
+                className="flex min-w-0 flex-col items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white/5 p-3"
+                data-testid={`gc-spectator-${teamId}-team-fallback`}
+              >
+                <GuessingChallengeIdentityCard
+                  label={team.teamLabel}
+                  identity={team.identity}
+                  size="distant"
+                  data-testid={`gc-spectator-${teamId}-identity`}
+                />
+                <div className="flex flex-wrap justify-center gap-2">
+                  {team.players.map((player) => (
+                    <CharacterFigure
+                      key={player.playerId}
+                      name={player.name}
+                      accent={teamId === 'blue' ? 'self' : 'opponent'}
+                      size="distant"
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {turnTitle ? (
+          <div className="gc-fp-turn is-waiting" data-testid="gc-turn-indicator">
+            <p className="text-sm font-semibold text-orange-100">{turnTitle}</p>
+            {turnInstruction ? (
+              <p className="mt-0.5 text-xs text-violet-100/75">{turnInstruction}</p>
+            ) : null}
+          </div>
+        ) : null}
+      </section>
+    );
+  }
+
   return (
     <section
       className={cn('gc-fp-scene', className)}
@@ -69,21 +123,13 @@ export function FirstPersonGameScene({
               className="gc-fp-teammate-figure"
             />
             <span
-              className={cn(
-                'gc-fp-team-dot',
-                selfTeam === 'red' ? 'is-red' : 'is-blue',
-              )}
+              className={cn('gc-fp-team-dot', selfTeam === 'red' ? 'is-red' : 'is-blue')}
               aria-hidden
             />
           </div>
         ) : null}
 
-        <div
-          className={cn(
-            'gc-fp-opponents',
-            resolvedOpponents.length > 1 && 'is-duo',
-          )}
-        >
+        <div className={cn('gc-fp-opponents', resolvedOpponents.length > 1 && 'is-duo')}>
           {resolvedOpponents.length > 1 ? (
             <GuessingChallengeIdentityCard
               className="gc-fp-opponent-card gc-fp-shared-identity"

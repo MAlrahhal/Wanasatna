@@ -22,6 +22,8 @@ type LookControlsProps = {
   yawLimit?: number;
   /** Absolute pitch limit in radians (default ~18°). */
   pitchLimit?: number;
+  /** Fixed world-space yaw used as the neutral forward direction. */
+  baseYaw?: number;
   onReady?: (handle: LookControlsHandle) => void;
   /** Normalized look in -1..1 relative to limits. Throttled ~100ms. */
   onLookChange?: (yaw: number, pitch: number) => void;
@@ -35,6 +37,7 @@ export function LookControls({
   reduceMotion = false,
   yawLimit = DEFAULT_YAW_LIMIT,
   pitchLimit = DEFAULT_PITCH_LIMIT,
+  baseYaw = 0,
   onReady,
   onLookChange,
 }: LookControlsProps) {
@@ -55,11 +58,13 @@ export function LookControls({
   const lastEmit = useRef(0);
   const lastEmitted = useRef({ yaw: 0, pitch: 0 });
   const reduceMotionRef = useRef(reduceMotion);
+  const baseYawRef = useRef(baseYaw);
 
   yawLimitRef.current = yawLimit;
   pitchLimitRef.current = pitchLimit;
   onLookChangeRef.current = onLookChange;
   reduceMotionRef.current = reduceMotion;
+  baseYawRef.current = baseYaw;
 
   useEffect(() => {
     onReady?.({
@@ -149,7 +154,7 @@ export function LookControls({
     }
 
     // Stored +pitch = look up; Three.js +rot.x looks down, so negate on apply.
-    euler.current.set(-pitch.current, yaw.current, 0, 'YXZ');
+    euler.current.set(-pitch.current, baseYawRef.current + yaw.current, 0, 'YXZ');
     camera.quaternion.setFromEuler(euler.current);
 
     if (!settled || dragging.current) {
