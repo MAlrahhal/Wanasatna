@@ -7,7 +7,7 @@ import {
   completeMatch,
   finalizeQuestionRound,
 } from './match-lifecycle.js';
-import { withRound } from './state.js';
+import { haveAllActiveEligiblePlayersAnsweredCorrectly, withRound } from './state.js';
 import { getFastAnswerState, setFastAnswerState } from './store.js';
 
 const timersByRoomId = new Map<string, ReturnType<typeof setTimeout>>();
@@ -94,11 +94,7 @@ export function restartFastAnswerPhaseTimer(io: Server, roomId: string): void {
   startFastAnswerPhaseTimerIfNeeded(io, roomId);
 }
 
-function handlePhaseTimerExpired(
-  io: Server,
-  roomId: string,
-  match: FastAnswerMatchState,
-): void {
+function handlePhaseTimerExpired(io: Server, roomId: string, match: FastAnswerMatchState): void {
   const shell = getGameShellByRoomId(roomId);
 
   if (!shell || shell.phase !== 'PLAYING') {
@@ -107,9 +103,9 @@ function handlePhaseTimerExpired(
   }
 
   if (match.round.gamePhase === 'question') {
+    const allActivePlayersCorrect = haveAllActiveEligiblePlayersAnsweredCorrectly(match, shell);
     finalizeQuestionRound(io, roomId, match, {
-      winnerPlayerId: match.round.winnerPlayerId,
-      timedOut: match.round.winnerPlayerId === null,
+      timedOut: !allActivePlayersCorrect,
     });
     return;
   }
@@ -139,11 +135,7 @@ function firePhaseExpiry(
 
   const match = getFastAnswerState(roomId);
 
-  if (
-    !match ||
-    match.round.gamePhase !== scheduledPhase ||
-    roundToken(match) !== scheduledToken
-  ) {
+  if (!match || match.round.gamePhase !== scheduledPhase || roundToken(match) !== scheduledToken) {
     return;
   }
 

@@ -39,7 +39,7 @@ const EXPECTED_COPY: Record<string, string[]> = {
   'draw-guess': ['ارسم وخمن', 'الرسّام', 'يخمنون', '100'],
   'imposter-draw': ['الإمبوستر بالرسم', 'جزء من الرسمة', 'الإمبوستر', '100'],
   'timing-challenge': ['تحدي التوقيت', 'تخمين الوقت', 'إيقاف المؤقت', '100', '75', '50', '25'],
-  'fast-answer': ['أسرع إجابة', 'أول إجابة صحيحة', '100'],
+  'fast-answer': ['أسرع إجابة', 'كل إجابة صحيحة', '100', '75', '50', '25', 'ينتهي الوقت'],
   'who-wrote-it': ['من كتبها؟', 'بدون أسماء', '100'],
   judge: ['القاضي', 'ما يكتب', '100'],
   'guessing-challenge': ['تحدي التخمين', 'الصفراء', 'الحمراء', '2 ضد 2', '100'],
@@ -113,7 +113,9 @@ test('each playable game has the matching static how-to copy', () => {
     getHowToPlayGuide('draw-guess')?.sections.some((section) => section.id === 'cards'),
     false,
   );
-  assert.ok(getHowToPlayGuide('guessing-challenge')?.sections.some((section) => section.id === 'cards'));
+  assert.ok(
+    getHowToPlayGuide('guessing-challenge')?.sections.some((section) => section.id === 'cards'),
+  );
   assert.equal(getHowToPlayGuide('not-a-game'), null);
 });
 

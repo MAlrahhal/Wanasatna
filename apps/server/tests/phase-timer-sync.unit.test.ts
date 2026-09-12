@@ -26,10 +26,7 @@ import {
   WHO_WROTE_IT_PHASE_CHANGED_EVENT,
 } from '@wanasatna/shared';
 import { remainingSecondsFromDeadline } from '../src/modules/game/runtime/phase-deadline.js';
-import {
-  deleteGameShell,
-  replaceGameShellForTests,
-} from '../src/modules/game/game.service.js';
+import { deleteGameShell, replaceGameShellForTests } from '../src/modules/game/game.service.js';
 import { cleanupPluginMatchState } from '../src/modules/game/runtime/cleanup-plugin-match.js';
 import {
   bumpPhaseTimerGeneration,
@@ -57,7 +54,10 @@ import {
   startFastAnswerPhaseTimerIfNeeded,
   stopFastAnswerPhaseTimer,
 } from '../src/modules/game/plugins/fast-answer/phase-timer.js';
-import { setFastAnswerState } from '../src/modules/game/plugins/fast-answer/store.js';
+import {
+  getFastAnswerState,
+  setFastAnswerState,
+} from '../src/modules/game/plugins/fast-answer/store.js';
 import { buildFastAnswerPlayerView } from '../src/modules/game/plugins/fast-answer/state.js';
 import {
   startWhoWroteItPhaseTimerIfNeeded,
@@ -115,7 +115,11 @@ registerBaraPhaseExpiredHandler((io) => {
   io.to('x').emit(BARA_AL_SALAFA_PHASE_CHANGED_EVENT, {});
 });
 
-function makePlayingShell(roomId: string, gameId: string, playerIds = ['p1', 'p2', 'p3']): GameShellState {
+function makePlayingShell(
+  roomId: string,
+  gameId: string,
+  playerIds = ['p1', 'p2', 'p3'],
+): GameShellState {
   return {
     shellId: `shell-${roomId}`,
     roomId,
@@ -277,7 +281,8 @@ function makeFaMatch(deadlineAtMs: number): FastAnswerMatchState {
       categoryId: 'countries',
       acceptedAnswers: ['القاهرة'],
       deadlineAtMs,
-      winnerPlayerId: null,
+      correctAnswerPlayerIds: ['p1', 'p2'],
+      winnerPlayerId: 'p1',
       timedOut: false,
     },
   };
@@ -461,396 +466,421 @@ function makeTcMatch(deadlineAtMs: number): TimingChallengeMatchState {
 }
 
 async function main(): Promise<void> {
-await test('deadline helper derives remaining without server ticks', () => {
-  const deadline = 1_000_000 + 4500;
-  assert.equal(remainingSecondsFromDeadline(deadline, 1_000_000), 5);
-  assert.equal(remainingSecondsFromDeadline(deadline, 1_000_000 + 1200), 4);
-  assert.equal(remainingSecondsFromDeadline(null), 0);
-});
+  await test('deadline helper derives remaining without server ticks', () => {
+    const deadline = 1_000_000 + 4500;
+    assert.equal(remainingSecondsFromDeadline(deadline, 1_000_000), 5);
+    assert.equal(remainingSecondsFromDeadline(deadline, 1_000_000 + 1200), 4);
+    assert.equal(remainingSecondsFromDeadline(null), 0);
+  });
 
-await test('bara player view exposes deadlineAtMs for countdown', () => {
-  const deadline = Date.now() + 12_000;
-  const match = makeBaraMatch(deadline);
-  const view = buildBaraAlSalafaPlayerView(match, 'p1', makePlayingShell('room-bara-view', 'bara-al-salafa'));
-  assert.equal(view.deadlineAtMs, deadline);
-  assert.ok(view.phaseRemainingSeconds <= 12);
-  assert.ok(view.phaseRemainingSeconds >= 11);
-});
-
-await test('fast-answer player view exposes deadlineAtMs during question', () => {
-  const deadline = Date.now() + 15_000;
-  const match = makeFaMatch(deadline);
-  const view = buildFastAnswerPlayerView(match, 'p1', makePlayingShell('room-fa-view', 'fast-answer'));
-  assert.equal(view.deadlineAtMs, deadline);
-  assert.equal(view.questionDeadlineAtMs, deadline);
-});
-
-type TimerCase = {
-  name: string;
-  gameId: string;
-  event: string;
-  install: (roomId: string, deadlineAtMs: number) => void;
-  start: (io: Server, roomId: string) => void;
-  stop: (roomId: string) => void;
-  mutatePhase: (roomId: string) => void;
-};
-
-const cases: TimerCase[] = [
-  {
-    name: 'bara',
-    gameId: 'bara-al-salafa',
-    event: BARA_AL_SALAFA_PHASE_CHANGED_EVENT,
-    install: (roomId, deadlineAtMs) => setBaraAlSalafaState(roomId, makeBaraMatch(deadlineAtMs)),
-    start: startPhaseTimerIfNeeded,
-    stop: stopPhaseTimer,
-    mutatePhase: (roomId) => {
-      const match = makeBaraMatch(Date.now() + 60_000);
-      match.round.gamePhase = 'voting';
-      setBaraAlSalafaState(roomId, match);
-    },
-  },
-  {
-    name: 'draw-guess',
-    gameId: 'draw-guess',
-    event: DRAW_GUESS_PHASE_CHANGED_EVENT,
-    install: (roomId, deadlineAtMs) => setDrawGuessState(roomId, makeDrawMatch(deadlineAtMs)),
-    start: startDrawGuessPhaseTimerIfNeeded,
-    stop: stopDrawGuessPhaseTimer,
-    mutatePhase: (roomId) => {
-      const match = makeDrawMatch(Date.now() + 60_000);
-      match.round.gamePhase = 'round-results';
-      setDrawGuessState(roomId, match);
-    },
-  },
-  {
-    name: 'imposter-draw',
-    gameId: 'imposter-draw',
-    event: IMPOSTER_DRAW_PHASE_CHANGED_EVENT,
-    install: (roomId, deadlineAtMs) => setImposterDrawState(roomId, makeImposterMatch(deadlineAtMs)),
-    start: startImposterDrawPhaseTimerIfNeeded,
-    stop: stopImposterDrawPhaseTimer,
-    mutatePhase: (roomId) => {
-      const match = makeImposterMatch(Date.now() + 60_000);
-      match.round.gamePhase = 'voting';
-      setImposterDrawState(roomId, match);
-    },
-  },
-  {
-    name: 'fast-answer',
-    gameId: 'fast-answer',
-    event: FAST_ANSWER_PHASE_CHANGED_EVENT,
-    install: (roomId, deadlineAtMs) => setFastAnswerState(roomId, makeFaMatch(deadlineAtMs)),
-    start: startFastAnswerPhaseTimerIfNeeded,
-    stop: stopFastAnswerPhaseTimer,
-    mutatePhase: (roomId) => {
-      const match = makeFaMatch(Date.now() + 60_000);
-      match.round.gamePhase = 'round-results';
-      setFastAnswerState(roomId, match);
-    },
-  },
-  {
-    name: 'who-wrote-it',
-    gameId: 'who-wrote-it',
-    event: WHO_WROTE_IT_PHASE_CHANGED_EVENT,
-    install: (roomId, deadlineAtMs) => setWhoWroteItState(roomId, makeWwiMatch(deadlineAtMs)),
-    start: startWhoWroteItPhaseTimerIfNeeded,
-    stop: stopWhoWroteItPhaseTimer,
-    mutatePhase: (roomId) => {
-      const match = makeWwiMatch(Date.now() + 60_000);
-      match.round.gamePhase = 'round-results';
-      setWhoWroteItState(roomId, match);
-    },
-  },
-  {
-    name: 'judge',
-    gameId: 'judge',
-    event: JUDGE_PHASE_CHANGED_EVENT,
-    install: (roomId, deadlineAtMs) => setJudgeState(roomId, makeJudgeMatch(deadlineAtMs)),
-    start: startJudgePhaseTimerIfNeeded,
-    stop: stopJudgePhaseTimer,
-    mutatePhase: (roomId) => {
-      const match = makeJudgeMatch(Date.now() + 60_000);
-      match.round.gamePhase = 'round-results';
-      setJudgeState(roomId, match);
-    },
-  },
-  {
-    name: 'guessing-challenge',
-    gameId: 'guessing-challenge',
-    event: GUESSING_CHALLENGE_PHASE_CHANGED_EVENT,
-    install: (roomId, deadlineAtMs) => setGuessingChallengeState(roomId, makeGcMatch(deadlineAtMs)),
-    start: startGuessingChallengePhaseTimerIfNeeded,
-    stop: stopGuessingChallengePhaseTimer,
-    mutatePhase: (roomId) => {
-      const match = makeGcMatch(Date.now() + 60_000);
-      match.round.gamePhase = 'round-results';
-      setGuessingChallengeState(roomId, match);
-    },
-  },
-  {
-    name: 'timing-challenge',
-    gameId: 'timing-challenge',
-    event: TIMING_CHALLENGE_PHASE_CHANGED_EVENT,
-    install: (roomId, deadlineAtMs) => setTimingChallengeState(roomId, makeTcMatch(deadlineAtMs)),
-    start: startTimingChallengePhaseTimerIfNeeded,
-    stop: stopTimingChallengePhaseTimer,
-    mutatePhase: (roomId) => {
-      const match = makeTcMatch(Date.now() + 60_000);
-      match.round.gamePhase = 'round-results';
-      setTimingChallengeState(roomId, match);
-    },
-  },
-];
-
-await test('no 1Hz PHASE_CHANGED during a multi-second timed phase (all games)', async () => {
-  const runs = cases.map(async (timerCase) => {
-    const roomId = `room-${timerCase.name}-notick`;
-    const { io, events } = createFakeIo();
-    installShell(roomId, timerCase.gameId);
-    timerCase.install(roomId, Date.now() + 2500);
-    timerCase.start(io, roomId);
-    await sleep(1100);
-    const ticks = events.filter((event) => event.event === timerCase.event);
-    timerCase.stop(roomId);
-    cleanupRoom(roomId, timerCase.gameId);
-    assert.equal(
-      ticks.length,
-      0,
-      `${timerCase.name} emitted ${ticks.length} countdown PHASE_CHANGED events`,
+  await test('bara player view exposes deadlineAtMs for countdown', () => {
+    const deadline = Date.now() + 12_000;
+    const match = makeBaraMatch(deadline);
+    const view = buildBaraAlSalafaPlayerView(
+      match,
+      'p1',
+      makePlayingShell('room-bara-view', 'bara-al-salafa'),
     );
+    assert.equal(view.deadlineAtMs, deadline);
+    assert.ok(view.phaseRemainingSeconds <= 12);
+    assert.ok(view.phaseRemainingSeconds >= 11);
   });
 
-  await Promise.all(runs);
-});
-
-await test('stale expiry callback cannot mutate a newer phase (all games)', async () => {
-  const runs = cases.map(async (timerCase) => {
-    const roomId = `room-${timerCase.name}-stale`;
-    const { io, events } = createFakeIo();
-    installShell(roomId, timerCase.gameId);
-    timerCase.install(roomId, Date.now() + 80);
-    timerCase.start(io, roomId);
-    timerCase.mutatePhase(roomId);
-    await sleep(200);
-    const ticks = events.filter((event) => event.event === timerCase.event);
-    timerCase.stop(roomId);
-    cleanupRoom(roomId, timerCase.gameId);
-    assert.equal(ticks.length, 0, `${timerCase.name} stale timer emitted PHASE_CHANGED`);
+  await test('fast-answer player view exposes deadlineAtMs during question', () => {
+    const deadline = Date.now() + 15_000;
+    const match = makeFaMatch(deadline);
+    const view = buildFastAnswerPlayerView(
+      match,
+      'p1',
+      makePlayingShell('room-fa-view', 'fast-answer'),
+    );
+    assert.equal(view.deadlineAtMs, deadline);
+    assert.equal(view.questionDeadlineAtMs, deadline);
   });
 
-  await Promise.all(runs);
-});
+  type TimerCase = {
+    name: string;
+    gameId: string;
+    event: string;
+    install: (roomId: string, deadlineAtMs: number) => void;
+    start: (io: Server, roomId: string) => void;
+    stop: (roomId: string) => void;
+    mutatePhase: (roomId: string) => void;
+  };
 
-await test('early stop cancels expiry (host next / all acted) (all games)', async () => {
-  const runs = cases.map(async (timerCase) => {
-    const roomId = `room-${timerCase.name}-early`;
-    const { io, events } = createFakeIo();
-    installShell(roomId, timerCase.gameId);
-    timerCase.install(roomId, Date.now() + 80);
-    timerCase.start(io, roomId);
-    timerCase.stop(roomId);
-    await sleep(200);
-    const ticks = events.filter((event) => event.event === timerCase.event);
-    cleanupRoom(roomId, timerCase.gameId);
-    assert.equal(ticks.length, 0, `${timerCase.name} early-stop timer still fired`);
-  });
-
-  await Promise.all(runs);
-});
-
-await test('bara natural timeout emits PHASE_CHANGED once via expire handler', async () => {
-  const roomId = 'room-bara-expire';
-  const { io, events } = createFakeIo();
-  let expired = 0;
-  registerBaraPhaseExpiredHandler(() => {
-    expired += 1;
-    io.to('x').emit(BARA_AL_SALAFA_PHASE_CHANGED_EVENT, {});
-  });
-  installShell(roomId, 'bara-al-salafa');
-  setBaraAlSalafaState(roomId, makeBaraMatch(Date.now() + 80));
-  startPhaseTimerIfNeeded(io, roomId);
-  await sleep(200);
-  stopPhaseTimer(roomId);
-  cleanupRoom(roomId, 'bara-al-salafa');
-  registerBaraPhaseExpiredHandler(() => undefined);
-  assert.equal(expired, 1);
-  assert.equal(events.filter((event) => event.event === BARA_AL_SALAFA_PHASE_CHANGED_EVENT).length, 1);
-});
-
-await test('draw-guess natural timeout emits a real PHASE_CHANGED once', async () => {
-  const roomId = 'room-draw-expire';
-  const { io, events } = createFakeIo();
-  installShell(roomId, 'draw-guess');
-  setDrawGuessState(roomId, makeDrawMatch(Date.now() + 80));
-  startDrawGuessPhaseTimerIfNeeded(io, roomId);
-  await sleep(200);
-  const phaseEvents = events.filter((event) => event.event === DRAW_GUESS_PHASE_CHANGED_EVENT);
-  stopDrawGuessPhaseTimer(roomId);
-  cleanupRoom(roomId, 'draw-guess');
-  assert.equal(phaseEvents.length, 1);
-});
-
-await test('fast-answer natural timeout emits a real PHASE_CHANGED once', async () => {
-  const roomId = 'room-fa-expire';
-  const { io, events } = createFakeIo();
-  installShell(roomId, 'fast-answer');
-  setFastAnswerState(roomId, makeFaMatch(Date.now() + 80));
-  startFastAnswerPhaseTimerIfNeeded(io, roomId);
-  await sleep(200);
-  const phaseEvents = events.filter((event) => event.event === FAST_ANSWER_PHASE_CHANGED_EVENT);
-  stopFastAnswerPhaseTimer(roomId);
-  cleanupRoom(roomId, 'fast-answer');
-  assert.equal(phaseEvents.length, 1);
-});
-
-await test('who-wrote-it / judge / imposter / gc / timing natural timeout emit once', async () => {
-  const suites = [
+  const cases: TimerCase[] = [
     {
-      name: 'wwi',
+      name: 'bara',
+      gameId: 'bara-al-salafa',
+      event: BARA_AL_SALAFA_PHASE_CHANGED_EVENT,
+      install: (roomId, deadlineAtMs) => setBaraAlSalafaState(roomId, makeBaraMatch(deadlineAtMs)),
+      start: startPhaseTimerIfNeeded,
+      stop: stopPhaseTimer,
+      mutatePhase: (roomId) => {
+        const match = makeBaraMatch(Date.now() + 60_000);
+        match.round.gamePhase = 'voting';
+        setBaraAlSalafaState(roomId, match);
+      },
+    },
+    {
+      name: 'draw-guess',
+      gameId: 'draw-guess',
+      event: DRAW_GUESS_PHASE_CHANGED_EVENT,
+      install: (roomId, deadlineAtMs) => setDrawGuessState(roomId, makeDrawMatch(deadlineAtMs)),
+      start: startDrawGuessPhaseTimerIfNeeded,
+      stop: stopDrawGuessPhaseTimer,
+      mutatePhase: (roomId) => {
+        const match = makeDrawMatch(Date.now() + 60_000);
+        match.round.gamePhase = 'round-results';
+        setDrawGuessState(roomId, match);
+      },
+    },
+    {
+      name: 'imposter-draw',
+      gameId: 'imposter-draw',
+      event: IMPOSTER_DRAW_PHASE_CHANGED_EVENT,
+      install: (roomId, deadlineAtMs) =>
+        setImposterDrawState(roomId, makeImposterMatch(deadlineAtMs)),
+      start: startImposterDrawPhaseTimerIfNeeded,
+      stop: stopImposterDrawPhaseTimer,
+      mutatePhase: (roomId) => {
+        const match = makeImposterMatch(Date.now() + 60_000);
+        match.round.gamePhase = 'voting';
+        setImposterDrawState(roomId, match);
+      },
+    },
+    {
+      name: 'fast-answer',
+      gameId: 'fast-answer',
+      event: FAST_ANSWER_PHASE_CHANGED_EVENT,
+      install: (roomId, deadlineAtMs) => setFastAnswerState(roomId, makeFaMatch(deadlineAtMs)),
+      start: startFastAnswerPhaseTimerIfNeeded,
+      stop: stopFastAnswerPhaseTimer,
+      mutatePhase: (roomId) => {
+        const match = makeFaMatch(Date.now() + 60_000);
+        match.round.gamePhase = 'round-results';
+        setFastAnswerState(roomId, match);
+      },
+    },
+    {
+      name: 'who-wrote-it',
       gameId: 'who-wrote-it',
       event: WHO_WROTE_IT_PHASE_CHANGED_EVENT,
-      install: setWhoWroteItState,
-      make: makeWwiMatch,
+      install: (roomId, deadlineAtMs) => setWhoWroteItState(roomId, makeWwiMatch(deadlineAtMs)),
       start: startWhoWroteItPhaseTimerIfNeeded,
       stop: stopWhoWroteItPhaseTimer,
+      mutatePhase: (roomId) => {
+        const match = makeWwiMatch(Date.now() + 60_000);
+        match.round.gamePhase = 'round-results';
+        setWhoWroteItState(roomId, match);
+      },
     },
     {
       name: 'judge',
       gameId: 'judge',
       event: JUDGE_PHASE_CHANGED_EVENT,
-      install: setJudgeState,
-      make: makeJudgeMatch,
+      install: (roomId, deadlineAtMs) => setJudgeState(roomId, makeJudgeMatch(deadlineAtMs)),
       start: startJudgePhaseTimerIfNeeded,
       stop: stopJudgePhaseTimer,
+      mutatePhase: (roomId) => {
+        const match = makeJudgeMatch(Date.now() + 60_000);
+        match.round.gamePhase = 'round-results';
+        setJudgeState(roomId, match);
+      },
     },
     {
-      name: 'imposter',
-      gameId: 'imposter-draw',
-      event: IMPOSTER_DRAW_PHASE_CHANGED_EVENT,
-      install: setImposterDrawState,
-      make: makeImposterMatch,
-      start: startImposterDrawPhaseTimerIfNeeded,
-      stop: stopImposterDrawPhaseTimer,
-    },
-    {
-      name: 'gc',
+      name: 'guessing-challenge',
       gameId: 'guessing-challenge',
       event: GUESSING_CHALLENGE_PHASE_CHANGED_EVENT,
-      install: setGuessingChallengeState,
-      make: makeGcMatch,
+      install: (roomId, deadlineAtMs) =>
+        setGuessingChallengeState(roomId, makeGcMatch(deadlineAtMs)),
       start: startGuessingChallengePhaseTimerIfNeeded,
       stop: stopGuessingChallengePhaseTimer,
+      mutatePhase: (roomId) => {
+        const match = makeGcMatch(Date.now() + 60_000);
+        match.round.gamePhase = 'round-results';
+        setGuessingChallengeState(roomId, match);
+      },
     },
     {
-      name: 'tc',
+      name: 'timing-challenge',
       gameId: 'timing-challenge',
       event: TIMING_CHALLENGE_PHASE_CHANGED_EVENT,
-      install: setTimingChallengeState,
-      make: makeTcMatch,
+      install: (roomId, deadlineAtMs) => setTimingChallengeState(roomId, makeTcMatch(deadlineAtMs)),
       start: startTimingChallengePhaseTimerIfNeeded,
       stop: stopTimingChallengePhaseTimer,
+      mutatePhase: (roomId) => {
+        const match = makeTcMatch(Date.now() + 60_000);
+        match.round.gamePhase = 'round-results';
+        setTimingChallengeState(roomId, match);
+      },
     },
-  ] as const;
+  ];
 
-  for (const suite of suites) {
-    const roomId = `room-${suite.name}-expire`;
+  await test('no 1Hz PHASE_CHANGED during a multi-second timed phase (all games)', async () => {
+    const runs = cases.map(async (timerCase) => {
+      const roomId = `room-${timerCase.name}-notick`;
+      const { io, events } = createFakeIo();
+      installShell(roomId, timerCase.gameId);
+      timerCase.install(roomId, Date.now() + 2500);
+      timerCase.start(io, roomId);
+      await sleep(1100);
+      const ticks = events.filter((event) => event.event === timerCase.event);
+      timerCase.stop(roomId);
+      cleanupRoom(roomId, timerCase.gameId);
+      assert.equal(
+        ticks.length,
+        0,
+        `${timerCase.name} emitted ${ticks.length} countdown PHASE_CHANGED events`,
+      );
+    });
+
+    await Promise.all(runs);
+  });
+
+  await test('stale expiry callback cannot mutate a newer phase (all games)', async () => {
+    const runs = cases.map(async (timerCase) => {
+      const roomId = `room-${timerCase.name}-stale`;
+      const { io, events } = createFakeIo();
+      installShell(roomId, timerCase.gameId);
+      timerCase.install(roomId, Date.now() + 80);
+      timerCase.start(io, roomId);
+      timerCase.mutatePhase(roomId);
+      await sleep(200);
+      const ticks = events.filter((event) => event.event === timerCase.event);
+      timerCase.stop(roomId);
+      cleanupRoom(roomId, timerCase.gameId);
+      assert.equal(ticks.length, 0, `${timerCase.name} stale timer emitted PHASE_CHANGED`);
+    });
+
+    await Promise.all(runs);
+  });
+
+  await test('early stop cancels expiry (host next / all acted) (all games)', async () => {
+    const runs = cases.map(async (timerCase) => {
+      const roomId = `room-${timerCase.name}-early`;
+      const { io, events } = createFakeIo();
+      installShell(roomId, timerCase.gameId);
+      timerCase.install(roomId, Date.now() + 80);
+      timerCase.start(io, roomId);
+      timerCase.stop(roomId);
+      await sleep(200);
+      const ticks = events.filter((event) => event.event === timerCase.event);
+      cleanupRoom(roomId, timerCase.gameId);
+      assert.equal(ticks.length, 0, `${timerCase.name} early-stop timer still fired`);
+    });
+
+    await Promise.all(runs);
+  });
+
+  await test('bara natural timeout emits PHASE_CHANGED once via expire handler', async () => {
+    const roomId = 'room-bara-expire';
     const { io, events } = createFakeIo();
-    installShell(roomId, suite.gameId);
-    suite.install(roomId, suite.make(Date.now() + 80));
-    suite.start(io, roomId);
+    let expired = 0;
+    registerBaraPhaseExpiredHandler(() => {
+      expired += 1;
+      io.to('x').emit(BARA_AL_SALAFA_PHASE_CHANGED_EVENT, {});
+    });
+    installShell(roomId, 'bara-al-salafa');
+    setBaraAlSalafaState(roomId, makeBaraMatch(Date.now() + 80));
+    startPhaseTimerIfNeeded(io, roomId);
     await sleep(200);
-    const phaseEvents = events.filter((event) => event.event === suite.event);
-    suite.stop(roomId);
-    cleanupRoom(roomId, suite.gameId);
-    assert.ok(phaseEvents.length >= 1, `${suite.name} natural expiry emitted no PHASE_CHANGED`);
-    assert.ok(phaseEvents.length <= 2, `${suite.name} natural expiry over-emitted (${phaseEvents.length})`);
+    stopPhaseTimer(roomId);
+    cleanupRoom(roomId, 'bara-al-salafa');
+    registerBaraPhaseExpiredHandler(() => undefined);
+    assert.equal(expired, 1);
+    assert.equal(
+      events.filter((event) => event.event === BARA_AL_SALAFA_PHASE_CHANGED_EVENT).length,
+      1,
+    );
+  });
+
+  await test('draw-guess natural timeout emits a real PHASE_CHANGED once', async () => {
+    const roomId = 'room-draw-expire';
+    const { io, events } = createFakeIo();
+    installShell(roomId, 'draw-guess');
+    setDrawGuessState(roomId, makeDrawMatch(Date.now() + 80));
+    startDrawGuessPhaseTimerIfNeeded(io, roomId);
+    await sleep(200);
+    const phaseEvents = events.filter((event) => event.event === DRAW_GUESS_PHASE_CHANGED_EVENT);
+    stopDrawGuessPhaseTimer(roomId);
+    cleanupRoom(roomId, 'draw-guess');
+    assert.equal(phaseEvents.length, 1);
+  });
+
+  await test('fast-answer timeout ends with partial placement scores and emits once', async () => {
+    const roomId = 'room-fa-expire';
+    const { io, events } = createFakeIo();
+    installShell(roomId, 'fast-answer');
+    setFastAnswerState(roomId, makeFaMatch(Date.now() + 80));
+    startFastAnswerPhaseTimerIfNeeded(io, roomId);
+    await sleep(200);
+    const phaseEvents = events.filter((event) => event.event === FAST_ANSWER_PHASE_CHANGED_EVENT);
+    const result = getFastAnswerState(roomId);
+    stopFastAnswerPhaseTimer(roomId);
+    cleanupRoom(roomId, 'fast-answer');
+    assert.equal(phaseEvents.length, 1);
+    assert.equal(result?.round.gamePhase, 'round-results');
+    assert.equal(result?.round.timedOut, true);
+    assert.equal(result?.scores.p1, 100);
+    assert.equal(result?.scores.p2, 75);
+    assert.equal(result?.scores.p3, 0);
+  });
+
+  await test('who-wrote-it / judge / imposter / gc / timing natural timeout emit once', async () => {
+    const suites = [
+      {
+        name: 'wwi',
+        gameId: 'who-wrote-it',
+        event: WHO_WROTE_IT_PHASE_CHANGED_EVENT,
+        install: setWhoWroteItState,
+        make: makeWwiMatch,
+        start: startWhoWroteItPhaseTimerIfNeeded,
+        stop: stopWhoWroteItPhaseTimer,
+      },
+      {
+        name: 'judge',
+        gameId: 'judge',
+        event: JUDGE_PHASE_CHANGED_EVENT,
+        install: setJudgeState,
+        make: makeJudgeMatch,
+        start: startJudgePhaseTimerIfNeeded,
+        stop: stopJudgePhaseTimer,
+      },
+      {
+        name: 'imposter',
+        gameId: 'imposter-draw',
+        event: IMPOSTER_DRAW_PHASE_CHANGED_EVENT,
+        install: setImposterDrawState,
+        make: makeImposterMatch,
+        start: startImposterDrawPhaseTimerIfNeeded,
+        stop: stopImposterDrawPhaseTimer,
+      },
+      {
+        name: 'gc',
+        gameId: 'guessing-challenge',
+        event: GUESSING_CHALLENGE_PHASE_CHANGED_EVENT,
+        install: setGuessingChallengeState,
+        make: makeGcMatch,
+        start: startGuessingChallengePhaseTimerIfNeeded,
+        stop: stopGuessingChallengePhaseTimer,
+      },
+      {
+        name: 'tc',
+        gameId: 'timing-challenge',
+        event: TIMING_CHALLENGE_PHASE_CHANGED_EVENT,
+        install: setTimingChallengeState,
+        make: makeTcMatch,
+        start: startTimingChallengePhaseTimerIfNeeded,
+        stop: stopTimingChallengePhaseTimer,
+      },
+    ] as const;
+
+    for (const suite of suites) {
+      const roomId = `room-${suite.name}-expire`;
+      const { io, events } = createFakeIo();
+      installShell(roomId, suite.gameId);
+      suite.install(roomId, suite.make(Date.now() + 80));
+      suite.start(io, roomId);
+      await sleep(200);
+      const phaseEvents = events.filter((event) => event.event === suite.event);
+      suite.stop(roomId);
+      cleanupRoom(roomId, suite.gameId);
+      assert.ok(phaseEvents.length >= 1, `${suite.name} natural expiry emitted no PHASE_CHANGED`);
+      assert.ok(
+        phaseEvents.length <= 2,
+        `${suite.name} natural expiry over-emitted (${phaseEvents.length})`,
+      );
+    }
+  });
+
+  await test('Game A timer cannot fire after Game A → Game B cleanup', async () => {
+    const roomId = 'room-cross-game';
+    const { io, events } = createFakeIo();
+    let baraExpired = 0;
+    registerBaraPhaseExpiredHandler(() => {
+      baraExpired += 1;
+    });
+    installShell(roomId, 'bara-al-salafa');
+    setBaraAlSalafaState(roomId, makeBaraMatch(Date.now() + 80));
+    startPhaseTimerIfNeeded(io, roomId);
+    cleanupPluginMatchState(roomId, 'bara-al-salafa');
+    installShell(roomId, 'draw-guess');
+    setDrawGuessState(roomId, makeDrawMatch(Date.now() + 5_000));
+    startDrawGuessPhaseTimerIfNeeded(io, roomId);
+    await sleep(200);
+    stopDrawGuessPhaseTimer(roomId);
+    cleanupRoom(roomId, 'draw-guess');
+    registerBaraPhaseExpiredHandler(() => undefined);
+    assert.equal(baraExpired, 0);
+    assert.equal(
+      events.filter((event) => event.event === BARA_AL_SALAFA_PHASE_CHANGED_EVENT).length,
+      0,
+    );
+  });
+
+  await test('bara generation bump ignores a previously scheduled timeout', async () => {
+    const roomId = 'room-bara-gen';
+    const { io } = createFakeIo();
+    let expired = 0;
+    registerBaraPhaseExpiredHandler(() => {
+      expired += 1;
+    });
+    installShell(roomId, 'bara-al-salafa');
+    setBaraAlSalafaState(roomId, makeBaraMatch(Date.now() + 80));
+    startPhaseTimerIfNeeded(io, roomId);
+    bumpPhaseTimerGeneration(roomId);
+    await sleep(200);
+    stopPhaseTimer(roomId);
+    cleanupRoom(roomId, 'bara-al-salafa');
+    registerBaraPhaseExpiredHandler(() => undefined);
+    assert.equal(expired, 0);
+  });
+
+  await test('draw-guess restart after host continue cannot double-fire old drawing timer', async () => {
+    const roomId = 'room-draw-restart';
+    const { io, events } = createFakeIo();
+    installShell(roomId, 'draw-guess');
+    setDrawGuessState(roomId, makeDrawMatch(Date.now() + 80));
+    startDrawGuessPhaseTimerIfNeeded(io, roomId);
+    const next = makeDrawMatch(Date.now() + 5_000);
+    next.round.gamePhase = 'round-results';
+    next.round.turnId = 'turn-b';
+    setDrawGuessState(roomId, next);
+    restartDrawGuessPhaseTimer(io, roomId);
+    await sleep(200);
+    stopDrawGuessPhaseTimer(roomId);
+    cleanupRoom(roomId, 'draw-guess');
+    assert.equal(
+      events.filter((event) => event.event === DRAW_GUESS_PHASE_CHANGED_EVENT).length,
+      0,
+    );
+  });
+
+  await test('reconnect/SYNC derives remaining from deadline without tick catch-up', () => {
+    const deadline = Date.now() + 10_000;
+    const match = makeBaraMatch(deadline);
+    const syncedNow = Date.now();
+    const remainingAtReconnect = remainingSecondsFromDeadline(deadline, syncedNow);
+    const remainingLater = remainingSecondsFromDeadline(deadline, syncedNow + 1500);
+    assert.ok(remainingAtReconnect >= 9);
+    assert.ok(remainingLater < remainingAtReconnect);
+
+    const playerView = buildBaraAlSalafaPlayerView(
+      match,
+      'p1',
+      makePlayingShell('room-reconnect', 'bara-al-salafa'),
+    );
+    const spectatorView = buildBaraAlSalafaSpectatorView(match);
+    assert.equal(playerView.deadlineAtMs, deadline);
+    assert.equal(spectatorView.deadlineAtMs, deadline);
+    assert.equal(spectatorView.isMatchSpectator, true);
+  });
+
+  console.log(`\n${passed} passed, ${failed} failed`);
+  if (failed > 0) {
+    process.exitCode = 1;
   }
-});
-
-await test('Game A timer cannot fire after Game A → Game B cleanup', async () => {
-  const roomId = 'room-cross-game';
-  const { io, events } = createFakeIo();
-  let baraExpired = 0;
-  registerBaraPhaseExpiredHandler(() => {
-    baraExpired += 1;
-  });
-  installShell(roomId, 'bara-al-salafa');
-  setBaraAlSalafaState(roomId, makeBaraMatch(Date.now() + 80));
-  startPhaseTimerIfNeeded(io, roomId);
-  cleanupPluginMatchState(roomId, 'bara-al-salafa');
-  installShell(roomId, 'draw-guess');
-  setDrawGuessState(roomId, makeDrawMatch(Date.now() + 5_000));
-  startDrawGuessPhaseTimerIfNeeded(io, roomId);
-  await sleep(200);
-  stopDrawGuessPhaseTimer(roomId);
-  cleanupRoom(roomId, 'draw-guess');
-  registerBaraPhaseExpiredHandler(() => undefined);
-  assert.equal(baraExpired, 0);
-  assert.equal(
-    events.filter((event) => event.event === BARA_AL_SALAFA_PHASE_CHANGED_EVENT).length,
-    0,
-  );
-});
-
-await test('bara generation bump ignores a previously scheduled timeout', async () => {
-  const roomId = 'room-bara-gen';
-  const { io } = createFakeIo();
-  let expired = 0;
-  registerBaraPhaseExpiredHandler(() => {
-    expired += 1;
-  });
-  installShell(roomId, 'bara-al-salafa');
-  setBaraAlSalafaState(roomId, makeBaraMatch(Date.now() + 80));
-  startPhaseTimerIfNeeded(io, roomId);
-  bumpPhaseTimerGeneration(roomId);
-  await sleep(200);
-  stopPhaseTimer(roomId);
-  cleanupRoom(roomId, 'bara-al-salafa');
-  registerBaraPhaseExpiredHandler(() => undefined);
-  assert.equal(expired, 0);
-});
-
-await test('draw-guess restart after host continue cannot double-fire old drawing timer', async () => {
-  const roomId = 'room-draw-restart';
-  const { io, events } = createFakeIo();
-  installShell(roomId, 'draw-guess');
-  setDrawGuessState(roomId, makeDrawMatch(Date.now() + 80));
-  startDrawGuessPhaseTimerIfNeeded(io, roomId);
-  const next = makeDrawMatch(Date.now() + 5_000);
-  next.round.gamePhase = 'round-results';
-  next.round.turnId = 'turn-b';
-  setDrawGuessState(roomId, next);
-  restartDrawGuessPhaseTimer(io, roomId);
-  await sleep(200);
-  stopDrawGuessPhaseTimer(roomId);
-  cleanupRoom(roomId, 'draw-guess');
-  assert.equal(events.filter((event) => event.event === DRAW_GUESS_PHASE_CHANGED_EVENT).length, 0);
-});
-
-await test('reconnect/SYNC derives remaining from deadline without tick catch-up', () => {
-  const deadline = Date.now() + 10_000;
-  const match = makeBaraMatch(deadline);
-  const syncedNow = Date.now();
-  const remainingAtReconnect = remainingSecondsFromDeadline(deadline, syncedNow);
-  const remainingLater = remainingSecondsFromDeadline(deadline, syncedNow + 1500);
-  assert.ok(remainingAtReconnect >= 9);
-  assert.ok(remainingLater < remainingAtReconnect);
-
-  const playerView = buildBaraAlSalafaPlayerView(
-    match,
-    'p1',
-    makePlayingShell('room-reconnect', 'bara-al-salafa'),
-  );
-  const spectatorView = buildBaraAlSalafaSpectatorView(match);
-  assert.equal(playerView.deadlineAtMs, deadline);
-  assert.equal(spectatorView.deadlineAtMs, deadline);
-  assert.equal(spectatorView.isMatchSpectator, true);
-});
-
-console.log(`\n${passed} passed, ${failed} failed`);
-if (failed > 0) {
-  process.exitCode = 1;
-}
 }
 
 void main();

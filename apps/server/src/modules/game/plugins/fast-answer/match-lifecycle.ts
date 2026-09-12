@@ -15,11 +15,7 @@ import {
   clearFastAnswerPhaseTimerRuntime,
 } from './phase-timer.js';
 import { applyRoundScores } from './scoring.js';
-import {
-  appendRecentQuestionId,
-  createRoundState,
-  withRound,
-} from './state.js';
+import { appendRecentQuestionId, createRoundState, withRound } from './state.js';
 import { deleteFastAnswerState, getFastAnswerState, setFastAnswerState } from './store.js';
 
 function broadcastPhaseChanged(io: Server, roomId: string): void {
@@ -52,15 +48,17 @@ export function finalizeQuestionRound(
   io: Server,
   roomId: string,
   match: FastAnswerMatchState,
-  outcome: { winnerPlayerId: string | null; timedOut: boolean },
+  outcome: { timedOut: boolean },
 ): FastAnswerMatchState {
-  if (match.round.gamePhase !== 'question') {
-    return match;
+  const current = getFastAnswerState(roomId) ?? match;
+
+  if (current.round.roundId !== match.round.roundId || current.round.gamePhase !== 'question') {
+    return current;
   }
 
-  const endedMatch = withRound(match, {
-    ...match.round,
-    winnerPlayerId: outcome.winnerPlayerId,
+  const endedMatch = withRound(current, {
+    ...current.round,
+    winnerPlayerId: current.round.correctAnswerPlayerIds[0] ?? null,
     timedOut: outcome.timedOut,
     phaseRemainingSeconds: 0,
     deadlineAtMs: null,
@@ -166,16 +164,20 @@ export function continueFromRoundResults(
 }
 
 export function completeMatch(io: Server, roomId: string): void {
-  persistCompletedMatchThen(roomId, () => {
-    clearFastAnswerPhaseTimerRuntime(roomId);
-    deleteFastAnswerState(roomId);
-    clearRoomRoundCategory(roomId);
+  persistCompletedMatchThen(
+    roomId,
+    () => {
+      clearFastAnswerPhaseTimerRuntime(roomId);
+      deleteFastAnswerState(roomId);
+      clearRoomRoundCategory(roomId);
 
-    const shell = getGameShellByRoomId(roomId);
-    if (!shell) {
-      return;
-    }
+      const shell = getGameShellByRoomId(roomId);
+      if (!shell) {
+        return;
+      }
 
-    teardownShellAndReturnToLobby(io, roomId);
-  }, io);
+      teardownShellAndReturnToLobby(io, roomId);
+    },
+    io,
+  );
 }

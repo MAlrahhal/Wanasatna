@@ -12,7 +12,11 @@ import { GameHeader } from '@/components/game/game-header';
 import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
-import { GameSystemError, GameSystemLoading, SpectatorNotice } from '@/components/room/room-system-state';
+import {
+  GameSystemError,
+  GameSystemLoading,
+  SpectatorNotice,
+} from '@/components/room/room-system-state';
 import { FAST_ANSWER_GAME_ICON, FAST_ANSWER_GAME_NAME } from '@/lib/game/fast-answer-brand';
 import { toExperienceTimer } from '@/lib/game/deadline-clock';
 import { mapFastAnswerLeaderboard } from '@/lib/game/map-fast-answer-leaderboard';
@@ -90,9 +94,7 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
           ? 'round-results'
           : 'gameplay',
       phaseLabel: activeView.isMatchSpectator ? SYSTEM_COPY.spectatorTitle : activeView.phaseLabel,
-      categoryLabel: activeView.categoryLabel
-        ? `الفئة: ${activeView.categoryLabel}`
-        : undefined,
+      categoryLabel: activeView.categoryLabel ? `الفئة: ${activeView.categoryLabel}` : undefined,
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
       timer: VISIBLE_TIMER_PHASES.has(activeView.gamePhase)
@@ -177,7 +179,9 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
         returnStatusMessage={
           isHost && (isMatchCompletedPhase || shellFinished) ? null : autoReturnMessage
         }
-        autoReturnDeadlineAtMs={isMatchCompletedPhase ? activeFinalResultsView.deadlineAtMs : undefined}
+        autoReturnDeadlineAtMs={
+          isMatchCompletedPhase ? activeFinalResultsView.deadlineAtMs : undefined
+        }
         autoReturnTotalSeconds={
           isMatchCompletedPhase ? MATCH_FINAL_RESULTS_AUTO_LOBBY_SECONDS : undefined
         }
@@ -259,6 +263,8 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
         question={view.question}
         canSubmit={view.canSubmitAnswer}
         isSubmitting={isSubmittingAction}
+        correctPlacement={view.correctAnswerPlacement}
+        correctPoints={view.correctAnswerPoints}
         incorrectFeedback={incorrectFeedback}
         actionError={actionError}
         onSubmit={(answer) => void submitAnswer(answer)}
@@ -290,9 +296,7 @@ export function FastAnswerGameScreen(_props: GamePluginScreenProps) {
               : undefined
           }
         />
-        {actionError ? (
-          <p className="text-center text-sm text-destructive">{actionError}</p>
-        ) : null}
+        {actionError ? <p className="text-destructive text-center text-sm">{actionError}</p> : null}
       </div>
     );
   }

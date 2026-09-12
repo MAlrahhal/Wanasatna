@@ -63,10 +63,7 @@ const GUIDES: Record<PlayableGameId, HowToPlayGuide> = {
         'الباقين يكتبون تخميناتهم من الرسمة.',
         'أول واحد يخمن صح يفوز بالجولة.',
       ]),
-      section('roles', [
-        'الرسّام: يرسم الكلمة، وما يقدر يخمن.',
-        'الباقين: يشوفون الرسمة ويخمنون.',
-      ]),
+      section('roles', ['الرسّام: يرسم الكلمة، وما يقدر يخمن.', 'الباقين: يشوفون الرسمة ويخمنون.']),
       section('scoring', [
         'اللي خمّن صح يأخذ 100، والرسّام بعد يأخذ 100.',
         'إذا ما أحد خمّن صح، ما فيه نقاط هالجولة.',
@@ -118,13 +115,18 @@ const GUIDES: Record<PlayableGameId, HowToPlayGuide> = {
     gameId: 'fast-answer',
     title: 'أسرع إجابة',
     sections: [
-      section('idea', ['سؤال يطلع للكل، وأول واحد يجيب صح يفوز بالجولة.']),
+      section('idea', ['سؤال يطلع للكل، وكل إجابة صحيحة تحصل على نقاط حسب ترتيبها.']),
       section('howToPlay', [
         'يطلع السؤال قدام الجميع.',
         'اكتب إجابتك بأسرع ما تقدر.',
-        'إذا غلطت، تقدر تحاول مرة ثانية لين أحد يصيب.',
+        'إذا غلطت، تقدر تحاول مرة ثانية حتى تجيب صح أو ينتهي الوقت.',
+        'بعد إجابتك الصحيحة تثبت نتيجتك، وتستمر الجولة لبقية اللاعبين.',
       ]),
-      section('scoring', ['أول إجابة صحيحة تأخذ 100. الباقين ما يأخذون شيء هالجولة.']),
+      section('scoring', [
+        'الأول 100، الثاني 75، الثالث 50، وكل إجابة صحيحة بعدها 25 نقطة.',
+        'الإجابة الخاطئة أو عدم الإجابة الصحيحة قبل انتهاء الوقت تعطي 0 نقطة.',
+        'تنتهي الجولة عندما يجيب كل اللاعبين النشطين صح أو ينتهي الوقت.',
+      ]),
     ],
   },
   'who-wrote-it': {
@@ -195,7 +197,9 @@ export function getHowToPlayGuide(gameId: string | null | undefined): HowToPlayG
 }
 
 export function flattenHowToPlayText(guide: HowToPlayGuide): string {
-  return [guide.title, ...guide.sections.flatMap((entry) => [entry.title, ...entry.lines])].join('\n');
+  return [guide.title, ...guide.sections.flatMap((entry) => [entry.title, ...entry.lines])].join(
+    '\n',
+  );
 }
 
 export function listHowToPlayGameIds(): readonly PlayableGameId[] {

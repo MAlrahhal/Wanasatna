@@ -23,6 +23,8 @@ export type FastAnswerRoundState = {
   /** Server-only during question phase — never leak via player view while open. */
   acceptedAnswers: string[];
   deadlineAtMs: number | null;
+  /** Server-authoritative correct-answer order for this round. */
+  correctAnswerPlayerIds: string[];
   winnerPlayerId: string | null;
   timedOut: boolean;
 };
@@ -56,6 +58,7 @@ export type FastAnswerRoundResultEntry = {
   name: string;
   roundPoints: number;
   totalPoints: number;
+  placement: number | null;
   isWinner: boolean;
 };
 
@@ -73,6 +76,9 @@ export type FastAnswerPlayerView = {
   totalRounds: number;
   matchStatus: 'in-progress' | 'completed';
   canSubmitAnswer: boolean;
+  hasAnsweredCorrectly: boolean;
+  correctAnswerPlacement: number | null;
+  correctAnswerPoints: number;
   revealedAnswer: string | null;
   winnerPlayerId: string | null;
   winnerName: string | null;

@@ -42,7 +42,7 @@ export const GAME_SELECTION_GUIDE_ROWS: readonly GameSelectionRow[] = [
     title: 'أسرع إجابة',
     players: '٢–٨',
     style: 'أسئلة وكتابة',
-    note: 'أول إجابة صحيحة تأخذ الجولة.',
+    note: 'كل إجابة صحيحة تكسب نقاطاً حسب ترتيبها.',
   },
   {
     id: 'who-wrote-it',

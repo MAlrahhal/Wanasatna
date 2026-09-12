@@ -28,6 +28,8 @@ import {
   buildLeaderboardEntries,
   buildResultsLeaderboardEntries,
   buildRoundResultEntries,
+  computePlayerRoundPoints,
+  correctAnswerPlacement,
 } from './scoring.js';
 
 const PHASE_LABELS = {
@@ -64,7 +66,10 @@ export function withRound(
   return { ...match, round };
 }
 
-export function remainingSecondsFromDeadline(deadlineAtMs: number | null, now = Date.now()): number {
+export function remainingSecondsFromDeadline(
+  deadlineAtMs: number | null,
+  now = Date.now(),
+): number {
   if (deadlineAtMs === null) {
     return 0;
   }
@@ -101,6 +106,7 @@ export function createRoundState(
       categoryId: roundCategoryId,
       acceptedAnswers: question.acceptedAnswers,
       deadlineAtMs,
+      correctAnswerPlayerIds: [],
       winnerPlayerId: null,
       timedOut: false,
     },
@@ -164,6 +170,19 @@ export function getConnectedParticipantIds(
   return match.playerIds.filter((playerId) => connected.has(playerId));
 }
 
+export function haveAllActiveEligiblePlayersAnsweredCorrectly(
+  match: FastAnswerMatchState,
+  shell: GameShellState,
+): boolean {
+  const activePlayerIds = getConnectedParticipantIds(match, shell);
+  const correctPlayerIds = new Set(match.round.correctAnswerPlayerIds);
+
+  return (
+    activePlayerIds.length > 0 &&
+    activePlayerIds.every((playerId) => correctPlayerIds.has(playerId))
+  );
+}
+
 export function buildFastAnswerPlayerView(
   match: FastAnswerMatchState,
   playerId: string,
@@ -173,6 +192,7 @@ export function buildFastAnswerPlayerView(
   const revealed = phase === 'round-results' || phase === 'match-completed';
   const isParticipant = match.playerIds.includes(playerId);
   const isMatchSpectator = !isParticipant;
+  const correctPlacement = isParticipant ? correctAnswerPlacement(match, playerId) : null;
   const phaseRemainingSeconds = match.round.deadlineAtMs
     ? remainingSecondsFromDeadline(match.round.deadlineAtMs)
     : match.round.phaseRemainingSeconds;
@@ -192,8 +212,10 @@ export function buildFastAnswerPlayerView(
     currentRound: match.currentRound,
     totalRounds: match.totalRounds,
     matchStatus: match.matchStatus,
-    canSubmitAnswer:
-      isParticipant && phase === 'question' && match.round.winnerPlayerId === null,
+    canSubmitAnswer: isParticipant && phase === 'question' && correctPlacement === null,
+    hasAnsweredCorrectly: correctPlacement !== null,
+    correctAnswerPlacement: correctPlacement,
+    correctAnswerPoints: correctPlacement === null ? 0 : computePlayerRoundPoints(match, playerId),
     revealedAnswer: revealed ? revealPrimaryAnswer(match.round.acceptedAnswers) : null,
     winnerPlayerId: revealed ? match.round.winnerPlayerId : null,
     winnerName:
@@ -236,7 +258,7 @@ export function buildFastAnswerPlayerView(
 }
 
 /**
- * Synchronously claim the round for the first correct answerer.
+ * Synchronously append a player's correct answer to the authoritative placement order.
  * Must not await anything before reading/writing state.
  */
 export function tryAcceptCorrectAnswer(
@@ -244,7 +266,12 @@ export function tryAcceptCorrectAnswer(
   setMatch: (match: FastAnswerMatchState) => void,
   playerId: string,
   roundId: string,
-): { accepted: boolean; match: FastAnswerMatchState | null; reason?: 'stale' | 'closed' } {
+): {
+  accepted: boolean;
+  match: FastAnswerMatchState | null;
+  placement?: number;
+  reason?: 'stale' | 'closed' | 'duplicate';
+} {
   const match = getMatch();
 
   if (!match || match.round.gamePhase !== 'question') {
@@ -255,16 +282,18 @@ export function tryAcceptCorrectAnswer(
     return { accepted: false, match, reason: 'stale' };
   }
 
-  if (match.round.winnerPlayerId !== null) {
-    return { accepted: false, match, reason: 'closed' };
+  if (match.round.correctAnswerPlayerIds.includes(playerId)) {
+    return { accepted: false, match, reason: 'duplicate' };
   }
 
+  const correctAnswerPlayerIds = [...match.round.correctAnswerPlayerIds, playerId];
   const nextMatch = withRound(match, {
     ...match.round,
-    winnerPlayerId: playerId,
+    correctAnswerPlayerIds,
+    winnerPlayerId: match.round.winnerPlayerId ?? playerId,
     timedOut: false,
   });
 
   setMatch(nextMatch);
-  return { accepted: true, match: nextMatch };
+  return { accepted: true, match: nextMatch, placement: correctAnswerPlayerIds.length };
 }

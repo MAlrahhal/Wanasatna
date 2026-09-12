@@ -104,6 +104,13 @@ test('text-entry games use mobile sticky submit without changing handlers', () =
   assert.match(fast, /GameMobileStickyCta/);
   assert.match(fast, /shouldAutofocusFormField/);
   assert.match(fast, /onSubmit\(trimmed\)/);
+  assert.match(fast, /تستمر الجولة حتى يجيب جميع اللاعبين إجابة صحيحة أو ينتهي الوقت/);
+  assert.match(fast, /المركز الأول — \$\{points\} نقطة/);
+  assert.match(fast, /المركز الثاني — \$\{points\} نقطة/);
+  assert.match(fast, /المركز الثالث — \$\{points\} نقطة/);
+  assert.match(fast, /إجابة صحيحة — \$\{points\} نقطة/);
+  assert.match(fast, /تم تثبيت نتيجتك لهذه الجولة/);
+  assert.match(fast, /data-testid="fast-answer-placement"/);
   assert.match(who, /GameMobileStickyCta/);
   assert.match(who, /onSubmit\(trimmed\)/);
   assert.match(judgeAnswer, /GameMobileStickyCta/);

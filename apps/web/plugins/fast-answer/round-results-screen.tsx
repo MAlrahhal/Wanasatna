@@ -52,12 +52,20 @@ export function FastAnswerRoundResultsScreen({
 }: FastAnswerRoundResultsScreenProps) {
   const sortedRoundResults = useMemo(
     () =>
-      [...roundResults].sort((left, right) =>
-        compareByRoundPointsThenName(
+      [...roundResults].sort((left, right) => {
+        const placementDifference =
+          (left.placement ?? Number.POSITIVE_INFINITY) -
+          (right.placement ?? Number.POSITIVE_INFINITY);
+
+        if (placementDifference !== 0) {
+          return placementDifference;
+        }
+
+        return compareByRoundPointsThenName(
           { roundPoints: left.roundPoints, name: left.name, playerId: left.playerId },
           { roundPoints: right.roundPoints, name: right.name, playerId: right.playerId },
-        ),
-      ),
+        );
+      }),
     [roundResults],
   );
 
@@ -69,7 +77,6 @@ export function FastAnswerRoundResultsScreen({
       totalDurationSeconds={totalDurationSeconds}
     />
   );
-
 
   return (
     <GameScreen ariaLabel="نتائج الجولة" maxWidth="4xl" className={className}>
@@ -100,8 +107,8 @@ export function FastAnswerRoundResultsScreen({
         </div>
 
         <div className="wanas-game-card rounded-[1.5rem] px-5 py-5 text-center sm:px-8 sm:py-6">
-          <p className="text-xs font-medium tracking-wide text-wanas-text-muted">الإجابة الصحيحة</p>
-          <p className="mt-2 break-words text-2xl font-bold leading-tight tracking-tight text-wanas-text-primary sm:text-3xl">
+          <p className="text-wanas-text-muted text-xs font-medium tracking-wide">الإجابة الصحيحة</p>
+          <p className="text-wanas-text-primary mt-2 break-words text-2xl font-bold leading-tight tracking-tight sm:text-3xl">
             {revealedAnswer}
           </p>
         </div>
@@ -118,27 +125,28 @@ export function FastAnswerRoundResultsScreen({
                   className={cn(
                     'flex items-center justify-between gap-3 rounded-xl px-3 py-2.5',
                     isCurrent && 'bg-wanas-accent/10',
-                    player.isWinner && 'ring-1 ring-wanas-success-border/60',
+                    player.isWinner && 'ring-wanas-success-border/60 ring-1',
                   )}
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <PlayerAvatar playerId={player.playerId} playerName={player.name} className="size-9" sizes="36px" />
+                    <PlayerAvatar
+                      playerId={player.playerId}
+                      playerName={player.name}
+                      className="size-9"
+                      sizes="36px"
+                    />
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-wanas-text-primary">
+                      <p className="text-wanas-text-primary truncate text-sm font-semibold">
                         {player.name}
                         {isCurrent ? ' (أنت)' : ''}
                       </p>
-                      <p className="text-xs text-wanas-text-muted">
-                        المجموع: {player.totalPoints}
-                      </p>
+                      <p className="text-wanas-text-muted text-xs">المجموع: {player.totalPoints}</p>
                     </div>
                   </div>
                   <p
                     className={cn(
                       'shrink-0 text-sm font-bold tabular-nums',
-                      player.roundPoints > 0
-                        ? 'text-wanas-success-dark'
-                        : 'text-wanas-text-muted',
+                      player.roundPoints > 0 ? 'text-wanas-success-dark' : 'text-wanas-text-muted',
                     )}
                   >
                     {player.roundPoints > 0 ? `+${player.roundPoints}` : '0'}
@@ -154,21 +162,17 @@ export function FastAnswerRoundResultsScreen({
           format="horizontal"
           className="hidden lg:flex"
         />
-        <AdPlaceholder
-          placement="round-results-mobile"
-          format="horizontal"
-          className="lg:hidden"
-        />
+        <AdPlaceholder placement="round-results-mobile" format="horizontal" className="lg:hidden" />
 
         {continueLabel && onContinue ? (
           <div className="mx-auto w-full max-w-md space-y-3">
-            <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
+            <p className="text-wanas-text-muted text-center text-xs font-medium sm:text-sm">
               {presentSystemCopy(waitingMessage, SYSTEM_COPY.nextRoundAuto)}
             </p>
             {progressBar}
             <Button
               size="lg"
-              className="w-full min-h-14 focus-visible:ring-offset-4"
+              className="min-h-14 w-full focus-visible:ring-offset-4"
               loading={isContinueLoading}
               onClick={onContinue}
             >
@@ -181,7 +185,7 @@ export function FastAnswerRoundResultsScreen({
             aria-live="polite"
             className="mx-auto w-full max-w-md space-y-3 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-6 text-center shadow-sm"
           >
-            <p className="wanas-game-helper font-medium text-wanas-text-secondary">
+            <p className="wanas-game-helper text-wanas-text-secondary font-medium">
               {presentSystemCopy(waitingMessage)}
             </p>
             {progressBar}

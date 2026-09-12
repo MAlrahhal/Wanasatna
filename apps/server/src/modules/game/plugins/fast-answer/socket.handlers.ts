@@ -5,7 +5,6 @@ import {
   FAST_ANSWER_GAME_ID,
   FAST_ANSWER_SUBMIT_ANSWER_EVENT,
   FAST_ANSWER_SYNC_EVENT,
-  FAST_ANSWER_WINNER_POINTS,
   isActiveMatchParticipant,
 } from '@wanasatna/shared';
 import { getGameShellByRoomId } from '../../game.service.js';
@@ -28,12 +27,13 @@ import { isCorrectAnswer, normalizeAnswerText } from './answers.js';
 import { ensureFastAnswerMatchStateWithTimer } from './init-match.js';
 import { continueFromRoundResults, finalizeQuestionRound } from './match-lifecycle.js';
 import { clearFastAnswerPhaseTimerRuntime } from './phase-timer.js';
-import { buildFastAnswerPlayerView, tryAcceptCorrectAnswer } from './state.js';
+import { pointsForCorrectPlacement } from './scoring.js';
 import {
-  deleteFastAnswerState,
-  getFastAnswerState,
-  setFastAnswerState,
-} from './store.js';
+  buildFastAnswerPlayerView,
+  haveAllActiveEligiblePlayersAnsweredCorrectly,
+  tryAcceptCorrectAnswer,
+} from './state.js';
+import { deleteFastAnswerState, getFastAnswerState, setFastAnswerState } from './store.js';
 
 function gameNotReadyError(): Extract<GameActionResponse<never>, { success: false }> {
   return {
@@ -203,13 +203,11 @@ export function registerFastAnswerSocketHandlers(io: Server, socket: Socket): vo
         return;
       }
 
-      const answer =
-        payload && typeof payload === 'object' ? payload.answer : undefined;
-      const roundId =
-        payload && typeof payload === 'object' ? payload.roundId : undefined;
+      const answer = payload && typeof payload === 'object' ? payload.answer : undefined;
+      const roundId = payload && typeof payload === 'object' ? payload.roundId : undefined;
       const rawAnswer = typeof answer === 'string' ? answer : '';
 
-      if (match.round.gamePhase !== 'question' || match.round.winnerPlayerId !== null) {
+      if (match.round.gamePhase !== 'question') {
         const isCorrect =
           rawAnswer.trim().length > 0 &&
           !isOversizedGameAnswer(rawAnswer) &&
@@ -272,6 +270,17 @@ export function registerFastAnswerSocketHandlers(io: Server, socket: Socket): vo
         return;
       }
 
+      if (match.round.correctAnswerPlayerIds.includes(playerId!)) {
+        const wasCorrect = isCorrectAnswer(answer, match.round.acceptedAnswers);
+        await logFastAnswerAttempt(roomId!, playerId!, match, answer, {
+          status: wasCorrect ? AnswerAttemptStatus.CORRECT_NOT_COUNTED : AnswerAttemptStatus.LATE,
+          wasCorrect,
+          wasCounted: false,
+        });
+        sendGameResponse(callback, invalidActionError('تم تسجيل إجابتك الصحيحة لهذه الجولة.'));
+        return;
+      }
+
       if (!isCorrectAnswer(answer, match.round.acceptedAnswers)) {
         await logFastAnswerAttempt(roomId!, playerId!, match, answer, {
           status: AnswerAttemptStatus.WRONG_NOT_COUNTED,
@@ -304,37 +313,49 @@ export function registerFastAnswerSocketHandlers(io: Server, socket: Socket): vo
           wasCorrect: true,
           wasCounted: false,
         });
-        sendGameResponse(callback, {
-          success: true,
-          data: {
-            correct: false,
-            view: buildFastAnswerPlayerView(
-              getFastAnswerState(roomId!) ?? match,
-              playerId!,
-              shell,
-            ),
-          },
-        });
+        if (claim.reason === 'duplicate') {
+          sendGameResponse(callback, invalidActionError('تم تسجيل إجابتك الصحيحة لهذه الجولة.'));
+        } else {
+          sendGameResponse(callback, {
+            success: true,
+            data: {
+              correct: false,
+              view: buildFastAnswerPlayerView(
+                getFastAnswerState(roomId!) ?? match,
+                playerId!,
+                shell,
+              ),
+            },
+          });
+        }
         return;
       }
+
+      const placement = claim.placement!;
+      const pointsAwarded = pointsForCorrectPlacement(placement);
+      const current = getFastAnswerState(roomId!) ?? claim.match;
+      const nextMatch =
+        current.round.gamePhase === 'question' &&
+        haveAllActiveEligiblePlayersAnsweredCorrectly(current, shell)
+          ? finalizeQuestionRound(io, roomId!, current, { timedOut: false })
+          : current;
 
       await logFastAnswerAttempt(roomId!, playerId!, claim.match, answer, {
         status: AnswerAttemptStatus.CORRECT_COUNTED,
         wasCorrect: true,
         wasCounted: true,
-        pointsAwarded: FAST_ANSWER_WINNER_POINTS,
-      });
-
-      const finalized = finalizeQuestionRound(io, roomId!, claim.match, {
-        winnerPlayerId: playerId!,
-        timedOut: false,
+        pointsAwarded,
       });
 
       sendGameResponse(callback, {
         success: true,
         data: {
           correct: true,
-          view: buildFastAnswerPlayerView(finalized, playerId!, shell),
+          view: buildFastAnswerPlayerView(
+            getFastAnswerState(roomId!) ?? nextMatch,
+            playerId!,
+            shell,
+          ),
         },
       });
     },

@@ -34,12 +34,12 @@ import { AUTH_COOKIE_NAME } from '../src/modules/auth/auth.cookie.js';
 import { resetAuthRateLimiterForTests } from '../src/modules/auth/auth-rate-limit.js';
 import { registerUser } from '../src/modules/auth/auth.service.js';
 import { registerAllGameContent } from '../src/modules/content/index.js';
-import {
-  deleteGameShell,
-  replaceGameShellForTests,
-} from '../src/modules/game/game.service.js';
+import { deleteGameShell, replaceGameShellForTests } from '../src/modules/game/game.service.js';
 import { registerDrawGuessSocketHandlers } from '../src/modules/game/plugins/draw-guess/socket.handlers.js';
-import { setDrawGuessState, deleteDrawGuessState } from '../src/modules/game/plugins/draw-guess/store.js';
+import {
+  setDrawGuessState,
+  deleteDrawGuessState,
+} from '../src/modules/game/plugins/draw-guess/store.js';
 import { clearDrawGuessPhaseTimerRuntime } from '../src/modules/game/plugins/draw-guess/phase-timer.js';
 import { DRAW_GUESS_CORRECT_GUESS_POINTS } from '../src/modules/game/plugins/draw-guess/scoring.js';
 import {
@@ -87,7 +87,7 @@ async function test(name: string, fn: () => void | Promise<void>): Promise<void>
   } catch (error) {
     failed += 1;
     console.error(`FAIL ${name}`);
-    console.error(error instanceof Error ? error.stack ?? error.message : error);
+    console.error(error instanceof Error ? (error.stack ?? error.message) : error);
   }
 }
 
@@ -133,7 +133,10 @@ function makeShell(
 }
 
 function createFakeSocket(playerId: string, roomId: string) {
-  const handlers = new Map<string, (payload: unknown, callback: (value: unknown) => void) => void>();
+  const handlers = new Map<
+    string,
+    (payload: unknown, callback: (value: unknown) => void) => void
+  >();
   const socket = {
     data: { playerId, roomId },
     on(event: string, handler: (payload: unknown, callback: (value: unknown) => void) => void) {
@@ -251,7 +254,9 @@ async function main(): Promise<void> {
       });
       assert.ok(match.roomHistoryId);
 
-      const oldDate = new Date(Date.now() - (ANSWER_ATTEMPT_RETENTION_DAYS + 1) * 24 * 60 * 60 * 1000);
+      const oldDate = new Date(
+        Date.now() - (ANSWER_ATTEMPT_RETENTION_DAYS + 1) * 24 * 60 * 60 * 1000,
+      );
       const recent = await prisma.answerAttempt.create({
         data: {
           roomHistoryId: match.roomHistoryId!,
@@ -282,10 +287,7 @@ async function main(): Promise<void> {
 
       const first = await purgeExpiredAnswerAttempts();
       assert.ok(first >= 1);
-      assert.equal(
-        await prisma.answerAttempt.findUnique({ where: { id: expired.id } }),
-        null,
-      );
+      assert.equal(await prisma.answerAttempt.findUnique({ where: { id: expired.id } }), null);
       assert.ok(await prisma.answerAttempt.findUnique({ where: { id: recent.id } }));
       assert.ok(await prisma.match.findUnique({ where: { id: matchId! } }));
       assert.ok(await prisma.roomHistory.findUnique({ where: { id: match.roomHistoryId! } }));
@@ -312,13 +314,10 @@ async function main(): Promise<void> {
       wasCounted: false,
       promptText: 'سؤال',
     });
-    assert.equal(
-      await prisma.answerAttempt.count({ where: { rawAnswer: 'لن تُحفظ' } }),
-      0,
-    );
+    assert.equal(await prisma.answerAttempt.count({ where: { rawAnswer: 'لن تُحفظ' } }), 0);
   });
 
-  await test('Fast Answer logs counted winner, uncounted correct race loser, and wrong answers', async () => {
+  await test('Fast Answer logs ordered placement points and wrong answers', async () => {
     const host = await mustCreate(uniqueName('مضيف'));
     const guest = await mustJoin(host.room.code, uniqueName('ضيف'));
     try {
@@ -357,6 +356,7 @@ async function main(): Promise<void> {
           categoryId: 'countries',
           acceptedAnswers: ['الرياض', 'Riyadh'],
           deadlineAtMs: Date.now() + 15_000,
+          correctAnswerPlayerIds: [],
           winnerPlayerId: null,
           timedOut: false,
         },
@@ -381,11 +381,12 @@ async function main(): Promise<void> {
       });
       assert.equal((winner as { data: { correct: boolean } }).data.correct, true);
 
-      const loser = await emitAck(guestSocket, FAST_ANSWER_SUBMIT_ANSWER_EVENT, {
+      const secondPlace = await emitAck(guestSocket, FAST_ANSWER_SUBMIT_ANSWER_EVENT, {
         answer: 'Riyadh',
         roundId: 'round-fa-1',
       });
-      assert.equal((loser as { success: boolean }).success, false);
+      assert.equal((secondPlace as { success: boolean }).success, true);
+      assert.equal((secondPlace as { data: { correct: boolean } }).data.correct, true);
 
       const rows = await prisma.answerAttempt.findMany({
         where: { matchId: matchId! },
@@ -397,9 +398,10 @@ async function main(): Promise<void> {
       assert.equal(rows[1]?.status, AnswerAttemptStatus.CORRECT_COUNTED);
       assert.equal(rows[1]?.wasCounted, true);
       assert.equal(rows[1]?.pointsAwarded, FAST_ANSWER_WINNER_POINTS);
-      assert.equal(rows[2]?.status, AnswerAttemptStatus.CORRECT_NOT_COUNTED);
+      assert.equal(rows[2]?.status, AnswerAttemptStatus.CORRECT_COUNTED);
       assert.equal(rows[2]?.wasCorrect, true);
-      assert.equal(rows[2]?.wasCounted, false);
+      assert.equal(rows[2]?.wasCounted, true);
+      assert.equal(rows[2]?.pointsAwarded, 75);
       assert.equal(rows[2]?.rawAnswer, 'Riyadh');
       assert.equal(rows[2]?.normalizedAnswer, 'riyadh');
     } finally {
@@ -491,8 +493,22 @@ async function main(): Promise<void> {
       });
       assert.ok(matchId);
       const players = [
-        { id: host.player.id, name: host.player.name, isHost: true, isConnected: true, isReady: true, isSpectator: false },
-        { id: guest.player.id, name: guest.player.name, isHost: false, isConnected: true, isReady: true, isSpectator: false },
+        {
+          id: host.player.id,
+          name: host.player.name,
+          isHost: true,
+          isConnected: true,
+          isReady: true,
+          isSpectator: false,
+        },
+        {
+          id: guest.player.id,
+          name: guest.player.name,
+          isHost: false,
+          isConnected: true,
+          isReady: true,
+          isSpectator: false,
+        },
       ];
       replaceGameShellForTests(makeShell(host.room.id, GUESSING_CHALLENGE_GAME_ID, players));
       const settings = getGameContentSettings(GUESSING_CHALLENGE_GAME_ID);
@@ -653,11 +669,17 @@ async function main(): Promise<void> {
         });
         assert.equal(login.status, 200);
         const cookie = cookieFromResponse(login);
-        const listed = await fetch(`${baseUrl}/api/admin/history/${matchId}/answers?status=CORRECT_COUNTED`, {
-          headers: { cookie },
-        });
+        const listed = await fetch(
+          `${baseUrl}/api/admin/history/${matchId}/answers?status=CORRECT_COUNTED`,
+          {
+            headers: { cookie },
+          },
+        );
         const raw = await listed.text();
-        assert.doesNotMatch(raw, /passwordHash|tokenHash|socketId|ipAddress|reconnectToken|livePlayerId/i);
+        assert.doesNotMatch(
+          raw,
+          /passwordHash|tokenHash|socketId|ipAddress|reconnectToken|livePlayerId/i,
+        );
         const body = JSON.parse(raw) as AdminActionResponse<AdminAnswerAttemptData>;
         assert.equal(listed.status, 200);
         assert.equal(body.success, true);
@@ -706,7 +728,9 @@ async function main(): Promise<void> {
       await prisma.match.delete({ where: { id: oldMatch.id } });
     } finally {
       await cleanupRoom(host.room.id);
-      await prisma.user.deleteMany({ where: { email: { in: [adminEmail, userEmail] } } }).catch(() => undefined);
+      await prisma.user
+        .deleteMany({ where: { email: { in: [adminEmail, userEmail] } } })
+        .catch(() => undefined);
     }
   });
 

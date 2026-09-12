@@ -25,9 +25,12 @@ import {
   applyRoundScores,
   buildRoundResultEntries,
   computePlayerRoundPoints,
+  correctAnswerPlacement,
+  pointsForCorrectPlacement,
 } from '../src/modules/game/plugins/fast-answer/scoring.js';
 import {
   buildFastAnswerPlayerView,
+  haveAllActiveEligiblePlayersAnsweredCorrectly,
   resolveTotalRounds,
   tryAcceptCorrectAnswer,
   withRound,
@@ -84,6 +87,7 @@ function makeRound(overrides?: Partial<FastAnswerRoundState>): FastAnswerRoundSt
     categoryId: 'countries',
     acceptedAnswers: ['القاهرة', 'قاهره'],
     deadlineAtMs: Date.now() + 15_000,
+    correctAnswerPlayerIds: [],
     winnerPlayerId: null,
     timedOut: false,
     ...overrides,
@@ -173,7 +177,7 @@ test('answer length: 1-char and 150 allowed; 151 oversized; matching unchanged',
   assert.equal(isCorrectAnswer('القاهرة', ['القاهرة', 'قاهره']), true);
 });
 
-test('tryAcceptCorrect twice sync → one winner', () => {
+test('server accepts different correct players in processing order without ending after first', () => {
   let match = makeMatch();
   const first = tryAcceptCorrectAnswer(
     () => match,
@@ -192,8 +196,34 @@ test('tryAcceptCorrect twice sync → one winner', () => {
     'round-1',
   );
   assert.equal(first.accepted, true);
-  assert.equal(second.accepted, false);
+  assert.equal(first.placement, 1);
+  assert.equal(second.accepted, true);
+  assert.equal(second.placement, 2);
+  assert.equal(match.round.gamePhase, 'question');
+  assert.deepEqual(match.round.correctAnswerPlayerIds, ['p2', 'p3']);
   assert.equal(match.round.winnerPlayerId, 'p2');
+});
+
+test('duplicate correct submission is locked and cannot score twice', () => {
+  let match = makeMatch();
+  const accept = () =>
+    tryAcceptCorrectAnswer(
+      () => match,
+      (next) => {
+        match = next;
+      },
+      'p2',
+      'round-1',
+    );
+
+  assert.equal(accept().accepted, true);
+  const duplicate = accept();
+  assert.equal(duplicate.accepted, false);
+  assert.equal(duplicate.reason, 'duplicate');
+  assert.deepEqual(match.round.correctAnswerPlayerIds, ['p2']);
+
+  const scored = applyRoundScores(match);
+  assert.equal(scored.scores.p2, 100);
 });
 
 test('stale roundId rejected', () => {
@@ -225,6 +255,8 @@ test('wrong answer rejected; correct later accepted', () => {
     'round-1',
   );
   assert.equal(claim.accepted, true);
+  assert.equal(claim.placement, 1);
+  assert.deepEqual(current.round.correctAnswerPlayerIds, ['p1']);
   assert.equal(current.round.winnerPlayerId, 'p1');
 });
 
@@ -246,6 +278,7 @@ test('player view privacy: no acceptedAnswers / revealed answer during question'
   assert.equal(view.winnerName, null);
   assert.equal(view.timedOut, false);
   assert.equal('acceptedAnswers' in view, false);
+  assert.equal('correctAnswerPlayerIds' in view, false);
   assert.ok(view.question);
   assert.equal(view.categoryLabel, 'بلدان');
   assert.equal(view.roundId, 'round-1');
@@ -260,40 +293,162 @@ test('spectator cannot submit and sees no answer pre-result', () => {
   assert.equal(view.isMatchSpectator, true);
   assert.equal(view.canSubmitAnswer, false);
   assert.equal(view.revealedAnswer, null);
+  assert.equal('correctAnswerPlayerIds' in view, false);
   assert.ok(view.question);
 });
 
-test('scoring +100 once to winner, 0 others', () => {
-  const scored = applyRoundScores(
-    withRound(makeMatch(), makeRound({ winnerPlayerId: 'p2', gamePhase: 'round-results' })),
+function assertPlacementScoring(playerCount: number, expectedPoints: number[]): void {
+  const playerIds = Array.from({ length: playerCount }, (_, index) => `p${index + 1}`);
+  const answerOrder = [...playerIds].reverse();
+  let match = makeMatch({
+    playerIds,
+    playerNames: Object.fromEntries(playerIds.map((playerId) => [playerId, playerId])),
+    scores: Object.fromEntries(playerIds.map((playerId) => [playerId, 0])),
+  });
+  const shell = makeShell(playerIds);
+
+  answerOrder.forEach((playerId, index) => {
+    const claim = tryAcceptCorrectAnswer(
+      () => match,
+      (next) => {
+        match = next;
+      },
+      playerId,
+      'round-1',
+    );
+    assert.equal(claim.accepted, true);
+    assert.equal(claim.placement, index + 1);
+    assert.equal(match.round.gamePhase, 'question');
+    assert.equal(
+      haveAllActiveEligiblePlayersAnsweredCorrectly(match, shell),
+      index === answerOrder.length - 1,
+    );
+  });
+
+  const scored = applyRoundScores(withRound(match, { ...match.round, gamePhase: 'round-results' }));
+  assert.deepEqual(
+    answerOrder.map((playerId) => scored.scores[playerId]),
+    expectedPoints,
   );
-  assert.equal(scored.scores.p2, FAST_ANSWER_WINNER_POINTS);
-  assert.equal(scored.scores.p1, 0);
-  assert.equal(scored.scores.p3, 0);
-  assert.equal(computePlayerRoundPoints(scored, 'p2'), FAST_ANSWER_WINNER_POINTS);
-  assert.equal(computePlayerRoundPoints(scored, 'p1'), 0);
-  const entries = buildRoundResultEntries(scored);
-  assert.equal(entries.find((entry) => entry.playerId === 'p2')?.roundPoints, 100);
-  assert.equal(entries.find((entry) => entry.playerId === 'p1')?.roundPoints, 0);
+  assert.deepEqual(
+    answerOrder.map((playerId) => correctAnswerPlacement(scored, playerId)),
+    answerOrder.map((_, index) => index + 1),
+  );
+}
+
+test('2 players score 100 / 75 and all-correct completes eligibility', () => {
+  assertPlacementScoring(2, [100, 75]);
 });
 
-test('timeout scoring applies 0 to everyone', () => {
+test('3 players score 100 / 75 / 50', () => {
+  assertPlacementScoring(3, [100, 75, 50]);
+});
+
+test('4 players score 100 / 75 / 50 / 25', () => {
+  assertPlacementScoring(4, [100, 75, 50, 25]);
+});
+
+test('6 players score 100 / 75 / 50 / 25 / 25 / 25', () => {
+  assertPlacementScoring(6, [100, 75, 50, 25, 25, 25]);
+});
+
+test('all-correct completion considers connected eligible players only', () => {
+  const match = withRound(
+    makeMatch(),
+    makeRound({ correctAnswerPlayerIds: ['p1', 'p2'], winnerPlayerId: 'p1' }),
+  );
+  const shell = makeShell();
+  shell.players[2]!.isConnected = false;
+
+  assert.equal(haveAllActiveEligiblePlayersAnsweredCorrectly(match, shell), true);
+});
+
+test('placement points are exact and never awarded without a correct placement', () => {
+  assert.deepEqual(
+    [0, 1, 2, 3, 4, 5, 6].map(pointsForCorrectPlacement),
+    [0, 100, 75, 50, 25, 25, 25],
+  );
+  assert.equal(computePlayerRoundPoints(makeMatch(), 'p1'), 0);
+});
+
+test('round results expose every correct placement and zero for unanswered players', () => {
   const scored = applyRoundScores(
     withRound(
       makeMatch(),
-      makeRound({ winnerPlayerId: null, timedOut: true, gamePhase: 'round-results' }),
+      makeRound({
+        correctAnswerPlayerIds: ['p2', 'p1'],
+        winnerPlayerId: 'p2',
+        gamePhase: 'round-results',
+      }),
     ),
   );
-  assert.equal(scored.scores.p1, 0);
-  assert.equal(scored.scores.p2, 0);
+  assert.equal(scored.scores.p2, FAST_ANSWER_WINNER_POINTS);
+  assert.equal(scored.scores.p1, 75);
   assert.equal(scored.scores.p3, 0);
+  assert.equal(computePlayerRoundPoints(scored, 'p2'), FAST_ANSWER_WINNER_POINTS);
+  assert.equal(computePlayerRoundPoints(scored, 'p1'), 75);
+  const entries = buildRoundResultEntries(scored);
+  assert.equal(entries.find((entry) => entry.playerId === 'p2')?.roundPoints, 100);
+  assert.equal(entries.find((entry) => entry.playerId === 'p2')?.placement, 1);
+  assert.equal(entries.find((entry) => entry.playerId === 'p1')?.roundPoints, 75);
+  assert.equal(entries.find((entry) => entry.playerId === 'p1')?.placement, 2);
+  assert.equal(entries.find((entry) => entry.playerId === 'p3')?.roundPoints, 0);
+  assert.equal(entries.find((entry) => entry.playerId === 'p3')?.placement, null);
+});
+
+test('timeout preserves earned placements and gives unanswered players 0', () => {
+  const scored = applyRoundScores(
+    withRound(
+      makeMatch(),
+      makeRound({
+        correctAnswerPlayerIds: ['p1', 'p2'],
+        winnerPlayerId: 'p1',
+        timedOut: true,
+        gamePhase: 'round-results',
+      }),
+    ),
+  );
+  assert.equal(scored.scores.p1, 100);
+  assert.equal(scored.scores.p2, 75);
+  assert.equal(scored.scores.p3, 0);
+});
+
+test('reconnect view restores the locked placement without duplicating state', () => {
+  let match = makeMatch();
+  const claim = tryAcceptCorrectAnswer(
+    () => match,
+    (next) => {
+      match = next;
+    },
+    'p2',
+    'round-1',
+  );
+  assert.equal(claim.accepted, true);
+
+  const reconnectedView = buildFastAnswerPlayerView(match, 'p2', makeShell());
+  assert.equal(reconnectedView.hasAnsweredCorrectly, true);
+  assert.equal(reconnectedView.correctAnswerPlacement, 1);
+  assert.equal(reconnectedView.correctAnswerPoints, 100);
+  assert.equal(reconnectedView.canSubmitAnswer, false);
+  assert.deepEqual(match.round.correctAnswerPlayerIds, ['p2']);
+
+  const otherPlayerView = buildFastAnswerPlayerView(match, 'p1', makeShell());
+  assert.equal(otherPlayerView.hasAnsweredCorrectly, false);
+  assert.equal(otherPlayerView.correctAnswerPlacement, null);
+  assert.equal(otherPlayerView.correctAnswerPoints, 0);
+  assert.equal(otherPlayerView.canSubmitAnswer, true);
 });
 
 test('round results continue copy mid vs final', () => {
   const mid = buildFastAnswerPlayerView(
     withRound(
       makeMatch({ currentRound: 2 }),
-      makeRound({ gamePhase: 'round-results', timedOut: false, winnerPlayerId: 'p1' }),
+      makeRound({
+        gamePhase: 'round-results',
+        timedOut: false,
+        correctAnswerPlayerIds: ['p1'],
+        winnerPlayerId: 'p1',
+      }),
     ),
     'p1',
     makeShell(),
@@ -304,7 +459,12 @@ test('round results continue copy mid vs final', () => {
   const final = buildFastAnswerPlayerView(
     withRound(
       makeMatch({ currentRound: 5 }),
-      makeRound({ gamePhase: 'round-results', timedOut: false, winnerPlayerId: 'p1' }),
+      makeRound({
+        gamePhase: 'round-results',
+        timedOut: false,
+        correctAnswerPlayerIds: ['p1'],
+        winnerPlayerId: 'p1',
+      }),
     ),
     'p1',
     makeShell(),

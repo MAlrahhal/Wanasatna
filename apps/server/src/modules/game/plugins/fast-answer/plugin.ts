@@ -19,13 +19,11 @@ import { createMatchState } from './state.js';
 const metadata = {
   id: FAST_ANSWER_GAME_ID,
   title: 'أسرع إجابة',
-  description: 'أسئلة سريعة… أول واحد يجيب صح يكسب النقاط.',
+  description: 'أسئلة سريعة… كل إجابة صحيحة تكسب نقاطاً حسب ترتيبها.',
   iconLabel: 'س',
 } satisfies Pick<GamePluginDefinition, 'id' | 'title' | 'description' | 'iconLabel'>;
 
-export function buildFastAnswerPluginDefinition(
-  content: LoadedGameContent,
-): GamePluginDefinition {
+export function buildFastAnswerPluginDefinition(content: LoadedGameContent): GamePluginDefinition {
   const { bundle, settings } = content;
 
   return {
@@ -35,7 +33,9 @@ export function buildFastAnswerPluginDefinition(
     defaultSettings: settings as GamePluginSettings,
     settingsSchema: [],
     validateStart: (_context, _pluginSettings) => {
-      const connectedCount = _context.players.filter((player) => player.isConnected && !player.isSpectator).length;
+      const connectedCount = _context.players.filter(
+        (player) => player.isConnected && !player.isSpectator,
+      ).length;
 
       if (connectedCount < settings.minPlayers) {
         return {

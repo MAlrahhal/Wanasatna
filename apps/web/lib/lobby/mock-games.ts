@@ -53,7 +53,7 @@ export const mockLobbyGames: LobbyGame[] = [
   {
     id: 'fast-answer',
     title: 'أسرع إجابة',
-    description: 'أسئلة سريعة… أول واحد يجيب صح يكسب النقاط.',
+    description: 'أسئلة سريعة… كل إجابة صحيحة تكسب نقاطاً حسب ترتيبها.',
     iconLabel: 'س',
     emoji: '⚡',
   },
