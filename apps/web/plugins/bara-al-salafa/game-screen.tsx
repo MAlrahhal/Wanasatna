@@ -111,7 +111,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
 
   const treatAsSpectator =
     view?.isMatchSpectator === true ||
-    player?.isSpectator === true ||
+    (view == null && player?.isSpectator === true) ||
     (!view && Boolean(errorMessage?.includes(NOT_PARTICIPANT_ERROR)));
 
   useEffect(() => {

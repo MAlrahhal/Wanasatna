@@ -6,6 +6,7 @@ import { timedPhaseClock } from '../../runtime/phase-deadline.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
 import { persistCompletedMatchThen } from '../../runtime/persist-completed-match.js';
+import { absorbSpectatorsAndExpandMatch } from '../../runtime/absorb-spectators-for-next-round.js';
 import { teardownShellAndReturnToLobby } from '../../game.lifecycle.js';
 import { clearRoomRoundCategory } from '../../runtime/round-category-store.js';
 import {
@@ -43,10 +44,7 @@ export function transitionToJudging(
     return match;
   }
 
-  if (
-    match.round.answers.length === 0 ||
-    isDeparted(match, match.round.judgePlayerId)
-  ) {
+  if (match.round.answers.length === 0 || isDeparted(match, match.round.judgePlayerId)) {
     return startRoundResults(io, roomId, match);
   }
 
@@ -96,29 +94,28 @@ export function startRoundResults(
   return nextMatch;
 }
 
-function startNextRound(
-  io: Server,
-  roomId: string,
-  match: JudgeMatchState,
-): JudgeMatchState {
+function startNextRound(io: Server, roomId: string, match: JudgeMatchState): JudgeMatchState {
   const resolved = resolveNextRoundJudge(match);
 
   if (!resolved) {
     return startMatchCompletedPhase(io, roomId, match);
   }
 
+  const expanded = absorbSpectatorsAndExpandMatch(io, roomId, match).match;
+  // Late arrivals answer in the remaining rounds, but the frozen judge rotation and match length
+  // intentionally remain unchanged until the next match.
   const { round, usedRoundCategoryIds } = createRoundState(
-    match.lockedCategoryId,
-    match.usedRoundCategoryIds,
-    match.recentPromptIds,
+    expanded.lockedCategoryId,
+    expanded.usedRoundCategoryIds,
+    expanded.recentPromptIds,
     resolved.judgePlayerId,
     Date.now(),
-    match.answerSeconds,
+    expanded.answerSeconds,
     roomId,
   );
 
   const nextMatch: JudgeMatchState = {
-    ...match,
+    ...expanded,
     judgeOrderIndex: resolved.nextIndex,
     currentRound: match.currentRound + 1,
     matchStatus: 'in-progress',
@@ -209,25 +206,25 @@ export function continueFromRoundResults(
 }
 
 export function completeMatch(io: Server, roomId: string): void {
-  persistCompletedMatchThen(roomId, () => {
-    clearJudgePhaseTimerRuntime(roomId);
-    deleteJudgeState(roomId);
-    clearRoomRoundCategory(roomId);
+  persistCompletedMatchThen(
+    roomId,
+    () => {
+      clearJudgePhaseTimerRuntime(roomId);
+      deleteJudgeState(roomId);
+      clearRoomRoundCategory(roomId);
 
-    const shell = getGameShellByRoomId(roomId);
-    if (!shell) {
-      return;
-    }
+      const shell = getGameShellByRoomId(roomId);
+      if (!shell) {
+        return;
+      }
 
-    teardownShellAndReturnToLobby(io, roomId);
-  }, io);
+      teardownShellAndReturnToLobby(io, roomId);
+    },
+    io,
+  );
 }
 
-export function handleJudgePermanentLeave(
-  io: Server,
-  roomId: string,
-  playerId: string,
-): void {
+export function handleJudgePermanentLeave(io: Server, roomId: string, playerId: string): void {
   const match = getJudgeState(roomId);
   const shell = getGameShellByRoomId(roomId);
 

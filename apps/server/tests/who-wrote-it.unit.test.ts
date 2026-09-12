@@ -417,7 +417,7 @@ test('privacy: spectator and other guesses hidden before reveal', () => {
   assert.equal(spec.isMatchSpectator, true);
   assert.equal(spec.canSubmitAnswer, false);
   assert.equal(spec.canSubmitGuess, false);
-  assert.equal(spec.leaderboard.length, 0);
+  assert.equal(spec.leaderboard.length, match.playerIds.length);
   assert.ok(spec.currentAnonymousAnswer);
   assert.equal(JSON.stringify(spec).includes('"ownerPlayerId"'), false);
 });

@@ -467,7 +467,7 @@ export function buildJudgePlayerView(
     winnerName:
       revealed && winnerOwnerId ? (match.playerNames[winnerOwnerId] ?? 'لاعب') : null,
     roundResults: revealed ? buildRoundResultEntries(match) : [],
-    leaderboard: isMatchSpectator ? [] : buildLeaderboardEntries(match),
+    leaderboard: buildLeaderboardEntries(match),
     resultsLeaderboard: buildResultsLeaderboardEntries(match),
     isHost: shell.hostPlayerId === playerId,
     canContinueFromRoundResults: false,

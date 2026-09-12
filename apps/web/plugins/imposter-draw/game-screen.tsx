@@ -145,15 +145,13 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
         : activeView.gamePhase === 'round-results'
           ? 'round-results'
           : 'gameplay',
-      phaseLabel: activeView.isMatchSpectator ? 'مشاهدة' : activeView.phaseLabel,
+      phaseLabel: activeView.isMatchSpectator ? SYSTEM_COPY.spectatorTitle : activeView.phaseLabel,
       currentRound: activeView.currentRound,
       totalRounds: activeView.totalRounds,
       timer: TIMED_PHASES.has(activeView.gamePhase)
         ? toExperienceTimer(activeView.deadlineAtMs, { format: 'seconds', lowTimeThreshold: 5 })
         : undefined,
-      leaderboardEntries: activeView.isMatchSpectator
-        ? []
-        : mapImposterDrawLeaderboard(activeView, player.id, players),
+      leaderboardEntries: mapImposterDrawLeaderboard(activeView, player.id, players),
     });
   }, [
     activeFinalResultsView,
@@ -253,11 +251,11 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
     return null;
   }
 
-  if (isLoading) {
+  if (isLoading && !view) {
     return <GameSystemLoading />;
   }
 
-  if (errorMessage) {
+  if (errorMessage && !view) {
     return <GameSystemError message={errorMessage} />;
   }
 
@@ -265,47 +263,29 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
     return null;
   }
 
-  if (view.isMatchSpectator) {
-    if (view.gamePhase === 'drawing-turns') {
-      return (
-        <DrawingTurnsScreen
-          strokes={view.strokes}
-          currentTurnStrokeIds={view.currentTurnStrokeIds}
-          turnId={view.turnId}
-          canDraw={false}
-          isSpectator
-          currentDrawerName={view.currentDrawerName}
-          remainingSeconds={0}
-          deadlineAtMs={view.deadlineAtMs}
-          currentRound={view.currentRound}
-          totalRounds={view.totalRounds}
-          roomCode={room.code}
-          canvasRef={canvasRef}
-        />
-      );
-    }
-
-    return (
-      <GameScreen ariaLabel="مشاهدة">
-        <GameHeader
-          gameName={IMPOSTER_DRAW_GAME_NAME}
-          gameIcon={IMPOSTER_DRAW_GAME_ICON}
-          roomCode={room.code}
-          currentRound={view.currentRound}
-          totalRounds={view.totalRounds}
-          phaseLabel="مشاهدة"
-          timer={resolveHeaderTimer({
-            deadlineAtMs: view.deadlineAtMs,
-            format: 'seconds',
-            lowTimeThreshold: 5,
-          })}
-        />
-        <SpectatorNotice />
-      </GameScreen>
-    );
-  }
+  const isSpectator = view.isMatchSpectator;
 
   if (view.gamePhase === 'briefing') {
+    if (isSpectator) {
+      return (
+        <GameScreen ariaLabel="مشاهدة">
+          <GameHeader
+            gameName={IMPOSTER_DRAW_GAME_NAME}
+            gameIcon={IMPOSTER_DRAW_GAME_ICON}
+            roomCode={room.code}
+            currentRound={view.currentRound}
+            totalRounds={view.totalRounds}
+            phaseLabel={SYSTEM_COPY.spectatorTitle}
+            timer={resolveHeaderTimer({
+              deadlineAtMs: view.deadlineAtMs,
+              format: 'seconds',
+              lowTimeThreshold: 5,
+            })}
+          />
+          <SpectatorNotice />
+        </GameScreen>
+      );
+    }
     return (
       <ImposterDrawBriefingScreen
         role={view.role}
@@ -332,7 +312,8 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
         strokes={view.strokes}
         currentTurnStrokeIds={view.currentTurnStrokeIds}
         turnId={view.turnId}
-        canDraw={view.canDraw}
+        canDraw={!isSpectator && view.canDraw}
+        isSpectator={isSpectator}
         currentDrawerName={view.currentDrawerName}
         remainingSeconds={0}
         deadlineAtMs={view.deadlineAtMs}
@@ -340,10 +321,10 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
         totalRounds={view.totalRounds}
         roomCode={room.code}
         actionError={actionError}
-        onUndo={view.canDraw ? () => void undoStroke() : undefined}
-        onEmitStroke={(payload) => void emitStroke(payload)}
-        onEmitStrokePoints={(payload) => void emitStrokePoints(payload)}
-        onEmitStrokeEnd={emitStrokeEnd}
+        onUndo={!isSpectator && view.canDraw ? () => void undoStroke() : undefined}
+        onEmitStroke={isSpectator ? undefined : (payload) => void emitStroke(payload)}
+        onEmitStrokePoints={isSpectator ? undefined : (payload) => void emitStrokePoints(payload)}
+        onEmitStrokeEnd={isSpectator ? undefined : emitStrokeEnd}
         canvasRef={canvasRef}
       />
     );
@@ -365,18 +346,23 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
         gameName={IMPOSTER_DRAW_GAME_NAME}
         gameIcon={IMPOSTER_DRAW_GAME_ICON}
         questionTitle="من هو الإمبوستر؟"
-        questionHelper=""
+        questionHelper={isSpectator ? 'اللاعبون يصوّتون الآن' : ''}
         remainingSeconds={0}
         deadlineAtMs={view.deadlineAtMs}
         showTimer
         isSubmitting={isSubmittingAction}
-        errorMessage={actionError}
-        onSelectPlayer={setSelectedVoteTargetId}
-        onConfirmVote={() => {
-          if (selectedVoteTargetId) {
-            void submitVote(selectedVoteTargetId);
-          }
-        }}
+        errorMessage={isSpectator ? null : actionError}
+        isSpectator={isSpectator}
+        onSelectPlayer={isSpectator ? undefined : setSelectedVoteTargetId}
+        onConfirmVote={
+          isSpectator
+            ? undefined
+            : () => {
+                if (selectedVoteTargetId) {
+                  void submitVote(selectedVoteTargetId);
+                }
+              }
+        }
       />
     );
   }
@@ -490,5 +476,22 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
     );
   }
 
-  return null;
+  return (
+    <GameScreen ariaLabel="مشاهدة">
+      <GameHeader
+        gameName={IMPOSTER_DRAW_GAME_NAME}
+        gameIcon={IMPOSTER_DRAW_GAME_ICON}
+        roomCode={room.code}
+        currentRound={view.currentRound}
+        totalRounds={view.totalRounds}
+        phaseLabel={SYSTEM_COPY.spectatorTitle}
+        timer={resolveHeaderTimer({
+          deadlineAtMs: view.deadlineAtMs,
+          format: 'seconds',
+          lowTimeThreshold: 5,
+        })}
+      />
+      <SpectatorNotice />
+    </GameScreen>
+  );
 }

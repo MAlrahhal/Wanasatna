@@ -196,11 +196,11 @@ export function TimingChallengeGameScreen(_props: GamePluginScreenProps) {
     return null;
   }
 
-  if (isLoading) {
+  if (isLoading && !view) {
     return <GameSystemLoading />;
   }
 
-  if (errorMessage) {
+  if (errorMessage && !view) {
     return <GameSystemError message={errorMessage} />;
   }
 

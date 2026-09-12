@@ -12,7 +12,11 @@ import {
   type InitGameShellPayload,
 } from '@wanasatna/shared';
 import { prisma } from '../../lib/prisma.js';
-import { abortPersistedMatch, beginPersistedMatch } from '../match/match-history.service.js';
+import {
+  abortPersistedMatch,
+  beginPersistedMatch,
+  forgetKnownActivePersistedMatchId,
+} from '../match/match-history.service.js';
 import { clearAnswerLogContext } from './runtime/answer-attempt-log.js';
 import { hydrateRoomGameSettings } from '../room/room-game-settings.store.js';
 import {
@@ -38,6 +42,7 @@ export function countLiveGameShells(): number {
 export function deleteGameShell(roomId: string): void {
   shellsByRoomId.delete(roomId);
   clearAnswerLogContext(roomId);
+  forgetKnownActivePersistedMatchId(roomId);
 }
 
 /** Test-only: install an in-memory shell without Prisma. */
@@ -119,10 +124,7 @@ async function loadRoomPlayers(
   }));
 }
 
-function withUpdatedPlayers(
-  shell: GameShellRecord,
-  players: GameShellPlayer[],
-): GameShellRecord {
+function withUpdatedPlayers(shell: GameShellRecord, players: GameShellPlayer[]): GameShellRecord {
   const readySet = new Set(shell.readyPlayerIds);
 
   return {
@@ -135,9 +137,65 @@ function withUpdatedPlayers(
   };
 }
 
+function reconcileMatchSpectatorFlags(shell: GameShellRecord): GameShellRecord {
+  const locked = shell.matchParticipantIds;
+  if (!locked || locked.length === 0) {
+    return shell;
+  }
+
+  const lockedSet = new Set(locked);
+  let changed = false;
+  const players = shell.players.map((player) => {
+    if (!lockedSet.has(player.id) || player.isSpectator !== true) {
+      return player;
+    }
+    changed = true;
+    return { ...player, isSpectator: false };
+  });
+
+  if (!changed) {
+    return shell;
+  }
+
+  return { ...shell, players, updatedAt: nowIso() };
+}
+
 function saveShell(shell: GameShellRecord): GameShellRecord {
-  shellsByRoomId.set(shell.roomId, shell);
-  return shell;
+  const next = reconcileMatchSpectatorFlags(shell);
+  shellsByRoomId.set(next.roomId, next);
+  return next;
+}
+
+/**
+ * Promote connected current-round spectators into the locked match roster.
+ * In-memory shell is authoritative immediately; callers persist DB flags.
+ */
+export function promoteConnectedSpectatorsIntoMatch(roomId: string): {
+  shell: GameShellRecord | null;
+  absorbedPlayerIds: string[];
+} {
+  const shell = getGameShellByRoomId(roomId);
+  if (!shell || shell.phase !== 'PLAYING' || !shell.matchParticipantIds) {
+    return { shell, absorbedPlayerIds: [] };
+  }
+
+  const locked = new Set(shell.matchParticipantIds);
+  const absorbedPlayerIds = shell.players
+    .filter((player) => player.isSpectator === true && player.isConnected && !locked.has(player.id))
+    .map((player) => player.id);
+
+  if (absorbedPlayerIds.length === 0) {
+    return { shell, absorbedPlayerIds: [] };
+  }
+
+  return {
+    shell: saveShell({
+      ...shell,
+      matchParticipantIds: [...shell.matchParticipantIds, ...absorbedPlayerIds],
+      updatedAt: nowIso(),
+    }),
+    absorbedPlayerIds,
+  };
 }
 
 function lockMatchParticipantIds(players: GameShellPlayer[]): string[] {
@@ -165,8 +223,7 @@ async function assertHost(
   roomId: string,
   playerId: string,
 ): Promise<
-  | { success: true; hostPlayerId: string }
-  | Extract<GameActionResponse<never>, { success: false }>
+  { success: true; hostPlayerId: string } | Extract<GameActionResponse<never>, { success: false }>
 > {
   const room = await prisma.room.findUnique({
     where: { id: roomId },
@@ -399,7 +456,11 @@ export async function startGameShellCountdown(
     return gameServiceError('SHELL_NOT_FOUND', 'Game shell not found.');
   }
 
-  const phaseError = assertPhase(shell, ['WAITING'], 'Countdown can only start from the waiting phase.');
+  const phaseError = assertPhase(
+    shell,
+    ['WAITING'],
+    'Countdown can only start from the waiting phase.',
+  );
   if (phaseError) {
     return phaseError;
   }
@@ -551,7 +612,11 @@ export async function cancelGameShellCountdown(
     return gameServiceError('SHELL_NOT_FOUND', 'Game shell not found.');
   }
 
-  const phaseError = assertPhase(shell, ['COUNTDOWN'], 'Countdown can only be cancelled during countdown.');
+  const phaseError = assertPhase(
+    shell,
+    ['COUNTDOWN'],
+    'Countdown can only be cancelled during countdown.',
+  );
   if (phaseError) {
     return phaseError;
   }
@@ -686,7 +751,11 @@ export async function resetGameShell(
     return gameServiceError('SHELL_NOT_FOUND', 'Game shell not found.');
   }
 
-  const phaseError = assertPhase(shell, ['FINISHED'], 'The shell can only be reset after finishing.');
+  const phaseError = assertPhase(
+    shell,
+    ['FINISHED'],
+    'The shell can only be reset after finishing.',
+  );
   if (phaseError) {
     return phaseError;
   }

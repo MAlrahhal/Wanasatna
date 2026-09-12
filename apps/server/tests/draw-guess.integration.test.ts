@@ -458,7 +458,7 @@ async function main(): Promise<void> {
 
       const spectatorView = await syncDrawGuess(spectator.socket);
       assert.equal(spectatorView.isMatchSpectator, true);
-      assert.equal(spectatorView.secretWord, drawer.view.secretWord);
+      assert.equal(spectatorView.secretWord, null);
       assert.equal(spectatorView.canGuess, false);
       assert.ok(Array.isArray(spectatorView.strokes));
 

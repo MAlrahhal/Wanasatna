@@ -203,7 +203,10 @@ function visiblePhaseClock(round: ImposterDrawRoundState): {
   };
 }
 
-export function buildImposterDrawSpectatorView(match: ImposterDrawMatchState): ImposterDrawPlayerView {
+export function buildImposterDrawSpectatorView(
+  match: ImposterDrawMatchState,
+  shell?: GameShellState,
+): ImposterDrawPlayerView {
   const round = match.round;
   const isDrawing = round.gamePhase === 'drawing-turns';
   const currentDrawerPlayerId = isDrawing
@@ -219,10 +222,13 @@ export function buildImposterDrawSpectatorView(match: ImposterDrawMatchState): I
     round.gamePhase === 'guess-result' ||
     round.gamePhase === 'round-results' ||
     round.gamePhase === 'match-completed';
+  const connected = shell ? getConnectedParticipantIds(shell, match) : match.playerIds;
+  const revealPublicResults =
+    round.gamePhase === 'round-results' || round.gamePhase === 'match-completed';
 
   return {
     gamePhase: round.gamePhase,
-    phaseLabel: 'الجولة جارية',
+    phaseLabel: buildRoundPhaseLabel(match),
     ...visiblePhaseClock(round),
     role: 'crew',
     referenceImage: null,
@@ -239,12 +245,15 @@ export function buildImposterDrawSpectatorView(match: ImposterDrawMatchState): I
     totalRounds: match.totalRounds,
     matchStatus: match.matchStatus,
     hasAcknowledgedBriefing: false,
-    briefingAckCount: 0,
-    eligibleBriefingAckCount: 0,
+    briefingAckCount: round.roleUnderstoodPlayerIds.length,
+    eligibleBriefingAckCount: connected.length,
     hasVoted: false,
-    votablePlayers: [],
-    submittedVotesCount: 0,
-    eligibleVotersCount: 0,
+    votablePlayers: match.playerIds.map((playerId) => ({
+      playerId,
+      name: match.playerNames[playerId] ?? 'لاعب',
+    })),
+    submittedVotesCount: round.submittedVoterIds.length,
+    eligibleVotersCount: connected.length,
     confirmedVoteTargetPlayerId: null,
     revealedImpostorPlayerId: revealIdentity ? round.impostorPlayerId : null,
     revealedImpostorName: revealIdentity
@@ -254,17 +263,22 @@ export function buildImposterDrawSpectatorView(match: ImposterDrawMatchState): I
     impostorGuessOptions: [],
     canGuessImage: false,
     hasSubmittedImageGuess: false,
-    selectedImageGuess: null,
+    selectedImageGuess: revealAnswer ? round.selectedImageGuess : null,
     impostorGuessedCorrectly: revealAnswer ? round.impostorGuessedCorrectly : null,
-    guessResultMessage: null,
-    playersWon: null,
-    roundResults: [],
-    leaderboard: [],
-    resultsLeaderboard: [],
+    guessResultMessage:
+      round.gamePhase === 'guess-result'
+        ? round.impostorGuessedCorrectly
+          ? 'إجابة صحيحة!'
+          : 'إجابة خاطئة!'
+        : null,
+    playersWon: revealPublicResults ? didPlayersWin(match) : null,
+    roundResults: revealPublicResults ? buildRoundResultEntries(match) : [],
+    leaderboard: buildLeaderboardEntries(match),
+    resultsLeaderboard: revealPublicResults ? buildResultsLeaderboardEntries(match) : [],
     isHost: false,
     canContinueFromRoundResults: false,
     roundResultsContinueLabel: null,
-    roundResultsWaitingMessage: null,
+    roundResultsWaitingMessage: revealPublicResults ? MATCH_COMPLETED_WAITING_MESSAGE : null,
     isMatchSpectator: true,
     revealedAnswerLabel: revealAnswer ? round.imageLabel : null,
   };

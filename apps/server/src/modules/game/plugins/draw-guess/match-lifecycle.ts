@@ -7,6 +7,7 @@ import { getLoadedGameContent } from '../../../content/index.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
 import { persistCompletedMatchThen } from '../../runtime/persist-completed-match.js';
+import { absorbSpectatorsAndExpandMatch } from '../../runtime/absorb-spectators-for-next-round.js';
 import { teardownShellAndReturnToLobby } from '../../game.lifecycle.js';
 import {
   clearDrawGuessPhaseTimerRuntime,
@@ -77,17 +78,20 @@ function startNextRound(
     return match;
   }
 
-  const nextRoundNumber = match.currentRound + 1;
-  const connectedPlayerIds = getConnectedParticipantIds(shell, match);
+  const absorbed = absorbSpectatorsAndExpandMatch(io, roomId, match);
+  const rosterShell = absorbed.shell ?? shell;
+  const expanded = absorbed.match;
+  const nextRoundNumber = expanded.currentRound + 1;
+  const connectedPlayerIds = getConnectedParticipantIds(rosterShell, expanded);
   const { round, usedWordTexts } = createRoundState(
     roomId,
-    match,
+    expanded,
     nextRoundNumber,
     connectedPlayerIds,
   );
 
   const nextMatch: DrawGuessMatchState = {
-    ...match,
+    ...expanded,
     currentRound: nextRoundNumber,
     matchStatus: 'in-progress',
     usedWordTexts,

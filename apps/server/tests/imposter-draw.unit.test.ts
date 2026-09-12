@@ -326,7 +326,7 @@ test('new round resets canvas and records used image', () => {
   }
 });
 
-test('spectator privacy: no image, no answer, no impostor before reveal, no score', () => {
+test('spectator privacy: no image, no answer, no impostor before reveal; public vote progress', () => {
   const spectator = buildImposterDrawSpectatorView(makeMatch());
   assert.equal(spectator.isMatchSpectator, true);
   assert.equal(spectator.referenceImage, null);
@@ -334,8 +334,30 @@ test('spectator privacy: no image, no answer, no impostor before reveal, no scor
   assert.equal(spectator.revealedImpostorPlayerId, null);
   assert.equal(spectator.canDraw, false);
   assert.equal(spectator.canGuessImage, false);
-  assert.deepEqual(spectator.leaderboard, []);
-  assert.deepEqual(spectator.votablePlayers, []);
+  assert.equal(spectator.impostorGuessOptions.length, 0);
+  assert.equal(spectator.leaderboard.length, 3);
+  assert.equal(spectator.votablePlayers.length, 3);
+  assert.equal(spectator.submittedVotesCount, 0);
+});
+
+test('spectator voting view is public progress, not a timer-only stub', () => {
+  const match = makeMatch({
+    round: makeRound({
+      gamePhase: 'voting',
+      submittedVoterIds: ['p1'],
+      votes: { p1: 'p2' },
+    }),
+  });
+  const spectator = buildImposterDrawSpectatorView(match, makeShell());
+  assert.equal(spectator.gamePhase, 'voting');
+  assert.match(spectator.phaseLabel, /التصويت/);
+  assert.equal(spectator.submittedVotesCount, 1);
+  assert.equal(spectator.eligibleVotersCount, 3);
+  assert.equal(spectator.votablePlayers.length, 3);
+  assert.equal(spectator.canDraw, false);
+  assert.equal(spectator.revealedImpostorPlayerId, null);
+  assert.equal(spectator.referenceImage, null);
+  assert.equal(JSON.stringify(spectator).includes('قطة'), false);
 });
 
 test('serialize blanks secrets', () => {

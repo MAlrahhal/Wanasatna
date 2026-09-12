@@ -473,7 +473,7 @@ export function buildWhoWroteItPlayerView(
         : [],
     revealEntries: revealed ? buildRevealEntries(match, playerId) : [],
     roundResults: revealed ? buildRoundResultEntries(match) : [],
-    leaderboard: isMatchSpectator ? [] : buildLeaderboardEntries(match),
+    leaderboard: buildLeaderboardEntries(match),
     resultsLeaderboard: buildResultsLeaderboardEntries(match),
     isHost: shell.hostPlayerId === playerId,
     canContinueFromRoundResults: false,

@@ -234,6 +234,14 @@ test('Imposter Draw wires turn ownership; Draw Guess does not', () => {
   assert.doesNotMatch(drawGuessScreen, /currentTurnStrokeIds/);
 });
 
+test('stroke start waits for ACK; points are not application-batched after start', () => {
+  assert.match(drawGuessHook, /strokeReadyPromisesRef/);
+  assert.match(drawGuessHook, /await strokePromise/);
+  assert.match(drawGuessHook, /getRoomSocket\(\)\.emit\(DRAW_GUESS_STROKE_POINTS_EVENT/);
+  assert.doesNotMatch(drawGuessHook, /setTimeout\([^)]*STROKE_POINTS/);
+  assert.match(canvas, /POINT_THROTTLE_MS = 40/);
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed > 0) {
   process.exit(1);

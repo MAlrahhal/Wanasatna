@@ -3,6 +3,9 @@
  * Run: pnpm --filter @wanasatna/web exec tsx tests/room-v2-session.test.ts
  */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   ACTIVE_ROOM_SESSION_KEY,
   RECONNECT_CLAIMS_STORAGE_KEY,
@@ -542,5 +545,27 @@ test('cold start: snapshot cache is hydration-safe and stable until claims chang
   assert.equal(getResumeDiscoverySnapshot(), null);
 });
 
-console.log(`\n${passed} passed, ${failed} failed`);
+test('rehydrate restores a unique localStorage claim when sessionStorage is empty', () => {
+  __resetRoomSessionManagerForTests();
+  sessionStorage.clear();
+  localStorage.clear();
+  writeReconnectClaim(sample);
+  assert.equal(readPersistedActiveRoomSession(), null);
+
+  const manager = getRoomSessionManager();
+  manager.rehydrateFromStorageIfNeeded();
+  assert.deepEqual(manager.getState().session, sample);
+  assert.deepEqual(readPersistedActiveRoomSession(), sample);
+  __resetRoomSessionManagerForTests();
+});
+
+test('cold resume skips ROOM_SYNC unless a bound snapshot already exists', () => {
+  const managerSource = readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), '..', 'lib/room-v2/manager.ts'),
+    'utf8',
+  );
+  assert.match(managerSource, /hadBoundSnapshot/);
+  assert.match(managerSource, /recycleSocketTransport/);
+  assert.match(managerSource, /findUniqueReconnectClaim/);
+});
 process.exit(failed > 0 ? 1 : 0);

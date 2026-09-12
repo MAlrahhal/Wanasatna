@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { registerAllClientGamePlugins } from '@/plugins';
 import { getClientGamePlugin } from '@/lib/game-plugins/registry';
 import { IMPOSTER_DRAW_GAME_ID } from '@wanasatna/shared';
@@ -39,6 +42,18 @@ test('registry resolves imposter-draw to a lazy GameScreen entry', () => {
   assert.ok(plugin, 'plugin must resolve');
   assert.equal(plugin.metadata.id, IMPOSTER_DRAW_GAME_ID);
   assert.equal(typeof plugin.GameScreen, 'function');
+});
+
+test('spectator voting mounts read-only VotingScreen instead of a countdown stub', () => {
+  const source = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'plugins/imposter-draw/game-screen.tsx'), 'utf8');
+  assert.match(source, /isSpectator=\{isSpectator\}/);
+  assert.match(source, /questionHelper=\{isSpectator \? 'اللاعبون يصوّتون الآن'/);
+  assert.doesNotMatch(source, /if \(view\.isMatchSpectator\) \{[\s\S]*phaseLabel="مشاهدة"/);
+  const waiting = readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), '..', 'plugins/draw-guess/waiting-spectator-screen.tsx'),
+    'utf8',
+  );
+  assert.doesNotMatch(waiting, /secretWord/);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

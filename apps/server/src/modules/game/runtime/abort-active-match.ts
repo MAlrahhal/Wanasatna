@@ -1,8 +1,5 @@
 import type { Server } from 'socket.io';
-import {
-  INSUFFICIENT_PLAYERS_ABORT_MESSAGE,
-  type GameShellAbortReason,
-} from '@wanasatna/shared';
+import { INSUFFICIENT_PLAYERS_ABORT_MESSAGE, type GameShellAbortReason } from '@wanasatna/shared';
 import { abortPersistedMatch } from '../../match/match-history.service.js';
 import { prisma } from '../../../lib/prisma.js';
 import { loadActiveRoomPlayers } from '../../room/room.utils.js';
@@ -11,6 +8,7 @@ import { cleanupGameShellRuntime, returnRoomToLobbyAfterMatch } from '../game.li
 import { clearPlayerRecoveryForTeardown } from './player-recovery.js';
 import { cleanupPluginMatchState } from './cleanup-plugin-match.js';
 import { recordAbortedMarathonLeg } from '../../marathon/marathon.runtime.js';
+import { waitForPendingSpectatorPromotionPersistence } from './absorb-spectators-for-next-round.js';
 
 const ABORT_MESSAGES: Record<GameShellAbortReason, string | undefined> = {
   host_aborted: undefined,
@@ -40,6 +38,7 @@ export async function abortActiveMatch(
   const abortedShellId = shell.shellId;
   const abortedGameId = shell.gameId;
 
+  await waitForPendingSpectatorPromotionPersistence(roomId);
   await abortPersistedMatch(roomId);
 
   // Clear recovery without resuming phase timers (resume would race teardown).

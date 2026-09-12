@@ -6,6 +6,7 @@ import { timedPhaseClock } from '../../runtime/phase-deadline.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
 import { persistCompletedMatchThen } from '../../runtime/persist-completed-match.js';
+import { absorbSpectatorsAndExpandMatch } from '../../runtime/absorb-spectators-for-next-round.js';
 import { teardownShellAndReturnToLobby } from '../../game.lifecycle.js';
 import { clearRoomRoundCategory } from '../../runtime/round-category-store.js';
 import {
@@ -73,21 +74,22 @@ function startNextRound(
   roomId: string,
   match: FastAnswerMatchState,
 ): FastAnswerMatchState {
-  const nextRoundNumber = match.currentRound + 1;
+  const expanded = absorbSpectatorsAndExpandMatch(io, roomId, match).match;
+  const nextRoundNumber = expanded.currentRound + 1;
   const { round, usedRoundCategoryIds } = createRoundState(
-    match.lockedCategoryId,
-    match.usedRoundCategoryIds,
-    match.recentQuestionIds,
-    match.roundTimeSeconds,
+    expanded.lockedCategoryId,
+    expanded.usedRoundCategoryIds,
+    expanded.recentQuestionIds,
+    expanded.roundTimeSeconds,
     Date.now(),
     roomId,
   );
   const nextMatch: FastAnswerMatchState = {
-    ...match,
+    ...expanded,
     currentRound: nextRoundNumber,
     matchStatus: 'in-progress',
     usedRoundCategoryIds,
-    recentQuestionIds: appendRecentQuestionId(match.recentQuestionIds, round.questionId),
+    recentQuestionIds: appendRecentQuestionId(expanded.recentQuestionIds, round.questionId),
     round,
   };
 

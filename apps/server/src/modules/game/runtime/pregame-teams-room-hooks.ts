@@ -1,8 +1,9 @@
 import type { Server } from 'socket.io';
 import { TEAM_SNAPSHOT_EVENT } from '@wanasatna/shared';
 import { getRoomChannel } from '../../room/room.utils.js';
-import { deleteGameShell, getGameShellByRoomId } from '../game.service.js';
+import { deleteGameShell, getGameShellByRoomId, syncGameShell } from '../game.service.js';
 import { cleanupGameShellRuntime } from '../game.lifecycle.js';
+import { broadcastGameShellState } from '../game.timer.js';
 import { handleGuessingChallengePermanentLeave } from '../plugins/guessing-challenge/match-lifecycle.js';
 import { handleJudgePermanentLeave } from '../plugins/judge/match-lifecycle.js';
 import { cleanupPluginMatchState } from './cleanup-plugin-match.js';
@@ -22,6 +23,14 @@ export async function onRoomRosterJoined(io: Server, roomId: string): Promise<vo
   const snapshot = syncPregameTeamsWithRoster(roomId, eligible);
   if (snapshot) {
     io.to(getRoomChannel(roomId)).emit(TEAM_SNAPSHOT_EVENT, snapshot);
+  }
+
+  const shell = getGameShellByRoomId(roomId);
+  if (shell && (shell.phase === 'PLAYING' || shell.phase === 'COUNTDOWN')) {
+    const synced = await syncGameShell(roomId);
+    if (synced.success && synced.data.state) {
+      broadcastGameShellState(io, synced.data.state);
+    }
   }
 }
 

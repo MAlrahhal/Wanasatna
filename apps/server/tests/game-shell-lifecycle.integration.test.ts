@@ -292,8 +292,7 @@ async function main(): Promise<void> {
     }>(waiter.socket, DRAW_GUESS_SYNC_EVENT, {});
     assert.equal(waiterSync.success, true);
     assert.equal(waiterSync.data?.view?.isMatchSpectator, true);
-    assert.equal(typeof waiterSync.data?.view?.secretWord, 'string');
-    assert.ok(waiterSync.data?.view?.secretWord);
+    assert.equal(waiterSync.data?.view?.secretWord ?? null, null);
     assert.equal(waiterSync.data?.view?.canGuess, false);
 
     await hostEnd(host);

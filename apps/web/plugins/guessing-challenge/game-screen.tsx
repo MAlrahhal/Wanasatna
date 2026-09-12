@@ -56,32 +56,37 @@ export function GuessingChallengeSpectatorPlaying({
   const [side, setSide] = useState<'blue' | 'red'>('blue');
   const identity = side === 'blue' ? view.spectatorBlueIdentity : view.spectatorRedIdentity;
   const sideLabel = side === 'blue' ? 'الفريق الأزرق' : 'الفريق الأحمر';
+  const hasPublicIdentities = Boolean(view.spectatorBlueIdentity || view.spectatorRedIdentity);
 
   return (
     <GameScreen ariaLabel="مشاهدة تحدي التخمين" maxWidth="4xl" className="min-w-0 gap-3 sm:gap-4">
       {showSpectatorNotice ? <SpectatorNotice /> : null}
-      <div className="flex flex-wrap justify-center gap-2">
-        <Button
-          type="button"
-          variant={side === 'blue' ? 'primary' : 'outline'}
-          className="min-h-11"
-          aria-pressed={side === 'blue'}
-          onClick={() => setSide('blue')}
-        >
-          هوية الأزرق
-        </Button>
-        <Button
-          type="button"
-          variant={side === 'red' ? 'primary' : 'outline'}
-          className="min-h-11"
-          aria-pressed={side === 'red'}
-          onClick={() => setSide('red')}
-        >
-          هوية الأحمر
-        </Button>
-      </div>
+      {hasPublicIdentities ? (
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button
+            type="button"
+            variant={side === 'blue' ? 'primary' : 'outline'}
+            className="min-h-11"
+            aria-pressed={side === 'blue'}
+            onClick={() => setSide('blue')}
+          >
+            هوية الأزرق
+          </Button>
+          <Button
+            type="button"
+            variant={side === 'red' ? 'primary' : 'outline'}
+            className="min-h-11"
+            aria-pressed={side === 'red'}
+            onClick={() => setSide('red')}
+          >
+            هوية الأحمر
+          </Button>
+        </div>
+      ) : null}
       <p className="text-center text-sm font-semibold text-wanas-text-primary">
-        {sideLabel}: {identity?.value ?? '؟؟؟'}
+        {hasPublicIdentities
+          ? `${sideLabel}: ${identity?.value ?? '؟؟؟'}`
+          : `دور ${view.currentTurnPlayerName ?? 'فريق'}`}
       </p>
       <GameplayScene
         mode="playing"
@@ -93,7 +98,11 @@ export function GuessingChallengeSpectatorPlaying({
         selfHidden
         isMyTurn={false}
         turnTitle={`دور ${view.currentTurnPlayerName ?? 'فريق'}`}
-        turnInstruction={`تشاهد هوية ${sideLabel}. لا يمكنك السؤال أو التخمين أو استخدام البطاقات.`}
+        turnInstruction={
+          hasPublicIdentities
+            ? `تشاهد هوية ${sideLabel}. لا يمكنك السؤال أو التخمين أو استخدام البطاقات.`
+            : 'تشاهد الجولة الحالية. لا يمكنك السؤال أو التخمين أو استخدام البطاقات.'
+        }
         showSpecialCards={false}
       />
     </GameScreen>

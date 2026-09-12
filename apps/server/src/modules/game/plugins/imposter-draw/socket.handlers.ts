@@ -117,7 +117,7 @@ function respondWithView(
 
   const view = match.playerIds.includes(playerId)
     ? buildImposterDrawPlayerView(match, playerId, shell)
-    : buildImposterDrawSpectatorView(match);
+    : buildImposterDrawSpectatorView(match, shell);
 
   sendGameResponse(callback, {
     success: true,
@@ -262,7 +262,7 @@ export function registerImposterDrawSocketHandlers(io: Server, socket: Socket): 
       if (!isActiveMatchParticipant(shell, playerId!) || !match.playerIds.includes(playerId!)) {
         sendGameResponse(callback, {
           success: true,
-          data: { view: buildImposterDrawSpectatorView(match) },
+          data: { view: buildImposterDrawSpectatorView(match, shell) },
         });
         return;
       }

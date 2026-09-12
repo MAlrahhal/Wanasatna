@@ -23,11 +23,19 @@ type MatchWriteDb = {
   };
 };
 
+const knownActiveMatchIdByRoomId = new Map<string, string>();
+
 function rememberPersistedMatchContext(
   roomId: string,
   match: { id: string; roomHistoryId: string | null; gameId: string } | null,
 ): void {
-  if (!match?.roomHistoryId) {
+  if (!match) {
+    return;
+  }
+
+  knownActiveMatchIdByRoomId.set(roomId, match.id);
+
+  if (!match.roomHistoryId) {
     return;
   }
 
@@ -55,6 +63,33 @@ async function findActiveMatchForRoom(roomId: string, db: MatchWriteDb = prisma)
     },
     orderBy: { startedAt: 'desc' },
   });
+}
+
+/** The active match ID captured when this server created or found the room match. */
+export function getKnownActivePersistedMatchId(roomId: string): string | null {
+  return knownActiveMatchIdByRoomId.get(roomId) ?? null;
+}
+
+/** Drop the in-memory match hint when a shell is torn down outside the normal lifecycle. */
+export function forgetKnownActivePersistedMatchId(roomId: string): void {
+  knownActiveMatchIdByRoomId.delete(roomId);
+}
+
+/** Resolve the current durable match before a room-scoped write is queued. */
+export async function findActivePersistedMatchId(roomId: string): Promise<string | null> {
+  try {
+    const match = await findActiveMatchForRoom(roomId);
+    if (match) {
+      knownActiveMatchIdByRoomId.set(roomId, match.id);
+    }
+    return match?.id ?? null;
+  } catch (error) {
+    logMatchHistoryFailure('find-active-failed', {
+      roomId,
+      errorName: error instanceof Error ? error.name : typeof error,
+    });
+    return null;
+  }
 }
 
 export async function beginPersistedMatch(
@@ -175,6 +210,9 @@ export async function completePersistedMatch(
       },
     });
 
+    if (knownActiveMatchIdByRoomId.get(roomId) === match.id) {
+      knownActiveMatchIdByRoomId.delete(roomId);
+    }
     return true;
   } catch (error) {
     logMatchHistoryFailure('complete-failed', {
@@ -211,6 +249,9 @@ export async function abortPersistedMatch(
 ): Promise<boolean> {
   try {
     const aborted = await abortActiveMatchesForRoom(roomId, endedAt, db);
+    if (aborted > 0) {
+      knownActiveMatchIdByRoomId.delete(roomId);
+    }
     return aborted > 0;
   } catch (error) {
     logMatchHistoryFailure('abort-failed', {
@@ -230,5 +271,6 @@ export async function abortAllActiveMatches(endedAt: Date = new Date()): Promise
     },
   });
 
+  knownActiveMatchIdByRoomId.clear();
   return updated.count;
 }

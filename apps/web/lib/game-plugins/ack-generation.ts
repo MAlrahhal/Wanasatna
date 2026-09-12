@@ -6,6 +6,7 @@
  * discard an in-flight successful view.
  */
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
+import { getGameShellErrorMessage } from '@/lib/game-shell/error-messages';
 
 export class AckGenerationGate {
   private seq = 0;
@@ -35,7 +36,14 @@ export function isRateLimitedPluginSyncResult(result: {
   view: unknown;
   errorMessage: string | null;
 }): boolean {
-  return result.view == null && result.errorMessage === SYSTEM_COPY.rateLimited;
+  if (result.view != null || !result.errorMessage) {
+    return false;
+  }
+
+  return (
+    result.errorMessage === SYSTEM_COPY.rateLimited ||
+    result.errorMessage === getGameShellErrorMessage('CONNECTION_FAILED')
+  );
 }
 
 export async function runLatestAck<T>(

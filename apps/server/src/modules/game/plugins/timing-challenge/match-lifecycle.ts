@@ -6,6 +6,7 @@ import { timedPhaseClock } from '../../runtime/phase-deadline.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
 import { persistCompletedMatchThen } from '../../runtime/persist-completed-match.js';
+import { absorbSpectatorsAndExpandMatch } from '../../runtime/absorb-spectators-for-next-round.js';
 import { teardownShellAndReturnToLobby } from '../../game.lifecycle.js';
 import {
   clearTimingChallengePhaseTimerRuntime,
@@ -107,11 +108,12 @@ function startNextRound(
   roomId: string,
   match: TimingChallengeMatchState,
 ): TimingChallengeMatchState {
+  const expanded = absorbSpectatorsAndExpandMatch(io, roomId, match).match;
   const nextMatch: TimingChallengeMatchState = {
-    ...match,
-    currentRound: match.currentRound + 1,
+    ...expanded,
+    currentRound: expanded.currentRound + 1,
     matchStatus: 'in-progress',
-    round: createRoundState(match.playerIds, match.settings),
+    round: createRoundState(expanded.playerIds, expanded.settings),
   };
 
   setTimingChallengeState(roomId, nextMatch);

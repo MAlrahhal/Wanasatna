@@ -68,6 +68,7 @@ function startNextRound(
   roomId: string,
   match: GuessingChallengeMatchState,
 ): GuessingChallengeMatchState {
+  // Locked 1v1/2v2 teams cannot absorb mid-match spectators without changing match size.
   const startingTeamId = match.nextStartingTeamId;
   const { round, usedRoundCategoryIds } = createRoundState(
     match.lockedCategoryId,

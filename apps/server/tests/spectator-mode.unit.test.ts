@@ -13,8 +13,12 @@ import {
   deleteGameShell,
   getGameShellByRoomId,
   initGameShell,
+  replaceGameShellForTests,
   startGameShellCountdown,
+  syncGameShell,
 } from '../src/modules/game/game.service.js';
+import { absorbSpectatorsAndExpandMatch } from '../src/modules/game/runtime/absorb-spectators-for-next-round.js';
+import { isActiveMatchParticipant } from '@wanasatna/shared';
 import { createRoom } from '../src/modules/room/services/create-room.service.js';
 import { joinRoom } from '../src/modules/room/services/join-room.service.js';
 import { reconnectPlayer } from '../src/modules/room/services/reconnect.service.js';
@@ -118,6 +122,26 @@ async function main(): Promise<void> {
         `${plugin} must reject spectator gameplay actions`,
       );
     }
+
+    for (const plugin of [
+      'bara-al-salafa',
+      'draw-guess',
+      'imposter-draw',
+      'timing-challenge',
+      'fast-answer',
+      'who-wrote-it',
+      'judge',
+    ]) {
+      assert.match(
+        read(`src/modules/game/plugins/${plugin}/match-lifecycle.ts`),
+        /absorbSpectatorsAndExpandMatch/,
+        `${plugin} must promote current-round spectators on next round`,
+      );
+    }
+    assert.doesNotMatch(
+      read('src/modules/game/plugins/guessing-challenge/match-lifecycle.ts'),
+      /absorbSpectatorsAndExpandMatch/,
+    );
   });
 
   await test('mid-match join sets isSpectator and is excluded from lock + history', async () => {
@@ -254,6 +278,77 @@ async function main(): Promise<void> {
       });
       assert.ok(match);
       assert.ok(match.participants.some((row) => row.playerId === spectator.player.id));
+    } finally {
+      await cleanupRoom(host.room.id);
+    }
+  });
+
+  await test('next-round absorb promotes connected spectator without duplicating the seat', async () => {
+    const host = await mustCreate(uniqueName('مضيف'));
+    await mustJoin(host.room.code, uniqueName('ضيف'));
+
+    try {
+      const init = await initGameShell(host.room.id, host.player.id, {
+        gameId: 'bara-al-salafa',
+      });
+      assert.equal(init.success, true, init.success ? '' : init.error.message);
+      const started = await startGameShellCountdown(host.room.id, host.player.id);
+      assert.equal(started.success, true, started.success ? '' : started.error.message);
+
+      const spectator = await mustJoin(host.room.code, uniqueName('متفرج'));
+      assert.equal(spectator.player.isSpectator, true);
+      await syncGameShell(host.room.id);
+
+      const live = getGameShellByRoomId(host.room.id);
+      assert.ok(live);
+      replaceGameShellForTests({
+        ...live,
+        phase: 'PLAYING',
+        players: live.players.map((player) =>
+          player.id === spectator.player.id ? { ...player, isConnected: true } : player,
+        ),
+      });
+
+      const fakeIo = { to: () => ({ emit: () => undefined }) };
+      const current = getGameShellByRoomId(host.room.id);
+      assert.ok(current);
+      const absorbed = absorbSpectatorsAndExpandMatch(
+        fakeIo as never,
+        host.room.id,
+        {
+          playerIds: current.matchParticipantIds ?? [],
+          playerNames: Object.fromEntries(current.players.map((player) => [player.id, player.name])),
+          scores: Object.fromEntries(
+            (current.matchParticipantIds ?? []).map((playerId) => [playerId, 0]),
+          ),
+        },
+      );
+
+      assert.ok(absorbed.absorbedPlayerIds.includes(spectator.player.id));
+      assert.ok(absorbed.shell?.matchParticipantIds?.includes(spectator.player.id));
+      assert.equal(isActiveMatchParticipant(absorbed.shell, spectator.player.id), true);
+      assert.equal(
+        absorbed.shell?.players.filter((player) => player.id === spectator.player.id).length,
+        1,
+      );
+      assert.equal(
+        absorbed.shell?.players.find((player) => player.id === spectator.player.id)?.isSpectator,
+        false,
+      );
+
+      let persistedIsSpectator: boolean | undefined = true;
+      for (let attempt = 0; attempt < 20; attempt += 1) {
+        const persisted = await prisma.player.findUnique({
+          where: { id: spectator.player.id },
+          select: { isSpectator: true },
+        });
+        persistedIsSpectator = persisted?.isSpectator;
+        if (persistedIsSpectator === false) {
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+      assert.equal(persistedIsSpectator, false);
     } finally {
       await cleanupRoom(host.room.id);
     }

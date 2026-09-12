@@ -188,11 +188,11 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
     return null;
   }
 
-  if (isLoading) {
+  if (isLoading && !view) {
     return <GameSystemLoading />;
   }
 
-  if (errorMessage) {
+  if (errorMessage && !view) {
     return <GameSystemError message={errorMessage} />;
   }
 
@@ -201,6 +201,27 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
   }
 
   if (view.isMatchSpectator) {
+    if (view.gamePhase === 'round-results' && view.revealedWord) {
+      return (
+        <DrawGuessRoundResultsScreen
+          revealedWord={view.revealedWord}
+          guessedCorrectly={view.guessedCorrectly}
+          correctGuesserName={view.correctGuesserName}
+          drawerName={view.drawerName}
+          roundResults={view.roundResults}
+          currentPlayerId={player.id}
+          roundNumber={view.currentRound}
+          totalRounds={view.totalRounds}
+          roomCode={room.code}
+          remainingSeconds={0}
+          deadlineAtMs={view.deadlineAtMs}
+          totalDurationSeconds={DRAW_GUESS_ROUND_RESULTS_DURATION_SECONDS}
+          continueLabel={null}
+          waitingMessage={view.roundResultsWaitingMessage}
+        />
+      );
+    }
+
     return (
       <WaitingSpectatorScreen
         strokes={view.strokes}
@@ -211,7 +232,8 @@ export function DrawGuessGameScreen(_props: GamePluginScreenProps) {
         totalRounds={view.totalRounds}
         roomCode={room.code}
         canvasRef={canvasRef}
-        secretWord={view.secretWord}
+        revealedWord={view.revealedWord}
+        isDrawingPhase={view.gamePhase === 'drawing'}
       />
     );
   }

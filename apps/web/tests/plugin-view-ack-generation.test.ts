@@ -18,6 +18,7 @@ import {
 } from '../lib/game-plugins/bind-plugin-view-resync';
 import { GAME_SHELL_STATE_EVENT } from '@wanasatna/shared';
 import { SYSTEM_COPY } from '../lib/ui/system-copy';
+import { getGameShellErrorMessage } from '../lib/game-shell/error-messages';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -415,6 +416,24 @@ async function main(): Promise<void> {
   assert.match(playerCard, /غير متصل/);
   assert.doesNotMatch(playerCard, /غادر/);
 });
+
+  await test('QA-47: CONNECTION_FAILED plugin SYNC is retryable like RATE_LIMITED', () => {
+    assert.equal(
+      isRateLimitedPluginSyncResult({
+        view: null,
+        errorMessage: getGameShellErrorMessage('CONNECTION_FAILED'),
+      }),
+      true,
+    );
+    assert.equal(
+      isRateLimitedPluginSyncResult({ view: null, errorMessage: SYSTEM_COPY.rateLimited }),
+      true,
+    );
+    assert.equal(
+      isRateLimitedPluginSyncResult({ view: { ok: true }, errorMessage: getGameShellErrorMessage('CONNECTION_FAILED') }),
+      false,
+    );
+  });
 
   console.log(`\n${passed} passed, ${failed} failed`);
   process.exit(failed > 0 ? 1 : 0);

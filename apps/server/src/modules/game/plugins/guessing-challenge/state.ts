@@ -1217,11 +1217,11 @@ export function buildGuessingChallengePlayerView(
     ...buildRoundResultsInteractionView(match, shell, playerId),
     isMatchSpectator,
     spectatorBlueIdentity:
-      isMatchSpectator && !match.playerIds.includes(playerId)
+      isMatchSpectator && revealed && !match.playerIds.includes(playerId)
         ? toVisibleIdentity(match.round.identitiesByTeamId.blue)
         : null,
     spectatorRedIdentity:
-      isMatchSpectator && !match.playerIds.includes(playerId)
+      isMatchSpectator && revealed && !match.playerIds.includes(playerId)
         ? toVisibleIdentity(match.round.identitiesByTeamId.red)
         : null,
   };

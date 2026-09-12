@@ -66,7 +66,7 @@ export function buildAdminSpectatePluginView(
       }
       case IMPOSTER_DRAW_GAME_ID: {
         const match = getImposterDrawState(roomId);
-        return match ? toPluginView(shell.gameId, buildImposterDrawSpectatorView(match)) : null;
+        return match ? toPluginView(shell.gameId, buildImposterDrawSpectatorView(match, shell)) : null;
       }
       case TIMING_CHALLENGE_GAME_ID: {
         const match = getTimingChallengeState(roomId);

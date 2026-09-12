@@ -7,6 +7,7 @@ import { timedPhaseClock } from '../../runtime/phase-deadline.js';
 import { getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
 import { persistCompletedMatchThen } from '../../runtime/persist-completed-match.js';
+import { absorbSpectatorsAndExpandMatch } from '../../runtime/absorb-spectators-for-next-round.js';
 import { teardownShellAndReturnToLobby } from '../../game.lifecycle.js';
 import { buildImageGuessOptions } from './images.js';
 import {
@@ -312,14 +313,15 @@ function startNextRound(
   roomId: string,
   match: ImposterDrawMatchState,
 ): ImposterDrawMatchState {
+  const expanded = absorbSpectatorsAndExpandMatch(io, roomId, match).match;
   const { round, usedImageTexts } = createRoundState(roomId, {
-    playerIds: match.playerIds,
-    usedImageTexts: match.usedImageTexts,
-    previousImpostorPlayerId: match.round.impostorPlayerId,
+    playerIds: expanded.playerIds,
+    usedImageTexts: expanded.usedImageTexts,
+    previousImpostorPlayerId: expanded.round.impostorPlayerId,
   });
 
   const nextMatch: ImposterDrawMatchState = {
-    ...match,
+    ...expanded,
     currentRound: match.currentRound + 1,
     matchStatus: 'in-progress',
     usedImageTexts,

@@ -225,13 +225,13 @@ export function buildDrawGuessSpectatorView(match: DrawGuessMatchState): DrawGue
 
   return {
     gamePhase: round.gamePhase,
-    phaseLabel: 'الجولة جارية',
+    phaseLabel: buildRoundPhaseLabel(match),
     phaseRemainingSeconds: round.deadlineAtMs
       ? remainingSecondsFromDeadline(round.deadlineAtMs)
       : round.phaseRemainingSeconds,
     deadlineAtMs: round.deadlineAtMs,
-    role: 'drawer',
-    secretWord: round.gamePhase === 'drawing' ? round.word : null,
+    role: 'guesser',
+    secretWord: null,
     turnId: round.turnId,
     drawerPlayerId: round.drawerPlayerId,
     drawerName: match.playerNames[round.drawerPlayerId] ?? 'لاعب',
@@ -248,7 +248,10 @@ export function buildDrawGuessSpectatorView(match: DrawGuessMatchState): DrawGue
     guessedCorrectly: revealWord ? round.guessedCorrectly : false,
     ...EMPTY_RESULTS,
     isMatchSpectator: true,
+    canGuess: false,
+    roundResults: revealWord ? buildRoundResultEntries(match) : [],
     leaderboard: buildLeaderboardEntries(match),
+    resultsLeaderboard: revealWord ? buildResultsLeaderboardEntries(match) : [],
   };
 }
 

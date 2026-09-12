@@ -17,6 +17,7 @@ import { getGameShellByRoomId } from '../../game.service.js';
 import { persistCompletedMatchThen } from '../../runtime/persist-completed-match.js';
 import { teardownShellAndReturnToLobby } from '../../game.lifecycle.js';
 import { resolveEnabledCategoryFilter } from '../../runtime/round-category-store.js';
+import { absorbSpectatorsAndExpandMatch } from '../../runtime/absorb-spectators-for-next-round.js';
 import { applyRoundScores } from './scoring.js';
 import {
   createRoundState,
@@ -51,10 +52,12 @@ export function startNextRound(
     return live;
   }
 
-  const syncedMatch = syncMatchPlayersFromShell(match, shell.players);
+  const absorbed = absorbSpectatorsAndExpandMatch(io, roomId, match);
+  const rosterShell = absorbed.shell ?? shell;
+  const syncedMatch = syncMatchPlayersFromShell(absorbed.match, rosterShell.players);
   const nextRoundNumber = syncedMatch.currentRound + 1;
   const nextRound = createRoundState(
-    shell.players.filter((player) => syncedMatch.playerIds.includes(player.id)),
+    rosterShell.players.filter((player) => syncedMatch.playerIds.includes(player.id)),
     bundle,
     settings,
     resolveEnabledCategoryFilter(roomId),

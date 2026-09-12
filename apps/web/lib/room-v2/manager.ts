@@ -42,6 +42,7 @@ import {
 import {
   readReconnectClaim,
   removeReconnectClaimForSession,
+  findUniqueReconnectClaim,
 } from '@/lib/room-v2/reconnect-claims';
 import type {
   ActiveRoomSession,
@@ -160,7 +161,15 @@ class RoomSessionManager {
    * Does not mark ACTIVE — caller decides reuse vs resume.
    */
   rehydrateFromStorageIfNeeded(): void {
-    const persisted = readPersistedActiveRoomSession();
+    let persisted = readPersistedActiveRoomSession();
+    if (!persisted) {
+      persisted = findUniqueReconnectClaim();
+      if (persisted && this.leftRoomIds.has(persisted.roomId)) {
+        persisted = null;
+      } else if (persisted) {
+        writePersistedActiveRoomSession(persisted);
+      }
+    }
     if (!persisted) {
       return;
     }
@@ -291,6 +300,26 @@ class RoomSessionManager {
       } catch {
         return false;
       }
+    }
+    this.bindCoreListeners();
+    return true;
+  }
+
+  private async recycleSocketTransport(): Promise<boolean> {
+    const socket = getRoomSocket();
+    try {
+      socket.io.reconnection(true);
+    } catch {
+      /* ignore */
+    }
+    if (socket.connected) {
+      socket.disconnect();
+    }
+    socket.connect();
+    try {
+      await waitForRoomSocketConnection(socket, 10_000);
+    } catch {
+      return false;
     }
     this.bindCoreListeners();
     return true;
@@ -708,6 +737,9 @@ class RoomSessionManager {
       return { success: true, data: this.session };
     }
 
+    const hadBoundSnapshot = Boolean(this.snapshot.room && this.snapshot.player);
+    const recycleBeforeReconnect = this.status === 'error';
+
     const gen = this.bumpGeneration();
     this.session = stored;
     this.status = 'recovering';
@@ -739,24 +771,51 @@ class RoomSessionManager {
       };
     }
 
-    // Prefer bound sync when socket already authenticated to this room.
-    const synced = await emitRoomAck<RoomSessionData>(ROOM_SYNC_EVENT, {});
-    if (gen === this.generation && synced.success && synced.data.room.id === stored.roomId) {
-      this.applySessionData(synced.data, gen);
-      roomV2Diag('RESUME_SUCCESS', {
-        roomCode: stored.roomCode,
-        roomId: stored.roomId,
-        playerId: stored.playerId,
-        generation: gen,
-      });
-      recordContinuity('RESUME_SUCCESS_SYNC', {
-        socketId: getRoomSocket().id ?? null,
-        managerId: this.__instanceId ?? null,
-        roomCode: stored.roomCode,
-        playerId: stored.playerId,
-        status: this.status,
-      });
-      return { success: true, data: stored };
+    // Prefer bound sync only when this tab still has a live room snapshot.
+    // Cold mobile refresh is unbound — ROOM_SYNC would wait on a 10s ACK miss.
+    if (hadBoundSnapshot) {
+      const synced = await emitRoomAck<RoomSessionData>(ROOM_SYNC_EVENT, {});
+      if (gen === this.generation && synced.success && synced.data.room.id === stored.roomId) {
+        this.applySessionData(synced.data, gen);
+        roomV2Diag('RESUME_SUCCESS', {
+          roomCode: stored.roomCode,
+          roomId: stored.roomId,
+          playerId: stored.playerId,
+          generation: gen,
+        });
+        recordContinuity('RESUME_SUCCESS_SYNC', {
+          socketId: getRoomSocket().id ?? null,
+          managerId: this.__instanceId ?? null,
+          roomCode: stored.roomCode,
+          playerId: stored.playerId,
+          status: this.status,
+        });
+        return { success: true, data: stored };
+      }
+
+      if (!(await this.recycleSocketTransport())) {
+        this.session = stored;
+        writePersistedActiveRoomSession(stored);
+        this.status = 'error';
+        this.errorMessage = getRoomErrorMessage('CONNECTION_FAILED');
+        this.notify();
+        return {
+          success: false,
+          error: { code: 'CONNECTION_FAILED', message: this.errorMessage },
+        };
+      }
+    } else if (recycleBeforeReconnect) {
+      if (!(await this.recycleSocketTransport())) {
+        this.session = stored;
+        writePersistedActiveRoomSession(stored);
+        this.status = 'error';
+        this.errorMessage = getRoomErrorMessage('CONNECTION_FAILED');
+        this.notify();
+        return {
+          success: false,
+          error: { code: 'CONNECTION_FAILED', message: this.errorMessage },
+        };
+      }
     }
 
     const response = await emitRoomAck<RoomSessionData>(RECONNECT_EVENT, {

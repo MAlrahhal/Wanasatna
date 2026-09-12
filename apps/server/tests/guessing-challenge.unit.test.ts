@@ -1010,7 +1010,7 @@ test('identity picker consumes remaining fresh alternative before reuse', () => 
   assert.notEqual(picked[0].id, picked[1].id);
 });
 
-test('spectator sees both identities and cannot act', () => {
+test('spectator sees both identities only after public reveal and cannot act', () => {
   const match = makeMatch2v2();
   const view = buildGuessingChallengePlayerView(
     match,
@@ -1022,10 +1022,24 @@ test('spectator sees both identities and cannot act', () => {
   assert.equal(view.canGuess, false);
   assert.equal(view.canEndQuestion, false);
   assert.equal(view.canUseYellow, false);
-  assert.equal(view.spectatorBlueIdentity?.value, match.round.identitiesByTeamId.blue.value);
-  assert.equal(view.spectatorRedIdentity?.value, match.round.identitiesByTeamId.red.value);
-  assert.notEqual(view.spectatorBlueIdentity?.value, view.spectatorRedIdentity?.value);
-  assert.equal(JSON.stringify(view).includes('acceptedAnswers'), false);
+  assert.equal(view.spectatorBlueIdentity, null);
+  assert.equal(view.spectatorRedIdentity, null);
+
+  const revealed = buildGuessingChallengePlayerView(
+    {
+      ...match,
+      round: {
+        ...match.round,
+        gamePhase: 'round-results',
+      },
+    },
+    'spectator',
+    makeShell(['p1', 'p2', 'p3', 'p4', 'spectator']),
+  );
+  assert.equal(revealed.spectatorBlueIdentity?.value, match.round.identitiesByTeamId.blue.value);
+  assert.equal(revealed.spectatorRedIdentity?.value, match.round.identitiesByTeamId.red.value);
+  assert.notEqual(revealed.spectatorBlueIdentity?.value, revealed.spectatorRedIdentity?.value);
+  assert.equal(JSON.stringify(revealed).includes('acceptedAnswers'), false);
 });
 
 test('departed teammate receives no future mirrored score', () => {
