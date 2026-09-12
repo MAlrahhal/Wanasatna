@@ -29,6 +29,7 @@ export type SeatedOpponentProps = {
   rotationY?: number;
   testId?: string;
   nameTestId?: string;
+  nameBadgePosition?: [number, number, number];
 };
 
 const DOT_COLORS: Record<'blue' | 'red' | 'opponent', string> = {
@@ -107,6 +108,7 @@ export function LowPolyOpponent({
   rotationY = 0,
   testId = 'gc-opponent-character',
   nameTestId = 'gc-opponent-name',
+  nameBadgePosition,
 }: SeatedOpponentProps) {
   const text = resolveIdentityCardText(identity, false);
   const identityKey = identity?.value ?? '';
@@ -126,6 +128,7 @@ export function LowPolyOpponent({
           reduceMotion={reduceMotion}
           reachToward={reachToward}
           holdHand={holdHand}
+          nameBadgePosition={nameBadgePosition}
           nameBadge={
             <NameBadge name={name} teamDot={teamDot} testId={testId} nameTestId={nameTestId} />
           }

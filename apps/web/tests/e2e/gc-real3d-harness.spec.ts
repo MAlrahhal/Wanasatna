@@ -93,9 +93,7 @@ test.describe('GC Real3D harness visuals', () => {
     expect(shot.byteLength).toBeGreaterThan(8_000);
   });
 
-  test('spectator occupies the neutral observer camera and sees both teams without an avatar', async ({
-    page,
-  }) => {
+  test('maximum-size spectator view sees both teams without an avatar', async ({ page }) => {
     await page.goto('/dev/guessing-challenge-scene?panel=spectator&mode=2v2', {
       waitUntil: 'networkidle',
     });
@@ -121,6 +119,98 @@ test.describe('GC Real3D harness visuals', () => {
 
     await page.screenshot({
       path: path.join(OUT, 'spectator-2v2.png'),
+      fullPage: true,
+    });
+  });
+
+  test('spectator framing supports small teams and touch-sized maximum teams', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+
+    await page.goto('/dev/guessing-challenge-scene?panel=spectator&mode=1v1', {
+      waitUntil: 'networkidle',
+    });
+    await expect(page.getByTestId('gc-real3d-scene')).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId('gc-spectator-blue-name-0')).toBeVisible();
+    await expect(page.getByTestId('gc-spectator-red-name-0')).toBeVisible();
+    await expect(page.getByTestId('gc-spectator-blue-name-1')).toHaveCount(0);
+    await expect(page.getByTestId('gc-spectator-red-name-1')).toHaveCount(0);
+    await page.screenshot({
+      path: path.join(OUT, 'spectator-1v1.png'),
+      fullPage: true,
+    });
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/dev/guessing-challenge-scene?panel=spectator&mode=2v2', {
+      waitUntil: 'networkidle',
+    });
+    const scene = page.getByTestId('gc-real3d-scene');
+    const canvas = scene.locator('canvas');
+    await expect(scene).toBeVisible({ timeout: 20_000 });
+    await expect(canvas).toBeVisible();
+    await expect(page.getByTestId('gc-spectator-blue-name-0')).toBeVisible();
+    await expect(page.getByTestId('gc-spectator-blue-name-1')).toBeVisible();
+    await expect(page.getByTestId('gc-spectator-red-name-0')).toBeVisible();
+    await expect(page.getByTestId('gc-spectator-red-name-1')).toBeVisible();
+    await expect(page.getByTestId('gc-recenter-camera')).toBeVisible();
+    expect(await canvas.evaluate((element) => getComputedStyle(element).touchAction)).toBe('none');
+
+    const beforeDrag = await canvas.screenshot();
+    const box = await canvas.boundingBox();
+    expect(box).toBeTruthy();
+    const badgeBoxes = new Map<string, { x: number; y: number; width: number; height: number }>();
+    for (const testId of [
+      'gc-spectator-blue-name-0',
+      'gc-spectator-blue-name-1',
+      'gc-spectator-red-name-0',
+      'gc-spectator-red-name-1',
+    ]) {
+      const badgeBox = await page.getByTestId(testId).boundingBox();
+      expect(badgeBox).toBeTruthy();
+      badgeBoxes.set(testId, badgeBox!);
+      expect(badgeBox!.x, `${testId} stays inside the left canvas edge`).toBeGreaterThanOrEqual(
+        box!.x,
+      );
+      expect(
+        badgeBox!.x + badgeBox!.width,
+        `${testId} stays inside the right canvas edge`,
+      ).toBeLessThanOrEqual(box!.x + box!.width);
+    }
+    for (const teamId of ['blue', 'red']) {
+      const rear = badgeBoxes.get(`gc-spectator-${teamId}-name-0`)!;
+      const front = badgeBoxes.get(`gc-spectator-${teamId}-name-1`)!;
+      const verticalOverlap =
+        Math.min(rear.y + rear.height, front.y + front.height) - Math.max(rear.y, front.y);
+      expect(verticalOverlap, `${teamId} player names do not cover each other`).toBeLessThanOrEqual(
+        0,
+      );
+    }
+    await canvas.dispatchEvent('pointerdown', {
+      pointerId: 7,
+      pointerType: 'touch',
+      clientX: box!.x + box!.width * 0.7,
+      clientY: box!.y + box!.height * 0.5,
+    });
+    await canvas.dispatchEvent('pointermove', {
+      pointerId: 7,
+      pointerType: 'touch',
+      clientX: box!.x + box!.width * 0.3,
+      clientY: box!.y + box!.height * 0.5,
+    });
+    await canvas.dispatchEvent('pointerup', {
+      pointerId: 7,
+      pointerType: 'touch',
+      clientX: box!.x + box!.width * 0.3,
+      clientY: box!.y + box!.height * 0.5,
+    });
+    await page.waitForTimeout(150);
+    const afterDrag = await canvas.screenshot();
+    expect(afterDrag.equals(beforeDrag), 'touch drag changes the local spectator look').toBe(false);
+
+    await page.getByTestId('gc-recenter-camera').click();
+    await expect(scene).toHaveAttribute('data-spectator-entity', 'false');
+    await page.waitForTimeout(150);
+    await page.screenshot({
+      path: path.join(OUT, 'spectator-mobile-2v2.png'),
       fullPage: true,
     });
   });

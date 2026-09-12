@@ -17,14 +17,22 @@ import {
 } from '../plugins/guessing-challenge/identity-display';
 import { detectWebGLSupport } from '../plugins/guessing-challenge/scene-props';
 import {
+  CAMERA_FOV,
+  SPECTATOR_CARD_HEIGHT,
+  SPECTATOR_CARD_WIDTH,
   SPECTATOR_CAMERA_POSITION,
   SPECTATOR_CAMERA_FOV,
   SPECTATOR_CAMERA_YAW,
+  cameraFovForView,
   cameraPositionForView,
   cameraPositionForSeat,
   cameraYawForView,
   mapRemoteLookPitch,
   mapRemoteLookYaw,
+  spectatorCardPosition,
+  spectatorCardRotation,
+  spectatorPlayerPositions,
+  spectatorTeamZ,
   teammateSeatPosition,
 } from '../plugins/guessing-challenge/real3d/seat-layout';
 
@@ -411,27 +419,109 @@ test('spectator scene renders both identity cards and all participant names with
 });
 
 test('spectator camera is side-offset between teams with constrained left/right head look', () => {
-  assert.deepEqual(SPECTATOR_CAMERA_POSITION, [2.2, 1.35, -0.3]);
-  assert.equal(SPECTATOR_CAMERA_FOV, 65);
+  assert.deepEqual(SPECTATOR_CAMERA_POSITION, [4.3, 1.58, -0.335]);
+  assert.equal(SPECTATOR_CAMERA_FOV, 52);
   assert.deepEqual(cameraPositionForView('spectator', '1v1', 0), SPECTATOR_CAMERA_POSITION);
   assert.deepEqual(cameraPositionForView('spectator', '2v2', 1), SPECTATOR_CAMERA_POSITION);
   assert.equal(cameraYawForView('spectator'), SPECTATOR_CAMERA_YAW);
   assert.equal(SPECTATOR_CAMERA_YAW, Math.PI / 2);
+  assert.equal(cameraFovForView('player'), CAMERA_FOV);
+  assert.equal(CAMERA_FOV, 55, 'participant FOV remains unchanged');
 
   const camera = new THREE.Vector3(...SPECTATOR_CAMERA_POSITION);
   const neutralForward = new THREE.Vector3(-1, 0, 0);
-  for (const teamZ of [1.48, -2.15]) {
+  const teamDepths = [spectatorTeamZ('blue'), spectatorTeamZ('red')];
+  assert.ok(Math.abs(camera.z - (teamDepths[0] + teamDepths[1]) / 2) < 1e-12);
+  for (const teamZ of teamDepths) {
     const towardTeam = new THREE.Vector3(0, camera.y, teamZ).sub(camera).normalize();
     const angle = neutralForward.angleTo(towardTeam);
-    assert.ok(angle < (55 * Math.PI) / 180, 'both teams are within a comfortable yaw from center');
+    assert.ok(angle < (32 * Math.PI) / 180, 'both teams are close to the neutral center view');
   }
 
   const inner = readPlugin('real3d/real3d-scene-inner.tsx');
   const controls = readPlugin('real3d/look-controls.tsx');
-  assert.match(inner, /YAW_SPECTATOR = \(105 \* Math\.PI\) \/ 180/);
+  assert.match(inner, /YAW_SPECTATOR = \(80 \* Math\.PI\) \/ 180/);
+  assert.match(inner, /const PITCH_LIMIT = \(18 \* Math\.PI\) \/ 180/);
   assert.match(inner, /baseYaw=\{cameraYaw\}/);
+  assert.match(inner, /onLookChange=\{isSpectator \? undefined : props\.onLookChange\}/);
   assert.match(controls, /baseYawRef\.current \+ yaw\.current/);
   assert.match(controls, /targetPitch\.current = THREE\.MathUtils\.clamp/);
+  assert.match(controls, /pointerdown/);
+  assert.match(controls, /pointermove/);
+  assert.match(controls, /DAMPING/);
+  assert.match(controls, /recenter:/);
+});
+
+test('spectator framing and readable card transforms cover every supported team size', () => {
+  assert.equal(SPECTATOR_CARD_WIDTH, 0.66);
+  assert.equal(SPECTATOR_CARD_HEIGHT, 0.44);
+
+  const observer = new THREE.Vector3(...SPECTATOR_CAMERA_POSITION);
+  const desktopCamera = new THREE.PerspectiveCamera(SPECTATOR_CAMERA_FOV, 636 / 445, 0.15, 40);
+  desktopCamera.position.copy(observer);
+  desktopCamera.rotation.set(0, SPECTATOR_CAMERA_YAW, 0, 'YXZ');
+  desktopCamera.updateMatrixWorld();
+
+  for (const teamId of ['blue', 'red'] as const) {
+    for (const playerCount of [1, 2]) {
+      const cardPosition = spectatorCardPosition(teamId, playerCount);
+      const cardRotation = spectatorCardRotation(teamId, cardPosition);
+      const exactFacingYaw = Math.atan2(observer.x - cardPosition[0], observer.z - cardPosition[2]);
+
+      assert.equal(cardPosition[1], 1.3);
+      assert.equal(cardPosition[0], playerCount === 1 ? 0.62 : 1.03);
+      assert.equal(cardRotation[0], -0.12);
+      assert.ok(Math.abs(Math.abs(cardRotation[1] - exactFacingYaw) - 0.055) < 1e-12);
+      assert.equal(cardRotation[2], teamId === 'blue' ? 0.035 : -0.035);
+
+      const positions = spectatorPlayerPositions(teamId, playerCount);
+      assert.equal(positions.length, playerCount);
+      for (const position of positions) {
+        const head = new THREE.Vector3(position[0], 1.67, position[2]).project(desktopCamera);
+        assert.ok(Math.abs(head.x) < 0.75, 'player heads stay away from distorted frame edges');
+        assert.ok(Math.abs(head.y) < 0.25, 'player heads remain comfortably framed');
+      }
+
+      const cardCenter = new THREE.Vector3(...cardPosition).project(desktopCamera);
+      assert.ok(Math.abs(cardCenter.x) < 0.6, 'both cards fit together in the desktop frame');
+      assert.ok(Math.abs(cardCenter.y) < 0.35, 'card content stays vertically centered');
+
+      // The text-safe area sits in front of the nearest torso. Hands remain above this area.
+      const textHalfWidth = (SPECTATOR_CARD_WIDTH * 0.94 * (1024 - 140)) / 1024 / 2;
+      const faceHalfHeight = (SPECTATOR_CARD_HEIGHT * 0.9) / 2;
+      const euler = new THREE.Euler(...cardRotation);
+      let nearestTextX = Number.POSITIVE_INFINITY;
+      let highestCardY = Number.NEGATIVE_INFINITY;
+      for (const x of [-textHalfWidth, textHalfWidth]) {
+        for (const y of [-faceHalfHeight, faceHalfHeight]) {
+          const corner = new THREE.Vector3(x, y, 0.013)
+            .applyEuler(euler)
+            .add(new THREE.Vector3(...cardPosition));
+          nearestTextX = Math.min(nearestTextX, corner.x);
+          highestCardY = Math.max(highestCardY, corner.y);
+        }
+      }
+      const nearestTorsoFront = (playerCount === 1 ? 0 : 0.62) + 0.28;
+      assert.ok(nearestTextX > nearestTorsoFront, 'body geometry stays behind card text');
+      assert.ok(highestCardY < 1.56, 'hands stay above the card content instead of covering it');
+    }
+  }
+
+  // At a common portrait viewport both cards remain on screen; very narrow phones can inspect
+  // either team with an under-30-degree drag, well inside the spectator's +/-80-degree range.
+  const mobileCamera = new THREE.PerspectiveCamera(SPECTATOR_CAMERA_FOV, 358 / 260, 0.15, 40);
+  mobileCamera.position.copy(observer);
+  mobileCamera.rotation.set(0, SPECTATOR_CAMERA_YAW, 0, 'YXZ');
+  mobileCamera.updateMatrixWorld();
+  for (const teamId of ['blue', 'red'] as const) {
+    const cardPosition = spectatorCardPosition(teamId, 2);
+    const neutralCard = new THREE.Vector3(...cardPosition).project(mobileCamera);
+    assert.ok(Math.abs(neutralCard.x) < 0.9, 'maximum-size team card remains on mobile canvas');
+
+    const deltaYaw = Math.atan2(cardPosition[2] - observer.z, observer.x - cardPosition[0]);
+    assert.ok(Math.abs(deltaYaw) < (31 * Math.PI) / 180);
+    assert.ok(Math.abs(deltaYaw) < (80 * Math.PI) / 180);
+  }
 });
 
 test('playing copy makes yes/no social mechanic obvious', () => {

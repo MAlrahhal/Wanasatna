@@ -33,6 +33,7 @@ export type BeanCharacterProps = {
   scale?: number;
   /** Small name badge parented to the head (world-space via Html). */
   nameBadge?: ReactNode;
+  nameBadgePosition?: [number, number, number];
 };
 
 const REST_LEFT: [number, number, number] = [-0.2, 0.12, 0.28];
@@ -80,6 +81,7 @@ export function BeanCharacter({
   reduceMotion = false,
   scale = 1,
   nameBadge = null,
+  nameBadgePosition = [0, 0.22, 0.04],
 }: BeanCharacterProps) {
   const root = useRef<THREE.Group>(null);
   const body = useRef<THREE.Group>(null);
@@ -224,7 +226,7 @@ export function BeanCharacter({
           </mesh>
           {nameBadge ? (
             <Html
-              position={[0, 0.22, 0.04]}
+              position={nameBadgePosition}
               occlude={false}
               zIndexRange={[20, 0]}
               style={{

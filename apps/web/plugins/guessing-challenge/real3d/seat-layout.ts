@@ -11,10 +11,31 @@
 export const CAMERA_Y = 1.35;
 export const CAMERA_Z = 1.65;
 export const CAMERA_FOV = 55;
-export const SPECTATOR_CAMERA_POSITION: [number, number, number] = [2.2, CAMERA_Y, -0.3];
-export const SPECTATOR_CAMERA_FOV = 65;
-/** Faces inward from the side aisle; teams sit roughly 45 degrees left and right. */
+export const SPECTATOR_CAMERA_POSITION: [number, number, number] = [4.3, 1.58, -0.335];
+export const SPECTATOR_CAMERA_FOV = 52;
+/** Faces inward from the side aisle, centered on the midpoint between both teams. */
 export const SPECTATOR_CAMERA_YAW = Math.PI / 2;
+
+export type SpectatorTeamId = 'blue' | 'red';
+
+export const SPECTATOR_CARD_WIDTH = 0.66;
+export const SPECTATOR_CARD_HEIGHT = 0.44;
+const SPECTATOR_CARD_Y = 1.3;
+const SPECTATOR_CARD_SINGLE_X = 0.62;
+const SPECTATOR_CARD_DUO_X = 1.03;
+const SPECTATOR_CARD_PITCH = -0.12;
+const SPECTATOR_CARD_YAW_TILT = 0.055;
+const SPECTATOR_CARD_ROLL = 0.035;
+
+const SPECTATOR_TEAM_Z: Record<SpectatorTeamId, number> = {
+  blue: 1.48,
+  red: -2.15,
+};
+
+const SPECTATOR_CARD_Z: Record<SpectatorTeamId, number> = {
+  blue: 0.7,
+  red: -1.37,
+};
 
 /** 2v2: sit slightly off center so the outer wall has space and seats mirror. */
 const SEAT_CAMERA_X = 0.26;
@@ -65,6 +86,52 @@ export function spectatorCardYaw(position: [number, number, number]): number {
     SPECTATOR_CAMERA_POSITION[0] - position[0],
     SPECTATOR_CAMERA_POSITION[2] - position[2],
   );
+}
+
+export function spectatorTeamZ(teamId: SpectatorTeamId): number {
+  return SPECTATOR_TEAM_Z[teamId];
+}
+
+export function spectatorCardPosition(
+  teamId: SpectatorTeamId,
+  playerCount: number,
+): [number, number, number] {
+  return [
+    playerCount > 1 ? SPECTATOR_CARD_DUO_X : SPECTATOR_CARD_SINGLE_X,
+    SPECTATOR_CARD_Y,
+    SPECTATOR_CARD_Z[teamId],
+  ];
+}
+
+/** Mirrored, hand-held tilt: readable from the aisle without looking camera-rigid. */
+export function spectatorCardRotation(
+  teamId: SpectatorTeamId,
+  position: [number, number, number],
+): [number, number, number] {
+  const direction = teamId === 'blue' ? 1 : -1;
+  return [
+    SPECTATOR_CARD_PITCH,
+    spectatorCardYaw(position) + direction * SPECTATOR_CARD_YAW_TILT,
+    direction * SPECTATOR_CARD_ROLL,
+  ];
+}
+
+export function spectatorPlayerPositions(
+  teamId: SpectatorTeamId,
+  playerCount: number,
+): [number, number, number][] {
+  if (playerCount <= 1) {
+    return [[0, 0, SPECTATOR_TEAM_Z[teamId]]];
+  }
+  return teamId === 'blue'
+    ? [
+        [-0.62, 0, 1.7],
+        [0.62, 0, 1.25],
+      ]
+    : [
+        [-0.62, 0, -2.35],
+        [0.62, 0, -1.9],
+      ];
 }
 
 export function teammateSeatPosition(selfSeat: 0 | 1): [number, number, number] {

@@ -23,12 +23,17 @@ import { registerGcCanvasInvalidator } from './look-runtime';
 import { useCompactGcGpu, usePageVisible } from './gpu-profile';
 import {
   CAMERA_FOV,
+  SPECTATOR_CARD_HEIGHT,
+  SPECTATOR_CARD_WIDTH,
   cameraFovForView,
   cameraPositionForView,
   cameraYawForView,
   mapRemoteLookPitch,
   mapRemoteLookYaw,
-  spectatorCardYaw,
+  spectatorCardPosition,
+  spectatorCardRotation,
+  spectatorPlayerPositions,
+  spectatorTeamZ,
   teammateSeatPosition,
 } from './seat-layout';
 import './real3d-scene.css';
@@ -36,7 +41,7 @@ import './real3d-scene.css';
 const YAW_1V1 = (38 * Math.PI) / 180;
 /** 90° yaw so the local player can look to the far room corner / teammate. */
 const YAW_2V2 = (90 * Math.PI) / 180;
-const YAW_SPECTATOR = (105 * Math.PI) / 180;
+const YAW_SPECTATOR = (80 * Math.PI) / 180;
 const PITCH_LIMIT = (18 * Math.PI) / 180;
 const OPPONENT_REACH_RIGHT: [number, number, number] = [0.42, 0.48, 0.42];
 const OPPONENT_REACH_LEFT: [number, number, number] = [-0.42, 0.48, 0.42];
@@ -96,28 +101,17 @@ function SpectatorTeamArea({
   lookYawScale: number;
 }) {
   const isBlue = team.teamId === 'blue';
-  const teamZ = isBlue ? 1.48 : -2.15;
+  const teamZ = spectatorTeamZ(team.teamId);
   const bodyYaw = isBlue ? Math.PI : 0;
   const facing = isBlue ? 'same-as-local' : 'toward-camera';
-  const cardPosition: [number, number, number] = [0, 1.12, isBlue ? 0.98 : -1.65];
-  const playerPositions: [number, number, number][] =
-    team.players.length > 1
-      ? isBlue
-        ? [
-            [-0.62, 0, 1.7],
-            [0.62, 0, 1.25],
-          ]
-        : [
-            [-0.62, 0, -2.35],
-            [0.62, 0, -1.9],
-          ]
-      : [[0, 0, teamZ]];
+  const cardPosition = spectatorCardPosition(team.teamId, team.players.length);
+  const playerPositions = spectatorPlayerPositions(team.teamId, team.players.length);
 
   return (
     <group userData={{ testId: `gc-spectator-${team.teamId}-team`, teamId: team.teamId }}>
       <group
         position={cardPosition}
-        rotation={[-0.08, spectatorCardYaw(cardPosition), 0]}
+        rotation={spectatorCardRotation(team.teamId, cardPosition)}
         userData={{ testId: `gc-spectator-${team.teamId}-identity-card` }}
       >
         <IdentityCardMesh
@@ -125,8 +119,8 @@ function SpectatorTeamArea({
           label={team.teamLabel}
           flipKey={`${team.teamId}-${team.identity.value ?? ''}`}
           reduceMotion={reduceMotion}
-          width={0.8}
-          height={0.52}
+          width={SPECTATOR_CARD_WIDTH}
+          height={SPECTATOR_CARD_HEIGHT}
           testId={`gc-spectator-${team.teamId}-identity`}
         />
       </group>
@@ -148,6 +142,7 @@ function SpectatorTeamArea({
           rotationY={bodyYaw}
           testId={`gc-spectator-${team.teamId}-player-${index}`}
           nameTestId={`gc-spectator-${team.teamId}-name-${index}`}
+          nameBadgePosition={team.players.length > 1 && index === 0 ? [0, 0.58, 0.04] : undefined}
         />
       ))}
     </group>
@@ -346,7 +341,7 @@ function SceneContent({
         pitchLimit={PITCH_LIMIT}
         baseYaw={cameraYaw}
         onReady={onLookReady}
-        onLookChange={props.onLookChange}
+        onLookChange={isSpectator ? undefined : props.onLookChange}
       />
 
       <LoungeRoom compactGpu={compactGpu} />
