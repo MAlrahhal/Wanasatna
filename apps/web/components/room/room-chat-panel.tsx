@@ -152,7 +152,11 @@ export function RoomChatPanel({ className, variant = 'lobby' }: RoomChatPanelPro
         })}
       </div>
 
-      <form onSubmit={onSubmit} className="mt-2 flex items-end gap-2">
+      <form
+        onSubmit={onSubmit}
+        className="mt-2 flex shrink-0 items-end gap-2"
+        data-testid="room-chat-composer"
+      >
         <label className="sr-only" htmlFor={`room-chat-input-${variant}`}>
           {SYSTEM_COPY.chatPlaceholder}
         </label>

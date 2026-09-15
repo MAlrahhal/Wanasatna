@@ -218,13 +218,14 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
       {chatOpen ? (
         <div
           ref={chatPanelRef}
-          className="fixed inset-x-0 bottom-0 z-40 max-h-[45dvh] overflow-hidden rounded-t-2xl border-t border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-panel-bg)] p-4 shadow-[var(--wanas-game-shadow)] lg:hidden"
+          className="fixed inset-x-0 bottom-0 z-40 flex h-[45dvh] max-h-[45dvh] flex-col overflow-hidden rounded-t-2xl border-t border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-panel-bg)] p-4 shadow-[var(--wanas-game-shadow)] lg:hidden"
           style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
           role="dialog"
           aria-modal="true"
           aria-label="الدردشة"
+          data-testid="mobile-game-chat-sheet"
         >
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex shrink-0 items-center justify-between">
             <p className="text-sm font-semibold text-[color:var(--wanas-game-text-primary)]">الدردشة</p>
             <button
               type="button"
@@ -239,8 +240,8 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
               ✕
             </button>
           </div>
-          <div className="flex max-h-[calc(45dvh-4.5rem)] min-h-[12rem] flex-col overflow-hidden">
-            <GameChatMockPanel className="border-0 bg-transparent p-0 shadow-none" />
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <GameChatMockPanel className="h-full flex-1 border-0 bg-transparent p-0 shadow-none" />
           </div>
         </div>
       ) : null}

@@ -81,6 +81,24 @@ test('mobile game panels close outside, stay open inside, and keep Escape suppor
   assert.equal(shell.match(/addEventListener\('pointerdown', onPointerDown\)/g)?.length, 1);
 });
 
+test('first mobile Chat open mounts a fully constrained sheet with a usable composer', () => {
+  const shell = read('components/game-experience/game-experience-shell.tsx');
+  const chat = read('components/room/room-chat-panel.tsx');
+  const firstOpenSheet = shell.slice(
+    shell.indexOf('{chatOpen ? ('),
+    shell.indexOf('{leaderboardOpen ? ('),
+  );
+
+  assert.match(firstOpenSheet, /data-testid="mobile-game-chat-sheet"/);
+  assert.match(firstOpenSheet, /flex h-\[45dvh\] max-h-\[45dvh\] flex-col/);
+  assert.match(firstOpenSheet, /flex min-h-0 flex-1 flex-col overflow-hidden/);
+  assert.match(firstOpenSheet, /GameChatMockPanel className="h-full flex-1/);
+  assert.match(chat, /data-testid="room-chat-composer"/);
+  assert.match(chat, /className="mt-2 flex shrink-0 items-end gap-2"/);
+  assert.match(chat, /id=\{`room-chat-input-\$\{variant\}`\}/);
+  assert.match(chat, /ref=\{sendButtonRef\}[\s\S]{0,100}?type="submit"/);
+});
+
 test('public mobile text-entry controls stay at 16px without disabling browser zoom', () => {
   const responsiveTextInputs = [
     'components/ui/field.tsx',
