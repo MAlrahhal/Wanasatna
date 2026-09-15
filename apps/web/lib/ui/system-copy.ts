@@ -19,7 +19,8 @@ export const SYSTEM_COPY = {
   leaveConfirmBody: 'هل أنت متأكد أنك تريد مغادرة الغرفة؟',
   cancel: 'إلغاء',
   kickedTitle: 'تم طردك من الغرفة',
-  kickedHelper: 'لم يعد بإمكانك الانضمام إلى هذه الغرفة من الجلسة الحالية.',
+  kickedHelper:
+    'تمت إزالتك من جلسة الغرفة الحالية. يمكنك محاولة الانضمام من جديد إذا كانت الغرفة تسمح بذلك.',
   adminRoomClosed: ADMIN_ROOM_CLOSED_MESSAGE,
   roomMissing: 'الغرفة غير موجودة.',
   roomClosed: 'هذه الغرفة مغلقة.',
@@ -31,7 +32,8 @@ export const SYSTEM_COPY = {
   returningToLobby: 'جاري العودة إلى اللوبي…',
   gameEndedReturnLobby: 'انتهت الجولة أو تمت إعادة تشغيل اللعبة، ورجعناك إلى اللوبي.',
   spectator: 'أنت متفرج في هذه الجولة',
-  spectatorHint: 'تقدر تستخدم الدردشة. تشاهد الجولة الحالية فقط، والجولة التالية تلعب مع الجميع إن سمحت قواعد اللعبة.',
+  spectatorHint:
+    'تقدر تستخدم الدردشة. تشاهد الجولة الحالية فقط، والجولة التالية تلعب مع الجميع إن سمحت قواعد اللعبة.',
   copiedLink: 'تم نسخ الرابط',
   leaving: 'جاري المغادرة…',
   spectatorTitle: 'متفرج',

@@ -16,6 +16,32 @@ type GameExperienceShellProps = {
   children: ReactNode;
 };
 
+function ChatIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M5 6.5h14v9H9l-4 3v-12Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function RankingIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M7 19v-5h3v5H7Zm7 0V9h3v10h-3ZM10.5 7 12 4l1.5 3 3.5.5-2.5 2.4.6 3.4-3.1-1.6-3.1 1.6.6-3.4L7 7.5 10.5 7Z"
+        stroke="currentColor"
+        strokeWidth="1.35"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function GameExperienceShell({ children }: GameExperienceShellProps) {
   const meta = useGameExperienceMeta();
   const { playerRecovery } = useGameShell();
@@ -64,12 +90,12 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
         : null;
 
   const mobileControls = (
-    <div className="flex items-center gap-1 lg:hidden">
+    <div className="flex shrink-0 items-center gap-0.5 lg:hidden">
       <Button
         type="button"
         size="sm"
         variant={chatOpen ? 'primary' : 'secondary'}
-        className="min-h-11 px-3 text-sm"
+        className="min-h-11 px-2 text-xs max-[359px]:size-11 max-[359px]:min-w-11 max-[359px]:px-0"
         aria-pressed={chatOpen}
         aria-label="الدردشة"
         onClick={() => {
@@ -77,13 +103,16 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
           setLeaderboardOpen(false);
         }}
       >
-        دردشة
+        <span className="hidden max-[359px]:inline-flex">
+          <ChatIcon />
+        </span>
+        <span className="max-[359px]:sr-only">دردشة</span>
       </Button>
       <Button
         type="button"
         size="sm"
         variant={leaderboardOpen ? 'primary' : 'secondary'}
-        className="min-h-11 px-3 text-sm"
+        className="min-h-11 px-2 text-xs max-[359px]:size-11 max-[359px]:min-w-11 max-[359px]:px-0"
         aria-pressed={leaderboardOpen}
         aria-label="الترتيب"
         onClick={() => {
@@ -91,7 +120,10 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
           setChatOpen(false);
         }}
       >
-        الترتيب
+        <span className="hidden max-[359px]:inline-flex">
+          <RankingIcon />
+        </span>
+        <span className="max-[359px]:sr-only">الترتيب</span>
       </Button>
     </div>
   );

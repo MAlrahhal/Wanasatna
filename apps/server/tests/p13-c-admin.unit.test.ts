@@ -592,7 +592,7 @@ async function main(): Promise<void> {
         assert.equal(repeat.status, 200);
         assert.equal(repeat.body.success && repeat.body.data.alreadyClosed, true);
         assertNoPrivateLeak(repeat.raw);
-        assert.equal(ADMIN_ROOM_CLOSED_MESSAGE, 'تم إغلاق الغرفة من الإدارة.');
+        assert.equal(ADMIN_ROOM_CLOSED_MESSAGE, 'تم إغلاق الغرفة.');
       });
     } finally {
       await cleanupRoom(lobby.room.id);

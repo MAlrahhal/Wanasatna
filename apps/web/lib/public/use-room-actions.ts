@@ -21,6 +21,8 @@ type FieldErrors = {
   joinCode?: boolean;
 };
 
+type RoomActionErrorSource = 'create' | 'join' | 'resume' | null;
+
 function resetSubmissionFlags(
   setIsCreating: (value: boolean) => void,
   setIsJoining: (value: boolean) => void,
@@ -47,6 +49,7 @@ export function useRoomActions() {
   const [joinPlayerName, setJoinPlayerName] = useState('');
   const [joinCode, setJoinCode] = useState(() => readInviteCode(searchParams));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorSource, setErrorSource] = useState<RoomActionErrorSource>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
@@ -110,6 +113,8 @@ export function useRoomActions() {
 
     const trimmedName = createPlayerName.trim();
 
+    setErrorSource(null);
+
     if (!trimmedName) {
       setErrorMessage('يرجى إدخال اسمك لإنشاء غرفة.');
       setFieldErrors({ createPlayerName: true });
@@ -157,6 +162,7 @@ export function useRoomActions() {
         const result = await manager.create(trimmedName);
         if (!result.success) {
           setErrorMessage(result.error.message);
+          setErrorSource('create');
           return;
         }
 
@@ -179,6 +185,7 @@ export function useRoomActions() {
         router.push(lobbyUrl);
       } catch {
         setErrorMessage('تعذر إنشاء الغرفة. حاول مرة أخرى.');
+        setErrorSource('create');
       } finally {
         inFlightRef.current = false;
         resetSubmissionFlags(setIsCreating, setIsJoining);
@@ -195,6 +202,8 @@ export function useRoomActions() {
     const trimmedCode = manager.shouldSuppressInvitePrefill() ? '' : joinCode.trim();
     const trimmedName = joinPlayerName.trim();
     const nextFieldErrors: FieldErrors = {};
+
+    setErrorSource(null);
 
     if (!trimmedCode) {
       setErrorMessage('يرجى إدخال رمز الغرفة.');
@@ -253,6 +262,7 @@ export function useRoomActions() {
         const result = await manager.enterFromJoinForm(trimmedCode, trimmedName);
         if (!result.success) {
           setErrorMessage(result.error.message);
+          setErrorSource('join');
           notifyResumeDiscovery();
           return;
         }
@@ -277,6 +287,7 @@ export function useRoomActions() {
         router.push(lobbyUrl);
       } catch {
         setErrorMessage('تعذر الانضمام إلى الغرفة. حاول مرة أخرى.');
+        setErrorSource('join');
       } finally {
         inFlightRef.current = false;
         resetSubmissionFlags(setIsCreating, setIsJoining);
@@ -290,6 +301,7 @@ export function useRoomActions() {
     }
 
     setErrorMessage(null);
+    setErrorSource(null);
     setFieldErrors({});
     inFlightRef.current = true;
     setIsJoining(true);
@@ -301,6 +313,7 @@ export function useRoomActions() {
         const result = await manager.enterFromJoinForm(claim.roomCode, claim.playerName);
         if (!result.success) {
           setErrorMessage(result.error.message);
+          setErrorSource('resume');
           notifyResumeDiscovery();
           return;
         }
@@ -321,6 +334,7 @@ export function useRoomActions() {
         router.push(lobbyUrl);
       } catch {
         setErrorMessage('تعذر العودة إلى الغرفة. حاول مرة أخرى.');
+        setErrorSource('resume');
       } finally {
         inFlightRef.current = false;
         resetSubmissionFlags(setIsCreating, setIsJoining);
@@ -331,34 +345,37 @@ export function useRoomActions() {
   const handleCreatePlayerNameChange = useCallback(
     (value: string) => {
       setCreatePlayerName(value);
-      if (fieldErrors.createPlayerName) {
+      if (fieldErrors.createPlayerName || errorSource === 'create') {
         setFieldErrors((current) => ({ ...current, createPlayerName: false }));
         setErrorMessage(null);
+        setErrorSource(null);
       }
     },
-    [fieldErrors.createPlayerName],
+    [errorSource, fieldErrors.createPlayerName],
   );
 
   const handleJoinPlayerNameChange = useCallback(
     (value: string) => {
       setJoinPlayerName(value);
-      if (fieldErrors.joinPlayerName) {
+      if (fieldErrors.joinPlayerName || errorSource === 'join' || errorSource === 'resume') {
         setFieldErrors((current) => ({ ...current, joinPlayerName: false }));
         setErrorMessage(null);
+        setErrorSource(null);
       }
     },
-    [fieldErrors.joinPlayerName],
+    [errorSource, fieldErrors.joinPlayerName],
   );
 
   const handleJoinCodeChange = useCallback(
     (value: string) => {
       setJoinCode(value.replace(/\D/g, '').slice(0, 6));
-      if (fieldErrors.joinCode) {
+      if (fieldErrors.joinCode || errorSource === 'join' || errorSource === 'resume') {
         setFieldErrors((current) => ({ ...current, joinCode: false }));
         setErrorMessage(null);
+        setErrorSource(null);
       }
     },
-    [fieldErrors.joinCode],
+    [errorSource, fieldErrors.joinCode],
   );
 
   const urlInviteCode = readInviteCode(searchParams);
@@ -373,6 +390,7 @@ export function useRoomActions() {
     inviteFromLink:
       !suppressInvitePrefill && urlInviteCode !== '' && visibleJoinCode === urlInviteCode,
     errorMessage,
+    errorSource,
     fieldErrors,
     isCreating,
     isJoining,

@@ -32,16 +32,17 @@ export function GameHowToPlayControl({ gameId, compact = false, className }: Gam
         className={cn(
           'border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] text-[color:var(--wanas-game-text-primary)]',
           compact
-            ? 'min-h-11 px-2.5 text-xs md:min-h-9'
+            ? 'size-11 min-h-11 min-w-11 px-0 text-sm md:min-h-9'
             : 'min-h-9 px-2.5 text-xs sm:text-sm',
           className,
         )}
+        aria-label={compact ? HOW_TO_PLAY_BUTTON_LABEL : undefined}
         aria-haspopup="dialog"
         aria-expanded={open}
         data-testid="game-how-to-play-button"
         onClick={() => setOpen(true)}
       >
-        {HOW_TO_PLAY_BUTTON_LABEL}
+        {compact ? <span aria-hidden>؟</span> : HOW_TO_PLAY_BUTTON_LABEL}
       </Button>
       <GameHowToPlayDialog open={open} guide={guide} onClose={() => setOpen(false)} />
     </>

@@ -3,7 +3,9 @@
 import { KeyIcon, UserIcon } from '@/components/public/public-field';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
+import { SystemStatus } from '@/components/ui/system-status';
 import { HOME_ROOM_ACTIONS_ID } from '@/lib/public/routes';
+import { presentRoomActionError } from '@/lib/ui/system-copy';
 
 type RoomActionCardsProps = {
   createPlayerName: string;
@@ -19,6 +21,8 @@ type RoomActionCardsProps = {
   createPlayerNameError?: string;
   joinPlayerNameError?: string;
   joinCodeError?: string;
+  createActionError?: string;
+  joinActionError?: string;
 };
 
 export function RoomActionCards({
@@ -35,6 +39,8 @@ export function RoomActionCards({
   createPlayerNameError,
   joinPlayerNameError,
   joinCodeError,
+  createActionError,
+  joinActionError,
 }: RoomActionCardsProps) {
   const busy = isCreating || isJoining;
 
@@ -66,6 +72,11 @@ export function RoomActionCards({
               error={createPlayerNameError}
               autoComplete="nickname"
             />
+            {createActionError ? (
+              <div className="mt-1" data-testid="create-room-action-error">
+                <SystemStatus tone="error" {...presentRoomActionError(createActionError)} />
+              </div>
+            ) : null}
             <div className="mt-auto">
               <Button
                 type="button"
@@ -120,6 +131,11 @@ export function RoomActionCards({
               autoComplete="one-time-code"
               inputClassName="font-mono tracking-[0.35em] placeholder:tracking-normal"
             />
+            {joinActionError ? (
+              <div data-testid="join-room-action-error">
+                <SystemStatus tone="error" {...presentRoomActionError(joinActionError)} />
+              </div>
+            ) : null}
             <Button
               type="button"
               size="lg"

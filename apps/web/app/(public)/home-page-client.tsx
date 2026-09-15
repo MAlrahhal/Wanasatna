@@ -45,6 +45,10 @@ export function HomePageClient() {
     ? (room.errorMessage ?? undefined)
     : undefined;
   const joinCodeError = room.fieldErrors.joinCode ? (room.errorMessage ?? undefined) : undefined;
+  const createActionError =
+    room.errorSource === 'create' && !hasFieldError ? (room.errorMessage ?? undefined) : undefined;
+  const joinActionError =
+    room.errorSource === 'join' && !hasFieldError ? (room.errorMessage ?? undefined) : undefined;
 
   useEffect(() => {
     scrollToRoomActionsIfHash();
@@ -111,7 +115,7 @@ export function HomePageClient() {
           onResume={room.handleResumeClaim}
         />
 
-        {room.errorMessage && !hasFieldError && !room.isCreating && !room.isJoining ? (
+        {room.errorMessage && room.errorSource === 'resume' && !room.isCreating && !room.isJoining ? (
           <SystemStatus tone="error" {...presentRoomActionError(room.errorMessage)} />
         ) : null}
 
@@ -131,6 +135,8 @@ export function HomePageClient() {
           createPlayerNameError={createPlayerNameError}
           joinPlayerNameError={joinPlayerNameError}
           joinCodeError={joinCodeError}
+          createActionError={createActionError}
+          joinActionError={joinActionError}
         />
 
         <section>

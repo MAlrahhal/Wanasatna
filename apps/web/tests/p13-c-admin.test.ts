@@ -89,7 +89,7 @@ test('clients handle admin close reason and return home', () => {
   assert.match(lobby, /sessionEndReason === 'closed'/);
   assert.match(game, /sessionEndReason === 'closed'/);
   assert.match(copy, /ADMIN_ROOM_CLOSED_MESSAGE/);
-  assert.equal(ADMIN_ROOM_CLOSED_MESSAGE, 'تم إغلاق الغرفة من الإدارة.');
+  assert.equal(ADMIN_ROOM_CLOSED_MESSAGE, 'تم إغلاق الغرفة.');
   assert.equal(ADMIN_COPY.cancel, 'إلغاء');
 });
 

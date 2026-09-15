@@ -54,6 +54,23 @@ test('mobile game chrome has leaderboard and collapsible chat', () => {
   assert.doesNotMatch(panel, /dangerouslySetInnerHTML/);
 });
 
+test('narrow iPhone header keeps essential controls compact and on two rows', () => {
+  const header = read('components/game-experience/game-experience-header.tsx');
+  const shell = read('components/game-experience/game-experience-shell.tsx');
+  const howToPlay = read('components/game/game-how-to-play.tsx');
+
+  assert.match(header, /renderLeaveAction\(true\)/);
+  assert.match(header, /<LeaveIcon \/>/);
+  assert.match(header, /showRound \|\| meta\.timer \|\| primaryCenter \|\| panelControls/);
+  assert.match(header, /justify-between gap-1\.5/);
+  assert.match(shell, /max-\[359px\]:size-11/);
+  assert.match(shell, /max-\[359px\]:sr-only/);
+  assert.match(shell, /<ChatIcon \/>/);
+  assert.match(shell, /<RankingIcon \/>/);
+  assert.match(howToPlay, /compact\s*\?\s*'size-11 min-h-11 min-w-11 px-0 text-sm md:min-h-9'/);
+  assert.match(howToPlay, /aria-label=\{compact \? HOW_TO_PLAY_BUTTON_LABEL : undefined\}/);
+});
+
 test('leaderboard sheet and room management keep safe-area and scroll limits', () => {
   const shell = read('components/game-experience/game-experience-shell.tsx');
   const room = read('components/game-experience/game-room-management-dialog.tsx');

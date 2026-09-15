@@ -305,9 +305,10 @@ async function main(): Promise<void> {
     await cleanupRoom(hosted.room.id);
   });
 
-  await test('21-22 kick uses coherent lifecycle and clears reconnect token', async () => {
+  await test('21-22 kick clears reconnect identity but allows a fresh same-name Join', async () => {
     const host = await mustCreate(uniqueName('مضيف'));
-    const guest = await mustJoin(host.room.code, uniqueName('ضيف'));
+    const guestName = uniqueName('ضيف');
+    const guest = await mustJoin(host.room.code, guestName);
     const kicked = await kickPlayer(host.player.id, host.room.id, { playerId: guest.player.id });
     assert.equal(kicked.success, true);
     if (!kicked.success) {
@@ -320,6 +321,10 @@ async function main(): Promise<void> {
     assert.equal(kickedRow?.reconnectTokenHash, null);
     const room = await prisma.room.findUnique({ where: { id: host.room.id } });
     assert.equal(room?.hostPlayerId, host.player.id);
+    const rejoined = await mustJoin(host.room.code, guestName);
+    assert.equal(rejoined.player.name, guestName);
+    assert.notEqual(rejoined.player.id, guest.player.id);
+    assert.equal(rejoined.player.status, PlayerStatus.CONNECTED);
     await cleanupRoom(host.room.id);
   });
 

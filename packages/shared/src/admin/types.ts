@@ -170,7 +170,7 @@ export type AdminDashboardData = {
   gameUsage: AdminGameUsage[];
 };
 
-export const ADMIN_ROOM_CLOSED_MESSAGE = 'تم إغلاق الغرفة من الإدارة.';
+export const ADMIN_ROOM_CLOSED_MESSAGE = 'تم إغلاق الغرفة.';
 
 export type AdminErrorCode =
   | 'UNAUTHORIZED'

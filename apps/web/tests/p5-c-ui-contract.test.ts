@@ -55,6 +55,12 @@ test('error mapping: missing, full, locked, kicked, generic fallback', () => {
   assert.equal(toSafeUserErrorMessage('INTERNAL_ERROR'), SYSTEM_COPY.unexpectedError);
   assert.equal(toSafeUserErrorMessage('socket hang up'), SYSTEM_COPY.unexpectedError);
   assert.equal(toSafeUserErrorMessage('websocket error'), SYSTEM_COPY.unexpectedError);
+  assert.equal(SYSTEM_COPY.adminRoomClosed, 'تم إغلاق الغرفة.');
+  assert.equal(
+    SYSTEM_COPY.kickedHelper,
+    'تمت إزالتك من جلسة الغرفة الحالية. يمكنك محاولة الانضمام من جديد إذا كانت الغرفة تسمح بذلك.',
+  );
+  assert.doesNotMatch(SYSTEM_COPY.kickedHelper, /لم يعد بإمكانك الانضمام|لا يمكنك الانضمام/);
 });
 
 test('invite/home join errors map cleanly and ?code= flow is intact', () => {
@@ -99,6 +105,26 @@ test('lobby connecting, reconnect, terminal failure, kick/leave', () => {
   assert.match(header, /SYSTEM_COPY\.leaveConfirmBody/);
   assert.match(panel, /طرد اللاعب؟/);
   assert.match(panel, /UiDialog/);
+});
+
+test('terminal reconnect failure clears local identity and renders a terminal error', () => {
+  const manager = read('lib/room-v2/manager.ts');
+  const terminalFailure = manager.slice(
+    manager.indexOf('if (isTerminalResumeFailure'),
+    manager.indexOf('// Transient transport failure'),
+  );
+  const lobby = read('components/lobby/lobby-screen.tsx');
+  const game = read('app/(room)/game/game-page-client.tsx');
+  const state = read('components/room/room-system-state.tsx');
+
+  assert.match(terminalFailure, /removeReconnectClaimForSession\(stored\)/);
+  assert.match(terminalFailure, /this\.clearLocalParticipation\(\)/);
+  assert.match(terminalFailure, /this\.status = 'error'/);
+  assert.doesNotMatch(terminalFailure, /this\.status = 'idle'/);
+  assert.match(lobby, /status === 'error' \|\| !room/);
+  assert.match(game, /status === 'error' \|\| !room \|\| !player/);
+  assert.match(state, /SYSTEM_COPY\.backHome/);
+  assert.match(state, /presented\.title === SYSTEM_COPY\.reconnectExpired/);
 });
 
 test('game loading, spectator, experience-meta, no Game Shell or finishing copy', () => {

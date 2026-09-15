@@ -85,9 +85,21 @@ test('active-room resume is visible with consistent copy', () => {
 test('home validation uses Field errors and SystemStatus for action failures', () => {
   const home = read('app/(public)/home-page-client.tsx');
   const hook = read('lib/public/use-room-actions.ts');
+  const cards = read('components/public/room-action-cards.tsx');
   assert.match(home, /SystemStatus/);
   assert.match(home, /playerNameError/);
   assert.match(home, /joinCodeError/);
+  assert.match(home, /room\.errorSource === 'create'/);
+  assert.match(home, /room\.errorSource === 'join'/);
+  assert.match(home, /room\.errorSource === 'resume'/);
+  assert.match(home, /createActionError=\{createActionError\}/);
+  assert.match(home, /joinActionError=\{joinActionError\}/);
+  assert.match(hook, /type RoomActionErrorSource = 'create' \| 'join' \| 'resume' \| null/);
+  assert.match(hook, /setErrorSource\('create'\)/);
+  assert.match(hook, /setErrorSource\('join'\)/);
+  assert.match(cards, /data-testid="create-room-action-error"/);
+  assert.match(cards, /data-testid="join-room-action-error"/);
+  assert.match(cards, /presentRoomActionError/);
   assert.match(hook, /يرجى إدخال اسمك لإنشاء غرفة/);
   assert.match(hook, /يرجى إدخال رمز الغرفة/);
 });

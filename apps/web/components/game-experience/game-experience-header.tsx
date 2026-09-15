@@ -35,6 +35,20 @@ function GearIcon() {
   );
 }
 
+function LeaveIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function GameExperienceHeader({
   meta,
   mobilePanelControls,
@@ -81,7 +95,7 @@ export function GameExperienceHeader({
     );
   }
 
-  function renderLeaveAction() {
+  function renderLeaveAction(compact: boolean) {
     if (isHost) {
       return null;
     }
@@ -90,10 +104,14 @@ export function GameExperienceHeader({
         type="button"
         size="sm"
         variant="secondary"
-        className="min-h-11 border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] px-2.5 text-xs text-[color:var(--wanas-game-text-primary)] md:min-h-9"
+        className={cn(
+          'border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] text-[color:var(--wanas-game-text-primary)]',
+          compact ? 'size-11 min-h-11 min-w-11 px-0' : 'min-h-9 px-2.5 text-xs',
+        )}
         onClick={() => setLeaveDialogOpen(true)}
+        aria-label={compact ? SYSTEM_COPY.leave : undefined}
       >
-        مغادرة الغرفة
+        {compact ? <LeaveIcon /> : SYSTEM_COPY.leave}
       </Button>
     );
   }
@@ -165,22 +183,24 @@ export function GameExperienceHeader({
               <GameHowToPlayControl gameId={gameId} compact />
               <GameAudioControl />
               {renderRoomAction(true)}
-              {renderLeaveAction()}
-              {panelControls}
+              {renderLeaveAction(true)}
             </div>
           </div>
-          {showRound || meta.timer || primaryCenter ? (
-            <div className="flex min-w-0 items-center gap-1.5">
-              {renderRoundChip()}
-              {renderTimerChip()}
-              {primaryCenter ? (
-                <span
-                  className="min-w-0 truncate rounded-lg border border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] px-2 py-1 text-xs font-semibold leading-4 text-[color:var(--wanas-game-text-primary)]"
-                  title={primaryCenter}
-                >
-                  {primaryCenter}
-                </span>
-              ) : null}
+          {showRound || meta.timer || primaryCenter || panelControls ? (
+            <div className="flex min-w-0 items-center justify-between gap-1.5">
+              <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
+                {renderRoundChip()}
+                {renderTimerChip()}
+                {primaryCenter ? (
+                  <span
+                    className="min-w-0 truncate rounded-lg border border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] px-2 py-1 text-xs font-semibold leading-4 text-[color:var(--wanas-game-text-primary)]"
+                    title={primaryCenter}
+                  >
+                    {primaryCenter}
+                  </span>
+                ) : null}
+              </div>
+              {panelControls}
             </div>
           ) : null}
         </div>
@@ -232,7 +252,7 @@ export function GameExperienceHeader({
             <GameHowToPlayControl gameId={gameId} />
             <GameAudioControl />
             {renderRoomAction(false)}
-            {renderLeaveAction()}
+            {renderLeaveAction(false)}
             {panelControls ? cloneElement(panelControls) : null}
           </div>
         </div>

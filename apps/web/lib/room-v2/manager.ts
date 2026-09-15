@@ -842,7 +842,7 @@ class RoomSessionManager {
       if (isTerminalResumeFailure(response.error.code)) {
         removeReconnectClaimForSession(stored);
         this.clearLocalParticipation();
-        this.status = 'idle';
+        this.status = 'error';
         this.errorMessage = errorMessage;
         this.notify();
         recordContinuity('RESUME_FAILED', {
