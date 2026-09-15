@@ -100,12 +100,13 @@ export function FastAnswerQuestionScreen({
                 type="text"
                 value={answer}
                 onChange={(event) => setAnswer(event.target.value)}
-                disabled={!canSubmit || isSubmitting}
+                disabled={!canSubmit}
+                readOnly={isSubmitting}
                 placeholder="اكتب الإجابة هنا..."
                 maxLength={MAX_GAME_ANSWER_LENGTH}
                 autoComplete="off"
                 className={cn(
-                  'border-wanas-border text-wanas-text-primary min-h-11 w-full flex-1 rounded-[var(--wanas-radius-control)] border bg-[color:var(--wanas-game-card)] px-3.5 text-sm',
+                  'border-wanas-border text-wanas-text-primary min-h-11 w-full flex-1 rounded-[var(--wanas-radius-control)] border bg-[color:var(--wanas-game-card)] px-3.5 text-base lg:text-sm',
                   'placeholder:text-wanas-text-muted',
                   'focus-visible:ring-wanas-accent/40 focus-visible:outline-none focus-visible:ring-2',
                   (!canSubmit || isSubmitting) && 'cursor-not-allowed opacity-60',

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { MAX_ROOM_CHAT_CONTENT_LENGTH, type RoomChatMessage } from '@wanasatna/shared';
 import { Button } from '@/components/ui/button';
 import { PlayerAvatar } from '@/components/player/player-avatar';
@@ -25,6 +25,10 @@ export function RoomChatPanel({ className, variant = 'lobby' }: RoomChatPanelPro
   const { messages, isLoading, isSending, loadError, sendError, reload, send } = useRoomChat();
   const [draft, setDraft] = useState('');
   const listRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const sendButtonRef = useRef<HTMLButtonElement | null>(null);
+  const submittingRef = useRef(false);
+  const restoreFocusRef = useRef(false);
   const stickToBottomRef = useRef(true);
   const isGame = variant === 'game';
 
@@ -45,25 +49,45 @@ export function RoomChatPanel({ className, variant = 'lobby' }: RoomChatPanelPro
     stickToBottomRef.current = distance <= NEAR_BOTTOM_PX;
   }
 
-  async function submit() {
+  async function submit(restoreFocus: boolean) {
+    if (submittingRef.current) {
+      return;
+    }
+
     const content = draft;
-    const sent = await send(content);
-    if (sent) {
+    submittingRef.current = true;
+    restoreFocusRef.current = restoreFocus;
+
+    const cancelFocusRestore = (event: PointerEvent) => {
+      if (event.target instanceof Node && !inputRef.current?.contains(event.target)) {
+        restoreFocusRef.current = false;
+      }
+    };
+    document.addEventListener('pointerdown', cancelFocusRestore, true);
+
+    try {
+      const sent = await send(content);
+      if (!sent) {
+        return;
+      }
+
       setDraft('');
       stickToBottomRef.current = true;
+      if (restoreFocusRef.current) {
+        window.requestAnimationFrame(() => inputRef.current?.focus({ preventScroll: true }));
+      }
+    } finally {
+      document.removeEventListener('pointerdown', cancelFocusRestore, true);
+      submittingRef.current = false;
     }
   }
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    void submit();
-  }
-
-  function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      void submit();
-    }
+    const submitter = (event.nativeEvent as SubmitEvent).submitter;
+    void submit(
+      document.activeElement === inputRef.current || submitter === sendButtonRef.current,
+    );
   }
 
   return (
@@ -133,21 +157,33 @@ export function RoomChatPanel({ className, variant = 'lobby' }: RoomChatPanelPro
           {SYSTEM_COPY.chatPlaceholder}
         </label>
         <input
+          ref={inputRef}
           id={`room-chat-input-${variant}`}
           dir="rtl"
           value={draft}
           maxLength={MAX_ROOM_CHAT_CONTENT_LENGTH}
-          disabled={isSending}
+          readOnly={isSending}
           onChange={(event) => setDraft(event.target.value)}
-          onKeyDown={onKeyDown}
+          onBlur={(event) => {
+            if (submittingRef.current && event.relatedTarget !== sendButtonRef.current) {
+              restoreFocusRef.current = false;
+            }
+          }}
           placeholder={SYSTEM_COPY.chatPlaceholder}
           className={cn(
-            'h-11 min-h-11 min-w-0 flex-1 rounded-[var(--wanas-radius-control)] border bg-wanas-surface-soft px-3 text-sm text-wanas-text-primary outline-none',
+            'h-11 min-h-11 min-w-0 flex-1 rounded-[var(--wanas-radius-control)] border bg-wanas-surface-soft px-3 text-base text-wanas-text-primary outline-none lg:text-sm',
             'placeholder:text-wanas-text-muted focus:border-wanas-accent focus:ring-2 focus:ring-wanas-accent/25',
             isGame && 'border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] text-[color:var(--wanas-game-text-primary)]',
           )}
         />
-        <Button type="submit" size="sm" className="min-h-11 px-3" loading={isSending} disabled={isSending}>
+        <Button
+          ref={sendButtonRef}
+          type="submit"
+          size="sm"
+          className="min-h-11 px-3"
+          loading={isSending}
+          disabled={isSending}
+        >
           {SYSTEM_COPY.chatSend}
         </Button>
       </form>

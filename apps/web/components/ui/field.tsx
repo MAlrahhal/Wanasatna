@@ -70,7 +70,7 @@ export function Field({
           aria-invalid={Boolean(error)}
           aria-describedby={describedBy}
           className={cn(
-            'h-11 min-h-11 w-full rounded-[var(--wanas-radius-control)] border bg-wanas-surface-soft pe-4 text-sm leading-6 text-wanas-text-primary outline-none transition-colors',
+            'h-11 min-h-11 w-full rounded-[var(--wanas-radius-control)] border bg-wanas-surface-soft pe-4 text-base leading-6 text-wanas-text-primary outline-none transition-colors lg:text-sm',
             'placeholder:text-wanas-text-muted',
             icon ? 'ps-11' : 'ps-4',
             error

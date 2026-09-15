@@ -154,7 +154,10 @@ test('player count is LTR-safe and kick stays dialog-backed', () => {
 test('safe-area viewport metadata is configured', () => {
   const layout = read('app/layout.tsx');
   assert.match(layout, /export const viewport/);
+  assert.match(layout, /width:\s*['"]device-width['"]/);
+  assert.match(layout, /initialScale:\s*1/);
   assert.match(layout, /viewportFit:\s*['"]cover['"]/);
+  assert.doesNotMatch(layout, /maximumScale|userScalable|user-scalable/);
 });
 
 test('category chips keep 10 options and larger mobile touch targets', () => {

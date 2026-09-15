@@ -100,7 +100,7 @@ export function ExperimentalGameSettingsPanel({
                 value={value}
                 onChange={(event) => emitChange(spec, Number(event.target.value))}
                 className={cn(
-                  'max-w-[7.5rem] rounded-md bg-transparent text-xs font-bold text-wanas-text-primary outline-none',
+                  'max-w-[7.5rem] rounded-md bg-transparent text-base font-bold text-wanas-text-primary outline-none lg:text-xs',
                 )}
               >
                 {isJudgeRounds ? (

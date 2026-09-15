@@ -71,6 +71,46 @@ test('narrow iPhone header keeps essential controls compact and on two rows', ()
   assert.match(howToPlay, /aria-label=\{compact \? HOW_TO_PLAY_BUTTON_LABEL : undefined\}/);
 });
 
+test('mobile game panels close outside, stay open inside, and keep Escape support', () => {
+  const shell = read('components/game-experience/game-experience-shell.tsx');
+  assert.match(shell, /document\.addEventListener\('pointerdown', onPointerDown\)/);
+  assert.match(shell, /document\.removeEventListener\('pointerdown', onPointerDown\)/);
+  assert.match(shell, /activePanel\?\.contains\(event\.target\)/);
+  assert.match(shell, /mobilePanelControlsRef\.current\?\.contains\(event\.target\)/);
+  assert.match(shell, /if \(event\.key === 'Escape'\)/);
+  assert.equal(shell.match(/addEventListener\('pointerdown', onPointerDown\)/g)?.length, 1);
+});
+
+test('public mobile text-entry controls stay at 16px without disabling browser zoom', () => {
+  const responsiveTextInputs = [
+    'components/ui/field.tsx',
+    'components/public/public-field.tsx',
+    'components/room/room-chat-panel.tsx',
+    'plugins/fast-answer/question-screen.tsx',
+    'plugins/draw-guess/guess-panel.tsx',
+    'plugins/guessing-challenge/playing-screen.tsx',
+    'components/lobby/timing-challenge-settings-panel.tsx',
+    'components/lobby/experimental-game-settings-panel.tsx',
+  ].map(read);
+
+  for (const source of responsiveTextInputs) {
+    assert.match(source, /text-base[\s\S]{0,180}?lg:text-(?:sm|xs)/);
+  }
+
+  assert.match(read('plugins/who-wrote-it/answering-screen.tsx'), /text-base/);
+  assert.match(read('plugins/judge/answering-screen.tsx'), /text-base/);
+  assert.match(read('plugins/timing-challenge/guess-screen.tsx'), /text-xl/);
+});
+
+test('repeated game answer fields retain focus while an accepted attempt is pending', () => {
+  const fast = read('plugins/fast-answer/question-screen.tsx');
+  const drawGuess = read('plugins/draw-guess/guess-panel.tsx');
+  assert.match(fast, /disabled=\{!canSubmit\}/);
+  assert.match(fast, /readOnly=\{isSubmitting\}/);
+  assert.match(drawGuess, /disabled=\{disabled\}/);
+  assert.match(drawGuess, /readOnly=\{isSubmitting\}/);
+});
+
 test('leaderboard sheet and room management keep safe-area and scroll limits', () => {
   const shell = read('components/game-experience/game-experience-shell.tsx');
   const room = read('components/game-experience/game-room-management-dialog.tsx');

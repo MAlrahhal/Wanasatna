@@ -57,12 +57,13 @@ export function GuessPanel({
           type="text"
           value={guess}
           onChange={(event) => setGuess(event.target.value)}
-          disabled={disabled || isSubmitting}
+          disabled={disabled}
+          readOnly={isSubmitting}
           placeholder="اكتب تخمينك هنا..."
           maxLength={MAX_GAME_ANSWER_LENGTH}
           autoComplete="off"
           className={cn(
-            'min-h-11 w-full flex-1 rounded-[var(--wanas-radius-control)] border border-wanas-border bg-[color:var(--wanas-game-card)] px-3.5 text-sm text-wanas-text-primary',
+            'min-h-11 w-full flex-1 rounded-[var(--wanas-radius-control)] border border-wanas-border bg-[color:var(--wanas-game-card)] px-3.5 text-base text-wanas-text-primary lg:text-sm',
             'placeholder:text-wanas-text-muted',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/40',
             (disabled || isSubmitting) && 'cursor-not-allowed opacity-60',

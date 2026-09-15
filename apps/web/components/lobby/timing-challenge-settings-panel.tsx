@@ -69,7 +69,7 @@ export function TimingChallengeSettingsPanel({
             value={settings.minSeconds}
             onChange={(event) => update({ minSeconds: Number(event.target.value) })}
             dir="ltr"
-            className="mt-1 w-full bg-transparent font-mono text-sm font-bold text-wanas-text-primary outline-none"
+            className="mt-1 w-full bg-transparent font-mono text-base font-bold text-wanas-text-primary outline-none lg:text-sm"
           />
         </label>
         <label className="rounded-lg border border-wanas-border bg-wanas-surface-soft px-3 py-2">
@@ -84,7 +84,7 @@ export function TimingChallengeSettingsPanel({
             value={settings.maxSeconds}
             onChange={(event) => update({ maxSeconds: Number(event.target.value) })}
             dir="ltr"
-            className="mt-1 w-full bg-transparent font-mono text-sm font-bold text-wanas-text-primary outline-none"
+            className="mt-1 w-full bg-transparent font-mono text-base font-bold text-wanas-text-primary outline-none lg:text-sm"
           />
         </label>
       </div>

@@ -59,7 +59,7 @@ export function PublicField({
           name={name}
           aria-invalid={hasError}
           className={cn(
-            'h-12 w-full rounded-2xl border bg-wanas-surface-soft pe-4 text-sm text-wanas-text-primary outline-none transition-all',
+            'h-12 w-full rounded-2xl border bg-wanas-surface-soft pe-4 text-base text-wanas-text-primary outline-none transition-all lg:text-sm',
             icon ? 'ps-11' : 'px-4',
             hasError
               ? 'border-wanas-error-border bg-wanas-error-surface focus:border-wanas-error focus:ring-2 focus:ring-wanas-error/20'

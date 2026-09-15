@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 import { Button } from '@/components/ui/button';
 import { useGameExperienceMeta } from '@/contexts/game-experience-context';
@@ -47,6 +47,9 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
   const { playerRecovery } = useGameShell();
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const mobilePanelControlsRef = useRef<HTMLDivElement>(null);
+  const chatPanelRef = useRef<HTMLDivElement>(null);
+  const leaderboardPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     return () => {
@@ -67,8 +70,29 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
       }
     };
 
+    const onPointerDown = (event: PointerEvent) => {
+      if (!(event.target instanceof Node)) {
+        return;
+      }
+
+      const activePanel = chatOpen ? chatPanelRef.current : leaderboardPanelRef.current;
+      if (
+        activePanel?.contains(event.target) ||
+        mobilePanelControlsRef.current?.contains(event.target)
+      ) {
+        return;
+      }
+
+      setChatOpen(false);
+      setLeaderboardOpen(false);
+    };
+
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onPointerDown);
+    };
   }, [chatOpen, leaderboardOpen]);
 
   if (!meta) {
@@ -90,7 +114,7 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
         : null;
 
   const mobileControls = (
-    <div className="flex shrink-0 items-center gap-0.5 lg:hidden">
+    <div ref={mobilePanelControlsRef} className="flex shrink-0 items-center gap-0.5 lg:hidden">
       <Button
         type="button"
         size="sm"
@@ -193,6 +217,7 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
 
       {chatOpen ? (
         <div
+          ref={chatPanelRef}
           className="fixed inset-x-0 bottom-0 z-40 max-h-[45dvh] overflow-hidden rounded-t-2xl border-t border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-panel-bg)] p-4 shadow-[var(--wanas-game-shadow)] lg:hidden"
           style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
           role="dialog"
@@ -222,6 +247,7 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
 
       {leaderboardOpen ? (
         <div
+          ref={leaderboardPanelRef}
           className="fixed inset-x-0 bottom-0 z-40 max-h-[55dvh] overflow-hidden rounded-t-2xl border-t border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-panel-bg)] p-4 shadow-[var(--wanas-game-shadow)] lg:hidden"
           style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
           role="dialog"

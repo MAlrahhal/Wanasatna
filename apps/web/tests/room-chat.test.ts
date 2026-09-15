@@ -59,5 +59,23 @@ test('chat does not grant gameplay actions', () => {
   assert.doesNotMatch(panel, /submitGuess|canGuess|emitPlugin/);
 });
 
+test('chat Enter uses one guarded submit path and preserves focus after success', () => {
+  const panel = read('components/room/room-chat-panel.tsx');
+  assert.match(panel, /const submittingRef = useRef\(false\)/);
+  assert.match(panel, /if \(submittingRef\.current\)/);
+  assert.match(panel, /readOnly=\{isSending\}/);
+  assert.match(panel, /submitter === sendButtonRef\.current/);
+  assert.match(panel, /inputRef\.current\?\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(panel, /if \(!sent\) \{\s*return;/);
+  assert.doesNotMatch(panel, /onKeyDown=\{onKeyDown\}/);
+});
+
+test('chat focus restoration is cancelled by a later pointer interaction', () => {
+  const panel = read('components/room/room-chat-panel.tsx');
+  assert.match(panel, /document\.addEventListener\('pointerdown', cancelFocusRestore, true\)/);
+  assert.match(panel, /restoreFocusRef\.current = false/);
+  assert.match(panel, /document\.removeEventListener\('pointerdown', cancelFocusRestore, true\)/);
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

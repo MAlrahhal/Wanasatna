@@ -229,7 +229,7 @@ export function GuessingChallengePlayingScreen({
               }}
               maxLength={80}
               placeholder="اكتب إجابتك..."
-              className="min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-wanas-text-primary outline-none focus:border-cyan-400/60"
+              className="min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-base text-wanas-text-primary outline-none focus:border-cyan-400/60 lg:text-sm"
               dir="rtl"
             />
             <div className="mt-3 flex flex-wrap gap-2">
