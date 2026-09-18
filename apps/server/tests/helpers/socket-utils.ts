@@ -115,12 +115,20 @@ export async function connectClient(serverUrl = DEFAULT_SERVER_URL): Promise<Soc
 }
 
 export function trackClientEvents(client: TestClient): void {
-  client.socket.on('game-shell-state', (payload: { state: { phase: string; countdownRemainingSeconds: number | null } }) => {
-    client.shellEvents.push({
-      phase: payload.state.phase,
-      countdown: payload.state.countdownRemainingSeconds,
-    });
-  });
+  client.socket.on(
+    'game-shell-state',
+    (payload: {
+      state: { phase: string; countdownRemainingSeconds: number | null } | null;
+    }) => {
+      if (!payload.state) {
+        return;
+      }
+      client.shellEvents.push({
+        phase: payload.state.phase,
+        countdown: payload.state.countdownRemainingSeconds,
+      });
+    },
+  );
 
   client.socket.on(
     'room-players-snapshot',

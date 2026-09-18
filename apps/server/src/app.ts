@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { env } from './config/env.js';
 import { createRequireTrustedMutationOrigin } from './lib/origin-policy.js';
 import { publicHealthHandler } from './lib/public-health.js';
+import { processLivenessHandler } from './lib/process-liveness.js';
 import { attachOptionalAuth } from './modules/auth/auth.middleware.js';
 import { apiRouter } from './routes/index.js';
 
@@ -31,6 +32,8 @@ export function createApp(): Express {
     }),
   );
   app.use(express.json());
+  // Register before auth so liveness never resolves a session or touches PostgreSQL.
+  app.get('/health/live', processLivenessHandler);
   app.use(attachOptionalAuth);
 
   app.get('/health', publicHealthHandler);

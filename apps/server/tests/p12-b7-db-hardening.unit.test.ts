@@ -107,7 +107,7 @@ async function main(): Promise<void> {
     assert.doesNotMatch(migration, /TRUNCATE/);
   });
 
-  await test('source: join locks Room; P2002 mapped; expiry query unchanged', () => {
+  await test('source: join locks Room; P2002 mapped; expiry recovery is one-shot', () => {
     const join = read('src/modules/room/services/join-room.service.ts');
     assert.match(join, /lockRoomRow/);
     assert.match(join, /ROOM_TX_RETRY_LIMIT/);
@@ -118,18 +118,21 @@ async function main(): Promise<void> {
 
     const expiry = read('src/modules/room/services/disconnected-player-expiry.service.ts');
     assert.match(expiry, /status:\s*PlayerStatus\.DISCONNECTED/);
-    assert.match(expiry, /lastSeenAt:\s*\{\s*lt:/);
+    assert.match(expiry, /startDisconnectedPlayerExpiryScheduler/);
+    assert.doesNotMatch(expiry, /setInterval/);
 
     const indexSource = read('src/index.ts');
     const reconcileAt = indexSource.indexOf('await reconcilePersistedRoomLifecycle');
-    const purgeAt = indexSource.indexOf('await purgeExpiredAuthSessions');
+    const expiryRecoveryAt = indexSource.indexOf('await startDisconnectedPlayerExpiryScheduler');
+    const maintenanceAt = indexSource.indexOf('await runDatabaseMaintenance');
     const listenAt = indexSource.indexOf('httpServer.listen');
-    assert.ok(reconcileAt >= 0 && purgeAt > reconcileAt && listenAt > purgeAt);
-    assert.match(indexSource, /auth-session-cleanup-failed/);
-    assert.doesNotMatch(
-      indexSource.slice(purgeAt, listenAt),
-      /process\.exit\(1\)/,
+    assert.ok(
+      reconcileAt >= 0 &&
+        expiryRecoveryAt > reconcileAt &&
+        maintenanceAt > expiryRecoveryAt &&
+        listenAt > maintenanceAt,
     );
+    assert.match(indexSource, /startDatabaseMaintenanceScheduler/);
   });
 
   await test('LEFT same-name rejoin replaces the seat and does not copy userId', async () => {

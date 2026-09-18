@@ -10,6 +10,7 @@ import {
   recordRoomParticipationLeft,
 } from './room-history-write.service.js';
 import { isRetryableTransactionError, lockRoomRow, ROOM_TX_RETRY_LIMIT } from './room-tx.js';
+import { cancelDisconnectedPlayerExpiryTimer } from './disconnected-player-expiry-timers.js';
 
 const ACTIVE_STATUSES = [PlayerStatus.CONNECTED, PlayerStatus.DISCONNECTED] as const;
 
@@ -30,6 +31,7 @@ export type PermanentDepartureInput = {
    */
   kind: 'leave' | 'kick' | 'expiry';
   lastSeenAtBefore?: Date;
+  expectedLastSeenAt?: Date;
 };
 
 type RoomMutationDb = {
@@ -124,7 +126,11 @@ async function runPermanentDepartureTx(
           id: playerId,
           roomId,
           status: PlayerStatus.DISCONNECTED,
-          ...(input.lastSeenAtBefore ? { lastSeenAt: { lt: input.lastSeenAtBefore } } : {}),
+          ...(input.expectedLastSeenAt
+            ? { lastSeenAt: input.expectedLastSeenAt }
+            : input.lastSeenAtBefore
+              ? { lastSeenAt: { lt: input.lastSeenAtBefore } }
+              : {}),
         }
       : {
           id: playerId,
@@ -228,6 +234,9 @@ export async function permanentlyDepartPlayer(
   for (let attempt = 0; attempt < ROOM_TX_RETRY_LIMIT; attempt += 1) {
     try {
       const result = await prisma.$transaction((tx) => runPermanentDepartureTx(tx, input));
+      if (result) {
+        cancelDisconnectedPlayerExpiryTimer(input.playerId);
+      }
       if (result?.roomDeleted) {
         await recordProductEvent({
           type: 'ROOM_CLOSED',

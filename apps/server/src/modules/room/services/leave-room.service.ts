@@ -3,6 +3,7 @@ import { prisma } from '../../../lib/prisma.js';
 import type { HostChangedPayload, RoomActionResponse } from '@wanasatna/shared';
 import { validateKickPlayerPayload } from '../room.validators.js';
 import { permanentlyDepartPlayer } from './permanent-departure.service.js';
+import { scheduleDisconnectedPlayerExpiry } from './disconnected-player-expiry.service.js';
 import {
   assertHost,
   findPlayerInRoom,
@@ -199,7 +200,8 @@ export async function handlePlayerDisconnect(
     return;
   }
 
-  await prisma.player.updateMany({
+  const disconnectedAt = new Date();
+  const updated = await prisma.player.updateMany({
     where: {
       id: playerId,
       roomId,
@@ -208,7 +210,11 @@ export async function handlePlayerDisconnect(
     },
     data: {
       status: PlayerStatus.DISCONNECTED,
-      lastSeenAt: new Date(),
+      lastSeenAt: disconnectedAt,
     },
   });
+
+  if (updated.count === 1) {
+    scheduleDisconnectedPlayerExpiry(playerId, roomId, disconnectedAt);
+  }
 }

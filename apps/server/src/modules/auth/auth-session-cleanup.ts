@@ -1,13 +1,4 @@
-import { env } from '../../config/env.js';
 import { prisma } from '../../lib/prisma.js';
-
-function cleanupIntervalMs(): number {
-  return env.testMode ? 200 : 15 * 60 * 1000;
-}
-
-export const AUTH_SESSION_CLEANUP_INTERVAL_MS = cleanupIntervalMs();
-
-let sweepIntervalId: ReturnType<typeof setInterval> | null = null;
 let sweepInFlight = false;
 
 export async function purgeExpiredAuthSessions(now: Date = new Date()): Promise<number> {
@@ -20,7 +11,7 @@ export async function purgeExpiredAuthSessions(now: Date = new Date()): Promise<
   return deleted.count;
 }
 
-export async function runExpiredAuthSessionCleanup(): Promise<void> {
+export async function runExpiredAuthSessionCleanup(now: Date = new Date()): Promise<void> {
   if (sweepInFlight) {
     return;
   }
@@ -28,7 +19,7 @@ export async function runExpiredAuthSessionCleanup(): Promise<void> {
   sweepInFlight = true;
 
   try {
-    const expiredAuthSessionsPurged = await purgeExpiredAuthSessions();
+    const expiredAuthSessionsPurged = await purgeExpiredAuthSessions(now);
     if (expiredAuthSessionsPurged > 0) {
       console.info('[auth-session]', {
         stage: 'expired-purged',
@@ -45,27 +36,7 @@ export async function runExpiredAuthSessionCleanup(): Promise<void> {
   }
 }
 
-export function startExpiredAuthSessionCleanup(): void {
-  if (sweepIntervalId) {
-    return;
-  }
-
-  const intervalMs = cleanupIntervalMs();
-  sweepIntervalId = setInterval(() => {
-    void runExpiredAuthSessionCleanup();
-  }, intervalMs);
-
-  if (!env.testMode) {
-    sweepIntervalId.unref();
-  }
-}
-
+/** Legacy test teardown hook; scheduling is centralized in database-maintenance.ts. */
 export function stopExpiredAuthSessionCleanup(): void {
-  if (!sweepIntervalId) {
-    return;
-  }
-
-  clearInterval(sweepIntervalId);
-  sweepIntervalId = null;
   sweepInFlight = false;
 }

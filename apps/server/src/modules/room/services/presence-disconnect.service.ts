@@ -3,6 +3,7 @@ import type { Server } from 'socket.io';
 import { prisma } from '../../../lib/prisma.js';
 import { getPlayerChannel } from '../room.utils.js';
 import { handlePlayerDisconnect } from './leave-room.service.js';
+import { cancelDisconnectedPlayerExpiry } from './disconnected-player-expiry.service.js';
 
 export async function hasOtherBoundPlayerSocket(
   io: Server,
@@ -36,7 +37,12 @@ export async function restoreConnectedIfDisconnected(
     },
   });
 
-  return result.count > 0;
+  if (result.count > 0) {
+    cancelDisconnectedPlayerExpiry(playerId);
+    return true;
+  }
+
+  return false;
 }
 
 /**

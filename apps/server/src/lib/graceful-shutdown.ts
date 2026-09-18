@@ -16,6 +16,7 @@ export type GracefulShutdownDeps = {
   setTimer?: typeof setTimeout;
   clearTimer?: typeof clearTimeout;
   fallbackMs?: number;
+  beforeClose?: () => void;
 };
 
 export const GRACEFUL_SHUTDOWN_FALLBACK_MS = 8_000;
@@ -48,6 +49,7 @@ export function createGracefulShutdown(deps: GracefulShutdownDeps) {
     }, fallbackMs);
 
     try {
+      deps.beforeClose?.();
       await closeServer(deps.io);
       opsLogger.info('socket-io-closed', 'أُغلق Socket.IO.');
       await closeServer(deps.httpServer);

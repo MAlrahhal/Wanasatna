@@ -1007,6 +1007,10 @@ async function main(): Promise<void> {
       where: { id: host.id },
       data: { lastSeenAt: new Date(Date.now() - 4 * 60 * 1000) },
     });
+    const { expireDisconnectedPlayer } = await import(
+      '../src/modules/room/services/disconnected-player-expiry.service.js'
+    );
+    await expireDisconnectedPlayer(host.id, host.roomId);
 
     await waitFor(
       async () => {
@@ -1052,6 +1056,10 @@ async function main(): Promise<void> {
       where: { id: b.id },
       data: { lastSeenAt: new Date(Date.now() - 4 * 60 * 1000) },
     });
+    const { expireDisconnectedPlayer } = await import(
+      '../src/modules/room/services/disconnected-player-expiry.service.js'
+    );
+    await expireDisconnectedPlayer(b.id, b.roomId);
 
     await waitFor(
       async () => {
@@ -1103,6 +1111,17 @@ async function main(): Promise<void> {
       data: { lastSeenAt: new Date(Date.now() - 4 * 60 * 1000) },
     });
 
+    const { expireDisconnectedPlayer } = await import(
+      '../src/modules/room/services/disconnected-player-expiry.service.js'
+    );
+    const stalePlayers = await prisma.player.findMany({
+      where: { roomId, status: 'DISCONNECTED' },
+      select: { id: true },
+    });
+    for (const player of stalePlayers) {
+      await expireDisconnectedPlayer(player.id, roomId);
+    }
+
     await waitFor(
       async () => {
         const room = await prisma.room.findUnique({ where: { id: roomId }, select: { id: true } });
@@ -1153,6 +1172,11 @@ async function main(): Promise<void> {
       where: { id: b.id },
       data: { lastSeenAt: new Date(Date.now() - 4 * 60 * 1000) },
     });
+
+    const { expireDisconnectedPlayer: expireNow } = await import(
+      '../src/modules/room/services/disconnected-player-expiry.service.js'
+    );
+    await expireNow(b.id, b.roomId);
 
     await waitFor(
       async () => {

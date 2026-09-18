@@ -230,12 +230,15 @@ async function main(): Promise<void> {
     const gc = read('src/modules/game/plugins/guessing-challenge/socket.handlers.ts');
     const routes = read('src/modules/admin/admin.routes.ts');
     const index = read('src/index.ts');
+    const maintenance = read('src/lib/database-maintenance.ts');
     assert.match(fa, /recordAnswerAttempt/);
     assert.match(fa, /CORRECT_NOT_COUNTED/);
     assert.match(dg, /recordAnswerAttempt/);
     assert.match(gc, /recordAnswerAttempt/);
     assert.match(routes, /history\/:matchId\/answers/);
-    assert.match(index, /purgeExpiredAnswerAttempts/);
+    assert.match(index, /runDatabaseMaintenance/);
+    assert.match(index, /startDatabaseMaintenanceScheduler/);
+    assert.match(maintenance, /runExpiredAnswerAttemptCleanup/);
   });
 
   await test('retention deletes old AnswerAttempt rows only and is repeatable', async () => {

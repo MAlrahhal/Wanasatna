@@ -16,6 +16,7 @@ import {
   syncPregameTeamsWithRoster,
 } from './pregame-teams.service.js';
 import { clearMarathonState, markMarathonPlayerDeparted } from '../../marathon/marathon.runtime.js';
+import { cancelRoomDisconnectedPlayerExpiryTimers } from '../../room/services/disconnected-player-expiry-timers.js';
 
 /** Call after join so lobby team state tracks the roster. */
 export async function onRoomRosterJoined(io: Server, roomId: string): Promise<void> {
@@ -59,6 +60,7 @@ export async function onRoomPlayerRemoved(
 }
 
 export function onRoomDeleted(io: Server, roomId: string): void {
+  cancelRoomDisconnectedPlayerExpiryTimers(roomId);
   const shell = getGameShellByRoomId(roomId);
   clearPlayerRecoveryForTeardown(io, roomId);
 

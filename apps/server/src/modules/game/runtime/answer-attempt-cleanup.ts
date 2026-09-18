@@ -1,14 +1,5 @@
-import { env } from '../../../config/env.js';
 import { opsLogger, sanitizeErrorName } from '../../../lib/ops-logger.js';
 import { purgeExpiredAnswerAttempts } from './answer-attempt-log.js';
-
-function cleanupIntervalMs(): number {
-  return env.testMode ? 200 : 15 * 60 * 1000;
-}
-
-export const ANSWER_ATTEMPT_CLEANUP_INTERVAL_MS = cleanupIntervalMs();
-
-let sweepIntervalId: ReturnType<typeof setInterval> | null = null;
 let sweepInFlight = false;
 
 export async function runExpiredAnswerAttemptCleanup(now: Date = new Date()): Promise<void> {
@@ -34,25 +25,7 @@ export async function runExpiredAnswerAttemptCleanup(now: Date = new Date()): Pr
   }
 }
 
-export function startExpiredAnswerAttemptCleanup(): void {
-  if (sweepIntervalId) {
-    return;
-  }
-
-  const intervalMs = cleanupIntervalMs();
-  sweepIntervalId = setInterval(() => {
-    void runExpiredAnswerAttemptCleanup();
-  }, intervalMs);
-
-  sweepIntervalId.unref();
-}
-
+/** Legacy test teardown hook; scheduling is centralized in database-maintenance.ts. */
 export function stopExpiredAnswerAttemptCleanup(): void {
-  if (!sweepIntervalId) {
-    return;
-  }
-
-  clearInterval(sweepIntervalId);
-  sweepIntervalId = null;
   sweepInFlight = false;
 }
