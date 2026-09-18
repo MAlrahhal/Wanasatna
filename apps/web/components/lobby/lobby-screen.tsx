@@ -26,6 +26,7 @@ import { LobbySelectedGameSetup } from './lobby-selected-game-setup';
 import { PlayersPanel } from './players-panel';
 import { AvatarPickerDialog } from './avatar-picker-dialog';
 import { cn } from '@/lib/utils';
+import { useMobileOverlayScrollLock } from '@/lib/ui/use-mobile-overlay-scroll-lock';
 
 export function LobbyScreen() {
   const {
@@ -58,6 +59,8 @@ export function LobbyScreen() {
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const wasReconnecting = useRef(false);
   const hasActiveMatch = isWaitingForNextMatch || activeMatchParticipantIds !== null;
+
+  useMobileOverlayScrollLock(chatOpen, '(max-width: 1279px)');
 
   useEffect(() => {
     if (selectedGameId && !isGameEnabled(selectedGameId) && isHost) {
@@ -164,7 +167,7 @@ export function LobbyScreen() {
   }
 
   return (
-    <div className="relative mx-auto flex w-full max-w-[1440px] flex-col gap-3 px-3 py-3 sm:px-5 sm:py-5 lg:gap-4">
+    <div className="lobby-screen-shell relative mx-auto flex w-full max-w-[1440px] flex-col gap-3 py-3 sm:py-5 lg:gap-4">
       {status === 'reconnecting' ? (
         <SystemStatus tone="reconnecting" title={SYSTEM_COPY.reconnecting} />
       ) : null}
@@ -187,7 +190,7 @@ export function LobbyScreen() {
         canChangeAvatar={!hasActiveMatch}
       />
 
-      <div className="flex gap-2 xl:hidden">
+      <div className="lobby-mobile-section-controls flex gap-2 xl:hidden">
         {(
           [
             ['games', 'الألعاب'],
@@ -200,7 +203,7 @@ export function LobbyScreen() {
             aria-pressed={mobileSection === id}
             onClick={() => setMobileSection(id)}
             className={cn(
-              'inline-flex h-11 min-h-11 flex-1 items-center justify-center rounded-xl border text-sm font-semibold transition-colors',
+              'inline-flex h-11 min-h-11 min-w-11 flex-1 items-center justify-center rounded-xl border text-sm font-semibold transition-colors',
               mobileSection === id
                 ? 'border-wanas-accent bg-wanas-accent text-white shadow-[inset_0_-3px_0_0_rgba(0,0,0,0.18)]'
                 : 'border-wanas-border bg-wanas-surface text-wanas-text-muted',
@@ -214,7 +217,7 @@ export function LobbyScreen() {
           aria-pressed={chatOpen}
           aria-label="الدردشة"
           onClick={() => setChatOpen(true)}
-          className="border-wanas-border bg-wanas-surface text-wanas-text-muted inline-flex h-11 min-h-11 items-center justify-center rounded-xl border px-3 text-sm font-semibold"
+          className="border-wanas-border bg-wanas-surface text-wanas-text-muted inline-flex h-11 min-h-11 min-w-11 items-center justify-center rounded-xl border px-3 text-sm font-semibold"
         >
           دردشة
         </button>
@@ -224,7 +227,7 @@ export function LobbyScreen() {
         <div
           className={cn(
             chatOpen
-              ? 'border-wanas-border bg-wanas-surface fixed inset-x-0 bottom-0 z-40 flex max-h-[55dvh] flex-col rounded-t-2xl border-t p-3 shadow-[var(--wanas-shadow-panel)]'
+              ? 'mobile-room-chat-sheet border-wanas-border bg-wanas-surface fixed inset-x-0 bottom-0 z-50 flex h-[55dvh] max-h-[55dvh] flex-col rounded-t-2xl border-t p-3 shadow-[var(--wanas-shadow-panel)]'
               : 'hidden',
             'xl:static xl:z-auto xl:order-3 xl:flex xl:max-h-[calc(100vh-12rem)] xl:flex-col xl:gap-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none',
           )}
@@ -233,7 +236,12 @@ export function LobbyScreen() {
           aria-label={chatOpen ? SYSTEM_COPY.chatTitle : undefined}
           style={
             chatOpen
-              ? { paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }
+              ? {
+                  paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0px))',
+                  paddingRight: 'max(0.75rem, env(safe-area-inset-right, 0px))',
+                  paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))',
+                  paddingLeft: 'max(0.75rem, env(safe-area-inset-left, 0px))',
+                }
               : undefined
           }
         >
@@ -252,7 +260,7 @@ export function LobbyScreen() {
               </button>
             </div>
           ) : null}
-          <LobbyChat className="min-h-0" />
+          <LobbyChat className="min-h-0" mobileSheetOpen={chatOpen} />
           <AdPlaceholder
             placement="lobby-chat-desktop"
             format="vertical"
@@ -311,11 +319,7 @@ export function LobbyScreen() {
         </div>
       </div>
 
-      <AdPlaceholder
-        placement="lobby-mobile"
-        format="horizontal"
-        className="xl:hidden"
-      />
+      <AdPlaceholder placement="lobby-mobile" format="horizontal" className="xl:hidden" />
 
       {player ? (
         <AvatarPickerDialog

@@ -7,6 +7,7 @@ import { useGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { clearGameAudioEventKeys, stopAllGameSounds } from '@/lib/game/sounds';
 import { cn } from '@/lib/utils';
+import { useMobileOverlayScrollLock } from '@/lib/ui/use-mobile-overlay-scroll-lock';
 import { GameChatMockPanel } from './game-chat-mock-panel';
 import { GameExperienceHeader } from './game-experience-header';
 import { GameLeaderboardPanel } from './game-leaderboard-panel';
@@ -50,6 +51,8 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
   const mobilePanelControlsRef = useRef<HTMLDivElement>(null);
   const chatPanelRef = useRef<HTMLDivElement>(null);
   const leaderboardPanelRef = useRef<HTMLDivElement>(null);
+
+  useMobileOverlayScrollLock(chatOpen, '(max-width: 1023px)');
 
   useEffect(() => {
     return () => {
@@ -161,8 +164,7 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
           <GameChatMockPanel
             className={cn(
               'max-h-[min(560px,calc(100vh-12rem))]',
-              (showGameplayAds || resultSideAds) &&
-                '2xl:max-h-[min(480px,calc(100vh-22rem))]',
+              (showGameplayAds || resultSideAds) && '2xl:max-h-[min(480px,calc(100vh-22rem))]',
             )}
           />
           {showGameplayAds ? (
@@ -189,8 +191,7 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
             entries={meta.leaderboardEntries}
             className={cn(
               'max-h-[min(560px,calc(100vh-12rem))]',
-              (showGameplayAds || resultSideAds) &&
-                '2xl:max-h-[min(480px,calc(100vh-22rem))]',
+              (showGameplayAds || resultSideAds) && '2xl:max-h-[min(480px,calc(100vh-22rem))]',
             )}
           />
           {showGameplayAds ? (
@@ -218,15 +219,22 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
       {chatOpen ? (
         <div
           ref={chatPanelRef}
-          className="fixed inset-x-0 bottom-0 z-40 flex h-[45dvh] max-h-[45dvh] flex-col overflow-hidden rounded-t-2xl border-t border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-panel-bg)] p-4 shadow-[var(--wanas-game-shadow)] lg:hidden"
-          style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
+          className="mobile-room-chat-sheet fixed inset-x-0 bottom-0 z-50 flex h-[45dvh] max-h-[45dvh] flex-col overflow-hidden rounded-t-2xl border-t border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-panel-bg)] p-4 shadow-[var(--wanas-game-shadow)] lg:hidden"
+          style={{
+            paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))',
+            paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
+            paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))',
+            paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
+          }}
           role="dialog"
           aria-modal="true"
           aria-label="الدردشة"
           data-testid="mobile-game-chat-sheet"
         >
           <div className="mb-3 flex shrink-0 items-center justify-between">
-            <p className="text-sm font-semibold text-[color:var(--wanas-game-text-primary)]">الدردشة</p>
+            <p className="text-sm font-semibold text-[color:var(--wanas-game-text-primary)]">
+              الدردشة
+            </p>
             <button
               type="button"
               className={cn(
@@ -256,7 +264,9 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
           aria-label="الترتيب"
         >
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-sm font-semibold text-[color:var(--wanas-game-text-primary)]">الترتيب</p>
+            <p className="text-sm font-semibold text-[color:var(--wanas-game-text-primary)]">
+              الترتيب
+            </p>
             <button
               type="button"
               className={cn(

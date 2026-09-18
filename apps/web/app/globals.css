@@ -1,8 +1,8 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-@import "../styles/design-tokens.css";
-@import "../styles/game-theme.css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '../styles/design-tokens.css';
+@import '../styles/game-theme.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -236,6 +236,35 @@
 }
 
 @layer components {
+  .lobby-screen-shell {
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+  }
+
+  .mobile-room-chat-sheet {
+    overscroll-behavior: contain;
+  }
+
+  @media (min-width: 640px) {
+    .lobby-screen-shell {
+      padding-right: max(1.25rem, env(safe-area-inset-right, 0px));
+      padding-left: max(1.25rem, env(safe-area-inset-left, 0px));
+    }
+  }
+
+  @media (orientation: landscape) and (max-height: 560px) and (max-width: 1279px) {
+    .lobby-mobile-section-controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .mobile-room-chat-sheet {
+      height: 100dvh;
+      max-height: 100dvh;
+      border-radius: 0;
+    }
+  }
+
   .wanas-panel {
     border: 1px solid var(--wanas-border);
     border-radius: var(--wanas-radius-panel);
@@ -303,4 +332,3 @@
     }
   }
 }
-
