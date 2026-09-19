@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getDefaultPlayerAvatarId } from '@wanasatna/shared';
 import { AdPlaceholder } from '@/components/ads/ad-placeholder';
+import { AdsterraBanner } from '@/components/ads/adsterra-banner';
 import { useRoom } from '@/contexts/room-context';
 import { mockGameSettingsByGameId, mockLobbyGames } from '@/lib/lobby/mock-games';
 import { usePlayableGameAvailability } from '@/lib/games/use-game-availability';
@@ -319,6 +320,7 @@ export function LobbyScreen() {
         </div>
       </div>
 
+      <AdsterraBanner className="mt-1" />
       <AdPlaceholder placement="lobby-mobile" format="horizontal" className="xl:hidden" />
 
       {player ? (
