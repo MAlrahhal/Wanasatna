@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { AdPlaceholder } from '@/components/ads/ad-placeholder';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import type { FastAnswerRoundResultEntry } from '@wanasatna/shared';
 import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
@@ -157,12 +157,7 @@ export function FastAnswerRoundResultsScreen({
           </ul>
         </GameCard>
 
-        <AdPlaceholder
-          placement="round-results-center"
-          format="horizontal"
-          className="hidden lg:flex"
-        />
-        <AdPlaceholder placement="round-results-mobile" format="horizontal" className="lg:hidden" />
+        <AdPlacement placement="game-round-results" />
 
         {continueLabel && onContinue ? (
           <div className="mx-auto w-full max-w-md space-y-3">

@@ -7,6 +7,7 @@ import type {
   DrawGuessTool,
   DrawStroke,
 } from '@wanasatna/shared';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader, resolveHeaderTimer } from '@/components/game/game-header';
 import { DRAW_GUESS_GAME_ICON, DRAW_GUESS_GAME_NAME } from '@/lib/game/draw-guess-brand';
@@ -85,14 +86,14 @@ export function DrawingScreen({
       <div className="flex flex-col gap-3 sm:gap-5">
         {isDrawer && secretWord ? (
           <GameCard className="px-4 py-2.5 text-center sm:px-8 sm:py-4">
-            <p className="text-xs font-medium text-wanas-text-muted">الكلمة السرية</p>
-            <p className="mt-1 break-words text-xl font-bold text-wanas-text-primary sm:mt-2 sm:text-3xl">
+            <p className="text-wanas-text-muted text-xs font-medium">الكلمة السرية</p>
+            <p className="text-wanas-text-primary mt-1 break-words text-xl font-bold sm:mt-2 sm:text-3xl">
               {secretWord}
             </p>
           </GameCard>
         ) : (
           <GameCard className="px-4 py-2.5 text-center sm:px-8 sm:py-4">
-            <p className="text-sm font-medium text-wanas-text-secondary">
+            <p className="text-wanas-text-secondary text-sm font-medium">
               {drawerName} يرسم الآن — خمّن الكلمة!
             </p>
           </GameCard>
@@ -136,8 +137,10 @@ export function DrawingScreen({
           )}
         </div>
 
+        <AdPlacement placement="game-interaction" />
+
         {isDrawer && actionError ? (
-          <p className="text-center text-sm text-destructive">{actionError}</p>
+          <p className="text-destructive text-center text-sm">{actionError}</p>
         ) : null}
       </div>
     </GameScreen>

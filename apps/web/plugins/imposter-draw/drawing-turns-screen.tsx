@@ -7,6 +7,7 @@ import type {
   ImposterDrawStrokePayload,
   ImposterDrawStrokePointsPayload,
 } from '@wanasatna/shared';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader, resolveHeaderTimer } from '@/components/game/game-header';
 import { SpectatorNotice } from '@/components/room/room-system-state';
@@ -79,8 +80,8 @@ export function DrawingTurnsScreen({
       <div className="flex flex-col gap-3 sm:gap-5">
         {isSpectator ? <SpectatorNotice /> : null}
         <GameCard className="px-4 py-2.5 text-center sm:px-8 sm:py-4">
-          <p className="text-xs font-medium text-wanas-text-muted">دور</p>
-          <p className="mt-1 text-xl font-bold text-wanas-text-primary sm:text-3xl">
+          <p className="text-wanas-text-muted text-xs font-medium">دور</p>
+          <p className="text-wanas-text-primary mt-1 text-xl font-bold sm:text-3xl">
             {currentDrawerName ?? 'لاعب'}
           </p>
         </GameCard>
@@ -113,8 +114,10 @@ export function DrawingTurnsScreen({
           ) : null}
         </div>
 
+        {canDraw ? <AdPlacement placement="game-interaction" /> : null}
+
         {actionError ? (
-          <p className="text-center text-sm text-destructive" role="alert">
+          <p className="text-destructive text-center text-sm" role="alert">
             {actionError}
           </p>
         ) : null}

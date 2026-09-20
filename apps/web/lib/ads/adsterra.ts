@@ -45,8 +45,12 @@ export const AD_PLACEMENTS = {
   'lobby-players': { enabled: true },
   'lobby-chat': { enabled: true },
   'game-chat': { enabled: true },
+  'game-player-list': { enabled: true },
   'game-leaderboard': { enabled: true },
   'game-answer-input': { enabled: true },
+  'game-interaction': { enabled: true },
+  'game-round-results': { enabled: true },
+  'game-final-results': { enabled: true },
   'home-featured-games-near-end': { enabled: true },
 } as const;
 

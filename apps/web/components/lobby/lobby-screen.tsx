@@ -306,13 +306,17 @@ export function LobbyScreen() {
             playerCap={room?.playerCap}
             onChangeAvatar={() => setAvatarPickerOpen(true)}
           />
-          {mobileSection === 'players' ? (
-            <AdPlacement placement="lobby-players" viewport="compact" className="mt-1 xl:hidden" />
-          ) : null}
         </div>
       </div>
 
-      <AdPlacement placement="lobby-chat" viewport="wide" className="mt-1" />
+      <div className="flex flex-col gap-3" data-lobby-ad-rows>
+        <div data-lobby-ad-association="players">
+          <AdPlacement placement="lobby-players" />
+        </div>
+        <div data-lobby-ad-association="chat">
+          <AdPlacement placement="lobby-chat" />
+        </div>
+      </div>
 
       {player ? (
         <AvatarPickerDialog

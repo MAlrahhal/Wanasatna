@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import { Button } from '@/components/ui/button';
 import { playGameSound, unlockGameAudio } from '@/lib/game/sounds';
 import { DigitalTimerDisplay, ElectronicPanel } from './electronic-panel';
@@ -113,9 +114,7 @@ export function StopTimerScreen({
               <p
                 className={cn(
                   'font-mono text-lg font-bold',
-                  selfSignedDeltaMs === 0
-                    ? 'text-wanas-accent'
-                    : 'text-wanas-text-secondary',
+                  selfSignedDeltaMs === 0 ? 'text-wanas-accent' : 'text-wanas-text-secondary',
                 )}
                 dir="ltr"
               >
@@ -123,10 +122,10 @@ export function StopTimerScreen({
               </p>
             ) : null}
             {feedback ? (
-              <p className="text-sm font-semibold text-wanas-text-primary">{feedback}</p>
+              <p className="text-wanas-text-primary text-sm font-semibold">{feedback}</p>
             ) : null}
-            <p className="pt-2 text-sm font-bold text-wanas-accent">تم تسجيل توقيتك</p>
-            <p className="text-xs text-wanas-text-muted">بانتظار بقية اللاعبين...</p>
+            <p className="text-wanas-accent pt-2 text-sm font-bold">تم تسجيل توقيتك</p>
+            <p className="text-wanas-text-muted text-xs">بانتظار بقية اللاعبين...</p>
           </div>
         ) : (
           <div className="mt-6 space-y-3 text-center">
@@ -148,7 +147,7 @@ export function StopTimerScreen({
                   onStop();
                 }
               }}
-              className="mx-auto flex h-14 min-h-[44px] w-full max-w-sm items-center justify-center rounded-xl bg-wanas-accent text-base font-bold text-white hover:bg-wanas-accent-hover disabled:opacity-60"
+              className="bg-wanas-accent hover:bg-wanas-accent-hover mx-auto flex h-14 min-h-[44px] w-full max-w-sm items-center justify-center rounded-xl text-base font-bold text-white disabled:opacity-60"
             >
               {selfTimerRunning ? 'أوقف الآن' : 'اضغط لبدء المؤقت'}
             </Button>
@@ -156,9 +155,11 @@ export function StopTimerScreen({
         )}
 
         {actionError ? (
-          <p className="mt-3 text-center text-sm text-destructive">{actionError}</p>
+          <p className="text-destructive mt-3 text-center text-sm">{actionError}</p>
         ) : null}
       </ElectronicPanel>
+
+      <AdPlacement placement="game-interaction" />
 
       <PeerStatusList peers={peers} currentPlayerId={currentPlayerId} />
     </div>

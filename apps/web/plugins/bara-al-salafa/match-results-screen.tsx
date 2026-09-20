@@ -1,6 +1,6 @@
 'use client';
 
-import { AdPlaceholder } from '@/components/ads/ad-placeholder';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
 import { PlayerAvatar } from '@/components/player/player-avatar';
@@ -53,10 +53,15 @@ function getArabicRankLabel(rank: number): string {
 function WinnerHeroCard({ entry }: { entry: MatchLeaderboardEntry }) {
   return (
     <div className="flex flex-col items-center gap-4 text-center">
-      <PlayerAvatar playerId={entry.id} playerName={entry.name} className="size-16 ring-4 ring-[color:var(--wanas-game-card-border)] shadow-lg sm:size-24" sizes="(max-width: 640px) 64px, 96px" />
+      <PlayerAvatar
+        playerId={entry.id}
+        playerName={entry.name}
+        className="size-16 shadow-lg ring-4 ring-[color:var(--wanas-game-card-border)] sm:size-24"
+        sizes="(max-width: 640px) 64px, 96px"
+      />
       <div>
-        <p className="text-2xl font-bold text-wanas-text-primary sm:text-3xl">{entry.name}</p>
-        <p className="mt-1.5 font-mono text-lg font-semibold tabular-nums text-wanas-warning-dark">
+        <p className="text-wanas-text-primary text-2xl font-bold sm:text-3xl">{entry.name}</p>
+        <p className="text-wanas-warning-dark mt-1.5 font-mono text-lg font-semibold tabular-nums">
           {entry.totalPoints} نقطة
         </p>
       </div>
@@ -68,12 +73,12 @@ function WinnerHero({ winners }: { winners: MatchLeaderboardEntry[] }) {
   const isTie = winners.length > 1;
 
   return (
-    <div className="wanas-game-card rounded-[1.5rem] border-wanas-warning-border/70 bg-wanas-warning-surface px-4 py-4 text-center sm:rounded-[2rem] sm:px-8 sm:py-8">
+    <div className="wanas-game-card border-wanas-warning-border/70 bg-wanas-warning-surface rounded-[1.5rem] px-4 py-4 text-center sm:rounded-[2rem] sm:px-8 sm:py-8">
       <div className="flex flex-col items-center gap-3 sm:gap-5">
         <span className="text-4xl sm:text-6xl" aria-hidden>
           👑
         </span>
-        <h2 className="text-xl font-semibold text-wanas-warning-dark sm:text-2xl">
+        <h2 className="text-wanas-warning-dark text-xl font-semibold sm:text-2xl">
           {isTie ? 'تعادل في المركز الأول!' : 'الفائز'}
         </h2>
 
@@ -92,30 +97,26 @@ function WinnerHero({ winners }: { winners: MatchLeaderboardEntry[] }) {
   );
 }
 
-function CurrentPlayerSummary({
-  entry,
-}: {
-  entry: MatchLeaderboardEntry | undefined;
-}) {
+function CurrentPlayerSummary({ entry }: { entry: MatchLeaderboardEntry | undefined }) {
   if (!entry) {
     return null;
   }
 
   return (
-    <div className="rounded-[1.25rem] border-2 border-wanas-accent/25 bg-wanas-accent-soft/35 px-5 py-4 sm:px-6 sm:py-5">
-      <p className="text-xs font-medium text-wanas-text-muted">ترتيبك</p>
+    <div className="border-wanas-accent/25 bg-wanas-accent-soft/35 rounded-[1.25rem] border-2 px-5 py-4 sm:px-6 sm:py-5">
+      <p className="text-wanas-text-muted text-xs font-medium">ترتيبك</p>
       <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-lg font-semibold text-wanas-text-primary">
+          <p className="text-wanas-text-primary text-lg font-semibold">
             {getArabicRankLabel(entry.rank)}
           </p>
-          <p className="mt-0.5 text-sm font-medium text-wanas-accent-hover">
+          <p className="text-wanas-accent-hover mt-0.5 text-sm font-medium">
             {getRankMedal(entry.rank, entry.isFirstPlace)} أنت
           </p>
         </div>
         <div className="text-end">
-          <p className="text-xs font-medium text-wanas-text-muted">النقاط</p>
-          <p className="font-mono text-2xl font-bold tabular-nums text-wanas-text-primary">
+          <p className="text-wanas-text-muted text-xs font-medium">النقاط</p>
+          <p className="text-wanas-text-primary font-mono text-2xl font-bold tabular-nums">
             {entry.totalPoints}
           </p>
         </div>
@@ -148,31 +149,38 @@ function FinalLeaderboard({
                     : entry.rank === 3
                       ? 'border-wanas-border bg-wanas-surface-soft/80'
                       : 'border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)]',
-                isCurrentPlayer && 'ring-2 ring-wanas-accent/35',
+                isCurrentPlayer && 'ring-wanas-accent/35 ring-2',
               )}
               aria-current={isCurrentPlayer ? 'true' : undefined}
             >
               <span
                 className={cn(
                   'flex w-9 shrink-0 items-center justify-center text-base font-bold',
-                  isTopThree ? 'text-wanas-warning-dark' : 'text-sm text-wanas-text-muted',
+                  isTopThree ? 'text-wanas-warning-dark' : 'text-wanas-text-muted text-sm',
                 )}
                 aria-label={`المركز ${entry.rank}`}
               >
                 {getRankMedal(entry.rank, entry.isFirstPlace)}
               </span>
-              <PlayerAvatar playerId={entry.id} playerName={entry.name} className="size-10 ring-2 ring-[color:var(--wanas-game-card-border)]" sizes="40px" />
+              <PlayerAvatar
+                playerId={entry.id}
+                playerName={entry.name}
+                className="size-10 ring-2 ring-[color:var(--wanas-game-card-border)]"
+                sizes="40px"
+              />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <p className="truncate text-sm font-semibold text-wanas-text-primary">{entry.name}</p>
+                  <p className="text-wanas-text-primary truncate text-sm font-semibold">
+                    {entry.name}
+                  </p>
                   {isCurrentPlayer ? (
-                    <span className="rounded-full border border-wanas-accent/30 bg-wanas-accent px-2 py-0.5 text-xs font-semibold text-white">
+                    <span className="border-wanas-accent/30 bg-wanas-accent rounded-full border px-2 py-0.5 text-xs font-semibold text-white">
                       أنت
                     </span>
                   ) : null}
                 </div>
               </div>
-              <span className="shrink-0 font-mono text-sm font-bold tabular-nums text-wanas-text-primary">
+              <span className="text-wanas-text-primary shrink-0 font-mono text-sm font-bold tabular-nums">
                 {entry.totalPoints}
               </span>
             </li>
@@ -205,8 +213,8 @@ function MatchStats({
           key={stat.label}
           className="min-w-0 rounded-[1.1rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-2 py-3 text-center shadow-sm sm:px-4 sm:py-4"
         >
-          <p className="truncate text-xs font-medium text-wanas-text-muted">{stat.label}</p>
-          <p className="mt-1 font-mono text-base font-bold tabular-nums text-wanas-text-primary sm:text-lg">
+          <p className="text-wanas-text-muted truncate text-xs font-medium">{stat.label}</p>
+          <p className="text-wanas-text-primary mt-1 font-mono text-base font-bold tabular-nums sm:text-lg">
             {stat.value}
           </p>
         </div>
@@ -240,12 +248,14 @@ function MatchActionsFooter({
     autoReturnDeadlineAtMs != null ? liveRemaining : (autoReturnSeconds ?? 0),
   );
   const hasAutoReturn = autoReturnDeadlineAtMs != null || typeof autoReturnSeconds === 'number';
-  const progressPercent = hasAutoReturn ? Math.round((Math.min(remaining, total) / total) * 100) : null;
+  const progressPercent = hasAutoReturn
+    ? Math.round((Math.min(remaining, total) / total) * 100)
+    : null;
 
   const progressBar =
     progressPercent === null ? null : (
       <div
-        className="h-1.5 overflow-hidden rounded-full bg-wanas-surface-muted"
+        className="bg-wanas-surface-muted h-1.5 overflow-hidden rounded-full"
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={total}
@@ -253,35 +263,33 @@ function MatchActionsFooter({
         aria-label={`العودة إلى اللوبي خلال ${remaining} ثانية`}
       >
         <div
-          className="h-full rounded-full bg-wanas-accent transition-[width] duration-200 ease-linear"
+          className="bg-wanas-accent h-full rounded-full transition-[width] duration-200 ease-linear"
           style={{ width: `${progressPercent}%` }}
         />
       </div>
     );
 
-  const autoMessage = hasAutoReturn
-    ? `العودة إلى اللوبي تلقائياً خلال ${remaining} ثانية`
-    : null;
+  const autoMessage = hasAutoReturn ? `العودة إلى اللوبي تلقائياً خلال ${remaining} ثانية` : null;
 
   if (onReturnToLobby && !returnStatusMessage) {
     return (
       <div className="mx-auto flex w-full max-w-md flex-col gap-3">
         {autoMessage ? (
-          <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
+          <p className="text-wanas-text-muted text-center text-xs font-medium sm:text-sm">
             {autoMessage}
           </p>
         ) : null}
         {progressBar}
         <Button
           size="lg"
-          className="w-full min-h-14 focus-visible:ring-offset-4"
+          className="min-h-14 w-full focus-visible:ring-offset-4"
           onClick={onReturnToLobby}
           loading={isReturnToLobbyLoading}
         >
           العودة إلى اللوبي
         </Button>
         {onPlayAgain ? (
-          <Button size="lg" variant="secondary" className="w-full min-h-14" onClick={onPlayAgain}>
+          <Button size="lg" variant="secondary" className="min-h-14 w-full" onClick={onPlayAgain}>
             إعادة اللعب
           </Button>
         ) : null}
@@ -295,7 +303,7 @@ function MatchActionsFooter({
       aria-live="polite"
       className="mx-auto w-full max-w-md space-y-3 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-5 text-center shadow-sm"
     >
-      <p className="wanas-game-helper font-medium text-wanas-text-secondary">
+      <p className="wanas-game-helper text-wanas-text-secondary font-medium">
         {presentSystemCopy(autoMessage ?? returnStatusMessage, 'بانتظار المضيف…')}
       </p>
       {progressBar}
@@ -321,10 +329,7 @@ export function MatchResultsScreen({
 }: MatchResultsScreenProps) {
   const winners = leaderboard.filter((entry) => entry.isFirstPlace);
   const currentPlayerEntry = leaderboard.find((entry) => entry.id === currentPlayerId);
-  const highestScore = leaderboard.reduce(
-    (max, entry) => Math.max(max, entry.totalPoints),
-    0,
-  );
+  const highestScore = leaderboard.reduce((max, entry) => Math.max(max, entry.totalPoints), 0);
 
   return (
     <GameScreen ariaLabel="النتائج النهائية" maxWidth="4xl" className={className}>
@@ -338,28 +343,19 @@ export function MatchResultsScreen({
       />
 
       <div className="flex flex-col gap-6 sm:gap-7">
-        <p className="text-center text-sm font-bold text-wanas-accent">النتائج النهائية</p>
+        <p className="text-wanas-accent text-center text-sm font-bold">النتائج النهائية</p>
         {winners.length > 0 ? <WinnerHero winners={winners} /> : null}
 
         <CurrentPlayerSummary entry={currentPlayerEntry} />
 
         <FinalLeaderboard leaderboard={leaderboard} currentPlayerId={currentPlayerId} />
 
+        <AdPlacement placement="game-final-results" />
+
         <MatchStats
           totalRounds={totalRounds}
           playerCount={playerCount}
           highestScore={highestScore}
-        />
-
-        <AdPlaceholder
-          placement="final-results-center"
-          format="horizontal"
-          className="hidden lg:flex"
-        />
-        <AdPlaceholder
-          placement="final-results-mobile"
-          format="horizontal"
-          className="lg:hidden"
         />
 
         <MatchActionsFooter

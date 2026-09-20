@@ -71,63 +71,61 @@ export function WhoWroteItAnsweringScreen({
             </p>
           </div>
         ) : (
-          <>
-            <form
-              onSubmit={handleSubmit}
-              className="wanas-game-card flex flex-col gap-3 rounded-[1.25rem] p-4 sm:p-5"
+          <form
+            onSubmit={handleSubmit}
+            className="wanas-game-card flex flex-col gap-3 rounded-[1.25rem] p-4 sm:p-5"
+          >
+            <label
+              htmlFor="who-wrote-it-answer"
+              className="text-wanas-text-primary text-sm font-semibold"
             >
-              <label
-                htmlFor="who-wrote-it-answer"
-                className="text-wanas-text-primary text-sm font-semibold"
+              إجابتك السرية
+            </label>
+            <textarea
+              ref={textareaRef}
+              id="who-wrote-it-answer"
+              value={answer}
+              maxLength={WHO_WROTE_IT_MAX_ANSWER_LENGTH}
+              disabled={!canSubmit || isSubmitting}
+              rows={3}
+              onChange={(event) => setAnswer(event.target.value)}
+              placeholder="اكتب إجابتك هنا..."
+              className={cn(
+                'border-wanas-border bg-wanas-surface min-h-20 w-full resize-none rounded-xl border px-4 py-3',
+                'text-wanas-text-primary placeholder:text-wanas-text-muted text-base',
+                'focus-visible:ring-wanas-accent/40 focus-visible:outline-none focus-visible:ring-2',
+              )}
+            />
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-wanas-text-muted text-xs tabular-nums sm:text-sm">
+                {answer.trim().length} / {WHO_WROTE_IT_MAX_ANSWER_LENGTH}
+              </p>
+              <Button
+                type="submit"
+                size="lg"
+                className="hidden lg:inline-flex"
+                loading={isSubmitting}
+                disabled={!answer.trim() || !canSubmit}
               >
-                إجابتك السرية
-              </label>
-              <textarea
-                ref={textareaRef}
-                id="who-wrote-it-answer"
-                value={answer}
-                maxLength={WHO_WROTE_IT_MAX_ANSWER_LENGTH}
-                disabled={!canSubmit || isSubmitting}
-                rows={3}
-                onChange={(event) => setAnswer(event.target.value)}
-                placeholder="اكتب إجابتك هنا..."
-                className={cn(
-                  'border-wanas-border bg-wanas-surface min-h-20 w-full resize-none rounded-xl border px-4 py-3',
-                  'text-wanas-text-primary placeholder:text-wanas-text-muted text-base',
-                  'focus-visible:ring-wanas-accent/40 focus-visible:outline-none focus-visible:ring-2',
-                )}
-              />
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-wanas-text-muted text-xs tabular-nums sm:text-sm">
-                  {answer.trim().length} / {WHO_WROTE_IT_MAX_ANSWER_LENGTH}
-                </p>
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="hidden lg:inline-flex"
-                  loading={isSubmitting}
-                  disabled={!answer.trim() || !canSubmit}
-                >
-                  إرسال الإجابة
-                </Button>
-              </div>
-              {actionError ? <p className="text-destructive text-sm">{actionError}</p> : null}
-              <GameMobileStickyCtaSpacer />
-              <GameMobileStickyCta>
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full"
-                  loading={isSubmitting}
-                  disabled={!answer.trim() || !canSubmit}
-                >
-                  إرسال الإجابة
-                </Button>
-              </GameMobileStickyCta>
-            </form>
-            <AdPlacement placement="game-answer-input" />
-          </>
+                إرسال الإجابة
+              </Button>
+            </div>
+            {actionError ? <p className="text-destructive text-sm">{actionError}</p> : null}
+            <GameMobileStickyCtaSpacer />
+            <GameMobileStickyCta>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                loading={isSubmitting}
+                disabled={!answer.trim() || !canSubmit}
+              >
+                إرسال الإجابة
+              </Button>
+            </GameMobileStickyCta>
+          </form>
         )}
+        {!isSpectator ? <AdPlacement placement="game-answer-input" /> : null}
       </div>
     </GameScreen>
   );

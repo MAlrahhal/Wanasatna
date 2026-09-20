@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { AdPlaceholder } from '@/components/ads/ad-placeholder';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import type { DrawGuessRoundResultEntry } from '@wanasatna/shared';
 import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
@@ -89,7 +89,7 @@ export function DrawGuessRoundResultsScreen({
           >
             {guessedCorrectly ? 'تم تخمين الكلمة!' : 'انتهى الوقت بدون تخمين صحيح'}
           </p>
-          <p className="mt-3 wanas-game-helper">
+          <p className="wanas-game-helper mt-3">
             {guessedCorrectly && correctGuesserName
               ? `${correctGuesserName} خمّن بشكل صحيح`
               : `${drawerName} كان الرسام`}
@@ -97,8 +97,8 @@ export function DrawGuessRoundResultsScreen({
         </div>
 
         <div className="wanas-game-card rounded-[1.5rem] px-5 py-5 text-center sm:px-8 sm:py-6">
-          <p className="text-xs font-medium tracking-wide text-wanas-text-muted">الكلمة كانت</p>
-          <p className="mt-2 break-words text-2xl font-bold leading-tight tracking-tight text-wanas-text-primary sm:text-3xl">
+          <p className="text-wanas-text-muted text-xs font-medium tracking-wide">الكلمة كانت</p>
+          <p className="text-wanas-text-primary mt-2 break-words text-2xl font-bold leading-tight tracking-tight sm:text-3xl">
             {revealedWord}
           </p>
         </div>
@@ -114,7 +114,7 @@ export function DrawGuessRoundResultsScreen({
                   key={player.playerId}
                   className={cn(
                     'flex min-w-0 items-center gap-2 rounded-[18px] border px-3 py-3 sm:gap-3 sm:px-3.5',
-                    isCurrentPlayer && 'ring-2 ring-wanas-accent/30',
+                    isCurrentPlayer && 'ring-wanas-accent/30 ring-2',
                     player.isDrawer
                       ? 'border-wanas-accent/25 bg-wanas-accent-soft/35'
                       : 'border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)]',
@@ -123,25 +123,30 @@ export function DrawGuessRoundResultsScreen({
                   )}
                   aria-current={isCurrentPlayer ? 'true' : undefined}
                 >
-                  <PlayerAvatar playerId={player.playerId} playerName={player.name} className="size-10 ring-2 ring-[color:var(--wanas-game-card-border)]" sizes="40px" />
+                  <PlayerAvatar
+                    playerId={player.playerId}
+                    playerName={player.name}
+                    className="size-10 ring-2 ring-[color:var(--wanas-game-card-border)]"
+                    sizes="40px"
+                  />
 
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <p className="truncate text-sm font-semibold text-wanas-text-primary">
+                      <p className="text-wanas-text-primary truncate text-sm font-semibold">
                         {player.name}
                       </p>
                       {isCurrentPlayer ? (
-                        <span className="rounded-full bg-wanas-accent px-2 py-0.5 text-xs font-semibold text-white">
+                        <span className="bg-wanas-accent rounded-full px-2 py-0.5 text-xs font-semibold text-white">
                           أنت
                         </span>
                       ) : null}
                       {player.isDrawer ? (
-                        <span className="rounded-full border border-wanas-accent/30 px-2 py-0.5 text-[10px] font-semibold text-wanas-accent-hover">
+                        <span className="border-wanas-accent/30 text-wanas-accent-hover rounded-full border px-2 py-0.5 text-[10px] font-semibold">
                           الرسام
                         </span>
                       ) : null}
                       {player.isCorrectGuesser ? (
-                        <span className="rounded-full border border-wanas-success-border px-2 py-0.5 text-[10px] font-semibold text-wanas-success-dark">
+                        <span className="border-wanas-success-border text-wanas-success-dark rounded-full border px-2 py-0.5 text-[10px] font-semibold">
                           خمّن صح
                         </span>
                       ) : null}
@@ -150,14 +155,14 @@ export function DrawGuessRoundResultsScreen({
 
                   <div className="flex shrink-0 items-center gap-2 text-end sm:gap-3">
                     <div>
-                      <p className="text-xs font-medium text-wanas-text-muted">الجولة</p>
-                      <p className="font-mono text-sm font-bold tabular-nums text-wanas-success-dark">
+                      <p className="text-wanas-text-muted text-xs font-medium">الجولة</p>
+                      <p className="text-wanas-success-dark font-mono text-sm font-bold tabular-nums">
                         +{player.roundPoints}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-wanas-text-muted">المجموع</p>
-                      <p className="font-mono text-sm font-bold tabular-nums text-wanas-text-primary">
+                      <p className="text-wanas-text-muted text-xs font-medium">المجموع</p>
+                      <p className="text-wanas-text-primary font-mono text-sm font-bold tabular-nums">
                         {player.totalPoints}
                       </p>
                     </div>
@@ -168,20 +173,11 @@ export function DrawGuessRoundResultsScreen({
           </ul>
         </GameCard>
 
-        <AdPlaceholder
-          placement="round-results-center"
-          format="horizontal"
-          className="hidden lg:flex"
-        />
-        <AdPlaceholder
-          placement="round-results-mobile"
-          format="horizontal"
-          className="lg:hidden"
-        />
+        <AdPlacement placement="game-round-results" />
 
         {continueLabel && onContinue ? (
           <div className="mx-auto w-full max-w-md space-y-3">
-            <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
+            <p className="text-wanas-text-muted text-center text-xs font-medium sm:text-sm">
               {presentSystemCopy(waitingMessage, SYSTEM_COPY.nextRoundAuto)}
             </p>
             <DeadlineProgress
@@ -191,7 +187,7 @@ export function DrawGuessRoundResultsScreen({
             />
             <Button
               size="lg"
-              className="w-full min-h-14 focus-visible:ring-offset-4"
+              className="min-h-14 w-full focus-visible:ring-offset-4"
               onClick={onContinue}
               loading={isContinueLoading}
             >
@@ -204,7 +200,7 @@ export function DrawGuessRoundResultsScreen({
             aria-live="polite"
             className="mx-auto w-full max-w-md space-y-3 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-6 text-center shadow-sm"
           >
-            <p className="wanas-game-helper font-medium text-wanas-text-secondary">
+            <p className="wanas-game-helper text-wanas-text-secondary font-medium">
               {presentSystemCopy(waitingMessage)}
             </p>
             <DeadlineProgress

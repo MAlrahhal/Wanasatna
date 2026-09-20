@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { AdPlaceholder } from '@/components/ads/ad-placeholder';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
@@ -50,14 +50,14 @@ function RoundSummaryCards({
   return (
     <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
       <div className="wanas-game-card flex h-[5.25rem] flex-col items-center justify-center rounded-[1.15rem] px-3 py-3 text-center sm:h-[8.5rem] sm:px-4">
-        <p className="text-xs font-medium text-wanas-text-muted">برا السالفة</p>
-        <p className="mt-1.5 max-w-full truncate text-base font-bold text-wanas-text-primary sm:text-lg">
+        <p className="text-wanas-text-muted text-xs font-medium">برا السالفة</p>
+        <p className="text-wanas-text-primary mt-1.5 max-w-full truncate text-base font-bold sm:text-lg">
           {impostorPlayerName}
         </p>
       </div>
       <div className="wanas-game-card flex h-[5.25rem] flex-col items-center justify-center rounded-[1.15rem] px-3 py-3 text-center sm:h-[8.5rem] sm:px-4">
-        <p className="text-xs font-medium text-wanas-text-muted">الكلمة</p>
-        <p className="mt-1.5 max-w-full break-words text-base font-bold text-wanas-text-primary sm:text-lg">
+        <p className="text-wanas-text-muted text-xs font-medium">الكلمة</p>
+        <p className="text-wanas-text-primary mt-1.5 max-w-full break-words text-base font-bold sm:text-lg">
           {revealedWord}
         </p>
       </div>
@@ -116,7 +116,7 @@ function RoundPointsList({
               key={player.id}
               className={cn(
                 'flex min-w-0 items-center gap-2 rounded-[18px] border px-3 py-3 sm:gap-3 sm:px-3.5',
-                isCurrentPlayer && 'ring-2 ring-wanas-accent/30',
+                isCurrentPlayer && 'ring-wanas-accent/30 ring-2',
                 player.isImpostor
                   ? 'border-wanas-accent/25 bg-wanas-accent-soft/35'
                   : 'border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)]',
@@ -126,23 +126,30 @@ function RoundPointsList({
               )}
               aria-current={isCurrentPlayer ? 'true' : undefined}
             >
-              <PlayerAvatar playerId={player.id} playerName={player.name} className="size-10 ring-2 ring-[color:var(--wanas-game-card-border)]" sizes="40px" />
+              <PlayerAvatar
+                playerId={player.id}
+                playerName={player.name}
+                className="size-10 ring-2 ring-[color:var(--wanas-game-card-border)]"
+                sizes="40px"
+              />
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <p className="truncate text-sm font-semibold text-wanas-text-primary">{player.name}</p>
+                  <p className="text-wanas-text-primary truncate text-sm font-semibold">
+                    {player.name}
+                  </p>
                   {isCurrentPlayer ? (
-                    <span className="rounded-full bg-wanas-accent px-2 py-0.5 text-xs font-semibold text-white">
+                    <span className="bg-wanas-accent rounded-full px-2 py-0.5 text-xs font-semibold text-white">
                       أنت
                     </span>
                   ) : null}
                   {player.isImpostor ? (
-                    <span className="rounded-full border border-wanas-accent/30 px-2 py-0.5 text-[10px] font-semibold text-wanas-accent-hover">
+                    <span className="border-wanas-accent/30 text-wanas-accent-hover rounded-full border px-2 py-0.5 text-[10px] font-semibold">
                       برا السالفة
                     </span>
                   ) : null}
                   {isTopScorer ? (
-                    <span className="rounded-full border border-wanas-warning-border px-2 py-0.5 text-[10px] font-semibold text-wanas-warning-dark">
+                    <span className="border-wanas-warning-border text-wanas-warning-dark rounded-full border px-2 py-0.5 text-[10px] font-semibold">
                       ⭐ الأعلى
                     </span>
                   ) : null}
@@ -151,14 +158,14 @@ function RoundPointsList({
 
               <div className="flex shrink-0 items-center gap-2 text-end sm:gap-3">
                 <div>
-                  <p className="text-xs font-medium text-wanas-text-muted">الجولة</p>
-                  <p className="font-mono text-sm font-bold tabular-nums text-wanas-success-dark">
+                  <p className="text-wanas-text-muted text-xs font-medium">الجولة</p>
+                  <p className="text-wanas-success-dark font-mono text-sm font-bold tabular-nums">
                     +{player.roundPoints}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-wanas-text-muted">المجموع</p>
-                  <p className="font-mono text-sm font-bold tabular-nums text-wanas-text-primary">
+                  <p className="text-wanas-text-muted text-xs font-medium">المجموع</p>
+                  <p className="text-wanas-text-primary font-mono text-sm font-bold tabular-nums">
                     {player.totalPoints}
                   </p>
                 </div>
@@ -198,13 +205,13 @@ function RoundTransitionFooter({
   if (continueLabel && onContinue) {
     return (
       <div className="mx-auto w-full max-w-md space-y-3">
-        <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
+        <p className="text-wanas-text-muted text-center text-xs font-medium sm:text-sm">
           {presentSystemCopy(waitingMessage, SYSTEM_COPY.nextRoundAuto)}
         </p>
         {progress}
         <Button
           size="lg"
-          className="w-full min-h-14 focus-visible:ring-offset-4"
+          className="min-h-14 w-full focus-visible:ring-offset-4"
           onClick={onContinue}
           loading={isContinueLoading}
         >
@@ -220,7 +227,7 @@ function RoundTransitionFooter({
       aria-live="polite"
       className="mx-auto w-full max-w-md space-y-3 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-5 text-center shadow-sm"
     >
-      <p className="wanas-game-helper font-medium text-wanas-text-secondary">
+      <p className="wanas-game-helper text-wanas-text-secondary font-medium">
         {presentSystemCopy(waitingMessage, SYSTEM_COPY.nextRoundAuto)}
       </p>
       {progress}
@@ -262,16 +269,7 @@ export function RoundResultsScreen({
 
         <RoundPointsList roundResults={roundResults} currentPlayerId={currentPlayerId} />
 
-        <AdPlaceholder
-          placement="round-results-center"
-          format="horizontal"
-          className="hidden lg:flex"
-        />
-        <AdPlaceholder
-          placement="round-results-mobile"
-          format="horizontal"
-          className="lg:hidden"
-        />
+        <AdPlacement placement="game-round-results" />
 
         <RoundTransitionFooter
           continueLabel={continueLabel}

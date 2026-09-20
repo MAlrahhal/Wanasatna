@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Fragment, useEffect } from 'react';
+import { useEffect } from 'react';
 import { AdPlacement } from '@/components/ads/ad-placement';
 import { HomeActiveRoomResume } from '@/components/public/active-room-banner';
 import { FeatureCard } from '@/components/public/feature-card';
@@ -33,6 +33,8 @@ function scrollToRoomActionsIfHash() {
 export function HomePageClient() {
   const room = useRoomActions();
   const featuredGames = getFeaturedGames();
+  const featuredGamesBeforeNearEndAd = featuredGames.slice(0, -1);
+  const finalFeaturedGame = featuredGames.at(-1) ?? null;
   const hasFieldError = Boolean(
     room.fieldErrors.createPlayerName ||
     room.fieldErrors.joinPlayerName ||
@@ -111,40 +113,42 @@ export function HomePageClient() {
       <AdPlacement placement="home-hero" className="mt-2 sm:mt-4" />
 
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 sm:gap-10 sm:px-6 sm:py-12 lg:gap-12">
-        <HomeActiveRoomResume
-          claims={room.resumeClaims}
-          busy={room.isJoining}
-          onResume={room.handleResumeClaim}
-        />
+        <div className="flex flex-col gap-6" data-home-room-actions-section>
+          <HomeActiveRoomResume
+            claims={room.resumeClaims}
+            busy={room.isJoining}
+            onResume={room.handleResumeClaim}
+          />
 
-        {room.errorMessage &&
-        room.errorSource === 'resume' &&
-        !room.isCreating &&
-        !room.isJoining ? (
-          <SystemStatus tone="error" {...presentRoomActionError(room.errorMessage)} />
-        ) : null}
+          {room.errorMessage &&
+          room.errorSource === 'resume' &&
+          !room.isCreating &&
+          !room.isJoining ? (
+            <SystemStatus tone="error" {...presentRoomActionError(room.errorMessage)} />
+          ) : null}
 
-        <RoomActionCards
-          createPlayerName={room.createPlayerName}
-          joinPlayerName={room.joinPlayerName}
-          joinCode={room.joinCode}
-          onCreatePlayerNameChange={room.handleCreatePlayerNameChange}
-          onJoinPlayerNameChange={room.handleJoinPlayerNameChange}
-          onJoinCodeChange={room.handleJoinCodeChange}
-          onCreateRoom={room.handleCreateRoom}
-          onJoinRoom={room.handleJoinRoom}
-          isCreating={room.isCreating}
-          isJoining={room.isJoining}
-          createPlayerNameError={createPlayerNameError}
-          joinPlayerNameError={joinPlayerNameError}
-          joinCodeError={joinCodeError}
-          createActionError={createActionError}
-          joinActionError={joinActionError}
-        />
+          <RoomActionCards
+            createPlayerName={room.createPlayerName}
+            joinPlayerName={room.joinPlayerName}
+            joinCode={room.joinCode}
+            onCreatePlayerNameChange={room.handleCreatePlayerNameChange}
+            onJoinPlayerNameChange={room.handleJoinPlayerNameChange}
+            onJoinCodeChange={room.handleJoinCodeChange}
+            onCreateRoom={room.handleCreateRoom}
+            onJoinRoom={room.handleJoinRoom}
+            isCreating={room.isCreating}
+            isJoining={room.isJoining}
+            createPlayerNameError={createPlayerNameError}
+            joinPlayerNameError={joinPlayerNameError}
+            joinCodeError={joinCodeError}
+            createActionError={createActionError}
+            joinActionError={joinActionError}
+          />
+        </div>
 
         <AdPlacement placement="home-room-actions" />
 
-        <section>
+        <section data-home-featured-games-section>
           <div className="mb-5 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
             <SectionHeader
               title="ألعاب مميزة"
@@ -177,18 +181,20 @@ export function HomePageClient() {
               </Link>
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {featuredGames.map((game, index) => (
-              <Fragment key={game.id}>
-                <GamePreviewCard game={game} />
-                {featuredGames.length > 2 && index === featuredGames.length - 2 ? (
-                  <AdPlacement
-                    placement="home-featured-games-near-end"
-                    className="sm:col-span-2 xl:col-span-4"
-                  />
-                ) : null}
-              </Fragment>
+          <div
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
+            data-home-featured-games-grid
+          >
+            {featuredGamesBeforeNearEndAd.map((game) => (
+              <GamePreviewCard key={game.id} game={game} />
             ))}
+            {finalFeaturedGame ? (
+              <AdPlacement
+                placement="home-featured-games-near-end"
+                className="sm:col-span-2 xl:col-span-4"
+              />
+            ) : null}
+            {finalFeaturedGame ? <GamePreviewCard game={finalFeaturedGame} /> : null}
           </div>
         </section>
 

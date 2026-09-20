@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import { Button } from '@/components/ui/button';
 import { ElectronicPanel } from './electronic-panel';
 import { PeerStatusList } from './peer-status-list';
@@ -32,12 +33,12 @@ export function GuessScreen({
       <ElectronicPanel ariaLabel="تخمين الوقت">
         {selfSubmitted ? (
           <div className="text-center">
-            <p className="text-lg font-bold text-wanas-accent">تم إرسال تخمينك</p>
-            <p className="mt-2 text-sm text-wanas-text-muted">بانتظار بقية اللاعبين...</p>
+            <p className="text-wanas-accent text-lg font-bold">تم إرسال تخمينك</p>
+            <p className="text-wanas-text-muted mt-2 text-sm">بانتظار بقية اللاعبين...</p>
           </div>
         ) : (
           <div className="space-y-4">
-            <p className="text-center text-base font-bold text-wanas-text-primary">
+            <p className="text-wanas-text-primary text-center text-base font-bold">
               كم تتوقع كان الوقت؟
             </p>
             <div className="mx-auto flex max-w-xs flex-col gap-3">
@@ -52,7 +53,7 @@ export function GuessScreen({
                 onChange={(event) => setValue(event.target.value)}
                 placeholder=""
                 dir="ltr"
-                className="h-12 rounded-xl border border-wanas-border bg-wanas-surface-soft px-4 text-center font-mono text-xl font-bold text-wanas-text-primary outline-none focus:border-wanas-accent"
+                className="border-wanas-border bg-wanas-surface-soft text-wanas-text-primary focus:border-wanas-accent h-12 rounded-xl border px-4 text-center font-mono text-xl font-bold outline-none"
               />
               <Button
                 type="button"
@@ -64,17 +65,19 @@ export function GuessScreen({
                   }
                   onSubmit(parsed);
                 }}
-                className="h-12 min-h-[44px] rounded-xl bg-wanas-accent text-base font-bold text-white hover:bg-wanas-accent-hover disabled:opacity-60"
+                className="bg-wanas-accent hover:bg-wanas-accent-hover h-12 min-h-[44px] rounded-xl text-base font-bold text-white disabled:opacity-60"
               >
                 إرسال التخمين
               </Button>
             </div>
             {actionError ? (
-              <p className="text-center text-sm text-destructive">{actionError}</p>
+              <p className="text-destructive text-center text-sm">{actionError}</p>
             ) : null}
           </div>
         )}
       </ElectronicPanel>
+
+      <AdPlacement placement="game-interaction" />
 
       <PeerStatusList peers={peers} currentPlayerId={currentPlayerId} />
     </div>

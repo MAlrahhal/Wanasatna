@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { AdPlaceholder } from '@/components/ads/ad-placeholder';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import type { JudgeRevealEntry, JudgeRoundResultEntry } from '@wanasatna/shared';
 import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
@@ -67,7 +67,6 @@ export function JudgeRoundResultsScreen({
     />
   );
 
-
   return (
     <GameScreen ariaLabel="نتائج الجولة" maxWidth="4xl">
       <GameHeader
@@ -81,36 +80,36 @@ export function JudgeRoundResultsScreen({
 
       <div className="flex flex-col gap-3 sm:gap-4">
         {winningAnswerText && winnerName ? (
-          <div className="rounded-[1.25rem] border border-wanas-success-border/80 bg-wanas-success-surface px-4 py-3">
-            <p className="break-words text-base font-bold leading-snug text-wanas-success-dark sm:text-lg">
+          <div className="border-wanas-success-border/80 bg-wanas-success-surface rounded-[1.25rem] border px-4 py-3">
+            <p className="text-wanas-success-dark break-words text-base font-bold leading-snug sm:text-lg">
               🏆 «{winningAnswerText}»
             </p>
             <div className="mt-1 flex items-center justify-between gap-3">
-              <p className="truncate text-sm font-semibold text-wanas-text-primary">{winnerName}</p>
-              <p className="shrink-0 text-sm font-bold tabular-nums text-wanas-success-dark">
+              <p className="text-wanas-text-primary truncate text-sm font-semibold">{winnerName}</p>
+              <p className="text-wanas-success-dark shrink-0 text-sm font-bold tabular-nums">
                 +100
               </p>
             </div>
           </div>
         ) : (
-          <div className="rounded-[1.25rem] border border-wanas-border bg-[color:var(--wanas-game-card)] px-4 py-3 text-center">
-            <p className="text-sm font-semibold text-wanas-text-muted">لا توجد إجابة فائزة</p>
+          <div className="border-wanas-border rounded-[1.25rem] border bg-[color:var(--wanas-game-card)] px-4 py-3 text-center">
+            <p className="text-wanas-text-muted text-sm font-semibold">لا توجد إجابة فائزة</p>
           </div>
         )}
 
         {otherAnswers.length > 0 ? (
           <GameCard className="p-3 sm:p-4">
-            <h2 className="mb-2 text-sm font-bold text-wanas-text-primary">بقية الإجابات</h2>
+            <h2 className="text-wanas-text-primary mb-2 text-sm font-bold">بقية الإجابات</h2>
             <ul className="space-y-1.5">
               {otherAnswers.map((entry) => (
                 <li
                   key={entry.answerId}
-                  className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-lg border border-wanas-border bg-wanas-surface-soft px-3 py-2"
+                  className="border-wanas-border bg-wanas-surface-soft grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-lg border px-3 py-2"
                 >
-                  <p className="break-words text-sm font-semibold leading-snug text-wanas-text-primary">
+                  <p className="text-wanas-text-primary break-words text-sm font-semibold leading-snug">
                     «{entry.text}»
                   </p>
-                  <p className="shrink-0 pt-0.5 text-xs font-semibold text-wanas-text-muted">
+                  <p className="text-wanas-text-muted shrink-0 pt-0.5 text-xs font-semibold">
                     {entry.ownerName}
                   </p>
                 </li>
@@ -120,7 +119,7 @@ export function JudgeRoundResultsScreen({
         ) : null}
 
         <GameCard className="p-3 sm:p-4">
-          <h2 className="mb-2 text-sm font-bold text-wanas-text-primary">نقاط الجولة</h2>
+          <h2 className="text-wanas-text-primary mb-2 text-sm font-bold">نقاط الجولة</h2>
           <ul className="space-y-1">
             {sortedResults.map((player) => {
               const isCurrent = player.playerId === currentPlayerId;
@@ -134,8 +133,13 @@ export function JudgeRoundResultsScreen({
                   )}
                 >
                   <div className="flex min-w-0 items-center gap-2">
-                    <PlayerAvatar playerId={player.playerId} playerName={player.name} className="size-7" sizes="28px" />
-                    <p className="truncate text-sm font-semibold text-wanas-text-primary">
+                    <PlayerAvatar
+                      playerId={player.playerId}
+                      playerName={player.name}
+                      className="size-7"
+                      sizes="28px"
+                    />
+                    <p className="text-wanas-text-primary truncate text-sm font-semibold">
                       {player.name}
                       {isCurrent ? ' (أنت)' : ''}
                     </p>
@@ -143,14 +147,12 @@ export function JudgeRoundResultsScreen({
                   <p
                     className={cn(
                       'min-w-10 shrink-0 text-end text-sm font-bold tabular-nums',
-                      player.roundPoints > 0
-                        ? 'text-wanas-success-dark'
-                        : 'text-wanas-text-muted',
+                      player.roundPoints > 0 ? 'text-wanas-success-dark' : 'text-wanas-text-muted',
                     )}
                   >
                     {player.roundPoints > 0 ? `+${player.roundPoints}` : '0'}
                   </p>
-                  <p className="min-w-10 shrink-0 text-end text-xs tabular-nums text-wanas-text-muted">
+                  <p className="text-wanas-text-muted min-w-10 shrink-0 text-end text-xs tabular-nums">
                     {player.totalPoints}
                   </p>
                 </li>
@@ -159,26 +161,17 @@ export function JudgeRoundResultsScreen({
           </ul>
         </GameCard>
 
-        <AdPlaceholder
-          placement="round-results-center"
-          format="horizontal"
-          className="hidden lg:flex"
-        />
-        <AdPlaceholder
-          placement="round-results-mobile"
-          format="horizontal"
-          className="lg:hidden"
-        />
+        <AdPlacement placement="game-round-results" />
 
         {continueLabel && onContinue ? (
           <div className="mx-auto w-full max-w-md space-y-2.5">
-            <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
+            <p className="text-wanas-text-muted text-center text-xs font-medium sm:text-sm">
               {presentSystemCopy(waitingMessage, SYSTEM_COPY.nextRoundAuto)}
             </p>
             {progressBar}
             <Button
               size="lg"
-              className="w-full min-h-12 focus-visible:ring-offset-4"
+              className="min-h-12 w-full focus-visible:ring-offset-4"
               loading={isContinueLoading}
               onClick={onContinue}
             >
@@ -191,7 +184,7 @@ export function JudgeRoundResultsScreen({
             aria-live="polite"
             className="mx-auto w-full max-w-md space-y-2.5 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-4 py-4 text-center shadow-sm"
           >
-            <p className="text-sm font-medium text-wanas-text-secondary">
+            <p className="text-wanas-text-secondary text-sm font-medium">
               {presentSystemCopy(waitingMessage)}
             </p>
             {progressBar}

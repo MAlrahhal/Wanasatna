@@ -1,6 +1,7 @@
 'use client';
 
 import { GameCard, GameScreen } from '@/components/game/game-card';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import { GameHeader, resolveHeaderTimer } from '@/components/game/game-header';
 import { PlayerAvatar } from '@/components/player/player-avatar';
 import { Button } from '@/components/ui/button';
@@ -88,19 +89,27 @@ function SelectablePlayerCard({
       onClick={() => onSelect?.(player.id)}
       className={cn(
         'flex min-h-[80px] w-full items-center gap-3.5 rounded-[22px] border-2 px-4 py-4 text-start transition-all duration-200',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/45 focus-visible:ring-offset-2',
+        'focus-visible:ring-wanas-accent/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
         'active:scale-[0.99]',
         selected
-          ? 'scale-[1.02] border-wanas-accent bg-wanas-accent-soft shadow-[var(--wanas-game-shadow-hover)] ring-1 ring-wanas-accent/20'
-          : 'border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] hover:border-wanas-accent/25 hover:shadow-[var(--wanas-game-shadow)]',
+          ? 'border-wanas-accent bg-wanas-accent-soft ring-wanas-accent/20 scale-[1.02] shadow-[var(--wanas-game-shadow-hover)] ring-1'
+          : 'hover:border-wanas-accent/25 border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] hover:shadow-[var(--wanas-game-shadow)]',
       )}
       aria-pressed={selected}
       aria-label={selected ? `${player.name} — مختار` : `اختيار ${player.name}`}
     >
-      <PlayerAvatar playerId={player.id} avatarId={player.avatarId} playerName={player.name} className="size-12 ring-2 ring-[color:var(--wanas-game-card-border)]" sizes="48px" />
+      <PlayerAvatar
+        playerId={player.id}
+        avatarId={player.avatarId}
+        playerName={player.name}
+        className="size-12 ring-2 ring-[color:var(--wanas-game-card-border)]"
+        sizes="48px"
+      />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-base font-semibold text-wanas-text-primary">{player.name}</p>
-        {selected ? <p className="mt-0.5 text-xs font-medium text-wanas-accent-hover">مختار</p> : null}
+        <p className="text-wanas-text-primary truncate text-base font-semibold">{player.name}</p>
+        {selected ? (
+          <p className="text-wanas-accent-hover mt-0.5 text-xs font-medium">مختار</p>
+        ) : null}
       </div>
       <SelectionCheckIcon selected={selected} />
     </button>
@@ -111,12 +120,10 @@ function FreeQuestionsActiveHero() {
   return (
     <div className="wanas-game-card rounded-[2rem] px-6 py-8 text-center sm:px-8 sm:py-10">
       <div>
-        <span className="inline-flex min-h-8 items-center rounded-full border border-wanas-accent bg-wanas-accent px-4 py-1.5 text-sm font-semibold text-white">
+        <span className="border-wanas-accent bg-wanas-accent inline-flex min-h-8 items-center rounded-full border px-4 py-1.5 text-sm font-semibold text-white">
           دورك الآن
         </span>
-        <p className="mx-auto mt-4 max-w-sm wanas-game-helper">
-          اختر لاعبًا تسأله، أو تخطَّ دورك.
-        </p>
+        <p className="wanas-game-helper mx-auto mt-4 max-w-sm">اختر لاعبًا تسأله، أو تخطَّ دورك.</p>
       </div>
     </div>
   );
@@ -185,15 +192,15 @@ function FreeQuestionsWaitingView({ activePlayerName }: { activePlayerName: stri
       className="rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-6 py-8 text-center shadow-sm sm:px-8 sm:py-10"
     >
       <span
-        className="mx-auto flex size-12 items-center justify-center rounded-full bg-wanas-accent-soft/60 text-xl"
+        className="bg-wanas-accent-soft/60 mx-auto flex size-12 items-center justify-center rounded-full text-xl"
         aria-hidden
       >
         ⏳
       </span>
-      <p className="mt-4 text-lg font-semibold leading-relaxed text-wanas-text-primary sm:text-xl">
+      <p className="text-wanas-text-primary mt-4 text-lg font-semibold leading-relaxed sm:text-xl">
         {activePlayerName} يختار لاعبًا ليسأله
       </p>
-      <p className="mx-auto mt-3 max-w-md wanas-game-helper">بانتظار اختيار اللاعب الحالي...</p>
+      <p className="wanas-game-helper mx-auto mt-3 max-w-md">بانتظار اختيار اللاعب الحالي...</p>
     </div>
   );
 }
@@ -205,7 +212,7 @@ function FreeQuestionsTurnFooter({
 }: Pick<FreeQuestionsScreenProps, 'players' | 'activePlayerId' | 'completedPlayerIds'>) {
   return (
     <GameCard className="p-4 sm:p-5">
-      <p className="text-xs font-medium text-wanas-text-muted">
+      <p className="text-wanas-text-muted text-xs font-medium">
         أكمل {completedPlayerIds.length} من {players.length} لاعبين دورهم
       </p>
       <ul className="mt-3 space-y-2">
@@ -216,13 +223,21 @@ function FreeQuestionsTurnFooter({
               key={player.id}
               className={cn(
                 'flex items-center gap-3 rounded-[16px] border px-3 py-2.5',
-                status === 'completed' && 'border-wanas-success-border/50 bg-wanas-success-surface/25',
+                status === 'completed' &&
+                  'border-wanas-success-border/50 bg-wanas-success-surface/25',
                 status === 'current' && 'border-wanas-accent/25 bg-wanas-accent-soft/25',
-                status === 'waiting' && 'border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)]',
+                status === 'waiting' &&
+                  'border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)]',
               )}
             >
-              <PlayerAvatar playerId={player.id} avatarId={player.avatarId} playerName={player.name} className="size-9 ring-2 ring-[color:var(--wanas-game-card-border)]" sizes="36px" />
-              <p className="min-w-0 flex-1 truncate text-sm font-medium text-wanas-text-primary">
+              <PlayerAvatar
+                playerId={player.id}
+                avatarId={player.avatarId}
+                playerName={player.name}
+                className="size-9 ring-2 ring-[color:var(--wanas-game-card-border)]"
+                sizes="36px"
+              />
+              <p className="text-wanas-text-primary min-w-0 flex-1 truncate text-sm font-medium">
                 {player.name}
               </p>
               <span
@@ -321,6 +336,8 @@ export function FreeQuestionsScreen({
           activePlayerId={activePlayerId}
           completedPlayerIds={completedPlayerIds}
         />
+
+        <AdPlacement placement="game-player-list" />
       </div>
     </GameScreen>
   );

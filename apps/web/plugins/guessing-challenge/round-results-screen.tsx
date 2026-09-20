@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import type { GuessingChallengePlayerView } from '@wanasatna/shared';
-import { AdPlaceholder } from '@/components/ads/ad-placeholder';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
@@ -95,9 +95,7 @@ export function GuessingChallengeRoundResultsScreen({
       : (opponentReveal?.name ?? view.opponent.name);
   const selfWon = view.winningTeamId !== null && view.winningTeamId === view.selfTeam;
   const opponentWon =
-    view.winningTeamId !== null &&
-    view.selfTeam !== null &&
-    view.winningTeamId !== view.selfTeam;
+    view.winningTeamId !== null && view.selfTeam !== null && view.winningTeamId !== view.selfTeam;
   const winningIdentity =
     view.revealEntries.find((entry) => entry.isWinner)?.identity?.value ?? null;
 
@@ -113,21 +111,21 @@ export function GuessingChallengeRoundResultsScreen({
       />
 
       <div className="flex flex-col gap-3 sm:gap-4">
-        <div className="wanas-game-card rounded-2xl border-wanas-success-border/80 bg-wanas-success-surface px-4 py-3 text-center sm:px-5 sm:py-3.5">
-          <p className="text-base font-bold break-words text-wanas-success-dark sm:text-lg">
+        <div className="wanas-game-card border-wanas-success-border/80 bg-wanas-success-surface rounded-2xl px-4 py-3 text-center sm:px-5 sm:py-3.5">
+          <p className="text-wanas-success-dark break-words text-base font-bold sm:text-lg">
             {view.winnerName ?? 'لاعب'} فاز بالجولة
           </p>
           {winningIdentity ? (
-            <p className="mt-1 text-sm font-semibold break-words text-wanas-text-primary">
+            <p className="text-wanas-text-primary mt-1 break-words text-sm font-semibold">
               الهوية: {winningIdentity}
             </p>
           ) : null}
           {view.winningGuess ? (
-            <p className="mt-0.5 text-xs break-words text-wanas-text-muted">
+            <p className="text-wanas-text-muted mt-0.5 break-words text-xs">
               التخمين: «{view.winningGuess}»
             </p>
           ) : null}
-          <p className="mt-1 text-xs font-semibold text-wanas-success-dark">+100</p>
+          <p className="text-wanas-success-dark mt-1 text-xs font-semibold">+100</p>
         </div>
 
         <GameplayScene
@@ -150,17 +148,17 @@ export function GuessingChallengeRoundResultsScreen({
 
         <GameCard className="p-4 sm:p-5">
           <h2 className="wanas-game-title mb-3">نقاط الجولة</h2>
-        <ul className="space-y-2" data-testid="gc-round-scores">
+          <ul className="space-y-2" data-testid="gc-round-scores">
             {sortedResults.map((entry) => (
               <li
                 key={entry.playerId}
-                className="flex items-center justify-between gap-2 rounded-xl border border-border px-3 py-2 text-sm"
+                className="border-border flex items-center justify-between gap-2 rounded-xl border px-3 py-2 text-sm"
               >
-                <span className="min-w-0 break-words font-medium text-wanas-text-primary">
+                <span className="text-wanas-text-primary min-w-0 break-words font-medium">
                   {entry.name}
                   {entry.isWinner ? ' ⭐' : ''}
                 </span>
-                <span className="shrink-0 text-xs text-wanas-text-muted sm:text-sm">
+                <span className="text-wanas-text-muted shrink-0 text-xs sm:text-sm">
                   +{entry.roundPoints} · الإجمالي {entry.totalPoints}
                 </span>
               </li>
@@ -168,20 +166,11 @@ export function GuessingChallengeRoundResultsScreen({
           </ul>
         </GameCard>
 
-        <AdPlaceholder
-          placement="round-results-center"
-          format="horizontal"
-          className="hidden lg:flex"
-        />
-        <AdPlaceholder
-          placement="round-results-mobile"
-          format="horizontal"
-          className="lg:hidden"
-        />
+        <AdPlacement placement="game-round-results" />
 
         {view.canContinueFromRoundResults && onContinue ? (
           <div className="space-y-2.5">
-            <p className="text-center text-sm text-wanas-text-muted">
+            <p className="text-wanas-text-muted text-center text-sm">
               {presentSystemCopy(view.roundResultsWaitingMessage, SYSTEM_COPY.nextRoundAuto)}
             </p>
             <DeadlineProgress
@@ -201,7 +190,7 @@ export function GuessingChallengeRoundResultsScreen({
           </div>
         ) : (
           <div className="space-y-2.5">
-            <p className="text-center text-sm text-wanas-text-muted">
+            <p className="text-wanas-text-muted text-center text-sm">
               {presentSystemCopy(view.roundResultsWaitingMessage, SYSTEM_COPY.nextRoundAuto)}
             </p>
             <DeadlineProgress

@@ -18,22 +18,40 @@ const home = read('app/(public)/home-page-client.tsx');
 assert.match(home, /<AdPlacement placement="home-hero"/);
 assert.match(home, /<AdPlacement placement="home-room-actions"/);
 assert.match(home, /placement="home-featured-games-near-end"/);
-assert.ok(home.indexOf('home-hero') > home.indexOf('PublicBrandLogo'));
-assert.ok(home.indexOf('home-room-actions') > home.indexOf('<RoomActionCards'));
-assert.ok(home.indexOf('home-featured-games-near-end') > home.indexOf('featuredGames.map'));
+assert.equal(home.match(/placement="home-/g)?.length, 3);
+assert.ok(home.indexOf('placement="home-hero"') > home.indexOf('PublicBrandLogo'));
+assert.ok(home.indexOf('placement="home-hero"') < home.indexOf('data-home-room-actions-section'));
+assert.ok(home.indexOf('placement="home-room-actions"') > home.indexOf('<RoomActionCards'));
+assert.ok(
+  home.indexOf('placement="home-room-actions"') < home.indexOf('data-home-featured-games-section'),
+);
+assert.ok(
+  home.indexOf('placement="home-featured-games-near-end"') >
+    home.indexOf('featuredGamesBeforeNearEndAd.map'),
+);
+assert.ok(
+  home.indexOf('placement="home-featured-games-near-end"') < home.indexOf('finalFeaturedGame} />'),
+);
 
 const lobby = read('components/lobby/lobby-screen.tsx');
-assert.match(lobby, /placement="lobby-players"[\s\S]*?viewport="compact"/);
-assert.match(lobby, /placement="lobby-chat"[\s\S]*?viewport="wide"/);
-assert.ok(lobby.indexOf('placement="lobby-players"') > lobby.indexOf('PlayersPanel'));
-assert.ok(lobby.indexOf('placement="lobby-chat"') > lobby.indexOf('grid min-w-0'));
+assert.equal(lobby.match(/placement="lobby-/g)?.length, 2);
+assert.match(
+  lobby,
+  /data-lobby-ad-rows[\s\S]*placement="lobby-players"[\s\S]*placement="lobby-chat"/,
+);
+assert.match(lobby, /data-lobby-ad-association="players"[\s\S]*placement="lobby-players"/);
+assert.match(lobby, /data-lobby-ad-association="chat"[\s\S]*placement="lobby-chat"/);
+assert.doesNotMatch(lobby, /placement="lobby-(?:players|chat)"[^>]*viewport=/);
+assert.ok(lobby.indexOf('data-lobby-ad-rows') > lobby.indexOf('<PlayersPanel'));
+assert.ok(lobby.indexOf('data-lobby-ad-rows') > lobby.indexOf('<LobbyChat'));
 assert.doesNotMatch(lobby, /AdsterraBanner/);
 
 const gameShell = read('components/game-experience/game-experience-shell.tsx');
 assert.match(gameShell, /meta\.layoutMode === 'gameplay'/);
-assert.match(gameShell, /meta\.layoutMode === 'round-results'/);
 assert.match(gameShell, /placement="game-chat"/);
 assert.match(gameShell, /placement="game-leaderboard"/);
+assert.match(gameShell, /data-game-ad-association="chat"/);
+assert.match(gameShell, /data-game-support-section="leaderboard"/);
 assert.doesNotMatch(gameShell, /AdPlaceholder/);
 
 for (const file of [

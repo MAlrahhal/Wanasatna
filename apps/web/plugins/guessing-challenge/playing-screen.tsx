@@ -2,8 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { GuessingChallengePlayerView } from '@wanasatna/shared';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import { GameScreen } from '@/components/game/game-card';
-import { GameMobileStickyCta, GameMobileStickyCtaSpacer } from '@/components/game/game-mobile-sticky-cta';
+import {
+  GameMobileStickyCta,
+  GameMobileStickyCtaSpacer,
+} from '@/components/game/game-mobile-sticky-cta';
 import { GameHeader } from '@/components/game/game-header';
 import { Button } from '@/components/ui/button';
 import { shouldAutofocusFormField } from '@/lib/ui/should-autofocus-form-field';
@@ -188,7 +192,10 @@ export function GuessingChallengePlayingScreen({
         </div>
 
         {guessFeedback ? (
-          <p className="text-center text-sm font-medium text-rose-300" data-testid="gc-guess-feedback">
+          <p
+            className="text-center text-sm font-medium text-rose-300"
+            data-testid="gc-guess-feedback"
+          >
             {guessFeedback}
           </p>
         ) : null}
@@ -198,7 +205,7 @@ export function GuessingChallengePlayingScreen({
 
         {showGuessForm && view.canGuess ? (
           <form
-            className="wanas-game-card rounded-2xl border border-border p-4 sm:p-5"
+            className="wanas-game-card border-border rounded-2xl border p-4 sm:p-5"
             data-testid="gc-final-guess-panel"
             onSubmit={(event) => {
               event.preventDefault();
@@ -208,7 +215,7 @@ export function GuessingChallengePlayingScreen({
               submitCurrentGuess();
             }}
           >
-            <p className="mb-3 text-sm font-semibold text-wanas-text-primary">{guessPrompt}</p>
+            <p className="text-wanas-text-primary mb-3 text-sm font-semibold">{guessPrompt}</p>
             <input
               ref={guessInputRef}
               value={guess}
@@ -223,13 +230,17 @@ export function GuessingChallengePlayingScreen({
                 if (event.key !== 'Enter') {
                   return;
                 }
-                if (event.nativeEvent.isComposing || event.keyCode === 229 || composingGuessRef.current) {
+                if (
+                  event.nativeEvent.isComposing ||
+                  event.keyCode === 229 ||
+                  composingGuessRef.current
+                ) {
                   event.preventDefault();
                 }
               }}
               maxLength={80}
               placeholder="اكتب إجابتك..."
-              className="min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-base text-wanas-text-primary outline-none focus:border-cyan-400/60 lg:text-sm"
+              className="border-border bg-background text-wanas-text-primary min-h-11 w-full rounded-xl border px-3 py-2.5 text-base outline-none focus:border-cyan-400/60 lg:text-sm"
               dir="rtl"
             />
             <div className="mt-3 flex flex-wrap gap-2">
@@ -276,7 +287,7 @@ export function GuessingChallengePlayingScreen({
               data-testid="gc-end-question"
               disabled={!view.canEndQuestion || isSubmittingAction || showGuessForm}
               onClick={onEndQuestion}
-              className="w-full min-h-12"
+              className="min-h-12 w-full"
             >
               أنهيت سؤالي
             </Button>
@@ -286,12 +297,14 @@ export function GuessingChallengePlayingScreen({
               data-testid="gc-open-guess"
               disabled={!view.canGuess || isSubmittingAction}
               onClick={() => setShowGuessForm(true)}
-              className="w-full min-h-11"
+              className="min-h-11 w-full"
             >
               عرفت الإجابة
             </Button>
           </div>
         ) : null}
+
+        {view.isMyTurn ? <AdPlacement placement="game-interaction" /> : null}
       </div>
     </GameScreen>
   );

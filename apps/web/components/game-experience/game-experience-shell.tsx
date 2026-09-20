@@ -102,9 +102,7 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
     return <>{children}</>;
   }
 
-  const showGameplayAds = meta.layoutMode === 'gameplay';
-  const showLeaderboardAd =
-    meta.layoutMode === 'round-results' || meta.layoutMode === 'final-results';
+  const showGameplayLeaderboardAd = meta.layoutMode === 'gameplay';
 
   const mobileControls = (
     <div ref={mobilePanelControlsRef} className="flex shrink-0 items-center gap-0.5 lg:hidden">
@@ -149,19 +147,13 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
     <div className="flex min-h-0 w-full flex-1 flex-col gap-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
       <GameExperienceHeader meta={meta} mobilePanelControls={mobileControls} />
 
-      <div className="hidden min-h-0 flex-1 gap-2 lg:grid lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)_minmax(220px,260px)]">
+      <div className="hidden min-h-0 flex-1 gap-2 lg:grid lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)]">
         <div className="flex min-h-0 flex-col gap-3">
           <GameChatMockPanel className={cn('max-h-[min(560px,calc(100vh-12rem))]')} />
         </div>
         <div className="relative min-w-0">
           {children}
           {playerRecovery ? <GamePlayerRecoveryOverlay recovery={playerRecovery} /> : null}
-        </div>
-        <div className="flex min-h-0 flex-col gap-3">
-          <GameLeaderboardPanel
-            entries={meta.leaderboardEntries}
-            className={cn('max-h-[min(560px,calc(100vh-12rem))]')}
-          />
         </div>
       </div>
 
@@ -170,8 +162,19 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
         {playerRecovery ? <GamePlayerRecoveryOverlay recovery={playerRecovery} /> : null}
       </div>
 
-      {showGameplayAds ? <AdPlacement placement="game-chat" className="mt-1" /> : null}
-      {showLeaderboardAd ? <AdPlacement placement="game-leaderboard" className="mt-1" /> : null}
+      <div className="flex flex-col gap-5 pt-1 sm:gap-6" data-game-support-sections>
+        <div data-game-ad-association="chat">
+          <AdPlacement placement="game-chat" />
+        </div>
+
+        <div className="flex flex-col gap-3" data-game-support-section="leaderboard">
+          <GameLeaderboardPanel
+            entries={meta.leaderboardEntries}
+            className={cn('max-h-[min(560px,calc(100vh-12rem))]')}
+          />
+          {showGameplayLeaderboardAd ? <AdPlacement placement="game-leaderboard" /> : null}
+        </div>
+      </div>
 
       {chatOpen ? (
         <div

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { AdPlaceholder } from '@/components/ads/ad-placeholder';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import type { ImposterDrawRoundResultEntry } from '@wanasatna/shared';
 import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
@@ -68,9 +68,7 @@ export function ImposterDrawRoundResultsScreen({
   );
 
   const outcomeLabel = playersWon ? 'فاز اللاعبون' : 'فاز الإمبوستر';
-  const votingResult = impostorVotedOut
-    ? 'تم كشف الإمبوستر بالتصويت'
-    : 'نجا الإمبوستر من التصويت';
+  const votingResult = impostorVotedOut ? 'تم كشف الإمبوستر بالتصويت' : 'نجا الإمبوستر من التصويت';
   const guessResult =
     impostorGuessedCorrectly === true
       ? `تخمين الصورة: صحيح${selectedImageGuess ? ` (${selectedImageGuess})` : ''}`
@@ -85,7 +83,6 @@ export function ImposterDrawRoundResultsScreen({
       totalDurationSeconds={totalDurationSeconds}
     />
   );
-
 
   return (
     <GameScreen ariaLabel="نتائج الجولة" maxWidth="4xl" className={className}>
@@ -106,14 +103,14 @@ export function ImposterDrawRoundResultsScreen({
           )}
         >
           <p className="text-xl font-semibold sm:text-2xl">{outcomeLabel}</p>
-          <p className="mt-3 wanas-game-helper">{votingResult}</p>
-          <p className="mt-1 wanas-game-helper">{guessResult}</p>
+          <p className="wanas-game-helper mt-3">{votingResult}</p>
+          <p className="wanas-game-helper mt-1">{guessResult}</p>
           {revealedAnswerLabel ? (
-            <p className="mt-4 text-lg font-semibold text-wanas-text-primary">
+            <p className="text-wanas-text-primary mt-4 text-lg font-semibold">
               الصورة كانت: {revealedAnswerLabel}
             </p>
           ) : null}
-          <p className="mt-2 text-sm text-wanas-text-secondary">الإمبوستر هو: {impostorName}</p>
+          <p className="text-wanas-text-secondary mt-2 text-sm">الإمبوستر هو: {impostorName}</p>
         </div>
 
         <GameCard className="p-5 sm:p-6">
@@ -132,19 +129,24 @@ export function ImposterDrawRoundResultsScreen({
                       : 'border-[color:var(--wanas-game-card-border)]',
                   )}
                 >
-                  <PlayerAvatar playerId={player.playerId} playerName={player.name} className="size-10" sizes="40px" />
+                  <PlayerAvatar
+                    playerId={player.playerId}
+                    playerName={player.name}
+                    className="size-10"
+                    sizes="40px"
+                  />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-wanas-text-primary">
+                    <p className="text-wanas-text-primary truncate font-medium">
                       {player.name}
                       {player.isImpostor ? ' · إمبوستر' : ''}
                     </p>
-                    <p className="text-xs text-wanas-text-muted">
+                    <p className="text-wanas-text-muted text-xs">
                       {player.votedCorrectly ? 'صوّت بشكل صحيح' : 'لم يصوّت للإمبوستر'}
                     </p>
                   </div>
                   <div className="text-end">
-                    <p className="font-semibold text-wanas-text-primary">+{player.roundPoints}</p>
-                    <p className="text-xs text-wanas-text-muted">{player.totalPoints} إجمالي</p>
+                    <p className="text-wanas-text-primary font-semibold">+{player.roundPoints}</p>
+                    <p className="text-wanas-text-muted text-xs">{player.totalPoints} إجمالي</p>
                   </div>
                 </li>
               );
@@ -152,26 +154,17 @@ export function ImposterDrawRoundResultsScreen({
           </ul>
         </GameCard>
 
-        <AdPlaceholder
-          placement="round-results-center"
-          format="horizontal"
-          className="hidden lg:flex"
-        />
-        <AdPlaceholder
-          placement="round-results-mobile"
-          format="horizontal"
-          className="lg:hidden"
-        />
+        <AdPlacement placement="game-round-results" />
 
         {continueLabel && onContinue ? (
           <div className="mx-auto w-full max-w-md space-y-3">
-            <p className="text-center text-xs font-medium text-wanas-text-muted sm:text-sm">
+            <p className="text-wanas-text-muted text-center text-xs font-medium sm:text-sm">
               {presentSystemCopy(waitingMessage, SYSTEM_COPY.nextRoundAuto)}
             </p>
             {progressBar}
             <Button
               size="lg"
-              className="w-full min-h-14 focus-visible:ring-offset-4"
+              className="min-h-14 w-full focus-visible:ring-offset-4"
               loading={isContinueLoading}
               onClick={onContinue}
             >
@@ -184,7 +177,7 @@ export function ImposterDrawRoundResultsScreen({
             aria-live="polite"
             className="mx-auto w-full max-w-md space-y-3 rounded-[1.25rem] border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-5 py-6 text-center shadow-sm"
           >
-            <p className="wanas-game-helper font-medium text-wanas-text-secondary">
+            <p className="wanas-game-helper text-wanas-text-secondary font-medium">
               {presentSystemCopy(waitingMessage)}
             </p>
             {progressBar}
