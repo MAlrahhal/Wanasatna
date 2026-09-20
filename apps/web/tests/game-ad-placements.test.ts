@@ -24,7 +24,7 @@ for (const game of games) {
 }
 assert.equal(shell.match(/data-game-primary-content/g)?.length, 1);
 assert.equal(shell.match(/\{children\}/g)?.length, 2);
-assert.match(shell, /meta\.layoutMode === 'gameplay'/);
+assert.doesNotMatch(shell, /showGameplayChrome/);
 assert.match(shell, /lg:grid-cols-\[minmax\(240px,280px\)_minmax\(0,1fr\)_minmax\(220px,260px\)\]/);
 assert.match(shell, /xl:grid-cols-\[300px_minmax\(0,1fr\)_minmax\(220px,260px\)\]/);
 assert.equal(shell.match(/placement="gameplay-side-rail"/g)?.length, 1);
