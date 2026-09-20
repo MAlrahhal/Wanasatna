@@ -160,22 +160,26 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
           {children}
           {playerRecovery ? <GamePlayerRecoveryOverlay recovery={playerRecovery} /> : null}
         </div>
-        {showGameplaySideAd ? (
-          <div
-            className="hidden min-w-0 xl:flex xl:justify-center"
-            data-game-ad-association="side-rail"
-          >
-            <AdPlacement placement="gameplay-side-rail" />
-          </div>
-        ) : null}
-      </div>
-
-      <div className="flex flex-col gap-5 pt-1 sm:gap-6" data-game-support-sections>
-        <div className="flex flex-col gap-3" data-game-support-section="leaderboard">
+        <div
+          className={cn(
+            'flex min-w-0 flex-col gap-3 pt-1 lg:col-span-2',
+            showGameplaySideAd && 'xl:col-span-1 xl:pt-0',
+          )}
+          data-game-support-sections
+          data-game-support-section="leaderboard"
+        >
           <GameLeaderboardPanel
             entries={meta.leaderboardEntries}
             className={cn('max-h-[min(560px,calc(100vh-12rem))]')}
           />
+          {showGameplaySideAd ? (
+            <div
+              className="hidden min-w-0 xl:flex xl:justify-center"
+              data-game-ad-association="side-rail"
+            >
+              <AdPlacement placement="gameplay-side-rail" />
+            </div>
+          ) : null}
         </div>
       </div>
 

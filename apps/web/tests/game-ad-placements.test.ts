@@ -28,6 +28,14 @@ assert.match(shell, /meta\.layoutMode === 'gameplay'/);
 assert.match(shell, /xl:grid-cols-\[minmax\(240px,280px\)_minmax\(0,1fr\)_160px\]/);
 assert.equal(shell.match(/placement="gameplay-side-rail"/g)?.length, 1);
 assert.doesNotMatch(shell, /placement="game-(?:chat|leaderboard)"/);
+assert.match(
+  shell,
+  /data-game-support-section="leaderboard"[\s\S]*<GameLeaderboardPanel[\s\S]*placement="gameplay-side-rail"/,
+);
+assert.ok(
+  shell.indexOf('<GameLeaderboardPanel') < shell.indexOf('placement="gameplay-side-rail"'),
+  'the desktop side rail keeps the leaderboard above the vertical ad',
+);
 
 for (const game of games) {
   const results = read(`plugins/${game}/round-results-screen.tsx`);
