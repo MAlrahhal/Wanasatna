@@ -92,12 +92,21 @@ export const ADSTERRA_STATIC_ZONES = {
   'sidebar-160x300': ADSTERRA_BANNER_160x300,
 } as const satisfies Record<AdsterraStaticZoneId, AdsterraBannerZone>;
 
-export type StaticAdPlacementId = 'lobby-side-rail' | 'gameplay-primary' | 'gameplay-side-rail';
+export type StaticAdPlacementId =
+  | 'lobby-side-rail'
+  | 'lobby-players-rectangle'
+  | 'gameplay-primary'
+  | 'gameplay-side-rail'
+  | 'game-chat-rectangle'
+  | 'results-primary';
 
 export const STATIC_AD_PLACEMENTS = {
   'lobby-side-rail': ['skyscraper-160x600'],
+  'lobby-players-rectangle': ['rectangle-300x250'],
   'gameplay-primary': ['leaderboard-728x90', 'banner-468x60', 'mobile-320x50'],
   'gameplay-side-rail': ['sidebar-160x300'],
+  'game-chat-rectangle': ['rectangle-300x250'],
+  'results-primary': ['leaderboard-728x90', 'banner-468x60', 'mobile-320x50'],
 } as const satisfies Record<StaticAdPlacementId, readonly AdsterraStaticZoneId[]>;
 
 export const ADSTERRA_ADS_ENABLED = process.env.NEXT_PUBLIC_ADSTERRA_ADS_ENABLED !== 'false';

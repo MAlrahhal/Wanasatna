@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   ADSTERRA_NATIVE_ADS_ENABLED,
   ADSTERRA_NATIVE_UNITS,
@@ -12,9 +12,16 @@ import { cn } from '@/lib/utils';
 type NativeAdPlacementProps = {
   unit: AdsterraNativeUnitId;
   className?: string;
+  fallback?: ReactNode;
+  fallbackAfterMs?: number;
 };
 
-export function NativeAdPlacement({ unit, className }: NativeAdPlacementProps) {
+export function NativeAdPlacement({
+  unit,
+  className,
+  fallback,
+  fallbackAfterMs,
+}: NativeAdPlacementProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [failedUnit, setFailedUnit] = useState<AdsterraNativeUnitId | null>(null);
   const config = ADSTERRA_NATIVE_UNITS[unit];
@@ -28,7 +35,22 @@ export function NativeAdPlacement({ unit, className }: NativeAdPlacementProps) {
     let active = true;
     setFailedUnit(null);
     const handle = enqueueAdsterraNative(host, config);
+    const fallbackTimerId =
+      fallbackAfterMs === undefined
+        ? undefined
+        : window.setTimeout(() => {
+            if (!active) {
+              return;
+            }
+
+            handle.cancel();
+            setFailedUnit(unit);
+          }, fallbackAfterMs);
+
     void handle.completion.then((outcome) => {
+      if (fallbackTimerId !== undefined) {
+        window.clearTimeout(fallbackTimerId);
+      }
       if (active && (outcome === 'error' || outcome === 'timeout' || outcome === 'duplicate')) {
         setFailedUnit(unit);
       }
@@ -36,12 +58,15 @@ export function NativeAdPlacement({ unit, className }: NativeAdPlacementProps) {
 
     return () => {
       active = false;
+      if (fallbackTimerId !== undefined) {
+        window.clearTimeout(fallbackTimerId);
+      }
       handle.cancel();
     };
-  }, [config, unit]);
+  }, [config, fallbackAfterMs, unit]);
 
   if (!ADSTERRA_NATIVE_ADS_ENABLED || failedUnit === unit) {
-    return null;
+    return fallback;
   }
 
   return (

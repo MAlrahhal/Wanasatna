@@ -102,7 +102,7 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
     return <>{children}</>;
   }
 
-  const showGameplaySideAd = meta.layoutMode === 'gameplay';
+  const showGameplayChrome = meta.layoutMode === 'gameplay';
 
   const mobileControls = (
     <div ref={mobilePanelControlsRef} className="flex shrink-0 items-center gap-0.5 lg:hidden">
@@ -145,45 +145,49 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col gap-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-      <GameExperienceHeader meta={meta} mobilePanelControls={mobileControls} />
+      <GameExperienceHeader
+        meta={meta}
+        mobilePanelControls={showGameplayChrome ? mobileControls : undefined}
+      />
 
       <div
         className={cn(
-          'min-h-0 flex-1 lg:grid lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)] lg:gap-2',
-          showGameplaySideAd && 'xl:grid-cols-[minmax(240px,280px)_minmax(0,1fr)_160px]',
+          'min-h-0 flex-1',
+          showGameplayChrome &&
+            'lg:grid lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)_minmax(220px,260px)] lg:gap-2 xl:grid-cols-[300px_minmax(0,1fr)_minmax(220px,260px)]',
         )}
       >
-        <div className="hidden min-h-0 flex-col gap-3 lg:flex">
-          <GameChatMockPanel className={cn('max-h-[min(560px,calc(100vh-12rem))]')} />
-        </div>
+        {showGameplayChrome ? (
+          <div className="hidden min-h-0 flex-col gap-3 lg:flex">
+            <GameChatMockPanel className={cn('max-h-[min(560px,calc(100vh-12rem))]')} />
+            <AdPlacement placement="game-chat-rectangle" className="hidden xl:block" />
+          </div>
+        ) : null}
         <div className="relative min-w-0" data-game-primary-content>
           {children}
           {playerRecovery ? <GamePlayerRecoveryOverlay recovery={playerRecovery} /> : null}
         </div>
-        <div
-          className={cn(
-            'flex min-w-0 flex-col gap-3 pt-1 lg:col-span-2',
-            showGameplaySideAd && 'xl:col-span-1 xl:pt-0',
-          )}
-          data-game-support-sections
-          data-game-support-section="leaderboard"
-        >
-          <GameLeaderboardPanel
-            entries={meta.leaderboardEntries}
-            className={cn('max-h-[min(560px,calc(100vh-12rem))]')}
-          />
-          {showGameplaySideAd ? (
+        {showGameplayChrome ? (
+          <div
+            className="hidden min-w-0 flex-col gap-3 lg:flex"
+            data-game-support-sections
+            data-game-support-section="leaderboard"
+          >
+            <GameLeaderboardPanel
+              entries={meta.leaderboardEntries}
+              className={cn('max-h-[min(560px,calc(100vh-12rem))]')}
+            />
             <div
               className="hidden min-w-0 xl:flex xl:justify-center"
               data-game-ad-association="side-rail"
             >
               <AdPlacement placement="gameplay-side-rail" />
             </div>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
 
-      {chatOpen ? (
+      {showGameplayChrome && chatOpen ? (
         <div
           ref={chatPanelRef}
           className="mobile-room-chat-sheet fixed inset-x-0 bottom-0 z-50 flex h-[45dvh] max-h-[45dvh] flex-col overflow-hidden rounded-t-2xl border-t border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-panel-bg)] p-4 shadow-[var(--wanas-game-shadow)] lg:hidden"
@@ -221,7 +225,7 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
         </div>
       ) : null}
 
-      {leaderboardOpen ? (
+      {showGameplayChrome && leaderboardOpen ? (
         <div
           ref={leaderboardPanelRef}
           className="fixed inset-x-0 bottom-0 z-40 max-h-[55dvh] overflow-hidden rounded-t-2xl border-t border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-panel-bg)] p-4 shadow-[var(--wanas-game-shadow)] lg:hidden"

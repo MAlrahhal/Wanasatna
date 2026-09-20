@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import type { GuessingChallengePlayerView } from '@wanasatna/shared';
-import { NativeAdPlacement } from '@/components/ads/native-ad-placement';
+import { ResultsAdPlacement } from '@/components/ads/results-ad-placement';
 import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
@@ -166,7 +166,7 @@ export function GuessingChallengeRoundResultsScreen({
           </ul>
         </GameCard>
 
-        <NativeAdPlacement unit="results-native" />
+        <ResultsAdPlacement />
 
         {view.canContinueFromRoundResults && onContinue ? (
           <div className="space-y-2.5">

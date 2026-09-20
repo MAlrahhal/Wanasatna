@@ -89,6 +89,16 @@ async function main(): Promise<void> {
   assert.equal(selectFittingStaticZone('lobby-side-rail', 160, 1536), ADSTERRA_BANNER_160x600);
   assert.equal(selectFittingStaticZone('gameplay-side-rail', 160, 1279), null);
   assert.equal(selectFittingStaticZone('gameplay-side-rail', 160, 1280), ADSTERRA_BANNER_160x300);
+  assert.equal(selectFittingStaticZone('game-chat-rectangle', 299, 1440), null);
+  assert.equal(selectFittingStaticZone('game-chat-rectangle', 300, 1440), ADSTERRA_BANNER_300x250);
+  assert.equal(
+    selectFittingStaticZone('lobby-players-rectangle', 300, 1440),
+    ADSTERRA_BANNER_300x250,
+  );
+  assert.equal(
+    selectFittingStaticZone('results-primary', 728, 1440),
+    ADSTERRA_BANNER_DESKTOP_728x90,
+  );
   assert.deepEqual(STATIC_AD_PLACEMENTS['gameplay-primary'], [
     'leaderboard-728x90',
     'banner-468x60',
@@ -124,6 +134,7 @@ async function main(): Promise<void> {
   const banner = read('components/ads/adsterra-banner.tsx');
   const nativeLoader = read('lib/ads/adsterra-native-loader.ts');
   const nativePlacement = read('components/ads/native-ad-placement.tsx');
+  const resultsPlacement = read('components/ads/results-ad-placement.tsx');
   assert.match(loader, /queue\.enqueue/);
   assert.match(loader, /zoneOwners/);
   assert.match(loader, /adWindow\.atOptions = options/);
@@ -141,7 +152,11 @@ async function main(): Promise<void> {
   assert.match(nativeLoader, /cleanupId/);
   assert.doesNotMatch(nativeLoader, /atOptions/);
   assert.match(nativePlacement, /enqueueAdsterraNative/);
+  assert.match(nativePlacement, /fallbackAfterMs/);
   assert.doesNotMatch(nativePlacement, /fixed|sticky|absolute|scale/);
+  assert.match(resultsPlacement, /unit="results-native"/);
+  assert.match(resultsPlacement, /fallbackAfterMs=\{RESULTS_NATIVE_FALLBACK_MS\}/);
+  assert.match(resultsPlacement, /placement="results-primary"/);
 
   const productionPlacementSources = [
     read('app/(public)/home-page-client.tsx'),
@@ -149,7 +164,8 @@ async function main(): Promise<void> {
     read('components/game-experience/game-experience-shell.tsx'),
     read('plugins/fast-answer/question-screen.tsx'),
   ].join('\n');
-  assert.doesNotMatch(productionPlacementSources, /rectangle-300x250|ADSTERRA_BANNER_300x250/);
+  assert.match(productionPlacementSources, /placement="game-chat-rectangle"/);
+  assert.match(productionPlacementSources, /placement="lobby-players-rectangle"/);
   assert.doesNotMatch(read('app/layout.tsx'), /highrevenueformat|AdsterraBanner|AdPlacement/);
 
   console.log('Adsterra inventory and responsive selection contract passed');

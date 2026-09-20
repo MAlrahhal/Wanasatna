@@ -25,9 +25,15 @@ for (const game of games) {
 assert.equal(shell.match(/data-game-primary-content/g)?.length, 1);
 assert.equal(shell.match(/\{children\}/g)?.length, 2);
 assert.match(shell, /meta\.layoutMode === 'gameplay'/);
-assert.match(shell, /xl:grid-cols-\[minmax\(240px,280px\)_minmax\(0,1fr\)_160px\]/);
+assert.match(shell, /lg:grid-cols-\[minmax\(240px,280px\)_minmax\(0,1fr\)_minmax\(220px,260px\)\]/);
+assert.match(shell, /xl:grid-cols-\[300px_minmax\(0,1fr\)_minmax\(220px,260px\)\]/);
 assert.equal(shell.match(/placement="gameplay-side-rail"/g)?.length, 1);
+assert.equal(shell.match(/placement="game-chat-rectangle"/g)?.length, 1);
 assert.doesNotMatch(shell, /placement="game-(?:chat|leaderboard)"/);
+assert.match(
+  shell,
+  /<GameChatMockPanel[\s\S]*placement="game-chat-rectangle"[\s\S]*data-game-primary-content/,
+);
 assert.match(
   shell,
   /data-game-support-section="leaderboard"[\s\S]*<GameLeaderboardPanel[\s\S]*placement="gameplay-side-rail"/,
@@ -39,10 +45,10 @@ assert.ok(
 
 for (const game of games) {
   const results = read(`plugins/${game}/round-results-screen.tsx`);
-  assert.equal(results.match(/unit="results-native"/g)?.length, 1, game);
+  assert.equal(results.match(/<ResultsAdPlacement \/>/g)?.length, 1, game);
   assert.ok(
-    results.indexOf('unit="results-native"') > results.lastIndexOf('</GameCard>'),
-    `${game}: Results Native must follow the complete score card`,
+    results.indexOf('<ResultsAdPlacement />') > results.lastIndexOf('</GameCard>'),
+    `${game}: the results ad must follow the complete score card`,
   );
   assert.doesNotMatch(
     results,
@@ -52,8 +58,8 @@ for (const game of games) {
 }
 
 const finalResults = read('plugins/bara-al-salafa/match-results-screen.tsx');
-assert.match(finalResults, /<FinalLeaderboard[\s\S]*unit="results-native"[\s\S]*<MatchStats/);
-assert.equal(finalResults.match(/unit="results-native"/g)?.length, 1);
+assert.match(finalResults, /<FinalLeaderboard[\s\S]*<ResultsAdPlacement \/>[\s\S]*<MatchStats/);
+assert.equal(finalResults.match(/<ResultsAdPlacement \/>/g)?.length, 1);
 assert.doesNotMatch(
   finalResults,
   /<AdPlacement|components\/ads\/ad-placement|300x250|final-results-(?:center|mobile)/,
@@ -95,9 +101,6 @@ const allAdSources = [
   ...games.map((game) => read(`plugins/${game}/round-results-screen.tsx`)),
   ...primaryOwners.map(read),
 ].join('\n');
-assert.doesNotMatch(
-  allAdSources,
-  /ADSTERRA_BANNER_300x250|placement="(?:round-results|final-results)-/,
-);
+assert.doesNotMatch(allAdSources, /placement="(?:round-results|final-results)-/);
 
 console.log('Cross-game Adsterra placement contract passed');

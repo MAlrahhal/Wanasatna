@@ -224,7 +224,7 @@ export function LobbyScreen() {
         </button>
       </div>
 
-      <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 lg:gap-4 xl:grid-cols-[minmax(220px,260px)_minmax(0,1fr)_minmax(168px,200px)] 2xl:grid-cols-[minmax(220px,260px)_minmax(0,1fr)_minmax(168px,200px)_160px]">
+      <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 lg:gap-4 xl:grid-cols-[300px_minmax(0,1fr)_minmax(168px,200px)] 2xl:grid-cols-[300px_minmax(0,1fr)_minmax(168px,200px)_160px]">
         <div
           className={cn(
             chatOpen
@@ -293,7 +293,7 @@ export function LobbyScreen() {
 
         <div
           className={cn(
-            'xl:order-1 xl:flex xl:max-h-[calc(100vh-12rem)] xl:min-h-0 xl:flex-col xl:gap-3',
+            'xl:order-1 xl:flex xl:min-h-0 xl:flex-col xl:gap-3',
             mobileSection !== 'players' && 'hidden xl:flex',
           )}
         >
@@ -307,6 +307,7 @@ export function LobbyScreen() {
             playerCap={room?.playerCap}
             onChangeAvatar={() => setAvatarPickerOpen(true)}
           />
+          <AdPlacement placement="lobby-players-rectangle" className="hidden xl:block" />
         </div>
 
         <div

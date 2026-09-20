@@ -85,8 +85,8 @@ test('first mobile Chat open mounts a fully constrained sheet with a usable comp
   const shell = read('components/game-experience/game-experience-shell.tsx');
   const chat = read('components/room/room-chat-panel.tsx');
   const firstOpenSheet = shell.slice(
-    shell.indexOf('{chatOpen ? ('),
-    shell.indexOf('{leaderboardOpen ? ('),
+    shell.indexOf('{showGameplayChrome && chatOpen ? ('),
+    shell.indexOf('{showGameplayChrome && leaderboardOpen ? ('),
   );
 
   assert.match(firstOpenSheet, /data-testid="mobile-game-chat-sheet"/);
