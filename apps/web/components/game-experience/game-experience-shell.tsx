@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { AdPlaceholder } from '@/components/ads/ad-placeholder';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import { Button } from '@/components/ui/button';
 import { useGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
@@ -103,18 +103,8 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
   }
 
   const showGameplayAds = meta.layoutMode === 'gameplay';
-  const resultSideAds =
-    meta.layoutMode === 'round-results'
-      ? {
-          chat: 'round-results-right-desktop',
-          leaderboard: 'round-results-left-desktop',
-        }
-      : meta.layoutMode === 'final-results'
-        ? {
-            chat: 'final-results-right-desktop',
-            leaderboard: 'final-results-left-desktop',
-          }
-        : null;
+  const showLeaderboardAd =
+    meta.layoutMode === 'round-results' || meta.layoutMode === 'final-results';
 
   const mobileControls = (
     <div ref={mobilePanelControlsRef} className="flex shrink-0 items-center gap-0.5 lg:hidden">
@@ -161,26 +151,7 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
 
       <div className="hidden min-h-0 flex-1 gap-2 lg:grid lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)_minmax(220px,260px)]">
         <div className="flex min-h-0 flex-col gap-3">
-          <GameChatMockPanel
-            className={cn(
-              'max-h-[min(560px,calc(100vh-12rem))]',
-              (showGameplayAds || resultSideAds) && '2xl:max-h-[min(480px,calc(100vh-22rem))]',
-            )}
-          />
-          {showGameplayAds ? (
-            <AdPlaceholder
-              placement="game-chat-desktop"
-              format="vertical"
-              className="hidden h-[clamp(7rem,16vh,12rem)] shrink-0 2xl:flex"
-            />
-          ) : null}
-          {resultSideAds ? (
-            <AdPlaceholder
-              placement={resultSideAds.chat}
-              format="vertical"
-              className="hidden h-[clamp(7rem,16vh,12rem)] shrink-0 2xl:flex"
-            />
-          ) : null}
+          <GameChatMockPanel className={cn('max-h-[min(560px,calc(100vh-12rem))]')} />
         </div>
         <div className="relative min-w-0">
           {children}
@@ -189,25 +160,8 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
         <div className="flex min-h-0 flex-col gap-3">
           <GameLeaderboardPanel
             entries={meta.leaderboardEntries}
-            className={cn(
-              'max-h-[min(560px,calc(100vh-12rem))]',
-              (showGameplayAds || resultSideAds) && '2xl:max-h-[min(480px,calc(100vh-22rem))]',
-            )}
+            className={cn('max-h-[min(560px,calc(100vh-12rem))]')}
           />
-          {showGameplayAds ? (
-            <AdPlaceholder
-              placement="game-leaderboard-desktop"
-              format="vertical"
-              className="hidden h-[clamp(7rem,16vh,12rem)] shrink-0 2xl:flex"
-            />
-          ) : null}
-          {resultSideAds ? (
-            <AdPlaceholder
-              placement={resultSideAds.leaderboard}
-              format="vertical"
-              className="hidden h-[clamp(7rem,16vh,12rem)] shrink-0 2xl:flex"
-            />
-          ) : null}
         </div>
       </div>
 
@@ -215,6 +169,9 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
         {children}
         {playerRecovery ? <GamePlayerRecoveryOverlay recovery={playerRecovery} /> : null}
       </div>
+
+      {showGameplayAds ? <AdPlacement placement="game-chat" className="mt-1" /> : null}
+      {showLeaderboardAd ? <AdPlacement placement="game-leaderboard" className="mt-1" /> : null}
 
       {chatOpen ? (
         <div

@@ -2,8 +2,12 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { JUDGE_MAX_ANSWER_LENGTH } from '@wanasatna/shared';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import { GameScreen } from '@/components/game/game-card';
-import { GameMobileStickyCta, GameMobileStickyCtaSpacer } from '@/components/game/game-mobile-sticky-cta';
+import {
+  GameMobileStickyCta,
+  GameMobileStickyCtaSpacer,
+} from '@/components/game/game-mobile-sticky-cta';
 import { Button } from '@/components/ui/button';
 import { shouldAutofocusFormField } from '@/lib/ui/should-autofocus-form-field';
 import { cn } from '@/lib/utils';
@@ -55,87 +59,93 @@ export function JudgeAnsweringScreen({
     <GameScreen ariaLabel="أجب على السؤال" maxWidth="3xl">
       <div className="flex flex-col gap-5 sm:gap-6">
         <div className="wanas-game-card rounded-[1.25rem] px-4 py-4 text-center sm:rounded-[1.5rem] sm:px-8 sm:py-8">
-          <p className="break-words text-lg font-bold leading-snug tracking-tight text-wanas-text-primary min-[360px]:text-xl sm:text-3xl">
+          <p className="text-wanas-text-primary break-words text-lg font-bold leading-snug tracking-tight min-[360px]:text-xl sm:text-3xl">
             {prompt}
           </p>
         </div>
 
         {isSpectator ? (
           <div className="wanas-game-card rounded-[1.25rem] px-5 py-6 text-center">
-            <p className="text-sm text-wanas-text-muted">اللاعبون يكتبون إجاباتهم...</p>
-            <p className="mt-3 text-sm tabular-nums text-wanas-text-muted">
+            <p className="text-wanas-text-muted text-sm">اللاعبون يكتبون إجاباتهم...</p>
+            <p className="text-wanas-text-muted mt-3 text-sm tabular-nums">
               {submittedCount} / {totalSlots} أجابوا
             </p>
           </div>
         ) : isJudge ? (
           <div className="wanas-game-card rounded-[1.25rem] px-5 py-6 text-center">
-            <p className="text-lg font-semibold text-wanas-text-primary">
+            <p className="text-wanas-text-primary text-lg font-semibold">
               أنت القاضي في هذه الجولة
             </p>
-            <p className="mt-2 text-sm text-wanas-text-muted">بانتظار إجابات اللاعبين...</p>
-            <p className="mt-3 text-sm tabular-nums text-wanas-text-muted">
+            <p className="text-wanas-text-muted mt-2 text-sm">بانتظار إجابات اللاعبين...</p>
+            <p className="text-wanas-text-muted mt-3 text-sm tabular-nums">
               {submittedCount} / {totalSlots} أجابوا
             </p>
           </div>
         ) : hasSubmitted ? (
           <div className="wanas-game-card rounded-[1.25rem] px-5 py-6 text-center">
-            <p className="text-lg font-semibold text-wanas-text-primary">تم إرسال إجابتك</p>
-            <p className="mt-2 text-sm text-wanas-text-muted">بانتظار بقية اللاعبين...</p>
-            <p className="mt-3 text-sm tabular-nums text-wanas-text-muted">
+            <p className="text-wanas-text-primary text-lg font-semibold">تم إرسال إجابتك</p>
+            <p className="text-wanas-text-muted mt-2 text-sm">بانتظار بقية اللاعبين...</p>
+            <p className="text-wanas-text-muted mt-3 text-sm tabular-nums">
               {submittedCount} / {totalSlots} أجابوا
             </p>
           </div>
         ) : (
-          <form
-            onSubmit={handleSubmit}
-            className="wanas-game-card flex flex-col gap-3 rounded-[1.25rem] p-4 sm:p-5"
-          >
-            <label htmlFor="judge-answer" className="text-sm font-semibold text-wanas-text-primary">
-              إجابتك
-            </label>
-            <textarea
-              ref={textareaRef}
-              id="judge-answer"
-              value={answer}
-              maxLength={JUDGE_MAX_ANSWER_LENGTH}
-              disabled={!canSubmit || isSubmitting}
-              rows={3}
-              onChange={(event) => setAnswer(event.target.value)}
-              placeholder="اكتب إجابتك هنا..."
-              className={cn(
-                'min-h-20 w-full resize-none rounded-xl border border-wanas-border bg-wanas-surface px-4 py-3',
-                'text-base text-wanas-text-primary placeholder:text-wanas-text-muted',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/40',
-              )}
-            />
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs tabular-nums text-wanas-text-muted sm:text-sm">
-                {answer.trim().length} / {JUDGE_MAX_ANSWER_LENGTH}
-              </p>
-              <Button
-                type="submit"
-                size="lg"
-                className="hidden lg:inline-flex"
-                loading={isSubmitting}
-                disabled={!answer.trim() || !canSubmit}
+          <>
+            <form
+              onSubmit={handleSubmit}
+              className="wanas-game-card flex flex-col gap-3 rounded-[1.25rem] p-4 sm:p-5"
+            >
+              <label
+                htmlFor="judge-answer"
+                className="text-wanas-text-primary text-sm font-semibold"
               >
-                إرسال الإجابة
-              </Button>
-            </div>
-            {actionError ? <p className="text-sm text-destructive">{actionError}</p> : null}
-            <GameMobileStickyCtaSpacer />
-            <GameMobileStickyCta>
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full"
-                loading={isSubmitting}
-                disabled={!answer.trim() || !canSubmit}
-              >
-                إرسال الإجابة
-              </Button>
-            </GameMobileStickyCta>
-          </form>
+                إجابتك
+              </label>
+              <textarea
+                ref={textareaRef}
+                id="judge-answer"
+                value={answer}
+                maxLength={JUDGE_MAX_ANSWER_LENGTH}
+                disabled={!canSubmit || isSubmitting}
+                rows={3}
+                onChange={(event) => setAnswer(event.target.value)}
+                placeholder="اكتب إجابتك هنا..."
+                className={cn(
+                  'border-wanas-border bg-wanas-surface min-h-20 w-full resize-none rounded-xl border px-4 py-3',
+                  'text-wanas-text-primary placeholder:text-wanas-text-muted text-base',
+                  'focus-visible:ring-wanas-accent/40 focus-visible:outline-none focus-visible:ring-2',
+                )}
+              />
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-wanas-text-muted text-xs tabular-nums sm:text-sm">
+                  {answer.trim().length} / {JUDGE_MAX_ANSWER_LENGTH}
+                </p>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="hidden lg:inline-flex"
+                  loading={isSubmitting}
+                  disabled={!answer.trim() || !canSubmit}
+                >
+                  إرسال الإجابة
+                </Button>
+              </div>
+              {actionError ? <p className="text-destructive text-sm">{actionError}</p> : null}
+              <GameMobileStickyCtaSpacer />
+              <GameMobileStickyCta>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full"
+                  loading={isSubmitting}
+                  disabled={!answer.trim() || !canSubmit}
+                >
+                  إرسال الإجابة
+                </Button>
+              </GameMobileStickyCta>
+            </form>
+            <AdPlacement placement="game-answer-input" />
+          </>
         )}
       </div>
     </GameScreen>

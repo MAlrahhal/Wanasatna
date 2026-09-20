@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect } from 'react';
-import { AdPlaceholder } from '@/components/ads/ad-placeholder';
+import { Fragment, useEffect } from 'react';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import { HomeActiveRoomResume } from '@/components/public/active-room-banner';
 import { FeatureCard } from '@/components/public/feature-card';
 import { GamePreviewCard } from '@/components/public/game-cards';
@@ -35,8 +35,8 @@ export function HomePageClient() {
   const featuredGames = getFeaturedGames();
   const hasFieldError = Boolean(
     room.fieldErrors.createPlayerName ||
-      room.fieldErrors.joinPlayerName ||
-      room.fieldErrors.joinCode,
+    room.fieldErrors.joinPlayerName ||
+    room.fieldErrors.joinCode,
   );
   const createPlayerNameError = room.fieldErrors.createPlayerName
     ? (room.errorMessage ?? undefined)
@@ -108,6 +108,8 @@ export function HomePageClient() {
         </div>
       </section>
 
+      <AdPlacement placement="home-hero" className="mt-2 sm:mt-4" />
+
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 sm:gap-10 sm:px-6 sm:py-12 lg:gap-12">
         <HomeActiveRoomResume
           claims={room.resumeClaims}
@@ -115,11 +117,12 @@ export function HomePageClient() {
           onResume={room.handleResumeClaim}
         />
 
-        {room.errorMessage && room.errorSource === 'resume' && !room.isCreating && !room.isJoining ? (
+        {room.errorMessage &&
+        room.errorSource === 'resume' &&
+        !room.isCreating &&
+        !room.isJoining ? (
           <SystemStatus tone="error" {...presentRoomActionError(room.errorMessage)} />
         ) : null}
-
-        <AdPlaceholder placement="home-before-room-actions" format="horizontal" />
 
         <RoomActionCards
           createPlayerName={room.createPlayerName}
@@ -138,6 +141,8 @@ export function HomePageClient() {
           createActionError={createActionError}
           joinActionError={joinActionError}
         />
+
+        <AdPlacement placement="home-room-actions" />
 
         <section>
           <div className="mb-5 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
@@ -173,13 +178,19 @@ export function HomePageClient() {
             </div>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {featuredGames.map((game) => (
-              <GamePreviewCard key={game.id} game={game} />
+            {featuredGames.map((game, index) => (
+              <Fragment key={game.id}>
+                <GamePreviewCard game={game} />
+                {featuredGames.length > 2 && index === featuredGames.length - 2 ? (
+                  <AdPlacement
+                    placement="home-featured-games-near-end"
+                    className="sm:col-span-2 xl:col-span-4"
+                  />
+                ) : null}
+              </Fragment>
             ))}
           </div>
         </section>
-
-        <AdPlaceholder placement="home-after-games" format="horizontal" />
 
         <section className="wanas-section-frame -mx-4 px-4 py-5 sm:-mx-6 sm:px-6 sm:py-8">
           <SectionHeader

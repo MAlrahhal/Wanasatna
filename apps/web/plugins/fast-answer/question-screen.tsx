@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { MAX_GAME_ANSWER_LENGTH } from '@wanasatna/shared';
 import { GameScreen } from '@/components/game/game-card';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import {
   GameMobileStickyCta,
   GameMobileStickyCtaSpacer,
@@ -83,62 +84,65 @@ export function FastAnswerQuestionScreen({
         ) : null}
 
         {canSubmit ? (
-          <form
-            onSubmit={handleSubmit}
-            className="wanas-game-card flex flex-col gap-3 rounded-[1.25rem] p-4 sm:p-5"
-          >
-            <label
-              htmlFor="fast-answer-input"
-              className="text-wanas-text-primary text-sm font-semibold"
+          <>
+            <form
+              onSubmit={handleSubmit}
+              className="wanas-game-card flex flex-col gap-3 rounded-[1.25rem] p-4 sm:p-5"
             >
-              إجابتك
-            </label>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <input
-                ref={inputRef}
-                id="fast-answer-input"
-                type="text"
-                value={answer}
-                onChange={(event) => setAnswer(event.target.value)}
-                disabled={!canSubmit}
-                readOnly={isSubmitting}
-                placeholder="اكتب الإجابة هنا..."
-                maxLength={MAX_GAME_ANSWER_LENGTH}
-                autoComplete="off"
-                className={cn(
-                  'border-wanas-border text-wanas-text-primary min-h-11 w-full flex-1 rounded-[var(--wanas-radius-control)] border bg-[color:var(--wanas-game-card)] px-3.5 text-base lg:text-sm',
-                  'placeholder:text-wanas-text-muted',
-                  'focus-visible:ring-wanas-accent/40 focus-visible:outline-none focus-visible:ring-2',
-                  (!canSubmit || isSubmitting) && 'cursor-not-allowed opacity-60',
-                )}
-              />
-              <Button
-                type="submit"
-                size="md"
-                disabled={!canSubmit || isSubmitting || answer.trim().length === 0}
-                loading={isSubmitting}
-                className="hidden min-h-11 sm:min-w-28 lg:inline-flex"
+              <label
+                htmlFor="fast-answer-input"
+                className="text-wanas-text-primary text-sm font-semibold"
               >
-                إرسال
-              </Button>
-            </div>
-            {incorrectFeedback ? (
-              <p className="text-destructive text-sm">{incorrectFeedback}</p>
-            ) : null}
-            {actionError ? <p className="text-destructive text-sm">{actionError}</p> : null}
-            <GameMobileStickyCtaSpacer />
-            <GameMobileStickyCta>
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full"
-                disabled={!canSubmit || isSubmitting || answer.trim().length === 0}
-                loading={isSubmitting}
-              >
-                إرسال
-              </Button>
-            </GameMobileStickyCta>
-          </form>
+                إجابتك
+              </label>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input
+                  ref={inputRef}
+                  id="fast-answer-input"
+                  type="text"
+                  value={answer}
+                  onChange={(event) => setAnswer(event.target.value)}
+                  disabled={!canSubmit}
+                  readOnly={isSubmitting}
+                  placeholder="اكتب الإجابة هنا..."
+                  maxLength={MAX_GAME_ANSWER_LENGTH}
+                  autoComplete="off"
+                  className={cn(
+                    'border-wanas-border text-wanas-text-primary min-h-11 w-full flex-1 rounded-[var(--wanas-radius-control)] border bg-[color:var(--wanas-game-card)] px-3.5 text-base lg:text-sm',
+                    'placeholder:text-wanas-text-muted',
+                    'focus-visible:ring-wanas-accent/40 focus-visible:outline-none focus-visible:ring-2',
+                    (!canSubmit || isSubmitting) && 'cursor-not-allowed opacity-60',
+                  )}
+                />
+                <Button
+                  type="submit"
+                  size="md"
+                  disabled={!canSubmit || isSubmitting || answer.trim().length === 0}
+                  loading={isSubmitting}
+                  className="hidden min-h-11 sm:min-w-28 lg:inline-flex"
+                >
+                  إرسال
+                </Button>
+              </div>
+              {incorrectFeedback ? (
+                <p className="text-destructive text-sm">{incorrectFeedback}</p>
+              ) : null}
+              {actionError ? <p className="text-destructive text-sm">{actionError}</p> : null}
+              <GameMobileStickyCtaSpacer />
+              <GameMobileStickyCta>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full"
+                  disabled={!canSubmit || isSubmitting || answer.trim().length === 0}
+                  loading={isSubmitting}
+                >
+                  إرسال
+                </Button>
+              </GameMobileStickyCta>
+            </form>
+            <AdPlacement placement="game-answer-input" />
+          </>
         ) : null}
       </div>
     </GameScreen>

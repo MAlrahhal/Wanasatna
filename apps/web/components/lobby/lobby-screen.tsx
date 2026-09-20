@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getDefaultPlayerAvatarId } from '@wanasatna/shared';
-import { AdPlaceholder } from '@/components/ads/ad-placeholder';
-import { AdsterraBanner } from '@/components/ads/adsterra-banner';
+import { AdPlacement } from '@/components/ads/ad-placement';
 import { useRoom } from '@/contexts/room-context';
 import { mockGameSettingsByGameId, mockLobbyGames } from '@/lib/lobby/mock-games';
 import { usePlayableGameAvailability } from '@/lib/games/use-game-availability';
@@ -262,11 +261,6 @@ export function LobbyScreen() {
             </div>
           ) : null}
           <LobbyChat className="min-h-0" mobileSheetOpen={chatOpen} />
-          <AdPlaceholder
-            placement="lobby-chat-desktop"
-            format="vertical"
-            className="hidden h-[clamp(7rem,15vh,10rem)] shrink-0 xl:flex"
-          />
         </div>
 
         <div
@@ -312,16 +306,13 @@ export function LobbyScreen() {
             playerCap={room?.playerCap}
             onChangeAvatar={() => setAvatarPickerOpen(true)}
           />
-          <AdPlaceholder
-            placement="lobby-players-desktop"
-            format="vertical"
-            className="hidden h-[clamp(7rem,15vh,10rem)] shrink-0 xl:flex"
-          />
+          {mobileSection === 'players' ? (
+            <AdPlacement placement="lobby-players" viewport="compact" className="mt-1 xl:hidden" />
+          ) : null}
         </div>
       </div>
 
-      <AdsterraBanner className="mt-1" />
-      <AdPlaceholder placement="lobby-mobile" format="horizontal" className="xl:hidden" />
+      <AdPlacement placement="lobby-chat" viewport="wide" className="mt-1" />
 
       {player ? (
         <AvatarPickerDialog
