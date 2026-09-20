@@ -16,9 +16,12 @@ const lobby = read('components/lobby/lobby-screen.tsx');
 assert.equal(lobby.match(/unit="lobby-native"/g)?.length, 1);
 assert.equal(lobby.match(/placement="lobby-side-rail"/g)?.length, 1);
 assert.equal(lobby.match(/placement="lobby-players-rectangle"/g)?.length, 1);
-assert.match(lobby, /2xl:grid-cols-\[[^\]]*_160px\]/);
 assert.match(lobby, /xl:grid-cols-\[300px_/);
-assert.match(lobby, /hidden min-w-0 2xl:order-4 2xl:flex/);
+assert.doesNotMatch(lobby, /2xl:grid-cols-\[[^\]]*_160px\]/);
+assert.match(
+  lobby,
+  /<LobbyChat[\s\S]*data-lobby-ad-association="side-rail"[\s\S]*placement="lobby-side-rail"/,
+);
 assert.match(lobby, /<PlayersPanel[\s\S]*placement="lobby-players-rectangle"/);
 assert.ok(lobby.indexOf('unit="lobby-native"') > lobby.indexOf('<PlayersPanel'));
 assert.ok(lobby.indexOf('unit="lobby-native"') > lobby.indexOf('<LobbyChat'));

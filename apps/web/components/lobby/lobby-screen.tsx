@@ -224,13 +224,13 @@ export function LobbyScreen() {
         </button>
       </div>
 
-      <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 lg:gap-4 xl:grid-cols-[300px_minmax(0,1fr)_minmax(168px,200px)] 2xl:grid-cols-[300px_minmax(0,1fr)_minmax(168px,200px)_160px]">
+      <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 lg:gap-4 xl:grid-cols-[300px_minmax(0,1fr)_minmax(168px,200px)]">
         <div
           className={cn(
             chatOpen
               ? 'mobile-room-chat-sheet border-wanas-border bg-wanas-surface fixed inset-x-0 bottom-0 z-50 flex h-[55dvh] max-h-[55dvh] flex-col rounded-t-2xl border-t p-3 shadow-[var(--wanas-shadow-panel)]'
               : 'hidden',
-            'xl:static xl:z-auto xl:order-3 xl:flex xl:max-h-[calc(100vh-12rem)] xl:flex-col xl:gap-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none',
+            'xl:static xl:z-auto xl:order-3 xl:flex xl:flex-col xl:gap-3 xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none',
           )}
           role={chatOpen ? 'dialog' : undefined}
           aria-modal={chatOpen ? true : undefined}
@@ -261,7 +261,13 @@ export function LobbyScreen() {
               </button>
             </div>
           ) : null}
-          <LobbyChat className="min-h-0" mobileSheetOpen={chatOpen} />
+          <LobbyChat className="min-h-0 xl:max-h-[calc(100vh-12rem)]" mobileSheetOpen={chatOpen} />
+          <div
+            className="hidden min-w-0 2xl:flex 2xl:justify-center"
+            data-lobby-ad-association="side-rail"
+          >
+            <AdPlacement placement="lobby-side-rail" />
+          </div>
         </div>
 
         <div
@@ -308,13 +314,6 @@ export function LobbyScreen() {
             onChangeAvatar={() => setAvatarPickerOpen(true)}
           />
           <AdPlacement placement="lobby-players-rectangle" className="hidden xl:block" />
-        </div>
-
-        <div
-          className="hidden min-w-0 2xl:order-4 2xl:flex 2xl:justify-center"
-          data-lobby-ad-association="side-rail"
-        >
-          <AdPlacement placement="lobby-side-rail" />
         </div>
       </div>
 
