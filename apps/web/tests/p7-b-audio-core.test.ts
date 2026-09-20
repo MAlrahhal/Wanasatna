@@ -116,27 +116,27 @@ void (async () => {
 
   await test('defaults are unmuted', () => {
     setup();
-    assert.deepEqual(audio.getGameAudioPreferences(), { muted: false });
+    assert.deepEqual(audio.getGameAudioPreferences(), { muted: false, volume: 1 });
   });
 
-  await test('save/load mute preference and ignore leftover volume', () => {
+  await test('save/load mute and volume preferences', () => {
     setup();
     audio.setGameAudioMuted(true);
-    assert.equal(localStorage.getItem('wanasatna:audio-prefs'), '{"muted":true}');
+    assert.equal(localStorage.getItem('wanasatna:audio-prefs'), '{"muted":true,"volume":1}');
     audio.resetGameAudioForTests();
-    assert.deepEqual(audio.getGameAudioPreferences(), { muted: true });
+    assert.deepEqual(audio.getGameAudioPreferences(), { muted: true, volume: 1 });
     localStorage.setItem('wanasatna:audio-prefs', '{"muted":false,"volume":0.25}');
     audio.resetGameAudioForTests();
-    assert.deepEqual(audio.getGameAudioPreferences(), { muted: false });
+    assert.deepEqual(audio.getGameAudioPreferences(), { muted: false, volume: 0.25 });
     audio.setGameAudioMuted(false);
-    assert.equal(localStorage.getItem('wanasatna:audio-prefs'), '{"muted":false}');
+    assert.equal(localStorage.getItem('wanasatna:audio-prefs'), '{"muted":false,"volume":0.25}');
   });
 
   await test('malformed JSON falls back to defaults', () => {
     setup();
     localStorage.setItem('wanasatna:audio-prefs', '{not-json');
     audio.resetGameAudioForTests();
-    assert.deepEqual(audio.getGameAudioPreferences(), { muted: false });
+    assert.deepEqual(audio.getGameAudioPreferences(), { muted: false, volume: 1 });
   });
 
   await test('locked until unlock; unlock is idempotent and silent', async () => {
@@ -173,6 +173,29 @@ void (async () => {
     const startNode = FakeAudio.instances.find((item) => !item.paused) ?? FakeAudio.instances.at(-1);
     assert.ok(startNode);
     assert.equal(startNode.volume, 0.78);
+  });
+
+  await test('volume updates active audio and survives mute toggles', async () => {
+    setup();
+    audio.unlockGameAudio();
+    await flush();
+    audio.playGameSound('go');
+    const activeNode =
+      FakeAudio.instances.find((item) => !item.paused) ?? FakeAudio.instances.at(-1);
+    assert.ok(activeNode);
+    audio.setGameAudioVolume(0.6);
+    assert.equal(activeNode.volume, 0.78 * 0.6);
+    audio.setGameAudioMuted(true);
+    audio.setGameAudioMuted(false);
+    assert.deepEqual(audio.getGameAudioPreferences(), { muted: false, volume: 0.6 });
+  });
+
+  await test('volume is clamped to the supported range', () => {
+    setup();
+    audio.setGameAudioVolume(2);
+    assert.equal(audio.getGameAudioPreferences().volume, 1);
+    audio.setGameAudioVolume(-1);
+    assert.equal(audio.getGameAudioPreferences().volume, 0);
   });
 
   await test('same eventKey plays once; different eventKey allowed after throttle', async () => {
@@ -246,7 +269,6 @@ void (async () => {
     assert.match(sounds, /POOL_SIZE = 3/);
     assert.match(sounds, /MAX_CONCURRENT = 2/);
     assert.match(sounds, /SAME_SOUND_THROTTLE_MS = 120/);
-    assert.match(sounds, /MASTER_VOLUME = 1/);
     assert.match(sounds, /wanasatna:audio-prefs/);
     assert.doesNotMatch(sounds, /AudioContext/);
     assert.doesNotMatch(sounds, /createOscillator/);
@@ -268,8 +290,11 @@ void (async () => {
     assert.match(control, /aria-pressed=\{prefs\.muted\}/);
     assert.match(control, /size-11 min-h-11 min-w-11/);
     assert.match(control, /setGameAudioMuted\(!prefs\.muted\)/);
-    assert.doesNotMatch(control, /game-audio-volume|game-audio-panel|مستوى الصوت|setGameAudioVolume/);
-    assert.doesNotMatch(sounds, /setGameAudioVolume/);
+    assert.match(control, /volumeId/);
+    assert.match(control, /game-audio-panel/);
+    assert.match(control, /مستوى الصوت/);
+    assert.match(control, /setGameAudioVolume/);
+    assert.match(sounds, /setGameAudioVolume/);
     assert.doesNotMatch(control, /🎵|🔊|🔇/);
     assert.match(shell, /stopAllGameSounds/);
     assert.match(shell, /clearGameAudioEventKeys/);

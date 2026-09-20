@@ -17,6 +17,7 @@ export type GameSoundId =
 
 export type GameAudioPreferences = {
   muted: boolean;
+  volume: number;
 };
 
 export type PlayGameSoundOptions = {
@@ -24,8 +25,7 @@ export type PlayGameSoundOptions = {
 };
 
 const PREFS_KEY = 'wanasatna:audio-prefs';
-const DEFAULT_PREFS: GameAudioPreferences = { muted: false };
-const MASTER_VOLUME = 1;
+const DEFAULT_PREFS: GameAudioPreferences = { muted: false, volume: 1 };
 const POOL_SIZE = 3;
 const MAX_CONCURRENT = 2;
 const SAME_SOUND_THROTTLE_MS = 120;
@@ -116,9 +116,10 @@ function readStoredPrefs(): GameAudioPreferences {
     if (!parsed || typeof parsed !== 'object') {
       return { ...DEFAULT_PREFS };
     }
-    const record = parsed as { muted?: unknown };
+    const record = parsed as { muted?: unknown; volume?: unknown };
     return {
       muted: typeof record.muted === 'boolean' ? record.muted : DEFAULT_PREFS.muted,
+      volume: typeof record.volume === 'number' ? clampGain(record.volume) : DEFAULT_PREFS.volume,
     };
   } catch {
     return { ...DEFAULT_PREFS };
@@ -130,7 +131,7 @@ function persistPrefs(): void {
     return;
   }
   try {
-    window.localStorage.setItem(PREFS_KEY, JSON.stringify({ muted: prefs.muted }));
+    window.localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
   } catch {
     // Persistence is best-effort.
   }
@@ -145,8 +146,8 @@ function ensurePrefs(): GameAudioPreferences {
 }
 
 function snapshotPrefs(): GameAudioPreferences {
-  if (prefsSnapshot.muted !== prefs.muted) {
-    prefsSnapshot = { muted: prefs.muted };
+  if (prefsSnapshot.muted !== prefs.muted || prefsSnapshot.volume !== prefs.volume) {
+    prefsSnapshot = { ...prefs };
   }
   return prefsSnapshot;
 }
@@ -157,7 +158,7 @@ function emitPrefs(): void {
 }
 
 function applyNodeVolume(node: PoolNode): void {
-  node.el.volume = clampGain(MASTER_VOLUME * node.gain);
+  node.el.volume = clampGain(prefs.volume * node.gain);
 }
 
 function ensureEngine(): PoolNode[] | null {
@@ -235,11 +236,19 @@ export function subscribeGameAudioPreferences(
 
 export function setGameAudioMuted(muted: boolean): void {
   ensurePrefs();
-  prefs = { muted: Boolean(muted) };
+  prefs = { ...prefs, muted: Boolean(muted) };
   persistPrefs();
   if (prefs.muted) {
     stopAllGameSounds();
   }
+  emitPrefs();
+}
+
+export function setGameAudioVolume(volume: number): void {
+  ensurePrefs();
+  prefs = { ...prefs, volume: clampGain(volume) };
+  persistPrefs();
+  pool?.forEach(applyNodeVolume);
   emitPrefs();
 }
 

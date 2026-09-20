@@ -1,10 +1,11 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { useId, useSyncExternalStore } from 'react';
 import {
   getGameAudioPreferences,
   getGameAudioServerSnapshot,
   setGameAudioMuted,
+  setGameAudioVolume,
   subscribeGameAudioPreferences,
   unlockGameAudio,
 } from '@/lib/game/sounds';
@@ -34,33 +35,71 @@ function SpeakerIcon({ muted }: { muted: boolean }) {
 }
 
 export function GameAudioControl({ className }: { className?: string }) {
+  const volumeId = useId();
   const prefs = useSyncExternalStore(
     subscribeGameAudioPreferences,
     getGameAudioPreferences,
     getGameAudioServerSnapshot,
   );
 
+  const volumePercent = Math.round(prefs.volume * 100);
+
   return (
-    <button
-      type="button"
-      className={cn(
-        'inline-flex size-11 min-h-11 min-w-11 items-center justify-center rounded-lg',
-        'border border-[color:var(--wanas-game-panel-border,var(--wanas-border))]',
-        'bg-[color:var(--wanas-game-card,var(--wanas-surface-soft))]',
-        'text-[color:var(--wanas-game-text-primary,var(--wanas-text-primary))]',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/45',
-        className,
-      )}
-      aria-pressed={prefs.muted}
-      aria-label={prefs.muted ? 'الصوت مكتوم' : 'الصوت'}
-      data-testid="game-audio-control"
-      data-muted={prefs.muted ? 'true' : 'false'}
-      onClick={() => {
-        unlockGameAudio();
-        setGameAudioMuted(!prefs.muted);
-      }}
-    >
-      <SpeakerIcon muted={prefs.muted} />
-    </button>
+    <div className="group relative inline-flex shrink-0" data-testid="game-audio-control-group">
+      <button
+        type="button"
+        className={cn(
+          'inline-flex size-11 min-h-11 min-w-11 items-center justify-center rounded-lg',
+          'border border-[color:var(--wanas-game-panel-border,var(--wanas-border))]',
+          'bg-[color:var(--wanas-game-card,var(--wanas-surface-soft))]',
+          'text-[color:var(--wanas-game-text-primary,var(--wanas-text-primary))]',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/45',
+          className,
+        )}
+        aria-pressed={prefs.muted}
+        aria-label={prefs.muted ? 'الصوت مكتوم' : 'الصوت'}
+        data-testid="game-audio-control"
+        data-muted={prefs.muted ? 'true' : 'false'}
+        onClick={() => {
+          unlockGameAudio();
+          setGameAudioMuted(!prefs.muted);
+        }}
+      >
+        <SpeakerIcon muted={prefs.muted} />
+      </button>
+
+      <div
+        className={cn(
+          'invisible absolute end-0 top-full z-50 w-36 rounded-xl border p-3 opacity-0 shadow-lg transition',
+          'border-[color:var(--wanas-game-panel-border,var(--wanas-border))]',
+          'bg-[color:var(--wanas-game-card,var(--wanas-surface))]',
+          'text-[color:var(--wanas-game-text-primary,var(--wanas-text-primary))]',
+          'group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100',
+        )}
+        data-testid="game-audio-panel"
+      >
+        <div className="mb-2 flex items-center justify-between gap-2 text-xs font-semibold">
+          <label htmlFor={volumeId}>مستوى الصوت</label>
+          <output htmlFor={volumeId} className="tabular-nums" dir="ltr">
+            {volumePercent}%
+          </output>
+        </div>
+        <input
+          id={volumeId}
+          type="range"
+          min="0"
+          max="100"
+          step="1"
+          value={volumePercent}
+          aria-label="مستوى الصوت"
+          className="h-6 w-full cursor-pointer [accent-color:var(--wanas-accent)]"
+          dir="ltr"
+          onChange={(event) => {
+            unlockGameAudio();
+            setGameAudioVolume(Number(event.currentTarget.value) / 100);
+          }}
+        />
+      </div>
+    </div>
   );
 }

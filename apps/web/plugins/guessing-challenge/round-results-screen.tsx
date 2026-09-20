@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import type { GuessingChallengePlayerView } from '@wanasatna/shared';
+import Image from 'next/image';
 import { ResultsAdPlacement } from '@/components/ads/results-ad-placement';
 import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
@@ -48,6 +49,7 @@ export function GuessingChallengeRoundResultsScreen({
 
   const selfReveal = view.revealEntries.find((entry) => entry.playerId === currentPlayerId);
   const opponentReveal = view.revealEntries.find((entry) => entry.playerId !== currentPlayerId);
+  const selfIdentity = view.self.revealedIdentity ?? selfReveal?.identity ?? null;
 
   const mappedTeammate = useMemo(() => {
     if (!view.teammate) {
@@ -128,6 +130,30 @@ export function GuessingChallengeRoundResultsScreen({
           <p className="text-wanas-success-dark mt-1 text-xs font-semibold">+100</p>
         </div>
 
+        {selfIdentity ? (
+          <section
+            className="wanas-game-card border-wanas-accent/45 bg-wanas-accent/10 rounded-2xl px-4 py-4 text-center sm:px-5"
+            data-testid="gc-self-word-reveal"
+            aria-label="كانت كلمتك"
+          >
+            <p className="text-wanas-text-muted text-sm font-semibold">كانت كلمتك:</p>
+            {selfIdentity.type === 'image' && selfIdentity.imageUrl ? (
+              <Image
+                src={selfIdentity.imageUrl}
+                alt={selfIdentity.value ?? 'كلمتك في الجولة'}
+                width={320}
+                height={144}
+                unoptimized
+                className="mx-auto mt-2 max-h-36 max-w-full rounded-xl object-contain"
+              />
+            ) : (
+              <p className="text-wanas-text-primary mt-1 break-words text-2xl font-black sm:text-3xl">
+                {selfIdentity.value}
+              </p>
+            )}
+          </section>
+        ) : null}
+
         <GameplayScene
           className="gc-results-scene"
           mode="reveal"
@@ -139,7 +165,7 @@ export function GuessingChallengeRoundResultsScreen({
           opponentName={opponentName}
           selfName={selfReveal?.name ?? view.self.name}
           opponentIdentity={opponentIdentity}
-          selfIdentity={selfReveal?.identity ?? view.self.revealedIdentity}
+          selfIdentity={selfIdentity}
           selfHidden={false}
           opponentHighlight={opponentWon}
           selfHighlight={selfWon}

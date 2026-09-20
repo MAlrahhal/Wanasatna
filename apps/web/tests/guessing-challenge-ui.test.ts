@@ -257,7 +257,10 @@ test('H reveal screen feeds revealed identity + 2v2 composition props', () => {
   const results = readPlugin('round-results-screen.tsx');
   assert.match(results, /GameplayScene/);
   assert.match(results, /mode="reveal"/);
-  assert.match(results, /selfIdentity=\{selfReveal\?\.identity/);
+  assert.match(results, /const selfIdentity = view\.self\.revealedIdentity/);
+  assert.match(results, /view\.self\.revealedIdentity/);
+  assert.match(results, /gc-self-word-reveal/);
+  assert.match(results, /كانت كلمتك:/);
   assert.match(results, /matchMode=\{view\.mode\}/);
   assert.match(results, /teammate=\{mappedTeammate\}/);
   assert.match(results, /opponents=\{mappedOpponents\}/);

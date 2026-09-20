@@ -148,7 +148,7 @@ void (async () => {
       assert.match(sounds, new RegExp(`/audio/sfx/${filename.replace('.', '\\.')}`));
     }
     assert.doesNotMatch(sounds, /timer-start|\/sounds\//);
-    assert.doesNotMatch(sounds, /'card-request'|setGameAudioVolume/);
+    assert.doesNotMatch(sounds, /'card-request'/);
   });
 
   await test('countdown: remount silent; 3→2→1 three ticks; rerender no duplicate; no tick at 0', () => {
@@ -448,8 +448,8 @@ void (async () => {
     const panel = read('plugins/guessing-challenge/special-cards-panel.tsx');
     assert.doesNotMatch(panel, /playSoftCardRequestPing/);
     assert.match(panel, /!cardConfirmStatus\.selfConfirmed/);
-    assert.doesNotMatch(read('lib/game/sounds.ts'), /setGameAudioVolume/);
-    assert.doesNotMatch(read('components/game/game-audio-control.tsx'), /setGameAudioVolume|مستوى الصوت/);
+    assert.match(read('lib/game/sounds.ts'), /setGameAudioVolume/);
+    assert.match(read('components/game/game-audio-control.tsx'), /setGameAudioVolume|مستوى الصوت/);
   });
 
   console.log(`\n${passed} passed, ${failed} failed`);
