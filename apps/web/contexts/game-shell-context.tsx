@@ -35,7 +35,9 @@ import {
   type GameShellSyncStatus,
   type ShellSyncView,
 } from '@/lib/game-shell/null-shell-recovery';
+import type { AuthoritativeRuntimeSnapshot } from '@/lib/room/authoritative-route';
 import { getRoomSocket } from '@/lib/room/socket';
+import { useMarathon } from './marathon-context';
 
 type GameShellContextValue = {
   state: GameShellState | null;
@@ -65,6 +67,7 @@ export function GameShellProvider({
   hostPlayerId: string | null;
   currentPlayerId: string | null;
 }) {
+  const { reconcileGameShellSync } = useMarathon();
   const [syncView, setSyncView] = useState<ShellSyncView>(() => createPendingShellSyncView());
   const syncViewRef = useRef(syncView);
   const [playerRecovery, setPlayerRecovery] = useState<GameShellPlayerRecoveryPayload | null>(null);
@@ -79,13 +82,9 @@ export function GameShellProvider({
     setSyncView(next);
   }, []);
 
-  const isHost = Boolean(
-    hostPlayerId && currentPlayerId && hostPlayerId === currentPlayerId,
-  );
+  const isHost = Boolean(hostPlayerId && currentPlayerId && hostPlayerId === currentPlayerId);
 
-  const isReady = Boolean(
-    currentPlayerId && state?.readyPlayerIds.includes(currentPlayerId),
-  );
+  const isReady = Boolean(currentPlayerId && state?.readyPlayerIds.includes(currentPlayerId));
 
   const handleFailure = useCallback(
     (code: Parameters<typeof getGameShellErrorMessage>[0]) => {
@@ -150,14 +149,21 @@ export function GameShellProvider({
           message: getGameShellErrorMessage(response.error.code, response.error.message),
         };
 
-    replaceSyncView(
-      applyShellSyncResponse({
-        requestGeneration: started.requestGeneration,
-        current: syncViewRef.current,
-        response: mapped,
-      }),
-    );
-  }, [replaceSyncView]);
+    const next = applyShellSyncResponse({
+      requestGeneration: started.requestGeneration,
+      current: syncViewRef.current,
+      response: mapped,
+    });
+    replaceSyncView(next);
+
+    if (response.success) {
+      const gameShell: AuthoritativeRuntimeSnapshot<GameShellState> = {
+        status: 'ready',
+        state: next.state,
+      };
+      await reconcileGameShellSync(gameShell);
+    }
+  }, [reconcileGameShellSync, replaceSyncView]);
 
   useEffect(() => {
     if (!currentPlayerId) {
@@ -247,12 +253,11 @@ export function GameShellProvider({
       generation: current.generation + 1,
     });
     setPlayerRecovery(null);
-  }, [handleFailure, replaceSyncView]);
+    await reconcileGameShellSync({ status: 'ready', state: null });
+  }, [handleFailure, reconcileGameShellSync, replaceSyncView]);
 
   const resetShell = useCallback(async () => {
-    const response = await emitGameShellWithAck<{ state: GameShellState }>(
-      GAME_SHELL_RESET_EVENT,
-    );
+    const response = await emitGameShellWithAck<{ state: GameShellState }>(GAME_SHELL_RESET_EVENT);
 
     if (!response.success) {
       handleFailure(response.error.code);
@@ -269,8 +274,10 @@ export function GameShellProvider({
 
     if (!response.success) {
       handleFailure(response.error.code);
+      return;
     }
-  }, [handleFailure]);
+    await reconcileGameShellSync({ status: 'ready', state: null });
+  }, [handleFailure, reconcileGameShellSync]);
 
   const value = useMemo<GameShellContextValue>(
     () => ({

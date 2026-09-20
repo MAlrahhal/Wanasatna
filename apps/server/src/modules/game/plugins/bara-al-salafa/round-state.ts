@@ -68,10 +68,10 @@ export function createRoundState(
   usedWordTexts: readonly string[] = [],
   roomId?: string,
 ): BaraAlSalafaRoundState {
-  const eligiblePlayers = players.filter((player) => player.isConnected);
+  const eligiblePlayers = players;
 
   if (eligiblePlayers.length === 0) {
-    throw new Error('No connected players available.');
+    throw new Error('No match participants available.');
   }
 
   const lockedCategoryId = enabledCategoryIds?.length === 1 ? enabledCategoryIds[0] : null;
@@ -138,22 +138,13 @@ export function createMatchState(
   enabledCategoryIds?: string[],
   roomId?: string,
 ): BaraAlSalafaMatchState {
-  const eligiblePlayers = players.filter((player) => player.isConnected);
+  const eligiblePlayers = players;
   const playerIds = eligiblePlayers.map((player) => player.id);
-  const round = createRoundState(
-    eligiblePlayers,
-    bundle,
-    settings,
-    enabledCategoryIds,
-    [],
-    roomId,
-  );
+  const round = createRoundState(eligiblePlayers, bundle, settings, enabledCategoryIds, [], roomId);
 
   return {
     playerIds,
-    playerNames: Object.fromEntries(
-      eligiblePlayers.map((player) => [player.id, player.name]),
-    ),
+    playerNames: Object.fromEntries(eligiblePlayers.map((player) => [player.id, player.name])),
     currentRound: 1,
     totalRounds: resolveTotalRounds(roomId),
     scores: createInitialScores(playerIds),
@@ -178,18 +169,14 @@ export function syncMatchPlayersFromShell(
   players: GameShellPlayer[],
 ): BaraAlSalafaMatchState {
   const participantIds = new Set(match.playerIds);
-  const connectedParticipants = players.filter(
-    (player) => player.isConnected && participantIds.has(player.id),
-  );
-
-  const playerIds = connectedParticipants.map((player) => player.id);
+  const currentParticipants = players.filter((player) => participantIds.has(player.id));
 
   return {
     ...match,
-    playerIds,
-    playerNames: Object.fromEntries(
-      connectedParticipants.map((player) => [player.id, player.name]),
-    ),
-    scores: ensureScoresForPlayers(match.scores, playerIds),
+    playerNames: {
+      ...match.playerNames,
+      ...Object.fromEntries(currentParticipants.map((player) => [player.id, player.name])),
+    },
+    scores: ensureScoresForPlayers(match.scores, match.playerIds),
   };
 }

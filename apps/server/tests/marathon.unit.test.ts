@@ -5,11 +5,19 @@ import {
   MARATHON_TRANSITION_SECONDS,
   accumulateMarathonPoints,
   normalizeMarathonScores,
+  type GameShellState,
+  type MarathonState,
 } from '@wanasatna/shared';
+import { deleteGameShell, replaceGameShellForTests } from '../src/modules/game/game.service.js';
+import { persistCompletedMatchThen } from '../src/modules/game/runtime/persist-completed-match.js';
+import { clearMarathonState } from '../src/modules/marathon/marathon.runtime.js';
+import { setMarathonState } from '../src/modules/marathon/marathon.store.js';
 import { validateMarathonPlan } from '../src/modules/marathon/marathon.validation.js';
 
 let passed = 0;
 let failed = 0;
+const asyncTests: Array<{ name: string; fn: () => Promise<void> }> = [];
+
 function test(name: string, fn: () => void) {
   try {
     fn();
@@ -19,6 +27,26 @@ function test(name: string, fn: () => void) {
     failed += 1;
     console.error(`FAIL ${name}`);
     console.error(error);
+  }
+}
+
+function asyncTest(name: string, fn: () => Promise<void>) {
+  asyncTests.push({ name, fn });
+}
+
+async function waitForTestSignal(signal: Promise<void>, label: string): Promise<void> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      signal,
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(() => reject(new Error(`Timed out waiting for ${label}.`)), 1_000);
+      }),
+    ]);
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
   }
 }
 
@@ -187,17 +215,154 @@ test('intermediate transitions stay on Marathon and final cleanup alone returns 
   assert.match(lifecycle, /marathonStatus === 'TRANSITION' \|\| marathonStatus === 'FINISHED'/);
 });
 
-test('persisted match is awaited before Marathon leg teardown/advance', () => {
-  const source = readFileSync(
-    new URL('../src/modules/game/runtime/persist-completed-match.ts', import.meta.url),
+test('final Marathon cleanup broadcasts an authoritative null runtime state', () => {
+  const runtime = readFileSync(
+    new URL('../src/modules/marathon/marathon.runtime.ts', import.meta.url),
     'utf8',
   );
-  const completeAt = source.indexOf('await completePersistedMatch');
-  const teardownAt = source.indexOf('teardown();', completeAt);
-  const transitionAt = source.indexOf('activateMarathonTransition', teardownAt);
-  assert.ok(completeAt >= 0 && teardownAt > completeAt && transitionAt > teardownAt);
-  assert.match(source, /pendingMarathonCompletions\.has\(completionKey\)/);
-  assert.match(source, /pendingMarathonCompletions\.add\(completionKey\)/);
+  const start = runtime.indexOf('export async function returnMarathonToLobby');
+  const end = runtime.indexOf('export function markMarathonPlayerDeparted', start);
+  const cleanup = runtime.slice(start, end);
+
+  assert.match(
+    cleanup,
+    /deleteMarathonState\(roomId\);\s*io\.to\(getRoomChannel\(roomId\)\)\.emit\(MARATHON_STATE_EVENT, \{ state: null \}\);/,
+  );
+  assert.match(
+    cleanup,
+    /MARATHON_STATE_EVENT, \{ state: null \}\);\s*broadcastEmptyGameShellState\(io, roomId\);/,
+  );
+});
+
+asyncTest('promotions and match persistence finish before Marathon teardown/advance', async () => {
+  const roomId = 'marathon-persistence-order';
+  const shellId = 'marathon-persistence-shell';
+  const sequence: string[] = [];
+  let releasePromotions!: () => void;
+  let releaseCompletion!: () => void;
+  let markPromotionsStarted!: () => void;
+  let markCompletionStarted!: () => void;
+  const promotionsGate = new Promise<void>((resolve) => {
+    releasePromotions = resolve;
+  });
+  const completionGate = new Promise<void>((resolve) => {
+    releaseCompletion = resolve;
+  });
+  const promotionsStarted = new Promise<void>((resolve) => {
+    markPromotionsStarted = resolve;
+  });
+  const completionStarted = new Promise<void>((resolve) => {
+    markCompletionStarted = resolve;
+  });
+
+  const shell: GameShellState = {
+    shellId,
+    roomId,
+    gameId: 'bara-al-salafa',
+    phase: 'PLAYING',
+    hostPlayerId: 'player-1',
+    players: [
+      {
+        id: 'player-1',
+        name: 'Player 1',
+        isHost: true,
+        isConnected: true,
+        isReady: true,
+        isSpectator: false,
+      },
+    ],
+    readyPlayerIds: ['player-1'],
+    countdownSeconds: 3,
+    countdownRemainingSeconds: 0,
+    gameTimerSeconds: 60,
+    gameTimerRemainingSeconds: 0,
+    startedAt: new Date().toISOString(),
+    finishedAt: null,
+    updatedAt: new Date().toISOString(),
+    matchParticipantIds: ['player-1'],
+  };
+  const marathon: MarathonState = {
+    marathonId: 'marathon-persistence-id',
+    roomId,
+    revision: 1,
+    status: 'PLAYING',
+    gamePlan: [item('bara-al-salafa'), item('judge')],
+    currentGameIndex: 0,
+    activeShellId: shellId,
+    participantIds: ['player-1'],
+    playerNames: { 'player-1': 'Player 1' },
+    playerTotals: { 'player-1': 0 },
+    departedPlayerIds: [],
+    completedGames: [],
+    skippedGames: [],
+    lastTransition: null,
+    finishReason: null,
+    transitionDeadlineAtMs: null,
+    startedAt: new Date().toISOString(),
+    finishedAt: null,
+    timerGeneration: 0,
+    leaderboard: [],
+  };
+  const io = {
+    to: () => ({
+      emit: (event: string) => {
+        sequence.push(`transition:${event}`);
+      },
+    }),
+  };
+
+  replaceGameShellForTests(shell);
+  setMarathonState(marathon);
+
+  try {
+    const pending = persistCompletedMatchThen(
+      roomId,
+      () => {
+        sequence.push('teardown');
+      },
+      io as never,
+      {
+        waitForPromotions: async () => {
+          sequence.push('promotions:start');
+          markPromotionsStarted();
+          await promotionsGate;
+          sequence.push('promotions:finish');
+        },
+        completeMatch: async () => {
+          sequence.push('complete:start');
+          markCompletionStarted();
+          await completionGate;
+          sequence.push('complete:finish');
+          return true;
+        },
+      },
+    );
+
+    await waitForTestSignal(promotionsStarted, 'promotion persistence to start');
+    assert.deepEqual(sequence, ['promotions:start']);
+
+    releasePromotions();
+    await waitForTestSignal(completionStarted, 'match completion to start');
+    assert.deepEqual(sequence, ['promotions:start', 'promotions:finish', 'complete:start']);
+
+    releaseCompletion();
+    await pending;
+
+    assert.deepEqual(sequence, [
+      'promotions:start',
+      'promotions:finish',
+      'complete:start',
+      'complete:finish',
+      'teardown',
+      'transition:marathon-state',
+      'transition:game-shell-navigate',
+    ]);
+  } finally {
+    releasePromotions();
+    releaseCompletion();
+    clearMarathonState(roomId);
+    deleteGameShell(roomId);
+  }
 });
 
 test('concurrent transition advances are serialized per room', () => {
@@ -245,7 +410,10 @@ test('insufficient-player abort skips the current leg instead of ending the Mara
     'utf8',
   );
   assert.match(abortSource, /recordAbortedMarathonLeg/);
-  assert.match(abortSource, /if \(marathonTransition\) \{\s*return true;/);
+  assert.match(
+    abortSource,
+    /if \(marathonTransition\) \{\s*broadcastEmptyGameShellState\(io, roomId\);\s*return true;/,
+  );
 });
 
 test('standalone Guessing Challenge completion remains outside Marathon persistence path', () => {
@@ -257,5 +425,21 @@ test('standalone Guessing Challenge completion remains outside Marathon persiste
   assert.doesNotMatch(source, /\}, io\);/);
 });
 
-console.log(`\n${passed} passed, ${failed} failed`);
-process.exit(failed ? 1 : 0);
+async function finishTests(): Promise<void> {
+  for (const { name, fn } of asyncTests) {
+    try {
+      await fn();
+      passed += 1;
+      console.log(`PASS ${name}`);
+    } catch (error) {
+      failed += 1;
+      console.error(`FAIL ${name}`);
+      console.error(error);
+    }
+  }
+
+  console.log(`\n${passed} passed, ${failed} failed`);
+  process.exit(failed ? 1 : 0);
+}
+
+void finishTests();

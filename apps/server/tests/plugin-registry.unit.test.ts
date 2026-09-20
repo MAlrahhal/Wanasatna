@@ -18,6 +18,7 @@ import {
   listRegisteredGames,
   registerGameDefinition,
 } from '../src/modules/game/runtime/plugin-registry.js';
+import { pluginParticipantsMatchShell } from '../src/modules/game/runtime/plugin-participant-invariant.js';
 
 let passed = 0;
 let failed = 0;
@@ -105,6 +106,33 @@ test('duplicate registration is idempotent', () => {
   assert.ok(plugin);
   registerGameDefinition(plugin);
   assert.equal(listRegisteredGames().length, before);
+});
+
+test('plugin participant invariant accepts the same unique identities in any order', () => {
+  assert.equal(
+    pluginParticipantsMatchShell(
+      {
+        roomId: 'room-invariant',
+        gameId: 'bara-al-salafa',
+        matchParticipantIds: ['p1', 'p2', 'p3'],
+      },
+      ['p3', 'p1', 'p2'],
+    ),
+    true,
+  );
+});
+
+test('plugin participant invariant rejects missing, extra, duplicate, and unlocked identities', () => {
+  const shell = {
+    roomId: 'room-invariant',
+    gameId: 'bara-al-salafa',
+    matchParticipantIds: ['p1', 'p2', 'p3'],
+  };
+
+  assert.equal(pluginParticipantsMatchShell(shell, ['p1', 'p2']), false);
+  assert.equal(pluginParticipantsMatchShell(shell, ['p1', 'p2', 'p3', 'p4']), false);
+  assert.equal(pluginParticipantsMatchShell(shell, ['p1', 'p2', 'p2']), false);
+  assert.equal(pluginParticipantsMatchShell({ ...shell, matchParticipantIds: null }, []), false);
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

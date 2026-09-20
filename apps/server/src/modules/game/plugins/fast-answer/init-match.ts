@@ -3,6 +3,7 @@ import type { FastAnswerMatchState } from '@wanasatna/shared';
 import { FAST_ANSWER_GAME_ID } from '@wanasatna/shared';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { getGameShellByRoomId } from '../../game.service.js';
+import { pluginParticipantsMatchShell } from '../../runtime/plugin-participant-invariant.js';
 import { startFastAnswerPhaseTimerIfNeeded } from './phase-timer.js';
 import { createMatchState } from './state.js';
 import { getFastAnswerState, setFastAnswerState } from './store.js';
@@ -18,12 +19,11 @@ function resolveMatchPlayers(shell: NonNullable<ReturnType<typeof getGameShellBy
 
 export function ensureFastAnswerMatchState(roomId: string): FastAnswerMatchState | null {
   const existing = getFastAnswerState(roomId);
+  const shell = getGameShellByRoomId(roomId);
 
   if (existing) {
-    return existing;
+    return shell && pluginParticipantsMatchShell(shell, existing.playerIds) ? existing : null;
   }
-
-  const shell = getGameShellByRoomId(roomId);
 
   if (!shell || shell.gameId !== FAST_ANSWER_GAME_ID || shell.phase !== 'PLAYING') {
     return null;
@@ -42,6 +42,9 @@ export function ensureFastAnswerMatchState(roomId: string): FastAnswerMatchState
   }
 
   const match = createMatchState(roomId, matchPlayers, content.settings);
+  if (!pluginParticipantsMatchShell(shell, match.playerIds)) {
+    return null;
+  }
   setFastAnswerState(roomId, match);
   return match;
 }

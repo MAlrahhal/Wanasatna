@@ -14,12 +14,19 @@ import {
   buildResultsLeaderboardEntries,
   computePlayerRoundPoints,
 } from '../src/modules/game/plugins/bara-al-salafa/scoring.js';
-import { applyVote, haveAllConnectedParticipantsVoted, isEligibleBaraVoter } from '../src/modules/game/plugins/bara-al-salafa/voting.js';
+import {
+  applyVote,
+  haveAllConnectedParticipantsVoted,
+  isEligibleBaraVoter,
+} from '../src/modules/game/plugins/bara-al-salafa/voting.js';
 import {
   applyRoleUnderstood,
   haveAllConnectedParticipantsAcknowledgedRole,
 } from '../src/modules/game/plugins/bara-al-salafa/role-understood.js';
-import { buildBaraAlSalafaPlayerView, buildBaraAlSalafaSpectatorView } from '../src/modules/game/plugins/bara-al-salafa/state.js';
+import {
+  buildBaraAlSalafaPlayerView,
+  buildBaraAlSalafaSpectatorView,
+} from '../src/modules/game/plugins/bara-al-salafa/state.js';
 import {
   buildImpostorGuessOptions,
   pickRandomWordFromCategories,
@@ -32,7 +39,11 @@ import {
   BARA_AL_SALAFA_MATCH_RESULTS_DURATION_SECONDS,
   MAX_ROOM_PLAYERS,
 } from '@wanasatna/shared';
-import { resolveTotalRounds, createRoundState } from '../src/modules/game/plugins/bara-al-salafa/round-state.js';
+import {
+  createMatchState,
+  resolveTotalRounds,
+  syncMatchPlayersFromShell,
+} from '../src/modules/game/plugins/bara-al-salafa/round-state.js';
 import { applyVoteSubmission } from '../src/modules/game/plugins/bara-al-salafa/phase-flow.js';
 import { startNextRound } from '../src/modules/game/plugins/bara-al-salafa/match-lifecycle.js';
 import { ensureBaraAlSalafaMatchState } from '../src/modules/game/plugins/bara-al-salafa/init-match.js';
@@ -151,7 +162,10 @@ test('directed pairs: every player asks once, is targeted once, no self-pairs (s
 });
 
 test('directed pairs: throws for fewer than 2 players', () => {
-  assert.throws(() => buildDirectedQuestionPairsFromOrder(['solo']), DirectedQuestionPairsBuildError);
+  assert.throws(
+    () => buildDirectedQuestionPairsFromOrder(['solo']),
+    DirectedQuestionPairsBuildError,
+  );
   assert.throws(() => buildDirectedQuestionPairsFromOrder([]), DirectedQuestionPairsBuildError);
 });
 
@@ -348,7 +362,11 @@ test('voting completion: all connected voters required; disconnected does not bl
 test('round-results: host can continue; non-host sees waiting message', () => {
   const shell = makeShell();
   const match = applyRoundScores(
-    makeMatch({ gamePhase: 'round-results', votes: { p1: 'p2', p3: 'p1' }, guessedCorrectly: true }),
+    makeMatch({
+      gamePhase: 'round-results',
+      votes: { p1: 'p2', p3: 'p1' },
+      guessedCorrectly: true,
+    }),
   );
 
   const hostView = buildBaraAlSalafaPlayerView(match, 'p1', shell);
@@ -477,7 +495,10 @@ test('privacy before guess: normals know word; impostor and reveal do not leak i
 
   const description = makeMatch({ gamePhase: 'description' });
   assert.equal(buildBaraAlSalafaPlayerView(description, 'p1', shell).displayText, 'مكة');
-  assert.equal(buildBaraAlSalafaPlayerView(description, 'p2', shell).displayText, 'أنت برا السالفة');
+  assert.equal(
+    buildBaraAlSalafaPlayerView(description, 'p2', shell).displayText,
+    'أنت برا السالفة',
+  );
   assert.equal(buildBaraAlSalafaPlayerView(description, 'p1', shell).spectatorCivilianWord, null);
   assert.equal(buildBaraAlSalafaSpectatorView(description).revealedWord, null);
   assert.equal(buildBaraAlSalafaSpectatorView(description).displayText, '');
@@ -578,7 +599,11 @@ function assertSpectatorHidesSecrets(
     assert.equal(view.revealedWord, null);
     assert.equal(view.spectatorCivilianWord, null);
     assert.equal(view.spectatorOutsiderConcept, null);
-    assert.equal(payload.includes('مكة'), false, 'secret word must not be serialized before reveal');
+    assert.equal(
+      payload.includes('مكة'),
+      false,
+      'secret word must not be serialized before reveal',
+    );
   } else {
     assert.equal(view.revealedWord, 'مكة');
     assert.equal(view.spectatorCivilianWord, 'مكة');
@@ -616,7 +641,10 @@ test('spectator joining mid-match gets a usable public directed-questions view',
 
 test('spectator live projection updates through public phases without leaking secrets', () => {
   const shell = makeShell();
-  const description = buildBaraAlSalafaSpectatorView(makeMatch({ gamePhase: 'description' }), shell);
+  const description = buildBaraAlSalafaSpectatorView(
+    makeMatch({ gamePhase: 'description' }),
+    shell,
+  );
   assertSpectatorHidesSecrets(description, { wordPublic: false, impostorPublic: false });
   assert.equal(description.gamePhase, 'description');
 
@@ -674,7 +702,9 @@ test('spectator live projection updates through public phases without leaking se
   assert.equal(guessResult.guessResultMessage, 'إجابة خاطئة!');
 
   const results = buildBaraAlSalafaSpectatorView(
-    applyRoundScores(makeMatch({ gamePhase: 'round-results', votes: { p1: 'p2' }, guessedCorrectly: false })),
+    applyRoundScores(
+      makeMatch({ gamePhase: 'round-results', votes: { p1: 'p2' }, guessedCorrectly: false }),
+    ),
     shell,
   );
   assertSpectatorHidesSecrets(results, { wordPublic: true, impostorPublic: true });
@@ -782,7 +812,11 @@ test('impostor-guess-result wrong message synchronized', () => {
 test('round-results: reveals word, impostor, guess result, points, leaderboard', () => {
   const shell = makeShell();
   const match = applyRoundScores(
-    makeMatch({ gamePhase: 'round-results', votes: { p1: 'p2', p3: 'p1' }, guessedCorrectly: true }),
+    makeMatch({
+      gamePhase: 'round-results',
+      votes: { p1: 'p2', p3: 'p1' },
+      guessedCorrectly: true,
+    }),
   );
 
   const view = buildBaraAlSalafaPlayerView(match, 'p3', shell);
@@ -909,7 +943,7 @@ test('submit-vote handler rejects ineligible voters with NOT_PARTICIPANT', () =>
   assert.doesNotMatch(voteOnly, /match\.playerIds\.includes\(playerId!\) && player\.isConnected/);
 });
 
-test('createRoundState assigns exactly one connected impostor', () => {
+test('Bara roles use the authoritative locked set even when one seat is disconnected', () => {
   const { bundle, settings } = loadBaraContent();
   const shell = makeShell();
   shell.players.push({
@@ -919,20 +953,42 @@ test('createRoundState assigns exactly one connected impostor', () => {
     isConnected: false,
     isReady: false,
   });
-  const connectedIds = shell.players.filter((player) => player.isConnected).map((player) => player.id);
+  shell.matchParticipantIds?.push('p4');
 
-  for (let i = 0; i < 8; i += 1) {
-    const round = createRoundState(shell.players, bundle, settings, undefined, [], `bara-round-${i}`);
-    assert.equal(typeof round.impostorPlayerId, 'string');
-    assert.ok(connectedIds.includes(round.impostorPlayerId));
-    assert.notEqual(round.impostorPlayerId, 'p4');
+  const originalRandom = Math.random;
+  Math.random = () => 0.999_999;
+  try {
+    const match = createMatchState(shell.players, bundle, settings, undefined, 'bara-locked');
+    assert.deepEqual(match.playerIds, ['p1', 'p2', 'p3', 'p4']);
+    assert.equal(match.round.impostorPlayerId, 'p4');
+
+    const roles = match.playerIds.map(
+      (playerId) => buildBaraAlSalafaPlayerView(match, playerId, shell).role,
+    );
+    assert.equal(roles.filter((role) => role === 'impostor').length, 1);
+    assert.equal(roles.filter((role) => role === 'player').length, 3);
+
+    const reconnectedShell = {
+      ...shell,
+      players: shell.players.map((player) =>
+        player.id === 'p4' ? { ...player, isConnected: true } : player,
+      ),
+    };
+    const synced = syncMatchPlayersFromShell(match, reconnectedShell.players);
+    assert.deepEqual(synced.playerIds, match.playerIds);
+    assert.equal(buildBaraAlSalafaPlayerView(synced, 'p4', reconnectedShell).role, 'impostor');
+  } finally {
+    Math.random = originalRandom;
   }
 });
 
 test('ensureBaraAlSalafaMatchState does not reroll an existing round', () => {
   const roomId = 'room-bara-ensure';
+  const shell = makeShell();
+  shell.roomId = roomId;
   const match = makeMatch();
   match.round.impostorPlayerId = 'p2';
+  replaceGameShellForTests(shell);
   setBaraAlSalafaState(roomId, match);
 
   const first = ensureBaraAlSalafaMatchState(roomId);
@@ -944,6 +1000,20 @@ test('ensureBaraAlSalafaMatchState does not reroll an existing round', () => {
   assert.equal(first?.round.word, 'مكة');
   assert.equal(first?.currentRound, 1);
   deleteBaraAlSalafaState(roomId);
+  deleteGameShell(roomId);
+});
+
+test('cached Bara state is rejected when shell and plugin participants diverge', () => {
+  const roomId = 'room-bara-invariant';
+  const shell = makeShell();
+  shell.roomId = roomId;
+  shell.matchParticipantIds = ['p1', 'p2'];
+  replaceGameShellForTests(shell);
+  setBaraAlSalafaState(roomId, makeMatch());
+
+  assert.equal(ensureBaraAlSalafaMatchState(roomId), null);
+  deleteBaraAlSalafaState(roomId);
+  deleteGameShell(roomId);
 });
 
 test('duplicate startNextRound does not install another round', () => {

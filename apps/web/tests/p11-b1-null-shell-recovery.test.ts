@@ -233,10 +233,16 @@ test('3. authoritative null shell sets Lobby notice and replace URL', () => {
   assert.equal(session.getItem(LOBBY_NOTICE_STORAGE_KEY), plan.notice);
   assertIdentityPreserved(session, local);
 
-  const page = read('app/(room)/game/game-page-client.tsx');
-  assert.match(page, /writeLobbyNotice\(plan\.notice\)/);
-  assert.match(page, /router\.replace\(plan\.lobbyUrl\)/);
-  assert.doesNotMatch(page, /router\.push\(/);
+  const planner = read('lib/room/authoritative-route.ts');
+  const marathonContext = read('contexts/marathon-context.tsx');
+  assert.match(planner, /snapshot\.gameShell\.state === null/);
+  assert.match(planner, /snapshot\.marathon\.state === null/);
+  assert.match(planner, /buildLobbyUrl/);
+  assert.match(
+    marathonContext,
+    /Promise\.all\(\[syncActiveGameShell\(\), syncMarathonState\(\)\]\)/,
+  );
+  assert.match(marathonContext, /reconcileAuthoritativeRoute\(\{ gameShell, marathon \}\)/);
 });
 
 test('4. simulated process restart: Room identity is not cleared', () => {
@@ -293,6 +299,7 @@ test('5. missed GAME_SHELL_NAVIGATE uses the same null-shell recovery', () => {
   assert.match(context, /GAME_SHELL_SYNC_EVENT/);
   assert.match(context, /applyShellSyncResponse/);
   assert.match(context, /status: 'empty'/);
+  assert.match(context, /await reconcileGameShellSync\(gameShell\)/);
 });
 
 test('6. transient CONNECTION_FAILED / ACK timeout does not redirect Lobby', () => {
@@ -341,10 +348,7 @@ test('7. RATE_LIMITED does not redirect Lobby', () => {
 
 test('7b. mount GAME_SHELL_SYNC is skipped when live state already applied', () => {
   const context = read('contexts/game-shell-context.tsx');
-  assert.match(
-    context,
-    /syncViewRef\.current\.status === 'ready' && syncViewRef\.current\.state/,
-  );
+  assert.match(context, /syncViewRef\.current\.status === 'ready' && syncViewRef\.current\.state/);
 });
 
 test('8. reconnect while game exists stays on /game', () => {
@@ -403,15 +407,11 @@ test('11. Lobby recovery happens once — no redirect loop', () => {
   assert.equal(onGame.recover, true);
   assert.equal(onLobby.recover, false);
 
-  const page = read('app/(room)/game/game-page-client.tsx');
-  assert.match(page, /recoveredRef/);
-  assert.match(page, /recoveredRef\.current = true/);
-
+  const planner = read('lib/room/authoritative-route.ts');
+  assert.match(planner, /destination === pathname/);
   const roomContext = read('contexts/room-context.tsx');
-  assert.match(
-    roomContext,
-    /response\.success &&\s*response\.data\.state &&\s*response\.data\.state\.phase !== 'FINISHED'/,
-  );
+  assert.match(roomContext, /pathnameRef\.current = plan\.pathname/);
+  assert.match(roomContext, /router\.replace\(plan\.href/);
 
   const lobby = read('components/lobby/lobby-screen.tsx');
   assert.match(lobby, /sessionStorage\.getItem\(LOBBY_NOTICE_STORAGE_KEY\)/);
@@ -420,7 +420,10 @@ test('11. Lobby recovery happens once — no redirect loop', () => {
 
 test('12. Game A null recovery cannot override a newer Game B shell', () => {
   const started = beginShellSync(createPendingShellSyncView());
-  const gameB = applyLiveShellState(started.view, makeShell({ shellId: 'shell-b', gameId: 'judge' }));
+  const gameB = applyLiveShellState(
+    started.view,
+    makeShell({ shellId: 'shell-b', gameId: 'judge' }),
+  );
   const staleNull = applyShellSyncResponse({
     requestGeneration: started.requestGeneration,
     current: gameB,
@@ -462,15 +465,15 @@ test('Lobby notice is informational, not a fatal crash error', () => {
   assert.match(banner, /tone=\{isLifecycleNotice \? 'info' : 'error'\}/);
 
   const presented = read('lib/ui/system-copy.ts');
-  assert.match(presented, /gameEndedReturnLobby: 'انتهت الجولة أو تمت إعادة تشغيل اللعبة، ورجعناك إلى اللوبي\.'/);
+  assert.match(
+    presented,
+    /gameEndedReturnLobby: 'انتهت الجولة أو تمت إعادة تشغيل اللعبة، ورجعناك إلى اللوبي\.'/,
+  );
   assert.match(presented, /INSUFFICIENT_PLAYERS_ABORT_MESSAGE/);
 });
 
 test('server null-shell contract remains success + state null', () => {
-  const service = readFileSync(
-    join(root, '../server/src/modules/game/game.service.ts'),
-    'utf8',
-  );
+  const service = readFileSync(join(root, '../server/src/modules/game/game.service.ts'), 'utf8');
   assert.match(
     service,
     /export async function syncGameShell\([\s\S]*?if \(!shell\) \{\s*return \{\s*success: true,\s*data: \{ state: null \},/,
@@ -616,10 +619,7 @@ test('QA-35 D: Judge reconnect while shell is PLAYING still stays on /game', () 
   );
 
   const context = read('contexts/game-shell-context.tsx');
-  assert.match(
-    context,
-    /syncViewRef\.current\.status === 'ready' && syncViewRef\.current\.state/,
-  );
+  assert.match(context, /syncViewRef\.current\.status === 'ready' && syncViewRef\.current\.state/);
 
   const judgeView = read('plugins/judge/use-player-view.ts');
   assert.match(judgeView, /bindPluginViewResync/);

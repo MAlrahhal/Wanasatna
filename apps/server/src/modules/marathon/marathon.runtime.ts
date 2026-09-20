@@ -29,7 +29,11 @@ import {
   navigateRoomToLobby,
   scheduleGameShellLifecycle,
 } from '../game/game.lifecycle.js';
-import { broadcastGameShellState, stopGameShellTimer } from '../game/game.timer.js';
+import {
+  broadcastEmptyGameShellState,
+  broadcastGameShellState,
+  stopGameShellTimer,
+} from '../game/game.timer.js';
 import {
   deleteGameShell,
   getGameShellByRoomId,
@@ -306,6 +310,9 @@ async function startNextPlayableLegUnlocked(
       !configurationError && hostPlayerId
         ? await startGameShellFromLobby(state.roomId, hostPlayerId, item.gameId, {
             skipSettingsHydration: true,
+            participantPlayerIds: latest.participantIds.filter(
+              (participantId) => !latest.departedPlayerIds.includes(participantId),
+            ),
           })
         : null;
     if (!response?.success) {
@@ -347,6 +354,7 @@ async function startNextPlayableLegUnlocked(
       cleanupGameShellRuntime(state.roomId);
       cleanupPluginMatchState(state.roomId, item.gameId);
       deleteGameShell(state.roomId);
+      broadcastEmptyGameShellState(io, state.roomId);
       return afterStart ?? state;
     }
     state = save({
@@ -494,6 +502,7 @@ export async function endMarathonByHost(
     cleanupGameShellRuntime(roomId);
     cleanupPluginMatchState(roomId, shell.gameId);
     deleteGameShell(roomId);
+    broadcastEmptyGameShellState(io, roomId);
   }
 
   broadcast(io, finished);
@@ -561,6 +570,8 @@ export async function returnMarathonToLobby(io: Server, roomId: string): Promise
   await clearRoomSpectatorFlags(roomId);
   await broadcastRoomPlayersSnapshot(io, roomId);
   deleteMarathonState(roomId);
+  io.to(getRoomChannel(roomId)).emit(MARATHON_STATE_EVENT, { state: null });
+  broadcastEmptyGameShellState(io, roomId);
   endingRooms.delete(roomId);
   navigateRoomToLobby(io, roomId);
 }

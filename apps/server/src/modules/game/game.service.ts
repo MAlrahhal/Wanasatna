@@ -4,6 +4,7 @@ import {
   DEFAULT_GAME_SHELL_COUNTDOWN_SECONDS,
   DEFAULT_GAME_SHELL_TIMER_SECONDS,
   GAME_DISABLED_MESSAGE,
+  GUESSING_CHALLENGE_GAME_ID,
   type GameActionResponse,
   type GameErrorCode,
   type GamePhase,
@@ -29,7 +30,13 @@ import { validateGameStart } from './runtime/validate-game-start.js';
 
 export type GameShellRecord = GameShellState;
 
+type InitGameShellOptions = {
+  participantPlayerIds?: readonly string[];
+  validateCurrentRoster?: boolean;
+};
+
 const shellsByRoomId = new Map<string, GameShellRecord>();
+let beforeStartGameShellInitForTests: (() => void | Promise<void>) | null = null;
 
 export function getGameShellByRoomId(roomId: string): GameShellRecord | null {
   return shellsByRoomId.get(roomId) ?? null;
@@ -48,6 +55,13 @@ export function deleteGameShell(roomId: string): void {
 /** Test-only: install an in-memory shell without Prisma. */
 export function replaceGameShellForTests(shell: GameShellRecord): void {
   saveShell(shell);
+}
+
+/** Test-only gate for proving roster changes between prevalidation and the lock. */
+export function setBeforeStartGameShellInitForTests(
+  hook: (() => void | Promise<void>) | null,
+): void {
+  beforeStartGameShellInitForTests = hook;
 }
 
 export function gameServiceError(
@@ -198,10 +212,89 @@ export function promoteConnectedSpectatorsIntoMatch(roomId: string): {
   };
 }
 
-function lockMatchParticipantIds(players: GameShellPlayer[]): string[] {
+/**
+ * A permanent leave before PLAYING must not leave an impossible lock pointing
+ * at an absent player. PLAYING memberships stay historical and are handled by
+ * game-specific departure logic instead.
+ */
+export function removePrePlayingMatchParticipant(
+  roomId: string,
+  playerId: string,
+): GameShellRecord | null {
+  const shell = getGameShellByRoomId(roomId);
+
+  if (!shell || (shell.phase !== 'WAITING' && shell.phase !== 'COUNTDOWN')) {
+    return null;
+  }
+
+  const isKnownToShell =
+    shell.players.some((player) => player.id === playerId) ||
+    shell.readyPlayerIds.includes(playerId) ||
+    shell.matchParticipantIds?.includes(playerId) === true;
+
+  if (!isKnownToShell) {
+    return null;
+  }
+
+  const players = shell.players.filter((player) => player.id !== playerId);
+  const readyPlayerIds = shell.readyPlayerIds.filter((readyPlayerId) => readyPlayerId !== playerId);
+  const matchParticipantIds =
+    shell.matchParticipantIds?.filter((participantPlayerId) => participantPlayerId !== playerId) ??
+    null;
+
+  return saveShell({
+    ...shell,
+    players,
+    readyPlayerIds,
+    matchParticipantIds,
+    updatedAt: nowIso(),
+  });
+}
+
+/**
+ * Before a plugin state exists, permanently absent room rows cannot remain in
+ * the authoritative lock. DISCONNECTED players are still present in the
+ * loaded roster and therefore retain their reconnect-grace seats.
+ */
+export function reconcileUninitializedMatchParticipants(roomId: string): GameShellRecord | null {
+  const shell = getGameShellByRoomId(roomId);
+
+  if (shell?.phase !== 'PLAYING' || !shell.matchParticipantIds) {
+    return null;
+  }
+
+  const matchParticipantIds = retainPresentMatchParticipantIds(
+    shell.matchParticipantIds,
+    shell.players,
+  );
+
+  if (matchParticipantIds.length === shell.matchParticipantIds.length) {
+    return null;
+  }
+
+  return saveShell({
+    ...shell,
+    matchParticipantIds,
+    updatedAt: nowIso(),
+  });
+}
+
+function lockMatchParticipantIds(players: GameShellPlayer[], gameId?: string | null): string[] {
   return players
-    .filter((player) => player.isConnected && !player.isSpectator)
+    .filter(
+      (player) =>
+        !player.isSpectator && (gameId !== GUESSING_CHALLENGE_GAME_ID || player.isConnected),
+    )
     .map((player) => player.id);
+}
+
+function retainPresentMatchParticipantIds(
+  participantPlayerIds: readonly string[],
+  players: GameShellPlayer[],
+): string[] {
+  const presentPlayerIds = new Set(players.map((player) => player.id));
+
+  return [...new Set(participantPlayerIds)].filter((playerId) => presentPlayerIds.has(playerId));
 }
 
 async function persistLockedMatch(shell: GameShellRecord): Promise<void> {
@@ -245,6 +338,7 @@ export async function initGameShell(
   roomId: string,
   playerId: string,
   payload: InitGameShellPayload,
+  options?: InitGameShellOptions,
 ): Promise<GameActionResponse<{ state: GameShellState }>> {
   const hostCheck = await assertHost(roomId, playerId);
 
@@ -302,6 +396,18 @@ export async function initGameShell(
           return gameServiceError('PLAYER_NOT_FOUND', 'Player not found in room.');
         }
 
+        if (options?.validateCurrentRoster && payload.gameId) {
+          const startValidationError = validateGameStart(
+            payload.gameId,
+            roomId,
+            room.hostPlayerId,
+            players,
+          );
+          if (startValidationError) {
+            return startValidationError;
+          }
+        }
+
         const shell: GameShellRecord = {
           shellId: randomUUID(),
           roomId,
@@ -317,7 +423,9 @@ export async function initGameShell(
           startedAt: null,
           finishedAt: null,
           updatedAt: nowIso(),
-          matchParticipantIds: null,
+          matchParticipantIds: options?.participantPlayerIds
+            ? retainPresentMatchParticipantIds(options.participantPlayerIds, players)
+            : lockMatchParticipantIds(players, payload.gameId),
         };
 
         // Hold the in-memory shell before FOR UPDATE releases so join/start serialize.
@@ -500,7 +608,10 @@ export async function startGameShellCountdown(
   const nextShell = saveShell({
     ...syncedShell,
     phase: 'COUNTDOWN',
-    matchParticipantIds: lockMatchParticipantIds(players),
+    matchParticipantIds:
+      currentShell.matchParticipantIds === null
+        ? lockMatchParticipantIds(players, currentShell.gameId)
+        : retainPresentMatchParticipantIds(currentShell.matchParticipantIds, players),
     countdownRemainingSeconds: currentShell.countdownSeconds,
     updatedAt: nowIso(),
   });
@@ -584,7 +695,10 @@ export async function advanceShellToCountdownFromLobby(
   const nextShell = saveShell({
     ...syncedShell,
     phase: 'COUNTDOWN',
-    matchParticipantIds: lockMatchParticipantIds(players),
+    matchParticipantIds:
+      currentShell.matchParticipantIds === null
+        ? lockMatchParticipantIds(players, currentShell.gameId)
+        : retainPresentMatchParticipantIds(currentShell.matchParticipantIds, players),
     countdownRemainingSeconds: syncedShell.countdownSeconds,
     updatedAt: nowIso(),
   });
@@ -785,7 +899,10 @@ export async function startGameShellFromLobby(
   roomId: string,
   playerId: string,
   gameId: string,
-  options?: { skipSettingsHydration?: boolean },
+  options?: {
+    skipSettingsHydration?: boolean;
+    participantPlayerIds?: readonly string[];
+  },
 ): Promise<GameActionResponse<{ state: GameShellState }>> {
   const hostCheck = await assertHost(roomId, playerId);
 
@@ -809,7 +926,21 @@ export async function startGameShellFromLobby(
     await hydrateRoomGameSettings(roomId);
   }
 
-  const initResponse = await initGameShell(roomId, playerId, { gameId });
+  if (beforeStartGameShellInitForTests) {
+    await beforeStartGameShellInitForTests();
+  }
+
+  // Normal starts derive the lock inside initGameShell's room transaction.
+  // Passing this pre-transaction roster would allow a concurrently joined
+  // non-spectator to be present in the shell but absent from the match lock.
+  // Marathon is the sole explicit caller with a preselected roster contract.
+  const initOptions: InitGameShellOptions = {
+    validateCurrentRoster: true,
+    ...(options?.participantPlayerIds
+      ? { participantPlayerIds: options.participantPlayerIds }
+      : {}),
+  };
+  const initResponse = await initGameShell(roomId, playerId, { gameId }, initOptions);
 
   if (!initResponse.success) {
     return initResponse;

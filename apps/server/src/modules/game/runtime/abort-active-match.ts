@@ -5,6 +5,7 @@ import { prisma } from '../../../lib/prisma.js';
 import { loadActiveRoomPlayers } from '../../room/room.utils.js';
 import { deleteGameShell, getGameShellByRoomId } from '../game.service.js';
 import { cleanupGameShellRuntime, returnRoomToLobbyAfterMatch } from '../game.lifecycle.js';
+import { broadcastEmptyGameShellState } from '../game.timer.js';
 import { clearPlayerRecoveryForTeardown } from './player-recovery.js';
 import { cleanupPluginMatchState } from './cleanup-plugin-match.js';
 import { recordAbortedMarathonLeg } from '../../marathon/marathon.runtime.js';
@@ -67,6 +68,7 @@ export async function abortActiveMatch(
   });
 
   if (marathonTransition) {
+    broadcastEmptyGameShellState(io, roomId);
     return true;
   }
 

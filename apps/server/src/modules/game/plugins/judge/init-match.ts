@@ -3,6 +3,7 @@ import type { JudgeMatchState } from '@wanasatna/shared';
 import { JUDGE_GAME_ID } from '@wanasatna/shared';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { getGameShellByRoomId } from '../../game.service.js';
+import { pluginParticipantsMatchShell } from '../../runtime/plugin-participant-invariant.js';
 import { startJudgePhaseTimerIfNeeded } from './phase-timer.js';
 import { createMatchState } from './state.js';
 import { getJudgeState, setJudgeState } from './store.js';
@@ -18,12 +19,11 @@ function resolveMatchPlayers(shell: NonNullable<ReturnType<typeof getGameShellBy
 
 export function ensureJudgeMatchState(roomId: string): JudgeMatchState | null {
   const existing = getJudgeState(roomId);
+  const shell = getGameShellByRoomId(roomId);
 
   if (existing) {
-    return existing;
+    return shell && pluginParticipantsMatchShell(shell, existing.playerIds) ? existing : null;
   }
-
-  const shell = getGameShellByRoomId(roomId);
 
   if (!shell || shell.gameId !== JUDGE_GAME_ID || shell.phase !== 'PLAYING') {
     return null;
@@ -42,14 +42,14 @@ export function ensureJudgeMatchState(roomId: string): JudgeMatchState | null {
   }
 
   const match = createMatchState(roomId, matchPlayers, content.settings);
+  if (!pluginParticipantsMatchShell(shell, match.playerIds)) {
+    return null;
+  }
   setJudgeState(roomId, match);
   return match;
 }
 
-export function ensureJudgeMatchStateWithTimer(
-  io: Server,
-  roomId: string,
-): JudgeMatchState | null {
+export function ensureJudgeMatchStateWithTimer(io: Server, roomId: string): JudgeMatchState | null {
   const match = ensureJudgeMatchState(roomId);
 
   if (match) {

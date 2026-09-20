@@ -63,6 +63,7 @@
     "test:guessing-challenge": "tsx tests/guessing-challenge.unit.test.ts",
     "test:guessing-challenge:integration": "tsx tests/guessing-challenge.integration.test.ts",
     "test:multiplayer": "tsx tests/multiplayer.integration.test.ts",
+    "test:qa79-high-player": "cross-env WANASATNA_TEST_MODE=0 tsx tests/qa79-high-player.integration.test.ts",
     "test:lifecycle": "tsx tests/lifecycle.integration.test.ts",
     "test:reconnect": "tsx tests/reconnect.integration.test.ts",
     "test:fresh-join": "tsx tests/fresh-join.integration.test.ts",

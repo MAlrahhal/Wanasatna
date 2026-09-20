@@ -3,6 +3,7 @@ import type { GuessingChallengeMatchState } from '@wanasatna/shared';
 import { GUESSING_CHALLENGE_GAME_ID } from '@wanasatna/shared';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { getGameShellByRoomId } from '../../game.service.js';
+import { pluginParticipantsMatchShell } from '../../runtime/plugin-participant-invariant.js';
 import { getGuessingChallengeRoomMode } from './mode-store.js';
 import { startGuessingChallengePhaseTimerIfNeeded } from './phase-timer.js';
 import {
@@ -27,12 +28,11 @@ export function ensureGuessingChallengeMatchState(
   roomId: string,
 ): GuessingChallengeMatchState | null {
   const existing = getGuessingChallengeState(roomId);
+  const shell = getGameShellByRoomId(roomId);
 
   if (existing) {
-    return existing;
+    return shell && pluginParticipantsMatchShell(shell, existing.playerIds) ? existing : null;
   }
-
-  const shell = getGameShellByRoomId(roomId);
 
   if (!shell || shell.gameId !== GUESSING_CHALLENGE_GAME_ID || shell.phase !== 'PLAYING') {
     return null;
@@ -50,10 +50,15 @@ export function ensureGuessingChallengeMatchState(
   const expected = requiredPlayerCountForMode(mode);
   const pregame = getPregameTeams(roomId);
   const assignedPlayers = pregame
-    ? matchPlayers.filter((player) => pregame.blue.includes(player.id) || pregame.red.includes(player.id))
+    ? matchPlayers.filter(
+        (player) => pregame.blue.includes(player.id) || pregame.red.includes(player.id),
+      )
     : matchPlayers;
 
-  if (assignedPlayers.length !== expected || !assignedPlayers.some((player) => player.isConnected)) {
+  if (
+    assignedPlayers.length !== expected ||
+    !assignedPlayers.some((player) => player.isConnected)
+  ) {
     return null;
   }
 
@@ -71,6 +76,9 @@ export function ensureGuessingChallengeMatchState(
 
   const teamAssignment = pregame ? toTeamMaps(pregame) : teamValidation.data;
   const match = createMatchState(roomId, assignedPlayers, content.settings, mode, teamAssignment);
+  if (!pluginParticipantsMatchShell(shell, match.playerIds)) {
+    return null;
+  }
   setGuessingChallengeState(roomId, match);
   return match;
 }

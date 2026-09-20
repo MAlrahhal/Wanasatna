@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -54,6 +55,11 @@ import { emitGameShellWithAck } from '@/lib/game-shell/emit';
 import { getGameShellErrorMessage } from '@/lib/game-shell/error-messages';
 import { hasClientGamePlugin } from '@/lib/game-plugins/registry';
 import { normalizeRoomDates, toLobbyPlayers } from '@/lib/room/map-player';
+import {
+  planAuthoritativeRoomRoute,
+  type AuthoritativeRoomRouteSnapshot,
+  type AuthoritativeRuntimeSnapshot,
+} from '@/lib/room/authoritative-route';
 import {
   buildLobbyUrl,
   lobbyUrlNeedsNormalization,
@@ -109,6 +115,10 @@ type RoomContextValue = {
   startGame: () => Promise<void>;
   leaveRoom: (redirectTo?: string) => Promise<void>;
   endRoom: () => Promise<boolean>;
+  activeGameShell: GameShellState | null;
+  syncActiveGameShell: () => Promise<AuthoritativeRuntimeSnapshot<GameShellState>>;
+  getActiveGameShellRouteSnapshot: () => AuthoritativeRuntimeSnapshot<GameShellState>;
+  reconcileAuthoritativeRoute: (snapshot: AuthoritativeRoomRouteSnapshot) => void;
   isWaitingForNextMatch: boolean;
   activeMatchParticipantIds: string[] | null;
   teamSnapshot: PregameTeamSnapshot | null;
@@ -197,35 +207,30 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   // stale shell snapshot (e.g. suppressing /game navigation for a player who
   // joined the next match after waiting out the previous one).
   const activeGameShellRef = useRef<GameShellState | null>(null);
+  const activeGameShellRouteSnapshotRef = useRef<AuthoritativeRuntimeSnapshot<GameShellState>>({
+    status: 'unknown',
+  });
+  const activeGameShellSyncGenerationRef = useRef(0);
   const removeSocketListenersRef = useRef<(() => void) | null>(null);
-  const playerIdRef = useRef<string | null>(null);
+  const roomCodeRef = useRef<string | null>(null);
   const selectedGameIdRef = useRef<string | null>(null);
-
-  if (!(
-    status === 'connected' &&
-    room?.code &&
-    lobbyUrlNeedsNormalization(searchParams, room.code)
-  )) {
-    searchParamsRef.current = searchParams;
-  }
-  pathnameRef.current = pathname;
-  playerIdRef.current = player?.id ?? null;
-  selectedGameIdRef.current = selectedGameId;
 
   const isHost = player?.isHost ?? false;
 
-  useEffect(() => {
-    if (!teamSnapshot) {
-      return;
-    }
-    if (!selectedGameId || teamSnapshot.gameId !== selectedGameId) {
-      setTeamSnapshot(null);
-    }
-  }, [selectedGameId, teamSnapshot]);
+  const visibleTeamSnapshot = teamSnapshot?.gameId === selectedGameId ? teamSnapshot : null;
 
-  useEffect(() => {
-    activeGameShellRef.current = activeGameShell;
-  }, [activeGameShell]);
+  useLayoutEffect(() => {
+    if (!(
+      status === 'connected' &&
+      room?.code &&
+      lobbyUrlNeedsNormalization(searchParams, room.code)
+    )) {
+      searchParamsRef.current = searchParams;
+    }
+    pathnameRef.current = pathname;
+    roomCodeRef.current = room?.code ?? null;
+    selectedGameIdRef.current = selectedGameId;
+  }, [pathname, room?.code, searchParams, selectedGameId, status]);
 
   const isWaitingForNextMatchValue = useMemo(
     () => (player ? isWaitingForNextMatch(activeGameShell, player.id) : false),
@@ -234,17 +239,57 @@ export function RoomProvider({ children }: { children: ReactNode }) {
 
   const activeMatchParticipantIds = activeGameShell?.matchParticipantIds ?? null;
 
+  const applyActiveGameShell = useCallback((state: GameShellState | null) => {
+    const snapshot: AuthoritativeRuntimeSnapshot<GameShellState> = { status: 'ready', state };
+    activeGameShellSyncGenerationRef.current += 1;
+    activeGameShellRef.current = state;
+    activeGameShellRouteSnapshotRef.current = snapshot;
+    setActiveGameShell(state);
+    return snapshot;
+  }, []);
+
+  const getActiveGameShellRouteSnapshot = useCallback(
+    () => activeGameShellRouteSnapshotRef.current,
+    [],
+  );
+
+  const reconcileAuthoritativeRoute = useCallback(
+    (snapshot: AuthoritativeRoomRouteSnapshot) => {
+      const plan = planAuthoritativeRoomRoute({
+        pathname: pathnameRef.current,
+        roomCode: roomCodeRef.current,
+        snapshot,
+      });
+      if (!plan) {
+        return;
+      }
+
+      // Update before App Router commits so duplicate state/events are idempotent.
+      pathnameRef.current = plan.pathname;
+      router.replace(plan.href, { scroll: false });
+    },
+    [router],
+  );
+
   const syncActiveGameShell = useCallback(async () => {
+    const requestGeneration = activeGameShellSyncGenerationRef.current + 1;
+    activeGameShellSyncGenerationRef.current = requestGeneration;
+    activeGameShellRouteSnapshotRef.current = { status: 'unknown' };
+
     const response = await emitGameShellWithAck<{ state: GameShellState | null }>(
       GAME_SHELL_SYNC_EVENT,
     );
 
-    if (response.success) {
+    if (response.success && requestGeneration === activeGameShellSyncGenerationRef.current) {
       activeGameShellRef.current = response.data.state;
+      activeGameShellRouteSnapshotRef.current = {
+        status: 'ready',
+        state: response.data.state,
+      };
       setActiveGameShell(response.data.state);
     }
 
-    return response;
+    return activeGameShellRouteSnapshotRef.current;
   }, []);
 
   const canonicalizeActiveLobbyUrl = useCallback(
@@ -269,26 +314,13 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     [router],
   );
 
-  const redirectIfActiveGameShell = useCallback(
-    async (playerId?: string) => {
-      if (pathnameRef.current === '/game' || pathnameRef.current === '/marathon') {
-        return;
-      }
-
-      const response = await syncActiveGameShell();
-      const resolvedPlayerId = playerId ?? playerIdRef.current;
-
-      if (
-        response.success &&
-        response.data.state &&
-        response.data.state.phase !== 'FINISHED' &&
-        resolvedPlayerId
-      ) {
-        router.push('/game');
-      }
-    },
-    [router, syncActiveGameShell],
-  );
+  const redirectIfActiveGameShell = useCallback(async () => {
+    const gameShell = await syncActiveGameShell();
+    reconcileAuthoritativeRoute({
+      gameShell,
+      marathon: { status: 'unknown' },
+    });
+  }, [reconcileAuthoritativeRoute, syncActiveGameShell]);
 
   const clearLocalGameUi = useCallback(() => {
     setSelectedGameId(null);
@@ -296,6 +328,8 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     setTeamSnapshot(null);
     setActiveGameShell(null);
     activeGameShellRef.current = null;
+    activeGameShellSyncGenerationRef.current += 1;
+    activeGameShellRouteSnapshotRef.current = { status: 'unknown' };
   }, []);
 
   const restoreSelectedGame = useCallback(() => {
@@ -315,6 +349,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         setPlayer,
         setPlayers,
       });
+      roomCodeRef.current = state.snapshot.room?.code ?? null;
       if (state.status === 'active') {
         setSessionEndReason(null);
       }
@@ -363,16 +398,18 @@ export function RoomProvider({ children }: { children: ReactNode }) {
           : payload.path;
 
       if (payload.path === '/lobby' || path.startsWith('/lobby')) {
-        activeGameShellRef.current = null;
-        setActiveGameShell(null);
+        applyActiveGameShell(null);
       }
 
+      if (pathnameRef.current === payload.path && payload.path !== '/lobby') {
+        return;
+      }
+      pathnameRef.current = payload.path;
       router.push(path);
     };
 
     const onGameShellState = (payload: { state: GameShellState | null }) => {
-      activeGameShellRef.current = payload.state;
-      setActiveGameShell(payload.state);
+      applyActiveGameShell(payload.state);
     };
 
     const onTeamSnapshot = (payload: PregameTeamSnapshot) => {
@@ -393,7 +430,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       socket.off(TEAM_SNAPSHOT_EVENT, onTeamSnapshot);
       removeSocketListenersRef.current = null;
     };
-  }, [router]);
+  }, [applyActiveGameShell, router]);
 
   const urlRoomCode = canonicalizeRoomCode(searchParams.get('code')?.trim() ?? '');
   const urlAction = searchParams.get('action')?.trim() ?? '';
@@ -454,7 +491,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
               return;
             }
             restoreSelectedGame();
-            await redirectIfActiveGameShell(manager.getState().snapshot.player?.id);
+            await redirectIfActiveGameShell();
           }
           return;
         }
@@ -545,7 +582,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
               playerId: state.session?.playerId ?? null,
               status: state.status,
             });
-            await redirectIfActiveGameShell(state.snapshot.player?.id);
+            await redirectIfActiveGameShell();
             return;
           }
 
@@ -556,7 +593,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
 
           if (resumed.success) {
             restoreSelectedGame();
-            await redirectIfActiveGameShell(manager.getState().snapshot.player?.id);
+            await redirectIfActiveGameShell();
             return;
           }
 
@@ -642,7 +679,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
             return;
           }
           restoreSelectedGame();
-          await redirectIfActiveGameShell(manager.getState().snapshot.player?.id);
+          await redirectIfActiveGameShell();
         }
         return;
       }
@@ -687,25 +724,21 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     }
   }, [status, room?.code, urlAction, urlHasName, urlRoomCode, canonicalizeActiveLobbyUrl]);
 
+  // Keep runtime listeners attached across transport reconnects. Correctness does
+  // not depend on a broadcast adjacent to the resume ACK; MarathonProvider also
+  // performs explicit acknowledged runtime sync after every active transition.
   useEffect(() => {
-    if (
-      status === 'connected' &&
-      room?.code &&
-      lobbyUrlNeedsNormalization(searchParams, room.code)
-    ) {
-      return;
-    }
-    searchParamsRef.current = searchParams;
-  }, [searchParams, status, room?.code]);
+    registerSocketListeners();
 
-  // Game-shell + team listeners only while connected (manager owns room core events).
+    return () => {
+      removeSocketListenersRef.current?.();
+    };
+  }, [registerSocketListeners]);
+
   useEffect(() => {
     if (status !== 'connected') {
-      removeSocketListenersRef.current?.();
       return;
     }
-
-    registerSocketListeners();
 
     const skipTeamSync = pathname === '/game' || pathname === '/marathon';
 
@@ -719,11 +752,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
         }
       })();
     }
-
-    return () => {
-      removeSocketListenersRef.current?.();
-    };
-  }, [pathname, registerSocketListeners, status]);
+  }, [pathname, status]);
 
   const lockRoom = useCallback(async () => {
     const response = await emitRoomAck<{ roomId: string; isLocked: boolean }>(LOCK_ROOM_EVENT);
@@ -957,13 +986,18 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     }
 
     setErrorMessage(null);
-    router.push('/game');
+    const gameShell = applyActiveGameShell(response.data.state);
+    reconcileAuthoritativeRoute({
+      gameShell,
+      marathon: { status: 'unknown' },
+    });
   }, [
+    applyActiveGameShell,
     drawGuessDrawerMode,
     drawGuessFixedPlayerId,
     guessingChallengeMode,
     isHost,
-    router,
+    reconcileAuthoritativeRoute,
     selectedGameId,
     selectedRoundCategoryId,
     timingChallengeSettings,
@@ -1031,19 +1065,25 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       startGame,
       leaveRoom,
       endRoom,
+      activeGameShell,
+      syncActiveGameShell,
+      getActiveGameShellRouteSnapshot,
+      reconcileAuthoritativeRoute,
       isWaitingForNextMatch: isWaitingForNextMatchValue,
       activeMatchParticipantIds,
-      teamSnapshot,
+      teamSnapshot: visibleTeamSnapshot,
       configureTeams,
       assignPlayerTeam,
       randomizeTeams,
     }),
     [
+      activeGameShell,
       activeMatchParticipantIds,
       assignPlayerTeam,
       configureTeams,
       errorMessage,
       endRoom,
+      getActiveGameShellRouteSnapshot,
       isHost,
       isWaitingForNextMatchValue,
       kickPlayer,
@@ -1052,6 +1092,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       player,
       players,
       randomizeTeams,
+      reconcileAuthoritativeRoute,
       room,
       selectGame,
       selectRoundCategory,
@@ -1064,7 +1105,8 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       drawGuessFixedPlayerId,
       startGame,
       status,
-      teamSnapshot,
+      syncActiveGameShell,
+      visibleTeamSnapshot,
       timingChallengeSettings,
       guessingChallengeMode,
       updateRoomGameSettings,

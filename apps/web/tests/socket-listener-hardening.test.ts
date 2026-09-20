@@ -17,6 +17,7 @@ import {
   isWaitingForNextMatch,
   type GameShellState,
 } from '@wanasatna/shared';
+import { planAuthoritativeRoomRoute } from '../lib/room/authoritative-route';
 
 let passed = 0;
 let failed = 0;
@@ -131,7 +132,21 @@ test('M1: room-context does not suppress /game navigation for spectators', () =>
     /isWaitingForNextMatch\(\s*activeGameShellRef\.current/,
     'spectators must be allowed to open /game',
   );
-  assert.match(source, /router\.push\('\/game'\)/);
+  assert.match(source, /reconcileAuthoritativeRoute/);
+  assert.deepEqual(
+    planAuthoritativeRoomRoute({
+      pathname: '/lobby',
+      roomCode: '123456',
+      snapshot: {
+        gameShell: {
+          status: 'ready',
+          state: makeShell({ phase: 'PLAYING', matchParticipantIds: ['p1', 'p2'] }),
+        },
+        marathon: { status: 'unknown' },
+      },
+    }),
+    { pathname: '/game', href: '/game' },
+  );
 });
 
 test('M1: waiting-for-next-match helper still identifies locked-out joiners', () => {

@@ -3,6 +3,7 @@ import type { ImposterDrawMatchState } from '@wanasatna/shared';
 import { IMPOSTER_DRAW_GAME_ID } from '@wanasatna/shared';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { getGameShellByRoomId } from '../../game.service.js';
+import { pluginParticipantsMatchShell } from '../../runtime/plugin-participant-invariant.js';
 import { startImposterDrawPhaseTimerIfNeeded } from './phase-timer.js';
 import { createMatchState } from './state.js';
 import { getImposterDrawState, setImposterDrawState } from './store.js';
@@ -18,12 +19,11 @@ function resolveMatchPlayers(shell: NonNullable<ReturnType<typeof getGameShellBy
 
 export function ensureImposterDrawMatchState(roomId: string): ImposterDrawMatchState | null {
   const existing = getImposterDrawState(roomId);
+  const shell = getGameShellByRoomId(roomId);
 
   if (existing) {
-    return existing;
+    return shell && pluginParticipantsMatchShell(shell, existing.playerIds) ? existing : null;
   }
-
-  const shell = getGameShellByRoomId(roomId);
 
   if (!shell || shell.gameId !== IMPOSTER_DRAW_GAME_ID || shell.phase !== 'PLAYING') {
     return null;
@@ -42,6 +42,9 @@ export function ensureImposterDrawMatchState(roomId: string): ImposterDrawMatchS
   }
 
   const match = createMatchState(roomId, matchPlayers, content.settings);
+  if (!pluginParticipantsMatchShell(shell, match.playerIds)) {
+    return null;
+  }
   setImposterDrawState(roomId, match);
   return match;
 }

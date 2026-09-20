@@ -3,6 +3,7 @@ import type { WhoWroteItMatchState } from '@wanasatna/shared';
 import { WHO_WROTE_IT_GAME_ID } from '@wanasatna/shared';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { getGameShellByRoomId } from '../../game.service.js';
+import { pluginParticipantsMatchShell } from '../../runtime/plugin-participant-invariant.js';
 import { startWhoWroteItPhaseTimerIfNeeded } from './phase-timer.js';
 import { createMatchState } from './state.js';
 import { getWhoWroteItState, setWhoWroteItState } from './store.js';
@@ -18,12 +19,11 @@ function resolveMatchPlayers(shell: NonNullable<ReturnType<typeof getGameShellBy
 
 export function ensureWhoWroteItMatchState(roomId: string): WhoWroteItMatchState | null {
   const existing = getWhoWroteItState(roomId);
+  const shell = getGameShellByRoomId(roomId);
 
   if (existing) {
-    return existing;
+    return shell && pluginParticipantsMatchShell(shell, existing.playerIds) ? existing : null;
   }
-
-  const shell = getGameShellByRoomId(roomId);
 
   if (!shell || shell.gameId !== WHO_WROTE_IT_GAME_ID || shell.phase !== 'PLAYING') {
     return null;
@@ -42,6 +42,9 @@ export function ensureWhoWroteItMatchState(roomId: string): WhoWroteItMatchState
   }
 
   const match = createMatchState(roomId, matchPlayers, content.settings);
+  if (!pluginParticipantsMatchShell(shell, match.playerIds)) {
+    return null;
+  }
   setWhoWroteItState(roomId, match);
   return match;
 }

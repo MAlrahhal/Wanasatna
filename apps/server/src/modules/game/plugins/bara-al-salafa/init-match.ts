@@ -4,6 +4,7 @@ import { BARA_AL_SALAFA_GAME_ID } from '@wanasatna/shared';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { getGameShellByRoomId } from '../../game.service.js';
 import { resolveEnabledCategoryFilter } from '../../runtime/round-category-store.js';
+import { pluginParticipantsMatchShell } from '../../runtime/plugin-participant-invariant.js';
 import { startPhaseTimerIfNeeded } from './phase-timer.js';
 import { createMatchState } from './state.js';
 import { getBaraAlSalafaState, setBaraAlSalafaState } from './store.js';
@@ -19,12 +20,11 @@ function resolveMatchPlayers(shell: NonNullable<ReturnType<typeof getGameShellBy
 
 export function ensureBaraAlSalafaMatchState(roomId: string): BaraAlSalafaMatchState | null {
   const existing = getBaraAlSalafaState(roomId);
+  const shell = getGameShellByRoomId(roomId);
 
   if (existing) {
-    return existing;
+    return shell && pluginParticipantsMatchShell(shell, existing.playerIds) ? existing : null;
   }
-
-  const shell = getGameShellByRoomId(roomId);
 
   if (!shell || shell.gameId !== BARA_AL_SALAFA_GAME_ID || shell.phase !== 'PLAYING') {
     return null;
@@ -38,8 +38,8 @@ export function ensureBaraAlSalafaMatchState(roomId: string): BaraAlSalafaMatchS
 
   const matchPlayers = resolveMatchPlayers(shell);
 
-  // createMatchState only seats connected players and throws when none exist;
-  // return null so callers handle the empty room instead of crashing.
+  // Match membership comes from the locked shell set. Connectivity only decides
+  // whether the live match can begin; it must not erase a reconnecting seat.
   if (!matchPlayers.some((player) => player.isConnected)) {
     return null;
   }
@@ -51,6 +51,9 @@ export function ensureBaraAlSalafaMatchState(roomId: string): BaraAlSalafaMatchS
     resolveEnabledCategoryFilter(roomId),
     roomId,
   );
+  if (!pluginParticipantsMatchShell(shell, match.playerIds)) {
+    return null;
+  }
   setBaraAlSalafaState(roomId, match);
   return match;
 }

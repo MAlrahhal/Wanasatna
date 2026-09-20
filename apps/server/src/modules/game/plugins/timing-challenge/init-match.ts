@@ -2,6 +2,7 @@ import type { Server } from 'socket.io';
 import type { TimingChallengeMatchState } from '@wanasatna/shared';
 import { TIMING_CHALLENGE_GAME_ID } from '@wanasatna/shared';
 import { getGameShellByRoomId } from '../../game.service.js';
+import { pluginParticipantsMatchShell } from '../../runtime/plugin-participant-invariant.js';
 import { startTimingChallengePhaseTimerIfNeeded } from './phase-timer.js';
 import { defaultTimingChallengeSettings } from './settings.js';
 import { createMatchState } from './state.js';
@@ -22,12 +23,11 @@ function resolveMatchPlayers(shell: NonNullable<ReturnType<typeof getGameShellBy
 
 export function ensureTimingChallengeMatchState(roomId: string): TimingChallengeMatchState | null {
   const existing = getTimingChallengeState(roomId);
+  const shell = getGameShellByRoomId(roomId);
 
   if (existing) {
-    return existing;
+    return shell && pluginParticipantsMatchShell(shell, existing.playerIds) ? existing : null;
   }
-
-  const shell = getGameShellByRoomId(roomId);
 
   if (!shell || shell.gameId !== TIMING_CHALLENGE_GAME_ID || shell.phase !== 'PLAYING') {
     return null;
@@ -41,6 +41,9 @@ export function ensureTimingChallengeMatchState(roomId: string): TimingChallenge
 
   const settings = getTimingChallengeSettings(roomId) ?? defaultTimingChallengeSettings();
   const match = createMatchState(matchPlayers, settings);
+  if (!pluginParticipantsMatchShell(shell, match.playerIds)) {
+    return null;
+  }
   setTimingChallengeState(roomId, match);
   return match;
 }

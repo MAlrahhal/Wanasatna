@@ -3,6 +3,7 @@ import type { DrawGuessMatchState } from '@wanasatna/shared';
 import { DRAW_GUESS_GAME_ID } from '@wanasatna/shared';
 import { getLoadedGameContent } from '../../../content/index.js';
 import { getGameShellByRoomId } from '../../game.service.js';
+import { pluginParticipantsMatchShell } from '../../runtime/plugin-participant-invariant.js';
 import { getDrawGuessRoomDrawerSettings } from './drawer-mode-store.js';
 import { startDrawGuessPhaseTimerIfNeeded } from './phase-timer.js';
 import { createMatchState } from './state.js';
@@ -19,12 +20,11 @@ function resolveMatchPlayers(shell: NonNullable<ReturnType<typeof getGameShellBy
 
 export function ensureDrawGuessMatchState(roomId: string): DrawGuessMatchState | null {
   const existing = getDrawGuessState(roomId);
+  const shell = getGameShellByRoomId(roomId);
 
   if (existing) {
-    return existing;
+    return shell && pluginParticipantsMatchShell(shell, existing.playerIds) ? existing : null;
   }
-
-  const shell = getGameShellByRoomId(roomId);
 
   if (!shell || shell.gameId !== DRAW_GUESS_GAME_ID || shell.phase !== 'PLAYING') {
     return null;
@@ -50,6 +50,9 @@ export function ensureDrawGuessMatchState(roomId: string): DrawGuessMatchState |
     drawerSettings?.drawerMode ?? 'random',
     drawerSettings?.fixedPlayerId ?? null,
   );
+  if (!pluginParticipantsMatchShell(shell, match.playerIds)) {
+    return null;
+  }
   setDrawGuessState(roomId, match);
   return match;
 }

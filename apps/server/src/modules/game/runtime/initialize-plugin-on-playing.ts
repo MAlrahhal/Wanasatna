@@ -10,17 +10,33 @@ import {
   WHO_WROTE_IT_GAME_ID,
 } from '@wanasatna/shared';
 import { sanitizeErrorName, sanitizeKnownErrorCode } from '../../../lib/ops-logger.js';
-import { getGameShellByRoomId, syncGameShell } from '../game.service.js';
+import { reconcileActivePersistedMatchParticipants } from '../../match/match-history.service.js';
+import {
+  getGameShellByRoomId,
+  reconcileUninitializedMatchParticipants,
+  syncGameShell,
+} from '../game.service.js';
+import { broadcastGameShellState } from '../game.timer.js';
 import { logGameShellDiagnostic } from '../game.diagnostics.js';
 import { ensureBaraAlSalafaMatchStateWithTimer } from '../plugins/bara-al-salafa/init-match.js';
+import { getBaraAlSalafaState } from '../plugins/bara-al-salafa/store.js';
 import { ensureDrawGuessMatchStateWithTimer } from '../plugins/draw-guess/init-match.js';
+import { getDrawGuessState } from '../plugins/draw-guess/store.js';
 import { ensureFastAnswerMatchStateWithTimer } from '../plugins/fast-answer/init-match.js';
+import { getFastAnswerState } from '../plugins/fast-answer/store.js';
 import { ensureGuessingChallengeMatchStateWithTimer } from '../plugins/guessing-challenge/init-match.js';
+import { getGuessingChallengeState } from '../plugins/guessing-challenge/store.js';
 import { ensureImposterDrawMatchStateWithTimer } from '../plugins/imposter-draw/init-match.js';
+import { getImposterDrawState } from '../plugins/imposter-draw/store.js';
 import { ensureJudgeMatchStateWithTimer } from '../plugins/judge/init-match.js';
+import { getJudgeState } from '../plugins/judge/store.js';
 import { ensureTimingChallengeMatchStateWithTimer } from '../plugins/timing-challenge/init-match.js';
+import { getTimingChallengeState } from '../plugins/timing-challenge/store.js';
 import { ensureWhoWroteItMatchStateWithTimer } from '../plugins/who-wrote-it/init-match.js';
+import { getWhoWroteItState } from '../plugins/who-wrote-it/store.js';
 import { abortActiveMatch } from './abort-active-match.js';
+import { pluginParticipantsMatchShell } from './plugin-participant-invariant.js';
+import { getGamePluginDefinition } from './plugin-registry.js';
 
 function hasConnectedMatchParticipant(
   shell: NonNullable<ReturnType<typeof getGameShellByRoomId>>,
@@ -31,6 +47,34 @@ function hasConnectedMatchParticipant(
     (player) =>
       player.isConnected && (participantIds === null || participantIds.includes(player.id)),
   );
+}
+
+function hasInitializedPluginState(roomId: string, gameId: string): boolean {
+  if (gameId === BARA_AL_SALAFA_GAME_ID) {
+    return getBaraAlSalafaState(roomId) !== null;
+  }
+  if (gameId === DRAW_GUESS_GAME_ID) {
+    return getDrawGuessState(roomId) !== null;
+  }
+  if (gameId === IMPOSTER_DRAW_GAME_ID) {
+    return getImposterDrawState(roomId) !== null;
+  }
+  if (gameId === TIMING_CHALLENGE_GAME_ID) {
+    return getTimingChallengeState(roomId) !== null;
+  }
+  if (gameId === FAST_ANSWER_GAME_ID) {
+    return getFastAnswerState(roomId) !== null;
+  }
+  if (gameId === WHO_WROTE_IT_GAME_ID) {
+    return getWhoWroteItState(roomId) !== null;
+  }
+  if (gameId === JUDGE_GAME_ID) {
+    return getJudgeState(roomId) !== null;
+  }
+  if (gameId === GUESSING_CHALLENGE_GAME_ID) {
+    return getGuessingChallengeState(roomId) !== null;
+  }
+  return false;
 }
 
 async function abortBrokenMatch(io: Server, roomId: string, cause: string): Promise<void> {
@@ -60,11 +104,12 @@ export async function initializePluginOnPlaying(
   try {
     await syncGameShell(roomId);
 
-    const shell = getGameShellByRoomId(roomId);
+    let shell = getGameShellByRoomId(roomId);
 
     if (!shell || shell.phase !== 'PLAYING' || !shell.gameId) {
       return;
     }
+    const gameId = shell.gameId;
 
     // Stale async work from a disposed shell must not initialize a later match.
     if (expectedShellId && shell.shellId !== expectedShellId) {
@@ -77,16 +122,34 @@ export async function initializePluginOnPlaying(
     }
 
     if (
-      shell.gameId !== BARA_AL_SALAFA_GAME_ID &&
-      shell.gameId !== DRAW_GUESS_GAME_ID &&
-      shell.gameId !== IMPOSTER_DRAW_GAME_ID &&
-      shell.gameId !== TIMING_CHALLENGE_GAME_ID &&
-      shell.gameId !== FAST_ANSWER_GAME_ID &&
-      shell.gameId !== WHO_WROTE_IT_GAME_ID &&
-      shell.gameId !== JUDGE_GAME_ID &&
-      shell.gameId !== GUESSING_CHALLENGE_GAME_ID
+      gameId !== BARA_AL_SALAFA_GAME_ID &&
+      gameId !== DRAW_GUESS_GAME_ID &&
+      gameId !== IMPOSTER_DRAW_GAME_ID &&
+      gameId !== TIMING_CHALLENGE_GAME_ID &&
+      gameId !== FAST_ANSWER_GAME_ID &&
+      gameId !== WHO_WROTE_IT_GAME_ID &&
+      gameId !== JUDGE_GAME_ID &&
+      gameId !== GUESSING_CHALLENGE_GAME_ID
     ) {
       return;
+    }
+
+    if (!hasInitializedPluginState(roomId, gameId)) {
+      const reconciled = reconcileUninitializedMatchParticipants(roomId);
+      if (reconciled) {
+        shell = reconciled;
+        await reconcileActivePersistedMatchParticipants(roomId, shell.matchParticipantIds ?? []);
+        broadcastGameShellState(io, shell);
+      }
+
+      const minimumPlayers = getGamePluginDefinition(gameId)?.minPlayers;
+      if (
+        minimumPlayers !== undefined &&
+        (shell.matchParticipantIds?.length ?? 0) < minimumPlayers
+      ) {
+        await abortBrokenMatch(io, roomId, 'insufficient-locked-participants');
+        return;
+      }
     }
 
     if (!hasConnectedMatchParticipant(shell)) {
@@ -100,21 +163,21 @@ export async function initializePluginOnPlaying(
     }
 
     const match =
-      shell.gameId === BARA_AL_SALAFA_GAME_ID
+      gameId === BARA_AL_SALAFA_GAME_ID
         ? ensureBaraAlSalafaMatchStateWithTimer(io, roomId)
-        : shell.gameId === DRAW_GUESS_GAME_ID
+        : gameId === DRAW_GUESS_GAME_ID
           ? ensureDrawGuessMatchStateWithTimer(io, roomId)
-          : shell.gameId === IMPOSTER_DRAW_GAME_ID
+          : gameId === IMPOSTER_DRAW_GAME_ID
             ? ensureImposterDrawMatchStateWithTimer(io, roomId)
-            : shell.gameId === TIMING_CHALLENGE_GAME_ID
+            : gameId === TIMING_CHALLENGE_GAME_ID
               ? ensureTimingChallengeMatchStateWithTimer(io, roomId)
-              : shell.gameId === FAST_ANSWER_GAME_ID
+              : gameId === FAST_ANSWER_GAME_ID
                 ? ensureFastAnswerMatchStateWithTimer(io, roomId)
-                : shell.gameId === WHO_WROTE_IT_GAME_ID
+                : gameId === WHO_WROTE_IT_GAME_ID
                   ? ensureWhoWroteItMatchStateWithTimer(io, roomId)
-                  : shell.gameId === JUDGE_GAME_ID
+                  : gameId === JUDGE_GAME_ID
                     ? ensureJudgeMatchStateWithTimer(io, roomId)
-                    : shell.gameId === GUESSING_CHALLENGE_GAME_ID
+                    : gameId === GUESSING_CHALLENGE_GAME_ID
                       ? ensureGuessingChallengeMatchStateWithTimer(io, roomId)
                       : null;
 
@@ -125,6 +188,11 @@ export async function initializePluginOnPlaying(
         gameId: shell.gameId,
       });
       await abortBrokenMatch(io, roomId, 'no-match-state');
+      return;
+    }
+
+    if (!pluginParticipantsMatchShell(shell, match.playerIds)) {
+      await abortBrokenMatch(io, roomId, 'participant-mismatch');
     }
   } catch (error) {
     logGameShellDiagnostic('plugin-init-failed', {

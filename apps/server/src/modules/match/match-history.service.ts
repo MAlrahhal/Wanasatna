@@ -163,6 +163,31 @@ export async function beginPersistedMatch(
   }
 }
 
+/** Keep a pre-game permanent departure out of the active match roster. */
+export async function reconcileActivePersistedMatchParticipants(
+  roomId: string,
+  participantPlayerIds: readonly string[],
+): Promise<void> {
+  try {
+    const match = await findActiveMatchForRoom(roomId);
+    if (!match) {
+      return;
+    }
+
+    await prisma.matchParticipant.deleteMany({
+      where: {
+        matchId: match.id,
+        playerId: { notIn: [...participantPlayerIds] },
+      },
+    });
+  } catch (error) {
+    logMatchHistoryFailure('reconcile-participants-failed', {
+      roomId,
+      errorName: error instanceof Error ? error.name : typeof error,
+    });
+  }
+}
+
 export async function completePersistedMatch(
   roomId: string,
   results: MatchParticipantResult[] = [],

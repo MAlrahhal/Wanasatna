@@ -1,7 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense } from 'react';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { useRoom } from '@/contexts/room-context';
 import { GameShellProvider } from '@/contexts/game-shell-context';
@@ -10,10 +9,6 @@ import { GamePluginLayer } from '@/components/game-plugins/game-plugin-layer';
 import { RoomSystemState } from '@/components/room/room-system-state';
 import { SystemStatus } from '@/components/ui/system-status';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
-import {
-  planNullShellLobbyRecovery,
-  writeLobbyNotice,
-} from '@/lib/game-shell/null-shell-recovery';
 
 function GameShellFallback() {
   return (
@@ -24,27 +19,8 @@ function GameShellFallback() {
 }
 
 function GameContent() {
-  const { state, syncStatus } = useGameShell();
-  const { room } = useRoom();
-  const router = useRouter();
-  const recoveredRef = useRef(false);
+  const { state } = useGameShell();
   const hideLegacyShell = Boolean(state?.gameId);
-
-  useEffect(() => {
-    const plan = planNullShellLobbyRecovery({
-      pathname: '/game',
-      syncStatus,
-      roomCode: room?.code,
-    });
-
-    if (!plan.recover || recoveredRef.current) {
-      return;
-    }
-
-    recoveredRef.current = true;
-    writeLobbyNotice(plan.notice);
-    router.replace(plan.lobbyUrl);
-  }, [room?.code, router, syncStatus]);
 
   return (
     <div className="mx-auto flex w-full max-w-[var(--wanas-game-shell-max)] flex-1 flex-col px-4 sm:px-6 lg:px-8">
@@ -87,7 +63,11 @@ function GameShellConnectedScreen() {
     <GameShellProvider hostPlayerId={room.hostPlayerId} currentPlayerId={player.id}>
       {status === 'reconnecting' ? (
         <div className="px-4 pt-4 sm:px-6">
-          <SystemStatus tone="reconnecting" title={SYSTEM_COPY.reconnecting} className="mx-auto max-w-md" />
+          <SystemStatus
+            tone="reconnecting"
+            title={SYSTEM_COPY.reconnecting}
+            className="mx-auto max-w-md"
+          />
         </div>
       ) : null}
       <GameContent />

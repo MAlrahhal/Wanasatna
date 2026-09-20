@@ -9,6 +9,7 @@ import { resolveLobbyWaitMs } from '../../config/test-timers.js';
 import { opsLogger, sanitizeErrorName, sanitizeKnownErrorCode } from '../../lib/ops-logger.js';
 import { logGameShellDiagnostic } from './game.diagnostics.js';
 import {
+  broadcastEmptyGameShellState,
   broadcastGameShellNavigate,
   broadcastGameShellState,
   hasGameShellTimer,
@@ -253,6 +254,7 @@ export async function returnRoomToLobbyAfterMatch(
     });
   }
 
+  broadcastEmptyGameShellState(io, roomId);
   navigateRoomToLobby(io, roomId, options);
 }
 
@@ -270,6 +272,7 @@ export function teardownShellAndReturnToLobby(
   if (marathonStatus === 'TRANSITION' || marathonStatus === 'FINISHED') {
     cleanupGameShellRuntime(roomId);
     deleteGameShell(roomId);
+    broadcastEmptyGameShellState(io, roomId);
     return;
   }
   cleanupGameShellRuntime(roomId);

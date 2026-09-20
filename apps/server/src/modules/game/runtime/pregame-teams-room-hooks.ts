@@ -1,10 +1,16 @@
 import type { Server } from 'socket.io';
-import { TEAM_SNAPSHOT_EVENT } from '@wanasatna/shared';
+import { GUESSING_CHALLENGE_GAME_ID, TEAM_SNAPSHOT_EVENT } from '@wanasatna/shared';
 import { getRoomChannel } from '../../room/room.utils.js';
-import { deleteGameShell, getGameShellByRoomId, syncGameShell } from '../game.service.js';
+import {
+  deleteGameShell,
+  getGameShellByRoomId,
+  removePrePlayingMatchParticipant,
+  syncGameShell,
+} from '../game.service.js';
 import { cleanupGameShellRuntime } from '../game.lifecycle.js';
 import { broadcastGameShellState } from '../game.timer.js';
 import { handleGuessingChallengePermanentLeave } from '../plugins/guessing-challenge/match-lifecycle.js';
+import { getGuessingChallengeRoomMode } from '../plugins/guessing-challenge/mode-store.js';
 import { handleJudgePermanentLeave } from '../plugins/judge/match-lifecycle.js';
 import { cleanupPluginMatchState } from './cleanup-plugin-match.js';
 import { clearPlayerRecoveryForTeardown } from './player-recovery.js';
@@ -14,9 +20,13 @@ import {
   loadEligibleLobbyPlayerIds,
   removePlayerFromPregameTeams,
   syncPregameTeamsWithRoster,
+  validatePregameTeamsForStart,
 } from './pregame-teams.service.js';
 import { clearMarathonState, markMarathonPlayerDeparted } from '../../marathon/marathon.runtime.js';
 import { cancelRoomDisconnectedPlayerExpiryTimers } from '../../room/services/disconnected-player-expiry-timers.js';
+import { abortActiveMatch } from './abort-active-match.js';
+import { getGamePluginDefinition } from './plugin-registry.js';
+import { reconcileActivePersistedMatchParticipants } from '../../match/match-history.service.js';
 
 /** Call after join so lobby team state tracks the roster. */
 export async function onRoomRosterJoined(io: Server, roomId: string): Promise<void> {
@@ -48,6 +58,8 @@ export async function onRoomPlayerRemoved(
     return;
   }
 
+  const prePlayingShell = removePrePlayingMatchParticipant(roomId, playerId);
+
   handleJudgePermanentLeave(io, roomId, playerId);
   handleGuessingChallengePermanentLeave(io, roomId, playerId);
   markMarathonPlayerDeparted(roomId, playerId);
@@ -57,6 +69,35 @@ export async function onRoomPlayerRemoved(
   if (snapshot) {
     io.to(getRoomChannel(roomId)).emit(TEAM_SNAPSHOT_EVENT, snapshot);
   }
+
+  if (!prePlayingShell) {
+    return;
+  }
+
+  const minimumPlayers = prePlayingShell.gameId
+    ? getGamePluginDefinition(prePlayingShell.gameId)?.minPlayers
+    : undefined;
+  const participantPlayerIds = prePlayingShell.matchParticipantIds ?? [];
+  const guessingChallengeTeams =
+    prePlayingShell.gameId === GUESSING_CHALLENGE_GAME_ID
+      ? validatePregameTeamsForStart({
+          roomId,
+          gameId: GUESSING_CHALLENGE_GAME_ID,
+          mode: getGuessingChallengeRoomMode(roomId) ?? '1v1',
+          eligiblePlayerIds: participantPlayerIds,
+        })
+      : null;
+
+  if (
+    (minimumPlayers !== undefined && participantPlayerIds.length < minimumPlayers) ||
+    (guessingChallengeTeams !== null && !guessingChallengeTeams.success)
+  ) {
+    await abortActiveMatch(io, roomId, 'insufficient_players');
+    return;
+  }
+
+  await reconcileActivePersistedMatchParticipants(roomId, participantPlayerIds);
+  broadcastGameShellState(io, prePlayingShell);
 }
 
 export function onRoomDeleted(io: Server, roomId: string): void {

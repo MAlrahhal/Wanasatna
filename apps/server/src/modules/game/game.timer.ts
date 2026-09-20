@@ -24,6 +24,10 @@ export function broadcastGameShellState(io: Server, state: GameShellState): void
   io.to(getRoomChannel(state.roomId)).emit(GAME_SHELL_STATE_EVENT, { state });
 }
 
+export function broadcastEmptyGameShellState(io: Server, roomId: string): void {
+  io.to(getRoomChannel(roomId)).emit(GAME_SHELL_STATE_EVENT, { state: null });
+}
+
 export function emitGameShellStateToSocket(
   socket: { emit: (event: string, payload: { state: GameShellState | null }) => void },
   roomId: string,
