@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect } from 'react';
-import { AdPlacement } from '@/components/ads/ad-placement';
+import { NativeAdPlacement } from '@/components/ads/native-ad-placement';
 import { HomeActiveRoomResume } from '@/components/public/active-room-banner';
 import { FeatureCard } from '@/components/public/feature-card';
 import { GamePreviewCard } from '@/components/public/game-cards';
@@ -33,8 +33,6 @@ function scrollToRoomActionsIfHash() {
 export function HomePageClient() {
   const room = useRoomActions();
   const featuredGames = getFeaturedGames();
-  const featuredGamesBeforeNearEndAd = featuredGames.slice(0, -1);
-  const finalFeaturedGame = featuredGames.at(-1) ?? null;
   const hasFieldError = Boolean(
     room.fieldErrors.createPlayerName ||
     room.fieldErrors.joinPlayerName ||
@@ -110,8 +108,6 @@ export function HomePageClient() {
         </div>
       </section>
 
-      <AdPlacement placement="home-hero" className="mt-2 sm:mt-4" />
-
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 sm:gap-10 sm:px-6 sm:py-12 lg:gap-12">
         <div className="flex flex-col gap-6" data-home-room-actions-section>
           <HomeActiveRoomResume
@@ -146,7 +142,7 @@ export function HomePageClient() {
           />
         </div>
 
-        <AdPlacement placement="home-room-actions" />
+        <NativeAdPlacement unit="home-native" />
 
         <section data-home-featured-games-section>
           <div className="mb-5 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
@@ -185,16 +181,9 @@ export function HomePageClient() {
             className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
             data-home-featured-games-grid
           >
-            {featuredGamesBeforeNearEndAd.map((game) => (
+            {featuredGames.map((game) => (
               <GamePreviewCard key={game.id} game={game} />
             ))}
-            {finalFeaturedGame ? (
-              <AdPlacement
-                placement="home-featured-games-near-end"
-                className="sm:col-span-2 xl:col-span-4"
-              />
-            ) : null}
-            {finalFeaturedGame ? <GamePreviewCard game={finalFeaturedGame} /> : null}
           </div>
         </section>
 

@@ -1,57 +1,57 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-  isAdPlacementEnabled,
-  isAdPlacementVisibleAtViewport,
-  selectResponsiveAdsterraZone,
-  type AdPlacementId,
-  type AdPlacementViewport,
+  selectFittingStaticZone,
+  type AdsterraBannerZone,
+  type StaticAdPlacementId,
 } from '@/lib/ads/adsterra';
 import { cn } from '@/lib/utils';
 import { AdsterraBanner } from './adsterra-banner';
 
 type AdPlacementProps = {
-  placement: AdPlacementId;
-  viewport?: AdPlacementViewport;
+  placement: StaticAdPlacementId;
   className?: string;
 };
 
-function currentViewportWidth(): number {
-  return typeof window === 'undefined' ? 0 : window.innerWidth;
-}
-
-export function AdPlacement({ placement, viewport = 'any', className }: AdPlacementProps) {
-  const [viewportWidth, setViewportWidth] = useState(0);
+export function AdPlacement({ placement, className }: AdPlacementProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [zone, setZone] = useState<AdsterraBannerZone | null>(null);
 
   useEffect(() => {
-    const updateViewportWidth = () => setViewportWidth(currentViewportWidth());
-    updateViewportWidth();
-    window.addEventListener('resize', updateViewportWidth);
-    return () => window.removeEventListener('resize', updateViewportWidth);
-  }, []);
+    const container = containerRef.current;
+    if (!container) {
+      return undefined;
+    }
 
-  if (
-    !isAdPlacementEnabled(placement) ||
-    !isAdPlacementVisibleAtViewport(viewportWidth, viewport)
-  ) {
-    return null;
-  }
+    const updateZone = () => {
+      const nextZone = selectFittingStaticZone(
+        placement,
+        container.getBoundingClientRect().width,
+        window.innerWidth,
+      );
+      setZone((currentZone) => (currentZone?.id === nextZone?.id ? currentZone : nextZone));
+    };
 
-  const zone = selectResponsiveAdsterraZone(viewportWidth);
-  if (!zone) {
-    return null;
-  }
+    updateZone();
+    window.addEventListener('resize', updateZone);
+    const observer =
+      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => updateZone());
+    observer?.observe(container);
+
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', updateZone);
+    };
+  }, [placement]);
 
   return (
     <div
-      className={cn(
-        'relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 overflow-hidden',
-        className,
-      )}
+      ref={containerRef}
+      className={cn('w-full min-w-0 overflow-hidden', className)}
       data-ad-placement-container={placement}
     >
-      <AdsterraBanner zone={zone} placement={placement} />
+      {zone ? <AdsterraBanner zone={zone} placement={placement} /> : null}
     </div>
   );
 }

@@ -137,7 +137,7 @@ export function DrawingScreen({
           )}
         </div>
 
-        <AdPlacement placement="game-interaction" />
+        <AdPlacement placement="gameplay-primary" />
 
         {isDrawer && actionError ? (
           <p className="text-destructive text-center text-sm">{actionError}</p>

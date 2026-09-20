@@ -141,7 +141,7 @@ export function FastAnswerQuestionScreen({
             </GameMobileStickyCta>
           </form>
         ) : null}
-        <AdPlacement placement="game-answer-input" />
+        <AdPlacement placement="gameplay-primary" />
         <div
           className="wanas-game-card rounded-[1.25rem] px-4 py-3 text-center sm:px-5 sm:py-4"
           data-fast-answer-post-interaction-status

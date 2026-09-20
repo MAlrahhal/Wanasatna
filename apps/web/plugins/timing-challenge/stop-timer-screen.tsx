@@ -159,7 +159,7 @@ export function StopTimerScreen({
         ) : null}
       </ElectronicPanel>
 
-      <AdPlacement placement="game-interaction" />
+      <AdPlacement placement="gameplay-primary" />
 
       <PeerStatusList peers={peers} currentPlayerId={currentPlayerId} />
     </div>

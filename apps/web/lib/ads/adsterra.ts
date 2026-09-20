@@ -1,13 +1,25 @@
+export type AdsterraStaticZoneId =
+  | 'rectangle-300x250'
+  | 'mobile-320x50'
+  | 'leaderboard-728x90'
+  | 'skyscraper-160x600'
+  | 'banner-468x60'
+  | 'sidebar-160x300';
+
 export type AdsterraBannerZone = {
+  id: AdsterraStaticZoneId;
   key: string;
   format: 'iframe';
   height: number;
   width: number;
   params: Record<string, never>;
   invokeSrc: string;
+  minViewportWidth?: number;
+  maxViewportWidth?: number;
 };
 
 export const ADSTERRA_BANNER_300x250 = {
+  id: 'rectangle-300x250',
   key: 'def2570bbac8dbcccbff340a7eff4565',
   format: 'iframe',
   height: 250,
@@ -16,78 +28,103 @@ export const ADSTERRA_BANNER_300x250 = {
   invokeSrc: 'https://www.highrevenueformat.com/def2570bbac8dbcccbff340a7eff4565/invoke.js',
 } as const satisfies AdsterraBannerZone;
 
-export const ADSTERRA_BANNER_DESKTOP_728x90 = {
-  key: '8c7899da0472ebe9381fa1297c9ea859',
-  format: 'iframe',
-  height: 90,
-  width: 728,
-  params: {},
-  invokeSrc: 'https://www.highrevenueformat.com/8c7899da0472ebe9381fa1297c9ea859/invoke.js',
-} as const satisfies AdsterraBannerZone;
-
 export const ADSTERRA_BANNER_MOBILE_320x50 = {
+  id: 'mobile-320x50',
   key: '8ab90065c8e99084fa144b118690d7ef',
   format: 'iframe',
   height: 50,
   width: 320,
   params: {},
   invokeSrc: 'https://www.highrevenueformat.com/8ab90065c8e99084fa144b118690d7ef/invoke.js',
+  maxViewportWidth: 799,
 } as const satisfies AdsterraBannerZone;
 
-export const ADSTERRA_MIN_RENDERABLE_WIDTH = ADSTERRA_BANNER_MOBILE_320x50.width;
-export const ADSTERRA_DESKTOP_MIN_WIDTH = 800;
+export const ADSTERRA_BANNER_DESKTOP_728x90 = {
+  id: 'leaderboard-728x90',
+  key: '8c7899da0472ebe9381fa1297c9ea859',
+  format: 'iframe',
+  height: 90,
+  width: 728,
+  params: {},
+  invokeSrc: 'https://www.highrevenueformat.com/8c7899da0472ebe9381fa1297c9ea859/invoke.js',
+  minViewportWidth: 800,
+} as const satisfies AdsterraBannerZone;
+
+export const ADSTERRA_BANNER_160x600 = {
+  id: 'skyscraper-160x600',
+  key: '863737c9637f7fa3bac6344d36097d8b',
+  format: 'iframe',
+  height: 600,
+  width: 160,
+  params: {},
+  invokeSrc: 'https://www.highrevenueformat.com/863737c9637f7fa3bac6344d36097d8b/invoke.js',
+  minViewportWidth: 1536,
+} as const satisfies AdsterraBannerZone;
+
+export const ADSTERRA_BANNER_468x60 = {
+  id: 'banner-468x60',
+  key: 'eb85acaa87873198ac330afab579920e',
+  format: 'iframe',
+  height: 60,
+  width: 468,
+  params: {},
+  invokeSrc: 'https://www.highrevenueformat.com/eb85acaa87873198ac330afab579920e/invoke.js',
+  minViewportWidth: 800,
+} as const satisfies AdsterraBannerZone;
+
+export const ADSTERRA_BANNER_160x300 = {
+  id: 'sidebar-160x300',
+  key: '4614f03613a254f4dbc71d0546e42ccf',
+  format: 'iframe',
+  height: 300,
+  width: 160,
+  params: {},
+  invokeSrc: 'https://www.highrevenueformat.com/4614f03613a254f4dbc71d0546e42ccf/invoke.js',
+  minViewportWidth: 1280,
+} as const satisfies AdsterraBannerZone;
+
+export const ADSTERRA_STATIC_ZONES = {
+  'rectangle-300x250': ADSTERRA_BANNER_300x250,
+  'mobile-320x50': ADSTERRA_BANNER_MOBILE_320x50,
+  'leaderboard-728x90': ADSTERRA_BANNER_DESKTOP_728x90,
+  'skyscraper-160x600': ADSTERRA_BANNER_160x600,
+  'banner-468x60': ADSTERRA_BANNER_468x60,
+  'sidebar-160x300': ADSTERRA_BANNER_160x300,
+} as const satisfies Record<AdsterraStaticZoneId, AdsterraBannerZone>;
+
+export type StaticAdPlacementId = 'lobby-side-rail' | 'gameplay-primary' | 'gameplay-side-rail';
+
+export const STATIC_AD_PLACEMENTS = {
+  'lobby-side-rail': ['skyscraper-160x600'],
+  'gameplay-primary': ['leaderboard-728x90', 'banner-468x60', 'mobile-320x50'],
+  'gameplay-side-rail': ['sidebar-160x300'],
+} as const satisfies Record<StaticAdPlacementId, readonly AdsterraStaticZoneId[]>;
 
 export const ADSTERRA_ADS_ENABLED = process.env.NEXT_PUBLIC_ADSTERRA_ADS_ENABLED !== 'false';
 
-export const AD_PLACEMENTS = {
-  'home-hero': { enabled: true },
-  'home-room-actions': { enabled: true },
-  'lobby-players': { enabled: true },
-  'lobby-chat': { enabled: true },
-  'game-chat': { enabled: true },
-  'game-player-list': { enabled: true },
-  'game-leaderboard': { enabled: true },
-  'game-answer-input': { enabled: true },
-  'game-interaction': { enabled: true },
-  'game-round-results': { enabled: true },
-  'game-final-results': { enabled: true },
-  'home-featured-games-near-end': { enabled: true },
-} as const;
-
-export type AdPlacementId = keyof typeof AD_PLACEMENTS;
-export type AdPlacementViewport = 'any' | 'compact' | 'wide';
-
-export function isAdPlacementEnabled(placement: AdPlacementId): boolean {
-  return ADSTERRA_ADS_ENABLED && AD_PLACEMENTS[placement].enabled;
+function zoneMatchesViewport(zone: AdsterraBannerZone, viewportWidth: number): boolean {
+  return (
+    Number.isFinite(viewportWidth) &&
+    (zone.minViewportWidth === undefined || viewportWidth >= zone.minViewportWidth) &&
+    (zone.maxViewportWidth === undefined || viewportWidth <= zone.maxViewportWidth)
+  );
 }
 
-export function selectResponsiveAdsterraZone(viewportWidth: number): AdsterraBannerZone | null {
-  if (!Number.isFinite(viewportWidth) || viewportWidth < ADSTERRA_MIN_RENDERABLE_WIDTH) {
+export function selectFittingStaticZone(
+  placement: StaticAdPlacementId,
+  containerWidth: number,
+  viewportWidth: number,
+): AdsterraBannerZone | null {
+  if (!ADSTERRA_ADS_ENABLED || !Number.isFinite(containerWidth) || containerWidth <= 0) {
     return null;
   }
 
-  return viewportWidth >= ADSTERRA_DESKTOP_MIN_WIDTH
-    ? ADSTERRA_BANNER_DESKTOP_728x90
-    : ADSTERRA_BANNER_MOBILE_320x50;
-}
+  const zoneId = STATIC_AD_PLACEMENTS[placement].find((candidateId) => {
+    const zone = ADSTERRA_STATIC_ZONES[candidateId];
+    return containerWidth >= zone.width && zoneMatchesViewport(zone, viewportWidth);
+  });
 
-export function isAdPlacementVisibleAtViewport(
-  viewportWidth: number,
-  viewport: AdPlacementViewport,
-): boolean {
-  if (viewportWidth < ADSTERRA_MIN_RENDERABLE_WIDTH) {
-    return false;
-  }
-
-  if (viewport === 'compact') {
-    return viewportWidth < 1280;
-  }
-
-  if (viewport === 'wide') {
-    return viewportWidth >= 1280;
-  }
-
-  return true;
+  return zoneId ? ADSTERRA_STATIC_ZONES[zoneId] : null;
 }
 
 export type AdsterraAtOptions = {

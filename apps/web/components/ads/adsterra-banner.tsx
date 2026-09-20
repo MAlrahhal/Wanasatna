@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { type AdsterraBannerZone } from '@/lib/ads/adsterra';
 import { enqueueAdsterraBanner } from '@/lib/ads/adsterra-loader';
 import { cn } from '@/lib/utils';
@@ -13,6 +13,7 @@ type AdsterraBannerProps = {
 
 export function AdsterraBanner({ zone, placement, className }: AdsterraBannerProps) {
   const hostRef = useRef<HTMLDivElement>(null);
+  const [failedZoneId, setFailedZoneId] = useState<string | null>(null);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -20,8 +21,24 @@ export function AdsterraBanner({ zone, placement, className }: AdsterraBannerPro
       return undefined;
     }
 
-    return enqueueAdsterraBanner(host, zone);
-  }, [zone]);
+    let active = true;
+    setFailedZoneId(null);
+    const handle = enqueueAdsterraBanner(host, zone, placement);
+    void handle.completion.then((outcome) => {
+      if (active && (outcome === 'error' || outcome === 'timeout' || outcome === 'duplicate')) {
+        setFailedZoneId(zone.id);
+      }
+    });
+
+    return () => {
+      active = false;
+      handle.cancel();
+    };
+  }, [placement, zone]);
+
+  if (failedZoneId === zone.id) {
+    return null;
+  }
 
   return (
     <aside
@@ -37,6 +54,7 @@ export function AdsterraBanner({ zone, placement, className }: AdsterraBannerPro
         dir="ltr"
         className="relative shrink-0 overflow-hidden"
         style={{ width: zone.width, height: zone.height }}
+        data-ad-host={placement}
       />
     </aside>
   );

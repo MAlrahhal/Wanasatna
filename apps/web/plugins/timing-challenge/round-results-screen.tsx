@@ -1,7 +1,7 @@
 'use client';
 
 import type { TimingChallengeRoundResultEntry } from '@wanasatna/shared';
-import { AdPlacement } from '@/components/ads/ad-placement';
+import { NativeAdPlacement } from '@/components/ads/native-ad-placement';
 import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
@@ -117,7 +117,7 @@ export function TimingChallengeRoundResultsScreen({
           </ul>
         </GameCard>
 
-        <AdPlacement placement="game-round-results" />
+        <NativeAdPlacement unit="results-native" />
 
         {continueLabel && onContinue ? (
           <div className="mx-auto w-full max-w-md space-y-3">

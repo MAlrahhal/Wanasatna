@@ -114,7 +114,7 @@ export function DrawingTurnsScreen({
           ) : null}
         </div>
 
-        {canDraw ? <AdPlacement placement="game-interaction" /> : null}
+        {canDraw ? <AdPlacement placement="gameplay-primary" /> : null}
 
         {actionError ? (
           <p className="text-destructive text-center text-sm" role="alert">

@@ -337,7 +337,7 @@ export function FreeQuestionsScreen({
           completedPlayerIds={completedPlayerIds}
         />
 
-        <AdPlacement placement="game-player-list" />
+        <AdPlacement placement="gameplay-primary" />
       </div>
     </GameScreen>
   );

@@ -125,7 +125,7 @@ export function WhoWroteItAnsweringScreen({
             </GameMobileStickyCta>
           </form>
         )}
-        {!isSpectator ? <AdPlacement placement="game-answer-input" /> : null}
+        {!isSpectator ? <AdPlacement placement="gameplay-primary" /> : null}
       </div>
     </GameScreen>
   );

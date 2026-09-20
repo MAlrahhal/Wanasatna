@@ -1,7 +1,6 @@
 'use client';
 
 import type { TimingChallengePeerStatus } from '@wanasatna/shared';
-import { AdPlacement } from '@/components/ads/ad-placement';
 import { cn } from '@/lib/utils';
 
 const STATUS_LABEL: Record<TimingChallengePeerStatus['status'], string> = {
@@ -34,7 +33,6 @@ export function PeerStatusList({
           </li>
         ))}
       </ul>
-      <AdPlacement placement="game-player-list" />
     </div>
   );
 }

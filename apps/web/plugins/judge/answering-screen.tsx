@@ -141,7 +141,7 @@ export function JudgeAnsweringScreen({
             </GameMobileStickyCta>
           </form>
         )}
-        {!isSpectator && !isJudge ? <AdPlacement placement="game-answer-input" /> : null}
+        {!isSpectator && !isJudge ? <AdPlacement placement="gameplay-primary" /> : null}
       </div>
     </GameScreen>
   );

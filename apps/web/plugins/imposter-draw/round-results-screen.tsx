@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { AdPlacement } from '@/components/ads/ad-placement';
+import { NativeAdPlacement } from '@/components/ads/native-ad-placement';
 import type { ImposterDrawRoundResultEntry } from '@wanasatna/shared';
 import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
@@ -154,7 +154,7 @@ export function ImposterDrawRoundResultsScreen({
           </ul>
         </GameCard>
 
-        <AdPlacement placement="game-round-results" />
+        <NativeAdPlacement unit="results-native" />
 
         {continueLabel && onContinue ? (
           <div className="mx-auto w-full max-w-md space-y-3">

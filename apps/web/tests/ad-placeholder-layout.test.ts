@@ -4,77 +4,32 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-
-function read(relativePath: string): string {
-  return readFileSync(join(root, relativePath), 'utf8');
-}
-
-const placeholder = read('components/ads/ad-placeholder.tsx');
-assert.match(placeholder, /process\.env\.NODE_ENV === 'production'[\s\S]*return null/);
-assert.match(placeholder, /data-ad-placement=\{placement\}/);
-assert.doesNotMatch(placeholder, /onClick|<script|adsbygoogle|data-ad-slot|ca-pub|pub-\d/);
+const read = (relativePath: string) => readFileSync(join(root, relativePath), 'utf8');
 
 const home = read('app/(public)/home-page-client.tsx');
-assert.match(home, /<AdPlacement placement="home-hero"/);
-assert.match(home, /<AdPlacement placement="home-room-actions"/);
-assert.match(home, /placement="home-featured-games-near-end"/);
-assert.equal(home.match(/placement="home-/g)?.length, 3);
-assert.ok(home.indexOf('placement="home-hero"') > home.indexOf('PublicBrandLogo'));
-assert.ok(home.indexOf('placement="home-hero"') < home.indexOf('data-home-room-actions-section'));
-assert.ok(home.indexOf('placement="home-room-actions"') > home.indexOf('<RoomActionCards'));
-assert.ok(
-  home.indexOf('placement="home-room-actions"') < home.indexOf('data-home-featured-games-section'),
-);
-assert.ok(
-  home.indexOf('placement="home-featured-games-near-end"') >
-    home.indexOf('featuredGamesBeforeNearEndAd.map'),
-);
-assert.ok(
-  home.indexOf('placement="home-featured-games-near-end"') < home.indexOf('finalFeaturedGame} />'),
-);
+assert.equal(home.match(/unit="home-native"/g)?.length, 1);
+assert.ok(home.indexOf('unit="home-native"') > home.indexOf('<RoomActionCards'));
+assert.ok(home.indexOf('unit="home-native"') < home.indexOf('data-home-featured-games-section'));
+assert.doesNotMatch(home, /placement="home-|featuredGamesBeforeNearEndAd|finalFeaturedGame/);
 
 const lobby = read('components/lobby/lobby-screen.tsx');
-assert.equal(lobby.match(/placement="lobby-/g)?.length, 2);
-assert.match(
-  lobby,
-  /data-lobby-ad-rows[\s\S]*placement="lobby-players"[\s\S]*placement="lobby-chat"/,
-);
-assert.match(lobby, /data-lobby-ad-association="players"[\s\S]*placement="lobby-players"/);
-assert.match(lobby, /data-lobby-ad-association="chat"[\s\S]*placement="lobby-chat"/);
-assert.doesNotMatch(lobby, /placement="lobby-(?:players|chat)"[^>]*viewport=/);
-assert.ok(lobby.indexOf('data-lobby-ad-rows') > lobby.indexOf('<PlayersPanel'));
-assert.ok(lobby.indexOf('data-lobby-ad-rows') > lobby.indexOf('<LobbyChat'));
-assert.doesNotMatch(lobby, /AdsterraBanner/);
+assert.equal(lobby.match(/unit="lobby-native"/g)?.length, 1);
+assert.equal(lobby.match(/placement="lobby-side-rail"/g)?.length, 1);
+assert.match(lobby, /2xl:grid-cols-\[[^\]]*_160px\]/);
+assert.match(lobby, /hidden min-w-0 2xl:order-4 2xl:flex/);
+assert.ok(lobby.indexOf('unit="lobby-native"') > lobby.indexOf('<PlayersPanel'));
+assert.ok(lobby.indexOf('unit="lobby-native"') > lobby.indexOf('<LobbyChat'));
+assert.doesNotMatch(lobby, /placement="lobby-(?:players|chat)"|data-lobby-ad-rows/);
 
-const gameShell = read('components/game-experience/game-experience-shell.tsx');
-assert.match(gameShell, /meta\.layoutMode === 'gameplay'/);
-assert.match(gameShell, /placement="game-chat"/);
-assert.match(gameShell, /placement="game-leaderboard"/);
-assert.match(gameShell, /data-game-ad-association="chat"/);
-assert.match(gameShell, /data-game-support-section="leaderboard"/);
-assert.doesNotMatch(gameShell, /AdPlaceholder/);
-
-for (const file of [
-  'plugins/fast-answer/question-screen.tsx',
-  'plugins/who-wrote-it/answering-screen.tsx',
-  'plugins/judge/answering-screen.tsx',
-]) {
-  const source = read(file);
-  assert.match(
-    source,
-    /<form[\s\S]*?<\/form>[\s\S]*?<AdPlacement placement="game-answer-input"/,
-    file,
-  );
+const staticPlacement = read('components/ads/ad-placement.tsx');
+const staticBanner = read('components/ads/adsterra-banner.tsx');
+const nativePlacement = read('components/ads/native-ad-placement.tsx');
+for (const source of [staticPlacement, staticBanner, nativePlacement]) {
+  assert.doesNotMatch(source, /fixed|sticky|absolute|100dvw|w-screen|scale/);
 }
-
-const productionPlacementSources = [
-  read('components/ads/ad-placement.tsx'),
-  read('components/ads/adsterra-banner.tsx'),
-].join('\n');
-assert.doesNotMatch(
-  productionPlacementSources,
-  /fixed|sticky|adsbygoogle|data-ad-slot|ca-pub|pub-\d/,
-);
+assert.match(staticPlacement, /w-full/);
+assert.match(staticBanner, /justify-center/);
+assert.match(nativePlacement, /w-full min-w-0 overflow-hidden/);
 assert.doesNotMatch(read('app/layout.tsx'), /highrevenueformat|AdsterraBanner|AdPlacement/);
 
 console.log('Production ad placement layout contract passed');

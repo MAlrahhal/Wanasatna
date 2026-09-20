@@ -207,8 +207,6 @@ function VotingNotVotedView({
         ))}
       </div>
 
-      <AdPlacement placement="game-player-list" />
-
       <div className="bg-[color:var(--wanas-game-bg-from)]/95 sticky bottom-0 z-10 -mx-[max(0.75rem,env(safe-area-inset-left,0px))] border-t border-[color:var(--wanas-game-card-border)] px-[max(0.75rem,env(safe-area-inset-left,0px))] py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] backdrop-blur-sm sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:pb-0 sm:backdrop-blur-none">
         <div className="mx-auto flex w-full max-w-md flex-col gap-3">
           <Button
@@ -381,6 +379,7 @@ export function VotingScreen({
           questionHelper={questionHelper}
         />
       )}
+      <AdPlacement placement="gameplay-primary" />
     </GameScreen>
   );
 }

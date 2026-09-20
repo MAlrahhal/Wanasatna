@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { AdPlacement } from '@/components/ads/ad-placement';
+import { NativeAdPlacement } from '@/components/ads/native-ad-placement';
 import { DeadlineProgress } from '@/components/game/deadline-progress';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
@@ -269,7 +269,7 @@ export function RoundResultsScreen({
 
         <RoundPointsList roundResults={roundResults} currentPlayerId={currentPlayerId} />
 
-        <AdPlacement placement="game-round-results" />
+        <NativeAdPlacement unit="results-native" />
 
         <RoundTransitionFooter
           continueLabel={continueLabel}

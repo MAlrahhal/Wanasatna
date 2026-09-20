@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getDefaultPlayerAvatarId } from '@wanasatna/shared';
 import { AdPlacement } from '@/components/ads/ad-placement';
+import { NativeAdPlacement } from '@/components/ads/native-ad-placement';
 import { useRoom } from '@/contexts/room-context';
 import { mockGameSettingsByGameId, mockLobbyGames } from '@/lib/lobby/mock-games';
 import { usePlayableGameAvailability } from '@/lib/games/use-game-availability';
@@ -223,7 +224,7 @@ export function LobbyScreen() {
         </button>
       </div>
 
-      <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 lg:gap-4 xl:grid-cols-[minmax(220px,260px)_minmax(0,1fr)_minmax(168px,200px)]">
+      <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 lg:gap-4 xl:grid-cols-[minmax(220px,260px)_minmax(0,1fr)_minmax(168px,200px)] 2xl:grid-cols-[minmax(220px,260px)_minmax(0,1fr)_minmax(168px,200px)_160px]">
         <div
           className={cn(
             chatOpen
@@ -307,16 +308,16 @@ export function LobbyScreen() {
             onChangeAvatar={() => setAvatarPickerOpen(true)}
           />
         </div>
+
+        <div
+          className="hidden min-w-0 2xl:order-4 2xl:flex 2xl:justify-center"
+          data-lobby-ad-association="side-rail"
+        >
+          <AdPlacement placement="lobby-side-rail" />
+        </div>
       </div>
 
-      <div className="flex flex-col gap-3" data-lobby-ad-rows>
-        <div data-lobby-ad-association="players">
-          <AdPlacement placement="lobby-players" />
-        </div>
-        <div data-lobby-ad-association="chat">
-          <AdPlacement placement="lobby-chat" />
-        </div>
-      </div>
+      <NativeAdPlacement unit="lobby-native" />
 
       {player ? (
         <AvatarPickerDialog

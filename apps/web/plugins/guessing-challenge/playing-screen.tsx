@@ -304,7 +304,7 @@ export function GuessingChallengePlayingScreen({
           </div>
         ) : null}
 
-        {view.isMyTurn ? <AdPlacement placement="game-interaction" /> : null}
+        {view.isMyTurn ? <AdPlacement placement="gameplay-primary" /> : null}
       </div>
     </GameScreen>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { AdPlacement } from '@/components/ads/ad-placement';
+import { NativeAdPlacement } from '@/components/ads/native-ad-placement';
 import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
 import { PlayerAvatar } from '@/components/player/player-avatar';
@@ -350,7 +350,7 @@ export function MatchResultsScreen({
 
         <FinalLeaderboard leaderboard={leaderboard} currentPlayerId={currentPlayerId} />
 
-        <AdPlacement placement="game-final-results" />
+        <NativeAdPlacement unit="results-native" />
 
         <MatchStats
           totalRounds={totalRounds}
