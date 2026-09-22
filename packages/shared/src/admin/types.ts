@@ -3,6 +3,7 @@ import type { GamePhase } from '../game/enums.js';
 import type { MarathonState } from '../game/marathon.js';
 import type { GameShellState } from '../game/state.js';
 import type { PregameTeamSnapshot } from '../game/teams/types.js';
+import type { FeedbackCategory, FeedbackSource, FeedbackStatus } from '../feedback/types.js';
 
 export const ADMIN_DASHBOARD_GAME_IDS = [
   'bara-al-salafa',
@@ -32,6 +33,7 @@ export const ADMIN_ANALYTICS_DEFAULT_RANGE = '7d';
 export const ADMIN_ANALYTICS_RANGES = ['24h', '7d', '30d', 'all'] as const;
 export const ADMIN_AUDIT_PAGE_SIZE = 50;
 export const ADMIN_ANSWER_ATTEMPT_PAGE_SIZE = 50;
+export const ADMIN_FEEDBACK_PAGE_SIZE = 25;
 export const ANSWER_ATTEMPT_FEATURE_STARTED_AT = '2026-09-05T00:00:00+03:00';
 export const ANSWER_ATTEMPT_RETENTION_DAYS = 30;
 
@@ -73,6 +75,8 @@ export const ADMIN_AUDIT_ACTIONS = [
   'ROOM_KICK',
   'ROOM_FORCE_CLOSE',
   'ROOM_SPECTATE',
+  'FEEDBACK_STATUS_SET',
+  'FEEDBACK_DELETE',
 ] as const;
 
 export type AdminAuditAction = (typeof ADMIN_AUDIT_ACTIONS)[number];
@@ -181,6 +185,7 @@ export type AdminErrorCode =
   | 'USER_NOT_FOUND'
   | 'MATCH_NOT_FOUND'
   | 'ROOM_HISTORY_NOT_FOUND'
+  | 'FEEDBACK_NOT_FOUND'
   | 'ROOM_CLOSED'
   | 'INTERNAL_ERROR';
 
@@ -518,4 +523,44 @@ export type AdminAnalyticsData = {
   duration: AdminAnalyticsDuration;
   startsBySaudiHour: number[];
   roomHistory: AdminRoomHistoryAnalytics;
+};
+
+export type AdminFeedbackItem = {
+  id: string;
+  category: FeedbackCategory;
+  message: string;
+  status: FeedbackStatus;
+  source: FeedbackSource;
+  roomId: string | null;
+  gameId: string | null;
+  route: string | null;
+  deviceCategory: string | null;
+  userAgent: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminFeedbackStats = {
+  total: number;
+  new: number;
+  problems: number;
+  suggestions: number;
+};
+
+export type AdminFeedbackData = {
+  feedback: AdminFeedbackItem[];
+  stats: AdminFeedbackStats;
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export type AdminFeedbackStatusUpdateData = {
+  id: string;
+  status: FeedbackStatus;
+  updatedAt: string;
+};
+
+export type AdminFeedbackDeleteData = {
+  id: string;
 };

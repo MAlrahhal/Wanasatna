@@ -26,6 +26,7 @@ function targetTypeLabel(type: string | null): string | null {
   if (type === 'USER') return ADMIN_COPY.auditTargetUser;
   if (type === 'GAME') return ADMIN_COPY.auditTargetGame;
   if (type === 'ROOM') return ADMIN_COPY.auditTargetRoom;
+  if (type === 'FEEDBACK') return ADMIN_COPY.auditTargetFeedback;
   return type;
 }
 

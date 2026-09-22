@@ -5,6 +5,8 @@ import { GameCard, GameScreen } from '@/components/game/game-card';
 import { GameHeader } from '@/components/game/game-header';
 import { PlayerAvatar } from '@/components/player/player-avatar';
 import { Button } from '@/components/ui/button';
+import { FinalResultsFeedbackCta } from '@/components/feedback/feedback-button';
+import { useGameExperienceShellActive } from '@/contexts/game-experience-context';
 import { BARA_AL_SALAFA_GAME_ICON } from '@/lib/game/bara-al-salafa-brand';
 import { useDeadlineClock } from '@/lib/game/use-deadline-clock';
 import { presentSystemCopy } from '@/lib/ui/system-copy';
@@ -327,6 +329,7 @@ export function MatchResultsScreen({
   onPlayAgain,
   className,
 }: MatchResultsScreenProps) {
+  const shellActive = useGameExperienceShellActive();
   const winners = leaderboard.filter((entry) => entry.isFirstPlace);
   const currentPlayerEntry = leaderboard.find((entry) => entry.id === currentPlayerId);
   const highestScore = leaderboard.reduce((max, entry) => Math.max(max, entry.totalPoints), 0);
@@ -367,6 +370,7 @@ export function MatchResultsScreen({
           onReturnToLobby={onReturnToLobby}
           onPlayAgain={onPlayAgain}
         />
+        {shellActive ? <FinalResultsFeedbackCta /> : null}
       </div>
     </GameScreen>
   );

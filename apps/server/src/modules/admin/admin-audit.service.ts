@@ -16,7 +16,7 @@ const MAX_REQUEST_ID_LENGTH = 128;
 const AUDIT_POLICIES: Record<
   AdminAuditAction,
   {
-    targetType: 'USER' | 'GAME' | 'ROOM';
+    targetType: 'USER' | 'GAME' | 'ROOM' | 'FEEDBACK';
     metadata: Readonly<Record<string, (value: unknown) => AdminAuditMetadataValue | undefined>>;
   }
 > = {
@@ -78,6 +78,14 @@ const AUDIT_POLICIES: Record<
     targetType: 'ROOM',
     metadata: {},
   },
+  FEEDBACK_STATUS_SET: {
+    targetType: 'FEEDBACK',
+    metadata: { status: allowFeedbackStatus },
+  },
+  FEEDBACK_DELETE: {
+    targetType: 'FEEDBACK',
+    metadata: {},
+  },
 };
 
 type AuditClient = Pick<Prisma.TransactionClient, 'adminAuditLog'>;
@@ -125,6 +133,10 @@ function allowMfaFailureReason(value: unknown): string | undefined {
     value === 'RATE_LIMITED'
     ? value
     : undefined;
+}
+
+function allowFeedbackStatus(value: unknown): string | undefined {
+  return value === 'NEW' || value === 'REVIEWED' || value === 'RESOLVED' ? value : undefined;
 }
 
 function requireIdentifier(

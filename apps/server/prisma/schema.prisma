@@ -72,6 +72,24 @@ enum AnswerRejectReason {
   GAME_NOT_READY
 }
 
+enum FeedbackCategory {
+  SUGGESTION
+  PROBLEM
+  OTHER
+}
+
+enum FeedbackStatus {
+  NEW
+  REVIEWED
+  RESOLVED
+}
+
+enum FeedbackSource {
+  LOBBY
+  GAMEPLAY
+  FINAL_RESULTS
+}
+
 // ---------------------------------------------------------------------------
 // Models
 // ---------------------------------------------------------------------------
@@ -385,4 +403,28 @@ model ProductEvent {
   @@index([type, createdAt])
   @@index([createdAt])
   @@index([roomId])
+}
+
+// Guest feedback. Room/game identifiers are contextual strings rather than
+// foreign keys because live rooms are intentionally ephemeral.
+model Feedback {
+  id             String           @id @default(cuid())
+  submissionId   String           @unique
+  category       FeedbackCategory
+  message        String           @db.VarChar(2000)
+  status         FeedbackStatus   @default(NEW)
+  source         FeedbackSource
+  roomId         String?
+  gameId         String?
+  route          String?          @db.VarChar(200)
+  deviceCategory String?          @db.VarChar(20)
+  userAgent      String?          @db.VarChar(500)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([createdAt])
+  @@index([status, createdAt])
+  @@index([category, createdAt])
+  @@index([gameId, createdAt])
+  @@index([source, createdAt])
 }

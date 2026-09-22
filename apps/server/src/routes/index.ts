@@ -3,6 +3,7 @@ import { SERVER_BUILD_META } from "../config/build-meta.js";
 import { publicHealthHandler } from "../lib/public-health.js";
 import { adminRouter } from "../modules/admin/admin.routes.js";
 import { authRouter } from "../modules/auth/auth.routes.js";
+import { feedbackRouter } from "../modules/feedback/feedback.routes.js";
 import { listGameAvailability } from "../modules/game/game-availability.service.js";
 import { isRoomCurrentlyReturnable } from "../modules/room/services/room-returnability.service.js";
 
@@ -25,6 +26,7 @@ apiRouter.get("/version", (_req, res) => {
 });
 
 apiRouter.use("/auth", authRouter);
+apiRouter.use("/feedback", feedbackRouter);
 apiRouter.use("/admin", adminRouter);
 
 apiRouter.get("/rooms/:code/returnable", async (req, res) => {

@@ -161,6 +161,7 @@ export const ADMIN_COPY = {
   auditTargetUser: 'مستخدم',
   auditTargetGame: 'لعبة',
   auditTargetRoom: 'غرفة',
+  auditTargetFeedback: 'ملاحظة',
   emptyUserMatches: 'لا توجد مشاركات سابقة',
   userMissing: 'المستخدم غير موجود.',
   matchMissing: 'المباراة غير موجودة.',
@@ -178,8 +179,7 @@ export const ADMIN_COPY = {
   answerLogTitle: 'سجل الإجابات',
   answerLogCount: 'محاولات مسجّلة',
   answerLogEmpty: 'لم تُسجَّل أي إجابات في هذه المباراة.',
-  answerLogUnavailable:
-    'لا توجد سجلات إجابات لهذه المباراة — السجل غير متوفر لهذه الفترة.',
+  answerLogUnavailable: 'لا توجد سجلات إجابات لهذه المباراة — السجل غير متوفر لهذه الفترة.',
   answerLogFilteredEmpty: 'لا توجد محاولات مطابقة لهذه التصفية.',
   answerTime: 'الوقت',
   answerPlayer: 'اللاعب',
@@ -235,6 +235,21 @@ export const ADMIN_COPY = {
   emptyPeriod: 'لا توجد بيانات في هذه الفترة',
   started: 'بدأت',
   day: 'اليوم',
+  feedbackTitle: 'الملاحظات',
+  feedbackTotal: 'إجمالي الملاحظات',
+  feedbackNew: 'الجديدة',
+  feedbackProblems: 'المشاكل',
+  feedbackSuggestions: 'الاقتراحات',
+  feedbackEmpty: 'لا توجد ملاحظات مطابقة.',
+  feedbackType: 'النوع',
+  feedbackMessage: 'الملاحظة',
+  feedbackPlace: 'اللعبة / المكان',
+  feedbackDate: 'التاريخ',
+  feedbackStatus: 'الحالة',
+  feedbackDetails: 'تفاصيل الملاحظة',
+  feedbackDelete: 'حذف الملاحظة',
+  feedbackDeleteConfirm: 'هل تريد حذف هذه الملاحظة نهائياً؟',
+  feedbackDeleteConfirmCta: 'نعم، احذف الملاحظة',
 } as const;
 
 export const ADMIN_ROLE_LABEL: Record<string, string> = {
@@ -300,6 +315,8 @@ export const ADMIN_AUDIT_ACTION_LABEL: Record<string, string> = {
   ROOM_KICK: 'طرد لاعب',
   ROOM_FORCE_CLOSE: 'إغلاق غرفة',
   ROOM_SPECTATE: 'مشاهدة مباشرة',
+  FEEDBACK_STATUS_SET: 'تحديث حالة ملاحظة',
+  FEEDBACK_DELETE: 'حذف ملاحظة',
 };
 
 export const ADMIN_AUDIT_METADATA_LABEL: Record<string, string> = {
@@ -313,4 +330,5 @@ export const ADMIN_AUDIT_METADATA_LABEL: Record<string, string> = {
   playerId: 'معرّف اللاعب',
   roomDeleted: 'حُذفت الغرفة',
   alreadyClosed: 'كانت مغلقة مسبقاً',
+  status: 'الحالة',
 };

@@ -3,6 +3,7 @@
 import type { ReactElement, ReactNode } from 'react';
 import { cloneElement, isValidElement, useState } from 'react';
 import { GameAudioControl } from '@/components/game/game-audio-control';
+import { FeedbackButton } from '@/components/feedback/feedback-button';
 import { GameHowToPlayControl } from '@/components/game/game-how-to-play';
 import { DeadlineTimerChip } from '@/components/game/game-timer-chip';
 import { Button } from '@/components/ui/button';
@@ -67,8 +68,7 @@ export function GameExperienceHeader({
     meta.totalRounds > 0;
 
   const phaseLabelRaw = normalizeExperiencePhaseLabel(meta.phaseLabel);
-  const phaseLabel =
-    phaseLabelRaw && phaseLabelRaw !== meta.gameName ? phaseLabelRaw : undefined;
+  const phaseLabel = phaseLabelRaw && phaseLabelRaw !== meta.gameName ? phaseLabelRaw : undefined;
   const centerLabel = meta.centerLabel?.trim() || undefined;
   const categoryLabel = meta.categoryLabel?.trim() || undefined;
   const primaryCenter = centerLabel ?? categoryLabel;
@@ -251,6 +251,12 @@ export function GameExperienceHeader({
             {renderTimerChip()}
             <GameHowToPlayControl gameId={gameId} />
             <GameAudioControl />
+            <FeedbackButton
+              source="GAMEPLAY"
+              roomId={room?.id}
+              gameId={gameId}
+              className="min-h-9 border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] text-[color:var(--wanas-game-text-primary)]"
+            />
             {renderRoomAction(false)}
             {renderLeaveAction(false)}
             {panelControls ? cloneElement(panelControls) : null}

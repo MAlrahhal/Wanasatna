@@ -12,8 +12,8 @@ export function ContactPageClient() {
       <PageHero title="تواصل معنا" variant="compact" className="w-full">
         <div className="text-wanas-text-secondary mx-auto max-w-2xl space-y-6 text-start text-sm leading-8 sm:text-base">
           <p>
-            ما فيه نموذج داخل الموقع ولا بريد معلن. القناة الحالية للتواصل هي سيرفر Discord
-            الرسمي.
+            تقدر ترسل ملاحظتك من داخل لوبي الغرفة أو أثناء اللعب. وللتواصل المباشر مع المجتمع، انضم
+            إلى سيرفر Discord الرسمي.
           </p>
 
           <section>

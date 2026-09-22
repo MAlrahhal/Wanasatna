@@ -9,6 +9,7 @@ export const ADMIN_ROUTES = {
   games: '/admin/games',
   history: '/admin/history',
   auditLogs: '/admin/audit-logs',
+  feedback: '/admin/feedback',
 } as const;
 
 export function adminRoomPath(roomId: string): string {
@@ -44,6 +45,7 @@ export const ADMIN_NAV_ITEMS = [
   },
   { id: 'log', label: 'سجل المباريات', href: ADMIN_ROUTES.history, placeholder: false },
   { id: 'auditLogs', label: 'سجل التدقيق', href: ADMIN_ROUTES.auditLogs, placeholder: false },
+  { id: 'feedback', label: 'الملاحظات', href: ADMIN_ROUTES.feedback, placeholder: false },
   { id: 'users', label: 'المستخدمون', href: ADMIN_ROUTES.users, placeholder: false },
   { id: 'games', label: 'الألعاب', href: ADMIN_ROUTES.games, placeholder: false },
 ] as const;

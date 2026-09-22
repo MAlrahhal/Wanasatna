@@ -37,6 +37,8 @@
     "test:admin-history-write": "cross-env WANASATNA_TEST_MODE=1 tsx tests/admin-history-write-path.unit.test.ts",
     "test:admin-room-history": "cross-env WANASATNA_TEST_MODE=1 tsx tests/admin-room-history.unit.test.ts",
     "test:admin-spectate": "cross-env WANASATNA_TEST_MODE=1 tsx tests/admin-spectate.unit.test.ts",
+    "test:feedback": "cross-env WANASATNA_TEST_MODE=1 tsx tests/feedback.unit.test.ts",
+    "test:feedback:integration": "cross-env WANASATNA_TEST_MODE=1 tsx tests/feedback.integration.test.ts",
     "promote-admin": "tsx scripts/promote-admin.ts",
     "admin-mfa": "tsx scripts/admin-mfa.ts",
     "test:p12-b5": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p12-b5-socket-account.unit.test.ts",

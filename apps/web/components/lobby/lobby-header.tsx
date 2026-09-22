@@ -4,13 +4,16 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { UiDialog } from '@/components/ui/dialog';
 import { GameAudioControl } from '@/components/game/game-audio-control';
+import { FeedbackButton } from '@/components/feedback/feedback-button';
 import { canViewRoomInvitationDetails } from '@/lib/room/navigation-guard';
 import { buildRoomInviteUrl } from '@/lib/room/session';
 import { SYSTEM_COPY, copyLinkFailedMessage } from '@/lib/ui/system-copy';
 import { cn } from '@/lib/utils';
 
 type LobbyHeaderProps = {
+  roomId: string;
   roomCode: string;
+  gameId?: string | null;
   isLocked: boolean;
   isHost: boolean;
   canChangeAvatar: boolean;
@@ -85,7 +88,9 @@ const CrownIcon = () => (
 );
 
 export function LobbyHeader({
+  roomId,
   roomCode,
+  gameId,
   isLocked,
   isHost,
   canChangeAvatar,
@@ -228,6 +233,17 @@ export function LobbyHeader({
             menuOpen ? 'flex' : 'hidden lg:flex',
           )}
         >
+          <FeedbackButton
+            source="LOBBY"
+            roomId={roomId}
+            gameId={gameId}
+            variant="outline"
+            className={cn(
+              actionClass,
+              'border-slate-400/[0.14] bg-indigo-400/[0.025] text-slate-200 hover:border-indigo-300/30 hover:bg-indigo-400/[0.08] hover:text-indigo-100 focus-visible:ring-indigo-300/30',
+            )}
+          />
+
           <Button
             type="button"
             variant="outline"

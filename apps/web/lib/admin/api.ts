@@ -7,6 +7,10 @@ import type {
   AdminAuditEntry,
   AdminDashboardData,
   AdminForceCloseRoomData,
+  AdminFeedbackData,
+  AdminFeedbackDeleteData,
+  AdminFeedbackItem,
+  AdminFeedbackStatusUpdateData,
   AdminGameAvailability,
   AdminGamesData,
   AdminHistoryData,
@@ -33,9 +37,16 @@ import type {
   AdminUsersData,
   AuthActionResponse,
   PublicUser,
+  FeedbackCategory,
+  FeedbackSource,
+  FeedbackStatus,
 } from '@wanasatna/shared';
 import { ADMIN_AUDIT_ACTIONS, ANSWER_ATTEMPT_STATUSES } from '@wanasatna/shared';
 import { getServerUrl } from '@/lib/config/server-url';
+
+const FEEDBACK_CATEGORIES = new Set(['SUGGESTION', 'PROBLEM', 'OTHER']);
+const FEEDBACK_STATUSES = new Set(['NEW', 'REVIEWED', 'RESOLVED']);
+const FEEDBACK_SOURCES = new Set(['LOBBY', 'GAMEPLAY', 'FINAL_RESULTS']);
 
 export type AdminMeResult = { ok: true; user: PublicUser } | { ok: false; status: number };
 
@@ -1149,7 +1160,8 @@ function pickSafeActivityPoint(value: unknown): AdminAnalyticsData['activity'][n
     typeof record.matchesStarted !== 'number' ||
     typeof record.matchesCompleted !== 'number' ||
     typeof record.matchesAborted !== 'number'
-  ) return null;
+  )
+    return null;
   return {
     bucket: record.bucket,
     label: record.label,
@@ -1159,7 +1171,9 @@ function pickSafeActivityPoint(value: unknown): AdminAnalyticsData['activity'][n
   };
 }
 
-function pickSafeMatchSize(value: unknown): AdminAnalyticsData['matchSizeDistribution'][number] | null {
+function pickSafeMatchSize(
+  value: unknown,
+): AdminAnalyticsData['matchSizeDistribution'][number] | null {
   if (!value || typeof value !== 'object') return null;
   const record = value as Record<string, unknown>;
   return typeof record.size === 'number' && typeof record.matchCount === 'number'
@@ -1167,7 +1181,9 @@ function pickSafeMatchSize(value: unknown): AdminAnalyticsData['matchSizeDistrib
     : null;
 }
 
-function pickSafeRoomActivity(value: unknown): AdminAnalyticsData['roomHistory']['activity'][number] | null {
+function pickSafeRoomActivity(
+  value: unknown,
+): AdminAnalyticsData['roomHistory']['activity'][number] | null {
   if (!value || typeof value !== 'object') return null;
   const record = value as Record<string, unknown>;
   return typeof record.date === 'string' && typeof record.roomsCreated === 'number'
@@ -1187,14 +1203,23 @@ function pickSafeRoomHistory(value: unknown): AdminAnalyticsData['roomHistory'] 
     (record.averageParticipants !== null && typeof record.averageParticipants !== 'number') ||
     !Array.isArray(record.closeReasons) ||
     !Array.isArray(record.activity)
-  ) return null;
+  )
+    return null;
   const closeReasons = record.closeReasons.flatMap((item) => {
     if (!item || typeof item !== 'object') return [];
     const row = item as Record<string, unknown>;
-    return (
-      (row.reason === 'ROOM_EMPTY' || row.reason === 'HOST_ENDED' || row.reason === 'ADMIN_FORCE_CLOSED' || row.reason === 'STARTUP_RECONCILIATION') &&
+    return (row.reason === 'ROOM_EMPTY' ||
+      row.reason === 'HOST_ENDED' ||
+      row.reason === 'ADMIN_FORCE_CLOSED' ||
+      row.reason === 'STARTUP_RECONCILIATION') &&
       typeof row.roomCount === 'number'
-    ) ? [{ reason: row.reason, roomCount: row.roomCount } as AdminAnalyticsData['roomHistory']['closeReasons'][number]] : [];
+      ? [
+          {
+            reason: row.reason,
+            roomCount: row.roomCount,
+          } as AdminAnalyticsData['roomHistory']['closeReasons'][number],
+        ]
+      : [];
   });
   return {
     coverageStartedAt: record.coverageStartedAt as string | null,
@@ -1223,9 +1248,10 @@ function pickSafeAnalytics(value: unknown): AdminAnalyticsData | null {
     record.participation && typeof record.participation === 'object'
       ? (record.participation as Record<string, unknown>)
       : null;
-  const duration = record.duration && typeof record.duration === 'object'
-    ? (record.duration as Record<string, unknown>)
-    : null;
+  const duration =
+    record.duration && typeof record.duration === 'object'
+      ? (record.duration as Record<string, unknown>)
+      : null;
   const roomHistory = pickSafeRoomHistory(record.roomHistory);
   if (
     (record.range !== '24h' &&
@@ -1411,6 +1437,150 @@ export async function fetchAdminAuditLogs(page = 1): Promise<AdminAuditResult> {
           .filter((entry): entry is AdminAuditEntry => entry !== null),
       },
     };
+  } catch {
+    return { ok: false, status: 0 };
+  }
+}
+
+function optionalString(value: unknown): string | null | undefined {
+  return value === null ? null : typeof value === 'string' ? value : undefined;
+}
+
+function pickSafeFeedbackItem(value: unknown): AdminFeedbackItem | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const row = value as Record<string, unknown>;
+  const roomId = optionalString(row.roomId);
+  const gameId = optionalString(row.gameId);
+  const route = optionalString(row.route);
+  const deviceCategory = optionalString(row.deviceCategory);
+  const userAgent = optionalString(row.userAgent);
+  if (
+    typeof row.id !== 'string' ||
+    typeof row.message !== 'string' ||
+    typeof row.createdAt !== 'string' ||
+    typeof row.updatedAt !== 'string' ||
+    !FEEDBACK_CATEGORIES.has(String(row.category)) ||
+    !FEEDBACK_STATUSES.has(String(row.status)) ||
+    !FEEDBACK_SOURCES.has(String(row.source)) ||
+    roomId === undefined ||
+    gameId === undefined ||
+    route === undefined ||
+    deviceCategory === undefined ||
+    userAgent === undefined
+  ) {
+    return null;
+  }
+  return {
+    id: row.id,
+    message: row.message,
+    category: row.category as FeedbackCategory,
+    status: row.status as FeedbackStatus,
+    source: row.source as FeedbackSource,
+    roomId,
+    gameId,
+    route,
+    deviceCategory,
+    userAgent,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
+export type AdminFeedbackQuery = {
+  status?: string;
+  category?: string;
+  source?: string;
+  gameId?: string;
+  page?: number;
+};
+
+export type AdminFeedbackResult =
+  { ok: true; data: AdminFeedbackData } | { ok: false; status: number };
+
+export async function fetchAdminFeedback(
+  query: AdminFeedbackQuery = {},
+): Promise<AdminFeedbackResult> {
+  try {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(query)) {
+      if (key === 'page' && typeof value === 'number' && value > 1) {
+        params.set(key, String(value));
+      } else if (typeof value === 'string' && value.trim()) {
+        params.set(key, value.trim());
+      }
+    }
+    const suffix = params.toString() ? `?${params.toString()}` : '';
+    const response = await fetch(adminUrl(`/feedback${suffix}`), {
+      method: 'GET',
+      credentials: 'include',
+    });
+    const body = (await response.json()) as AdminActionResponse<AdminFeedbackData>;
+    if (!response.ok || !body.success || !body.data || !Array.isArray(body.data.feedback)) {
+      return { ok: false, status: response.status || 500 };
+    }
+    const stats = body.data.stats;
+    if (
+      !stats ||
+      typeof stats.total !== 'number' ||
+      typeof stats.new !== 'number' ||
+      typeof stats.problems !== 'number' ||
+      typeof stats.suggestions !== 'number'
+    ) {
+      return { ok: false, status: 500 };
+    }
+    return {
+      ok: true,
+      data: {
+        feedback: body.data.feedback
+          .map(pickSafeFeedbackItem)
+          .filter((item): item is AdminFeedbackItem => item !== null),
+        stats,
+        total: body.data.total,
+        page: body.data.page,
+        pageSize: body.data.pageSize,
+      },
+    };
+  } catch {
+    return { ok: false, status: 0 };
+  }
+}
+
+export async function patchAdminFeedbackStatus(
+  id: string,
+  status: FeedbackStatus,
+): Promise<{ ok: true; data: AdminFeedbackStatusUpdateData } | { ok: false; status: number }> {
+  try {
+    const response = await fetch(adminUrl(`/feedback/${encodeURIComponent(id)}`), {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+    const body = (await response.json()) as AdminActionResponse<AdminFeedbackStatusUpdateData>;
+    if (!response.ok || !body.success) {
+      return { ok: false, status: response.status || 500 };
+    }
+    return { ok: true, data: body.data };
+  } catch {
+    return { ok: false, status: 0 };
+  }
+}
+
+export async function deleteAdminFeedback(
+  id: string,
+): Promise<{ ok: true; data: AdminFeedbackDeleteData } | { ok: false; status: number }> {
+  try {
+    const response = await fetch(adminUrl(`/feedback/${encodeURIComponent(id)}`), {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    const body = (await response.json()) as AdminActionResponse<AdminFeedbackDeleteData>;
+    if (!response.ok || !body.success) {
+      return { ok: false, status: response.status || 500 };
+    }
+    return { ok: true, data: body.data };
   } catch {
     return { ok: false, status: 0 };
   }

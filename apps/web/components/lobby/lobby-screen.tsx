@@ -70,15 +70,18 @@ export function LobbyScreen() {
   }, [isGameEnabled, isHost, selectGame, selectedGameId]);
 
   useEffect(() => {
-    try {
-      const notice = sessionStorage.getItem(LOBBY_NOTICE_STORAGE_KEY);
-      if (notice) {
-        setLobbyNotice(notice);
-        sessionStorage.removeItem(LOBBY_NOTICE_STORAGE_KEY);
+    const timer = window.setTimeout(() => {
+      try {
+        const notice = sessionStorage.getItem(LOBBY_NOTICE_STORAGE_KEY);
+        if (notice) {
+          setLobbyNotice(notice);
+          sessionStorage.removeItem(LOBBY_NOTICE_STORAGE_KEY);
+        }
+      } catch {
+        /* storage unavailable */
       }
-    } catch {
-      /* storage unavailable */
-    }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -104,8 +107,10 @@ export function LobbyScreen() {
         hasActiveShell: hasActiveMatch,
       })
     ) {
-      setLobbyNotice(null);
+      const timer = window.setTimeout(() => setLobbyNotice(null), 0);
+      return () => window.clearTimeout(timer);
     }
+    return undefined;
   }, [hasActiveMatch, lobbyNotice, status]);
 
   useEffect(() => {
@@ -180,7 +185,9 @@ export function LobbyScreen() {
       {isWaitingForNextMatch ? <ActiveMatchWaitingPanel /> : null}
 
       <LobbyHeader
+        roomId={room.id}
         roomCode={room.code}
+        gameId={selectedGameId}
         isLocked={room.isLocked}
         isHost={isHost}
         onLockRoom={() => void lockRoom()}

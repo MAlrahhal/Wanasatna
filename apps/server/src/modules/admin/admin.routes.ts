@@ -7,6 +7,9 @@ import type {
   AdminDashboardData,
   AdminErrorCode,
   AdminGamesData,
+  AdminFeedbackData,
+  AdminFeedbackDeleteData,
+  AdminFeedbackStatusUpdateData,
   AdminAnalyticsData,
   AdminHistoryData,
   AdminMatchDetails,
@@ -19,7 +22,7 @@ import type {
   AdminUsersData,
   AuthActionResponse,
 } from '@wanasatna/shared';
-import { isPlayableGameId } from '@wanasatna/shared';
+import { FEEDBACK_STATUSES, isPlayableGameId } from '@wanasatna/shared';
 import { opsLogger, sanitizeErrorName } from '../../lib/ops-logger.js';
 import { getAdminDashboard } from './dashboard.service.js';
 import {
@@ -30,7 +33,11 @@ import {
   getAdminRoomById,
   listAdminRooms,
 } from './admin-rooms.service.js';
-import { getAdminMatchById, listAdminHistory, listAdminMatchAnswerAttempts } from './admin-history.service.js';
+import {
+  getAdminMatchById,
+  listAdminHistory,
+  listAdminMatchAnswerAttempts,
+} from './admin-history.service.js';
 import { getAdminRoomHistoryById, listAdminRoomHistory } from './admin-room-history.service.js';
 import { getAdminAnalytics } from './admin-analytics.service.js';
 import { getAdminSystemSnapshot } from './admin-system.service.js';
@@ -39,6 +46,11 @@ import { requireAdmin } from './require-admin.js';
 import { toAdminPublicUser } from './to-admin-public-user.js';
 import { listAdminAuditLogs } from './admin-audit.service.js';
 import { listGameAvailability, setGameEnabled } from '../game/game-availability.service.js';
+import {
+  deleteAdminFeedback,
+  listAdminFeedback,
+  setAdminFeedbackStatus,
+} from './admin-feedback.service.js';
 
 export const adminRouter = Router();
 
@@ -357,6 +369,81 @@ adminRouter.delete('/rooms/:roomId', requireAdmin, async (req, res) => {
 
 const patchGameAvailabilitySchema = z.object({
   isEnabled: z.boolean(),
+});
+
+const patchFeedbackStatusSchema = z.object({ status: z.enum(FEEDBACK_STATUSES) }).strict();
+
+adminRouter.get('/feedback', requireAdmin, async (req, res) => {
+  try {
+    const data = await listAdminFeedback({
+      status: req.query.status,
+      category: req.query.category,
+      source: req.query.source,
+      gameId: req.query.gameId,
+      page: req.query.page,
+    });
+    res.status(200).json({ success: true, data } satisfies AdminActionResponse<AdminFeedbackData>);
+  } catch {
+    sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_LOAD_FAILED);
+  }
+});
+
+adminRouter.patch('/feedback/:feedbackId', requireAdmin, async (req, res) => {
+  const adminUserId = req.authUser?.id;
+  const feedbackId = typeof req.params.feedbackId === 'string' ? req.params.feedbackId.trim() : '';
+  const parsed = patchFeedbackStatusSchema.safeParse(req.body);
+  if (!adminUserId) {
+    sendAdminJsonError(res, 403, 'FORBIDDEN', 'غير مصرح لك بالدخول إلى لوحة الإدارة.');
+    return;
+  }
+  if (!feedbackId || feedbackId.length > 64 || !parsed.success) {
+    sendAdminJsonError(res, 400, 'VALIDATION_ERROR', 'بيانات الملاحظة غير صالحة.');
+    return;
+  }
+
+  try {
+    const result = await setAdminFeedbackStatus(
+      feedbackId,
+      parsed.data.status,
+      adminUserId,
+      typeof res.locals.requestId === 'string' ? res.locals.requestId : undefined,
+    );
+    if (!result.success) {
+      sendAdminJsonError(res, 404, result.error.code, result.error.message);
+      return;
+    }
+    res.status(200).json(result satisfies AdminActionResponse<AdminFeedbackStatusUpdateData>);
+  } catch {
+    sendAdminJsonError(res, 500, 'INTERNAL_ERROR', 'تعذر تحديث الملاحظة.');
+  }
+});
+
+adminRouter.delete('/feedback/:feedbackId', requireAdmin, async (req, res) => {
+  const adminUserId = req.authUser?.id;
+  const feedbackId = typeof req.params.feedbackId === 'string' ? req.params.feedbackId.trim() : '';
+  if (!adminUserId) {
+    sendAdminJsonError(res, 403, 'FORBIDDEN', 'غير مصرح لك بالدخول إلى لوحة الإدارة.');
+    return;
+  }
+  if (!feedbackId || feedbackId.length > 64) {
+    sendAdminJsonError(res, 400, 'VALIDATION_ERROR', 'معرّف الملاحظة غير صالح.');
+    return;
+  }
+
+  try {
+    const result = await deleteAdminFeedback(
+      feedbackId,
+      adminUserId,
+      typeof res.locals.requestId === 'string' ? res.locals.requestId : undefined,
+    );
+    if (!result.success) {
+      sendAdminJsonError(res, 404, result.error.code, result.error.message);
+      return;
+    }
+    res.status(200).json(result satisfies AdminActionResponse<AdminFeedbackDeleteData>);
+  } catch {
+    sendAdminJsonError(res, 500, 'INTERNAL_ERROR', 'تعذر حذف الملاحظة.');
+  }
 });
 
 adminRouter.get('/games', requireAdmin, async (_req, res) => {

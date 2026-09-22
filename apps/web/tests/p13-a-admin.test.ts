@@ -106,6 +106,7 @@ test('admin shell has desktop sidebar, mobile nav, placeholder sections', () => 
     'سجل الغرف',
     'سجل المباريات',
     'سجل التدقيق',
+    'الملاحظات',
     'المستخدمون',
     'الألعاب',
   ]);

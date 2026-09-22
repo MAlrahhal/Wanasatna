@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { AdPlacement } from '@/components/ads/ad-placement';
 import { Button } from '@/components/ui/button';
+import { FeedbackButton } from '@/components/feedback/feedback-button';
 import { useGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { clearGameAudioEventKeys, stopAllGameSounds } from '@/lib/game/sounds';
@@ -104,6 +105,7 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
 
   const mobileControls = (
     <div ref={mobilePanelControlsRef} className="flex shrink-0 items-center gap-0.5 lg:hidden">
+      <FeedbackButton source="GAMEPLAY" compact />
       <Button
         type="button"
         size="sm"

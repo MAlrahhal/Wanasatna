@@ -326,3 +326,7 @@ export function useGameShell(): GameShellContextValue {
 
   return context;
 }
+
+export function useOptionalGameShell(): GameShellContextValue | null {
+  return useContext(GameShellContext);
+}

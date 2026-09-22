@@ -31,6 +31,9 @@ function isNavActive(id: string, pathname: string): boolean {
   if (id === 'auditLogs') {
     return pathname === ADMIN_ROUTES.auditLogs || pathname.startsWith(`${ADMIN_ROUTES.auditLogs}/`);
   }
+  if (id === 'feedback') {
+    return pathname === ADMIN_ROUTES.feedback;
+  }
   if (id === 'system') {
     return pathname === ADMIN_ROUTES.system;
   }
