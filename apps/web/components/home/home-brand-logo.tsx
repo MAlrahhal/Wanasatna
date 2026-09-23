@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 type HomeBrandLogoProps = {
@@ -7,27 +8,20 @@ type HomeBrandLogoProps = {
 };
 
 const sizeClasses = {
-  sm: { mark: 'size-9 text-sm rounded-xl', name: 'text-base' },
-  md: { mark: 'size-11 text-sm rounded-xl', name: 'text-lg' },
-  lg: { mark: 'size-[4.5rem] text-3xl rounded-[1.25rem]', name: 'text-4xl sm:text-5xl' },
+  sm: 'h-11 w-auto lg:h-14',
+  md: 'h-16 w-auto',
+  lg: 'h-auto w-full max-w-[30rem]',
 } as const;
 
-export function HomeBrandLogo({ size = 'md', showName = true, className }: HomeBrandLogoProps) {
-  const sizes = sizeClasses[size];
-
+export function HomeBrandLogo({ size = 'md', className }: HomeBrandLogoProps) {
   return (
-    <div className={cn('flex items-center gap-3', className)}>
-      <div
-        className={cn(
-          'flex items-center justify-center bg-wanas-brand-navy font-bold text-white shadow-sm',
-          sizes.mark,
-        )}
-      >
-        و
-      </div>
-      {showName ? (
-        <span className={cn('font-bold text-wanas-brand-navy', sizes.name)}>ونساتنا</span>
-      ) : null}
-    </div>
+    <Image
+      src="/brand/wanasatna-logo.png"
+      alt="وناسَتنا"
+      width={1254}
+      height={1254}
+      priority={size === 'sm' || size === 'lg'}
+      className={cn('object-contain', sizeClasses[size], className)}
+    />
   );
 }
