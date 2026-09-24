@@ -11,6 +11,14 @@ const mobileViewports = [
   { width: 430, height: 932 },
 ] as const;
 
+const desktopViewports = [
+  { width: 1024, height: 768 },
+  { width: 1280, height: 800 },
+  { width: 1366, height: 768 },
+  { width: 1536, height: 864 },
+  { width: 1920, height: 1080 },
+] as const;
+
 type Box = { x: number; y: number; width: number; height: number };
 
 function boxesOverlap(left: Box, right: Box): boolean {
@@ -28,6 +36,35 @@ test('lobby header keeps its room code and controls accessible on mobile', async
   const roomCode = await enterLobbyCreate(page, playerName);
   const code = page.getByText(roomCode, { exact: true }).first();
   const playerNameLabel = page.getByText(playerName, { exact: true }).first();
+
+  for (const viewport of desktopViewports) {
+    await page.setViewportSize(viewport);
+    await expect(code).toBeVisible();
+
+    const codeMetrics = await code.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+        left: rect.left,
+        right: rect.right,
+      };
+    });
+    expect
+      .soft(codeMetrics.scrollWidth, `${viewport.width}px room code must not be clipped`)
+      .toBeLessThanOrEqual(codeMetrics.clientWidth + 1);
+    expect(codeMetrics.left).toBeGreaterThanOrEqual(0);
+    expect(codeMetrics.right).toBeLessThanOrEqual(viewport.width);
+
+    const documentMetrics = await page.evaluate(() => ({
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+    }));
+    expect(
+      documentMetrics.scrollWidth,
+      `${viewport.width}px must not scroll horizontally`,
+    ).toBeLessThanOrEqual(documentMetrics.clientWidth);
+  }
 
   for (const viewport of mobileViewports) {
     await page.setViewportSize(viewport);
