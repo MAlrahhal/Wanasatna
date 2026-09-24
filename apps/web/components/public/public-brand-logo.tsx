@@ -20,8 +20,8 @@ export function PublicBrandLogo({ size = 'md', className }: PublicBrandLogoProps
     <Image
       src={WANASATNA_LOGO_SRC}
       alt={BRAND_NAME_AR}
-      width={1254}
-      height={1254}
+      width={1391}
+      height={1131}
       priority={size === 'sm' || size === 'lg'}
       className={cn('object-contain', sizeClassName[size], className)}
     />
