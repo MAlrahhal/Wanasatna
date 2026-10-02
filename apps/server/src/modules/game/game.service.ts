@@ -334,6 +334,13 @@ async function assertHost(
   return { success: true, hostPlayerId: room.hostPlayerId };
 }
 
+export async function assertGameShellHost(
+  roomId: string,
+  playerId: string,
+): ReturnType<typeof assertHost> {
+  return assertHost(roomId, playerId);
+}
+
 export async function initGameShell(
   roomId: string,
   playerId: string,

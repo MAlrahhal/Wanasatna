@@ -88,12 +88,12 @@ function mockIo(
 }
 
 async function main(): Promise<void> {
-  await test('source: disconnect handler uses rebound-safe presence helper', () => {
+  await test('source: disconnect recovery preserves rebound safety and intended match locks', () => {
     const handlers = read('src/modules/room/room.socket.handlers.ts');
     assert.match(handlers, /applySocketDisconnectPresence/);
     assert.match(handlers, /disconnect-restored-after-rebind/);
     assert.doesNotMatch(handlers, /transferHostIfCurrentHostDisconnected/);
-  assert.match(handlers, /emitGameShellStateToSocket/);
+    assert.match(handlers, /emitGameShellStateToSocket/);
     assert.match(handlers, /emitPlayerRecoverySnapshotToSocket/);
 
     const presenceHelper = read('src/modules/room/services/presence-disconnect.service.ts');
@@ -106,7 +106,11 @@ async function main(): Promise<void> {
     const gameService = read('src/modules/game/game.service.ts');
     assert.match(
       gameService,
-      /filter\(\(player\) => player\.isConnected && !player\.isSpectator\)/,
+      /!player\.isSpectator && \(gameId !== GUESSING_CHALLENGE_GAME_ID \|\| player\.isConnected\)/,
+    );
+    assert.match(
+      gameService,
+      /currentShell\.matchParticipantIds === null[\s\S]*?lockMatchParticipantIds\(players, currentShell\.gameId\)[\s\S]*?retainPresentMatchParticipantIds\(currentShell\.matchParticipantIds, players\)/,
     );
   });
 

@@ -3,6 +3,9 @@ import 'dotenv/config';
 type Environment = Readonly<Record<string, string | undefined>>;
 
 const TEST_FILE_PATTERN = /(?:^|[\\/])tests[\\/].+\.(?:test|spec|audit)\.[cm]?[jt]s$/i;
+const LOCAL_DATABASE_HOSTS = new Set(['127.0.0.1', 'localhost', '::1', '[::1]']);
+const TEST_DATABASE_NAME_PATTERN = /^wanasatna(?:[_-][a-z0-9]+)*$/i;
+const TEST_DATABASE_MARKER_PATTERN = /(?:^|[_-])(?:test|unit|integration|verify|ci)(?:[_-]|$)/i;
 
 function configured(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
@@ -28,6 +31,34 @@ function databaseIdentity(value: string): string {
 
 function pointsToSameDatabase(left: string, right: string): boolean {
   return databaseIdentity(left) === databaseIdentity(right);
+}
+
+function assertIsolatedLocalTestDatabase(value: string): void {
+  const isolationError = new Error(
+    'TEST_DATABASE_URL must point to an explicitly isolated local PostgreSQL test database.',
+  );
+
+  try {
+    const url = new URL(value);
+    const databaseName = decodeURIComponent(url.pathname).replace(/^\/+/, '');
+    const isPostgres = url.protocol === 'postgresql:' || url.protocol === 'postgres:';
+    const isLocal = LOCAL_DATABASE_HOSTS.has(url.hostname.toLowerCase());
+    const hasTargetOverride = ['host', 'hostaddr', 'database', 'dbname'].some((parameter) =>
+      url.searchParams.has(parameter),
+    );
+    const isExplicitTestDatabase =
+      TEST_DATABASE_NAME_PATTERN.test(databaseName) &&
+      TEST_DATABASE_MARKER_PATTERN.test(databaseName);
+
+    if (!isPostgres || !isLocal || hasTargetOverride || !isExplicitTestDatabase) {
+      throw isolationError;
+    }
+  } catch (error) {
+    if (error === isolationError) {
+      throw error;
+    }
+    throw isolationError;
+  }
 }
 
 export function isAutomatedTestProcess(
@@ -62,9 +93,10 @@ export function resolveDatabaseUrl(
   );
   if (protectedUrls.some((value) => pointsToSameDatabase(testDatabaseUrl, value))) {
     throw new Error(
-      'TEST_DATABASE_URL resolves to the same database as DATABASE_URL/PRODUCTION_DATABASE_URL. Use an isolated test database or Neon test branch.',
+      'TEST_DATABASE_URL resolves to the same database as DATABASE_URL/PRODUCTION_DATABASE_URL. Use an isolated local test database.',
     );
   }
 
+  assertIsolatedLocalTestDatabase(testDatabaseUrl);
   return testDatabaseUrl;
 }

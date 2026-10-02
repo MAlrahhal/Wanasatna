@@ -8,7 +8,9 @@ const developmentUrl = 'postgresql://dev:secret@dev.example.test:5432/wanasatna_
 const productionUrl = 'postgresql://prod:secret@ep-production.us-east-1.aws.neon.tech/neondb';
 const pooledProductionUrl =
   'postgresql://other-role:other@ep-production-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require';
-const testUrl = 'postgresql://test:secret@ep-test.us-east-1.aws.neon.tech/neondb';
+const localTestUrl = 'postgresql://test:secret@127.0.0.1:5432/wanasatna_test';
+const localhostTestUrl = 'postgresql://test:secret@localhost:5432/wanasatna_presence_verify';
+const remoteTestUrl = 'postgresql://test:secret@ep-test.us-east-1.aws.neon.tech/neondb';
 const testArgv = ['node', 'C:\\repo\\apps\\server\\tests\\room.unit.test.ts'];
 const serverRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const repoRoot = join(serverRoot, '..', '..');
@@ -27,10 +29,41 @@ assert.throws(
 );
 assert.equal(
   resolveDatabaseUrl(
-    { NODE_ENV: 'test', DATABASE_URL: productionUrl, TEST_DATABASE_URL: testUrl },
+    { NODE_ENV: 'test', DATABASE_URL: productionUrl, TEST_DATABASE_URL: localTestUrl },
     [],
   ),
-  testUrl,
+  localTestUrl,
+);
+assert.equal(
+  resolveDatabaseUrl({ NODE_ENV: 'test', TEST_DATABASE_URL: localhostTestUrl }, []),
+  localhostTestUrl,
+);
+assert.throws(
+  () => resolveDatabaseUrl({ NODE_ENV: 'test', TEST_DATABASE_URL: remoteTestUrl }, []),
+  /explicitly isolated local PostgreSQL test database/,
+);
+assert.throws(
+  () =>
+    resolveDatabaseUrl(
+      {
+        NODE_ENV: 'test',
+        TEST_DATABASE_URL:
+          'postgresql://test:secret@127.0.0.1:5432/wanasatna_test?host=managed.example.test',
+      },
+      [],
+    ),
+  /explicitly isolated local PostgreSQL test database/,
+);
+assert.throws(
+  () =>
+    resolveDatabaseUrl(
+      {
+        NODE_ENV: 'test',
+        TEST_DATABASE_URL: 'postgresql://test:secret@127.0.0.1:5432/wanasatna_dev',
+      },
+      [],
+    ),
+  /explicitly isolated local PostgreSQL test database/,
 );
 assert.throws(
   () =>
@@ -67,6 +100,10 @@ const webProductionAudit = readFileSync(
   'utf8',
 );
 assert.match(prismaSource, /resolveDatabaseUrl\(\)/);
+const databaseResolutionIndex = prismaSource.indexOf('const databaseUrl = resolveDatabaseUrl();');
+const prismaConstructionIndex = prismaSource.indexOf('new PrismaClient');
+assert.ok(databaseResolutionIndex >= 0);
+assert.ok(prismaConstructionIndex > databaseResolutionIndex);
 for (const source of [serverProductionAudit, webProductionAudit]) {
   assert.match(source, /WANASATNA_PRODUCTION_WRITE_AUDIT_CONFIRM/);
   assert.match(source, /WRITE_TO_PRODUCTION/);

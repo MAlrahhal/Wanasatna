@@ -17,6 +17,7 @@ import {
 } from '@wanasatna/shared';
 import {
   cancelGameShellCountdown,
+  assertGameShellHost,
   getGameShellByRoomId,
   requestAbortGameShellByHost,
   initGameShell,
@@ -288,6 +289,13 @@ export function registerGameShellStartFromLobbyHandler(io: Server, socket: Socke
     const { playerId, roomId } = socket.data;
 
     try {
+      const hostCheck = await assertGameShellHost(roomId!, playerId!);
+
+      if (!hostCheck.success) {
+        sendGameResponse(callback, hostCheck);
+        return;
+      }
+
       const marathon = getMarathonState(roomId!);
       if (marathon && marathon.status !== 'PREPARING') {
         sendGameResponse(callback, {

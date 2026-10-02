@@ -93,10 +93,7 @@ async function createLobbyPair(): Promise<{ host: TestClient; b: TestClient }> {
   return { host, b };
 }
 
-async function startMatch(
-  host: TestClient,
-  clients: TestClient[],
-): Promise<{ shellId: string }> {
+async function startMatch(host: TestClient, clients: TestClient[]): Promise<{ shellId: string }> {
   for (const client of clients) {
     client.shellEvents.length = 0;
     client.navigations.length = 0;
@@ -357,7 +354,7 @@ async function main(): Promise<void> {
     await disconnectAll([host, b, c]);
   });
 
-  await runTest('H disconnected player does not poison Game B start', async () => {
+  await runTest('H reconnect-grace player keeps the same Game B seat', async () => {
     const { host, b } = await createLobbyPair();
     await startMatch(host, [host, b]);
     await hostEndGame(host);
@@ -368,8 +365,8 @@ async function main(): Promise<void> {
     await reconnectClient(b);
     await startMatch(host, [host, b]);
 
-    // Disconnect B during lobby after end, ensure status stays DISCONNECTED and
-    // host+connected-only lock works when a third joins.
+    // Disconnect B during the lobby after end. Once two connected players can
+    // start, B's reconnect-grace seat remains in the match lock for recovery.
     await hostEndGame(host);
     await disconnectClient(b);
 
@@ -394,7 +391,15 @@ async function main(): Promise<void> {
     }>(host.socket, GAME_SHELL_SYNC_EVENT, {});
     assert.ok(sync.data.state?.matchParticipantIds?.includes(host.id));
     assert.ok(sync.data.state?.matchParticipantIds?.includes(c.id));
-    assert.equal(sync.data.state?.matchParticipantIds?.includes(b.id), false);
+    assert.ok(sync.data.state?.matchParticipantIds?.includes(b.id));
+
+    await reconnectClient(b);
+    const recovered = await ack<{
+      success: boolean;
+      data: { state: { matchParticipantIds: string[] | null } | null };
+    }>(b.socket, GAME_SHELL_SYNC_EVENT, {});
+    assert.ok(recovered.success);
+    assert.ok(recovered.data.state?.matchParticipantIds?.includes(b.id));
 
     await disconnectAll([host, b, c]);
   });
