@@ -9,4 +9,7 @@ export const env = {
   testMode: process.env.WANASATNA_TEST_MODE === '1',
   authSessionTtlMs: Number(process.env.AUTH_SESSION_TTL_MS ?? 30 * 24 * 60 * 60 * 1000),
   adminTotpEncryptionKey: process.env.ADMIN_TOTP_ENCRYPTION_KEY,
+  purchaserOtpSecret: process.env.PURCHASER_OTP_SECRET,
+  resendApiKey: process.env.RESEND_API_KEY,
+  resendFromEmail: process.env.RESEND_FROM_EMAIL,
 };

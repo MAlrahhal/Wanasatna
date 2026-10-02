@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { playerNameContainsForbiddenChars, type AuthActionResponse } from '@wanasatna/shared';
 
-const emailSchema = z
+export const emailSchema = z
   .string()
   .transform((value) => value.trim().toLowerCase())
   .refine((email) => email.length >= 3 && email.length <= 254, {
@@ -46,9 +46,24 @@ export const adminMfaVerificationSchema = z.object({
   code: z.string().trim().min(6).max(64),
 });
 
+export const purchaserOtpRequestSchema = z.object({
+  email: emailSchema,
+});
+
+export const purchaserOtpVerificationSchema = z.object({
+  challengeId: z
+    .string()
+    .min(32)
+    .max(128)
+    .regex(/^[A-Za-z0-9_-]+$/),
+  code: z.string().regex(/^\d{6}$/, 'أدخل الرمز المكوّن من 6 أرقام.'),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type AdminMfaVerificationInput = z.infer<typeof adminMfaVerificationSchema>;
+export type PurchaserOtpRequestInput = z.infer<typeof purchaserOtpRequestSchema>;
+export type PurchaserOtpVerificationInput = z.infer<typeof purchaserOtpVerificationSchema>;
 
 type ValidationSuccess<T> = { success: true; data: T };
 type ValidationFailure = Extract<AuthActionResponse<never>, { success: false }>;
@@ -90,4 +105,12 @@ export function validateLoginPayload(payload: unknown) {
 
 export function validateAdminMfaVerificationPayload(payload: unknown) {
   return validatePayload(adminMfaVerificationSchema, payload);
+}
+
+export function validatePurchaserOtpRequestPayload(payload: unknown) {
+  return validatePayload(purchaserOtpRequestSchema, payload);
+}
+
+export function validatePurchaserOtpVerificationPayload(payload: unknown) {
+  return validatePayload(purchaserOtpVerificationSchema, payload);
 }

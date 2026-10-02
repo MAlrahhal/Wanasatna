@@ -30,9 +30,12 @@ import {
 import { clearAuthCookie, readAuthCookie, setAuthCookie } from './auth.cookie.js';
 import { loginUser, logoutAuthSession, registerUser } from './auth.service.js';
 import { validateAdminMfaVerificationPayload } from './auth.validators.js';
+import { purchaserOtpRouter } from './purchaser-otp.routes.js';
 import { createRequirePublicRegistration } from './public-registration.js';
 
 export const authRouter = Router();
+
+authRouter.use('/purchaser', purchaserOtpRouter);
 
 function sendAuthError(res: Response, status: number, code: AuthErrorCode, message: string): void {
   const body: AuthActionResponse<never> = {

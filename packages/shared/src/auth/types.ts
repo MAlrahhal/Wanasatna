@@ -16,6 +16,8 @@ export type AuthErrorCode =
   | 'UNAUTHORIZED'
   | 'FORBIDDEN'
   | 'RATE_LIMITED'
+  | 'OTP_INVALID'
+  | 'EMAIL_DELIVERY_UNAVAILABLE'
   | 'INTERNAL_ERROR';
 
 export type AuthError = {
@@ -56,6 +58,17 @@ export type AdminMfaVerifyInput = {
 
 export type AuthMeData = {
   user: PublicUser | null;
+};
+
+export type PurchaserOtpRequestData = {
+  challengeId: string;
+  resendAfterSeconds: number;
+  delivery: 'sent' | 'pending';
+};
+
+export type PurchaserOtpVerifyInput = {
+  challengeId: string;
+  code: string;
 };
 
 export type AdminMeData = {

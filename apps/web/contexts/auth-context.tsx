@@ -15,6 +15,7 @@ import type {
   AuthLoginData,
   AuthSessionData,
   PublicUser,
+  PurchaserOtpVerifyInput,
 } from '@wanasatna/shared';
 import {
   fetchAuthMe,
@@ -24,6 +25,7 @@ import {
   verifyAdminMfa,
 } from '@/lib/auth/api';
 import { refreshIdleRoomSocketForAccountAuth } from '@/lib/auth/refresh-idle-socket';
+import { verifyPurchaserOtpCode } from '@/lib/purchaser-access/api';
 
 type AuthStatus = 'loading' | 'ready';
 
@@ -32,6 +34,9 @@ type AuthContextValue = {
   user: PublicUser | null;
   login: (email: string, password: string) => Promise<AuthActionResponse<AuthLoginData>>;
   verifyAdminMfa: (input: AdminMfaVerifyInput) => Promise<AuthActionResponse<AuthSessionData>>;
+  verifyPurchaserOtp: (
+    input: PurchaserOtpVerifyInput,
+  ) => Promise<AuthActionResponse<AuthSessionData>>;
   register: (input: {
     email: string;
     password: string;
@@ -91,6 +96,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return result;
   }, []);
 
+  const confirmPurchaserOtp = useCallback(async (input: PurchaserOtpVerifyInput) => {
+    const result = await verifyPurchaserOtpCode(input);
+    if (result.success) {
+      setUser(result.data.user);
+      setStatus('ready');
+      // The helper deliberately leaves every active RoomPlayer/reconnect credential untouched.
+      refreshIdleRoomSocketForAccountAuth();
+    }
+    return result;
+  }, []);
+
   const register = useCallback(
     async (input: { email: string; password: string; preferredDisplayName: string }) => {
       const result = await registerAccount(input);
@@ -118,10 +134,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       login,
       verifyAdminMfa: confirmAdminMfa,
+      verifyPurchaserOtp: confirmPurchaserOtp,
       register,
       logout,
     }),
-    [status, user, login, confirmAdminMfa, register, logout],
+    [status, user, login, confirmAdminMfa, confirmPurchaserOtp, register, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,4 +1,5 @@
 import { runExpiredAuthSessionCleanup } from '../modules/auth/auth-session-cleanup.js';
+import { runExpiredPurchaserOtpCleanup } from '../modules/auth/purchaser-otp-cleanup.js';
 import { runExpiredAnswerAttemptCleanup } from '../modules/game/runtime/answer-attempt-cleanup.js';
 
 export const DATABASE_MAINTENANCE_INTERVAL_MS = 24 * 60 * 60 * 1000;
@@ -19,6 +20,7 @@ let maintenanceInFlight = false;
 let timerClock = defaultTimerClock;
 let maintenanceRun = async (now: Date): Promise<void> => {
   await runExpiredAuthSessionCleanup(now);
+  await runExpiredPurchaserOtpCleanup(now);
   await runExpiredAnswerAttemptCleanup(now);
 };
 
@@ -61,13 +63,12 @@ export function setDatabaseMaintenanceRunForTests(
     next ??
     (async (now: Date): Promise<void> => {
       await runExpiredAuthSessionCleanup(now);
+      await runExpiredPurchaserOtpCleanup(now);
       await runExpiredAnswerAttemptCleanup(now);
     });
 }
 
-export function setDatabaseMaintenanceTimerClockForTests(
-  next: MaintenanceTimerClock | null,
-): void {
+export function setDatabaseMaintenanceTimerClockForTests(next: MaintenanceTimerClock | null): void {
   stopDatabaseMaintenanceScheduler();
   timerClock = next ?? defaultTimerClock;
 }

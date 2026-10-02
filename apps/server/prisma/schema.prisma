@@ -215,6 +215,7 @@ model User {
   adminMfaChallenges   AdminMfaChallenge[]
   adminRecoveryCodes   AdminRecoveryCode[]
   adminAuditLogs       AdminAuditLog[]        @relation("AdminAuditActor")
+  entitlementGrants    EntitlementGrant[]
   players              Player[]
   matchParticipations  MatchParticipant[]
 }
@@ -231,6 +232,41 @@ model AuthSession {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+// Short-lived email ownership proof for purchaser access. It is not an entitlement.
+model PurchaserEmailOtpChallenge {
+  id          String    @id @default(cuid())
+  email       String    @unique @db.VarChar(254)
+  codeHash    String    @db.Char(64)
+  expiresAt   DateTime
+  attempts    Int       @default(0)
+  version     Int       @default(1)
+  requestedAt DateTime
+  sentAt      DateTime?
+  consumedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([expiresAt])
+}
+
+// Provider-independent access grant owned by a persistent website account.
+model EntitlementGrant {
+  id             String    @id @default(cuid())
+  userId         String
+  entitlementKey String
+  startsAt       DateTime  @default(now())
+  expiresAt      DateTime?
+  revokedAt      DateTime?
+  source         String
+  sourceRef      String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([source, sourceRef, entitlementKey])
+  @@index([userId, entitlementKey, startsAt])
 }
 
 model AdminTotpCredential {
