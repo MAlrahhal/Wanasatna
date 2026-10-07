@@ -495,7 +495,7 @@ export function buildBaraAlSalafaSpectatorView(
       ...baseView,
       instruction: IMPOSTOR_GUESS_SPECTATOR_INSTRUCTION,
       isImpostorGuessActivePlayer: false,
-      impostorGuessOptions: [],
+      impostorGuessOptions: round.selectedWord === null ? round.impostorGuessOptions : [],
       hasSubmittedImpostorGuess: false,
     };
   }
@@ -650,7 +650,7 @@ export function buildBaraAlSalafaPlayerView(
       instruction: IMPOSTOR_GUESS_SPECTATOR_INSTRUCTION,
       currentSpeakerName: null,
       isImpostorGuessActivePlayer: false,
-      impostorGuessOptions: [],
+      impostorGuessOptions: round.selectedWord === null ? round.impostorGuessOptions : [],
       hasSubmittedImpostorGuess: false,
       revealedImpostorPlayerId: round.impostorPlayerId,
       revealedImpostorName: match.playerNames[round.impostorPlayerId] ?? 'لاعب',

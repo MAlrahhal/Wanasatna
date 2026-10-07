@@ -474,9 +474,55 @@ export async function runFullMatchFlow(playerCount: number): Promise<MatchFlowRe
     assert.ok(guessViewImpostor.impostorGuessOptions.includes(word));
     assert.equal(guessViewImpostor.revealedWord, null);
     assert.ok(!String(guessViewImpostor.displayText).includes(word));
-    const normalGuessView = await syncView(normals[0]!.socket);
-    assert.deepEqual(normalGuessView.impostorGuessOptions, []);
-    assert.equal(normalGuessView.revealedWord, null);
+    const expectedGuessOptions = guessViewImpostor.impostorGuessOptions;
+    for (const client of clients) {
+      const selectionView = await syncView(client.socket);
+      assert.equal(selectionView.gamePhase, 'impostor-guess');
+      assert.deepEqual(
+        selectionView.impostorGuessOptions,
+        expectedGuessOptions,
+        'all players receive the same ordered guess options',
+      );
+      assert.equal(selectionView.isImpostorGuessActivePlayer, client.id === impostor.id);
+      assert.equal(selectionView.revealedWord, null);
+    }
+
+    if (round === 1 && playerCount === 3) {
+      const reconnectClient = normals[0]!;
+      reconnectClient.socket.disconnect();
+      await sleep(100);
+      reconnectClient.socket = await connectClient();
+      reconnectClient.recoveryEvents.length = 0;
+      trackClientEvents(reconnectClient);
+      const reconnectRes = await ack<{ success: boolean; data?: { players: unknown[] } }>(
+        reconnectClient.socket,
+        'reconnect',
+        {
+          playerId: reconnectClient.id,
+          roomId: reconnectClient.roomId,
+          roomCode: reconnectClient.roomCode,
+          reconnectToken: reconnectClient.reconnectToken,
+        },
+      );
+      assert.ok(reconnectRes.success, 'non-impostor reconnects during word selection');
+      const reconnectView = await syncView(reconnectClient.socket);
+      assert.equal(reconnectView.gamePhase, 'impostor-guess');
+      assert.deepEqual(reconnectView.impostorGuessOptions, expectedGuessOptions);
+      assert.equal(reconnectView.isImpostorGuessActivePlayer, false);
+      assert.equal(reconnectView.revealedWord, null);
+      clientById[reconnectClient.id] = reconnectClient;
+      await waitFor(
+        async () =>
+          reconnectClient.recoveryEvents.some(
+            (event) => !event.isActive && event.remainingSeconds === 0,
+          )
+            ? true
+            : null,
+        5000,
+        'recovery clears after word-selection reconnect',
+        100,
+      );
+    }
 
     if (round === 1) {
       const notImpostor = await ack<{ success: boolean; error?: { code: string } }>(
@@ -518,6 +564,7 @@ export async function runFullMatchFlow(playerCount: number): Promise<MatchFlowRe
     }, 10000, 'round-results', 300);
 
     assert.equal(resultsView.revealedWord, word);
+    assert.deepEqual(resultsView.impostorGuessOptions, []);
     const totals = Object.fromEntries(
       resultsView.roundResults.map((entry) => [entry.playerId, entry.totalPoints]),
     );

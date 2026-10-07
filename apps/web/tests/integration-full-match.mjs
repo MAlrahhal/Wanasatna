@@ -339,7 +339,12 @@ async function main() {
       'exactly one correct option',
     );
     const normalGuessView = await syncView(normals[0].socket);
-    assert.deepEqual(normalGuessView.impostorGuessOptions, [], 'options hidden from normals');
+    assert.deepEqual(
+      normalGuessView.impostorGuessOptions,
+      guessViewImpostor.impostorGuessOptions,
+      'normal players receive the same ordered options as read-only',
+    );
+    assert.equal(normalGuessView.isImpostorGuessActivePlayer, false);
 
     if (round === 1) {
       const notImpostor = await ack(normals[0].socket, BARA_AL_SALAFA_SUBMIT_IMPOSTOR_GUESS_EVENT, {

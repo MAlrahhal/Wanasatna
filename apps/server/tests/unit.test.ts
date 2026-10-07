@@ -443,7 +443,7 @@ test('role privacy: impostor never receives the word; players never see impostor
 
 // --- Impostor guess privacy ---
 
-test('impostor guess privacy: only impostor gets options; others see waiting state', () => {
+test('impostor guess: everyone gets identical ordered options but only impostor can act', () => {
   const shell = makeShell();
   const match = makeMatch({
     gamePhase: 'impostor-guess',
@@ -458,11 +458,21 @@ test('impostor guess privacy: only impostor gets options; others see waiting sta
   for (const playerId of ['p1', 'p3']) {
     const view = buildBaraAlSalafaPlayerView(match, playerId, shell);
     assert.equal(view.isImpostorGuessActivePlayer, false);
-    assert.deepEqual(view.impostorGuessOptions, [], `options hidden from ${playerId}`);
+    assert.deepEqual(
+      view.impostorGuessOptions,
+      impostorView.impostorGuessOptions,
+      `ordered options match for ${playerId}`,
+    );
+    assert.equal(view.revealedWord, null);
   }
+
+  const spectatorView = buildBaraAlSalafaSpectatorView(match, shell);
+  assert.equal(spectatorView.isImpostorGuessActivePlayer, false);
+  assert.deepEqual(spectatorView.impostorGuessOptions, impostorView.impostorGuessOptions);
+  assert.equal(spectatorView.revealedWord, null);
 });
 
-test('impostor guess: options hidden after submission', () => {
+test('impostor guess: options are cleared after submission', () => {
   const shell = makeShell();
   const match = makeMatch({
     gamePhase: 'impostor-guess',
@@ -473,6 +483,8 @@ test('impostor guess: options hidden after submission', () => {
   const impostorView = buildBaraAlSalafaPlayerView(match, 'p2', shell);
   assert.equal(impostorView.hasSubmittedImpostorGuess, true);
   assert.deepEqual(impostorView.impostorGuessOptions, [], 'one submission only');
+  assert.deepEqual(buildBaraAlSalafaPlayerView(match, 'p1', shell).impostorGuessOptions, []);
+  assert.deepEqual(buildBaraAlSalafaSpectatorView(match, shell).impostorGuessOptions, []);
 });
 
 // --- Reveal impostor ---
@@ -579,7 +591,11 @@ const DIRECTED_PAIRS = [
 
 function assertSpectatorHidesSecrets(
   view: ReturnType<typeof buildBaraAlSalafaSpectatorView>,
-  options: { wordPublic: boolean; impostorPublic: boolean },
+  options: {
+    wordPublic: boolean;
+    impostorPublic: boolean;
+    visibleGuessOptions?: readonly string[];
+  },
 ): void {
   const payload = JSON.stringify(view);
   assert.equal(view.isMatchSpectator, true);
@@ -592,18 +608,20 @@ function assertSpectatorHidesSecrets(
   assert.equal(view.isHost, false);
   assert.deepEqual(view.selectablePlayers, []);
   assert.deepEqual(view.votablePlayers, []);
-  assert.deepEqual(view.impostorGuessOptions, []);
+  assert.deepEqual(view.impostorGuessOptions, options.visibleGuessOptions ?? []);
   assert.equal(view.categoryName, 'أماكن');
 
   if (!options.wordPublic) {
     assert.equal(view.revealedWord, null);
     assert.equal(view.spectatorCivilianWord, null);
     assert.equal(view.spectatorOutsiderConcept, null);
-    assert.equal(
-      payload.includes('مكة'),
-      false,
-      'secret word must not be serialized before reveal',
-    );
+    if (!options.visibleGuessOptions) {
+      assert.equal(
+        payload.includes('مكة'),
+        false,
+        'secret word must not be serialized before the public-options phase',
+      );
+    }
   } else {
     assert.equal(view.revealedWord, 'مكة');
     assert.equal(view.spectatorCivilianWord, 'مكة');
@@ -691,7 +709,11 @@ test('spectator live projection updates through public phases without leaking se
     }),
     shell,
   );
-  assertSpectatorHidesSecrets(guess, { wordPublic: false, impostorPublic: true });
+  assertSpectatorHidesSecrets(guess, {
+    wordPublic: false,
+    impostorPublic: true,
+    visibleGuessOptions: ['مكة', 'جدة', 'الرياض'],
+  });
   assert.equal(guess.instruction, 'برا السالفة يحاول تخمين الكلمة...');
 
   const guessResult = buildBaraAlSalafaSpectatorView(

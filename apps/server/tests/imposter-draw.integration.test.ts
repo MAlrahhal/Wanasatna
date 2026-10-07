@@ -278,7 +278,10 @@ async function playThroughDrawing(
   return drawers;
 }
 
-async function completeVotingAndGuess(clients: TestClient[]): Promise<void> {
+async function completeVotingAndGuess(
+  clients: TestClient[],
+  verifyReconnect = false,
+): Promise<void> {
   const host = clients[0]!;
   await waitForPhase(host, 'voting', 'voting phase');
 
@@ -316,6 +319,69 @@ async function completeVotingAndGuess(clients: TestClient[]): Promise<void> {
   assert.ok(impostor, 'impostor guesser');
   assert.equal(impostor.view.referenceImage, null);
   assert.ok(impostor.view.impostorGuessOptions.length >= 2);
+  const expectedOptions = impostor.view.impostorGuessOptions;
+
+  for (const entry of guessViews) {
+    assert.deepEqual(entry.view.impostorGuessOptions, expectedOptions, 'same ordered options');
+    assert.equal(entry.view.revealedAnswerLabel, null, 'answer stays unidentified while choosing');
+    assert.equal(entry.view.canGuessImage, entry.client.id === impostor.client.id);
+  }
+
+  const nonChooser = guessViews.find((entry) => entry.client.id !== impostor.client.id);
+  assert.ok(nonChooser, 'non-chooser');
+  const forgedGuess = await ack<{ success: boolean; error?: { code: string } }>(
+    nonChooser.client.socket,
+    IMPOSTER_DRAW_SUBMIT_IMAGE_GUESS_EVENT,
+    { selectedWord: expectedOptions[0]! },
+  );
+  assert.equal(forgedGuess.success, false);
+  assert.equal(forgedGuess.error?.code, 'VALIDATION_ERROR');
+  const afterForgedGuess = await syncView(nonChooser.client.socket);
+  assert.equal(afterForgedGuess.gamePhase, 'impostor-guess');
+  assert.deepEqual(afterForgedGuess.impostorGuessOptions, expectedOptions);
+
+  if (verifyReconnect) {
+    nonChooser.client.socket.disconnect();
+    await sleep(100);
+    nonChooser.client.socket = await connectClient();
+    nonChooser.client.recoveryEvents.length = 0;
+    trackClientEvents(nonChooser.client);
+    const reconnectRes = await ack<{ success: boolean; data?: { players: unknown[] } }>(
+      nonChooser.client.socket,
+      'reconnect',
+      {
+        playerId: nonChooser.client.id,
+        roomId: nonChooser.client.roomId,
+        roomCode: nonChooser.client.roomCode,
+        reconnectToken: nonChooser.client.reconnectToken,
+      },
+    );
+    assert.ok(reconnectRes.success, 'non-chooser reconnects during word selection');
+    const reconnectView = await syncView(nonChooser.client.socket);
+    assert.equal(reconnectView.gamePhase, 'impostor-guess');
+    assert.deepEqual(reconnectView.impostorGuessOptions, expectedOptions);
+    assert.equal(reconnectView.canGuessImage, false);
+    assert.equal(reconnectView.revealedAnswerLabel, null);
+    await waitFor(
+      async () =>
+        nonChooser.client.recoveryEvents.some(
+          (event) => !event.isActive && event.remainingSeconds === 0,
+        )
+          ? true
+          : null,
+      5000,
+      'recovery clears after word-selection reconnect',
+      100,
+    );
+    const reconnectForgedGuess = await ack<{
+      success: boolean;
+      error?: { code: string };
+    }>(nonChooser.client.socket, IMPOSTER_DRAW_SUBMIT_IMAGE_GUESS_EVENT, {
+      selectedWord: expectedOptions[0]!,
+    });
+    assert.equal(reconnectForgedGuess.success, false);
+    assert.equal(reconnectForgedGuess.error?.code, 'VALIDATION_ERROR');
+  }
 
   const wrongOption =
     impostor.view.impostorGuessOptions.find((option) => option !== impostor.view.revealedAnswerLabel) ??
@@ -327,6 +393,8 @@ async function completeVotingAndGuess(clients: TestClient[]): Promise<void> {
   );
   assert.ok(guessRes.success);
   assert.equal(guessRes.data?.view.gamePhase, 'guess-result');
+  assert.deepEqual(guessRes.data?.view.impostorGuessOptions, []);
+  assert.equal(guessRes.data?.view.referenceImage, null);
   assert.ok(
     guessRes.data?.view.guessResultMessage === 'إجابة صحيحة!' ||
       guessRes.data?.view.guessResultMessage === 'إجابة خاطئة!',
@@ -374,7 +442,7 @@ async function runCompleteMatch(playerCount: number): Promise<void> {
       const afterDrawing = await syncView(host.socket);
       assert.ok(afterDrawing.strokes.length >= 1, 'cumulative canvas kept strokes');
 
-      await completeVotingAndGuess(clients);
+      await completeVotingAndGuess(clients, playerCount === 3 && round === 1);
 
       if (round < 3) {
         const continueRes = await ack<{

@@ -116,6 +116,7 @@ export type ImposterDrawPlayerView = {
   revealedImpostorPlayerId: string | null;
   revealedImpostorName: string | null;
   impostorVotedOut: boolean | null;
+  /** Public, ordered options during impostor-guess; empty in every other phase. */
   impostorGuessOptions: string[];
   canGuessImage: boolean;
   hasSubmittedImageGuess: boolean;

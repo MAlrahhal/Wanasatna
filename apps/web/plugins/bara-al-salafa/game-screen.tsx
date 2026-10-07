@@ -418,6 +418,7 @@ export function BaraAlSalafaGameScreen(_props: GamePluginScreenProps) {
         <ImpostorGuessScreen
           {...impostorGuessProps}
           selectedWord={guessSelection}
+          waitingHelper="الكلمات المعروضة — انتظر اختيار اللاعب."
           onSelectWord={
             !treatAsSpectator &&
             impostorGuessProps.isImpostor &&

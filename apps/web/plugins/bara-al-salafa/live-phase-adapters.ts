@@ -135,6 +135,7 @@ export function mapImpostorGuessLiveProps(
   | 'deadlineAtMs'
   | 'remainingSeconds'
   | 'showTimer'
+  | 'showOptionsToObservers'
 > {
   return {
     isImpostor: view.isImpostorGuessActivePlayer,
@@ -146,6 +147,7 @@ export function mapImpostorGuessLiveProps(
     deadlineAtMs,
     remainingSeconds: 0,
     showTimer: true,
+    showOptionsToObservers: true,
   };
 }
 

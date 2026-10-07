@@ -260,7 +260,10 @@ export function buildImposterDrawSpectatorView(
       ? (match.playerNames[round.impostorPlayerId] ?? 'لاعب')
       : null,
     impostorVotedOut: revealIdentity ? round.impostorVotedOut : null,
-    impostorGuessOptions: [],
+    impostorGuessOptions:
+      round.gamePhase === 'impostor-guess' && round.selectedImageGuess === null
+        ? round.impostorGuessOptions
+        : [],
     canGuessImage: false,
     hasSubmittedImageGuess: false,
     selectedImageGuess: revealAnswer ? round.selectedImageGuess : null,
@@ -344,7 +347,10 @@ export function buildImposterDrawPlayerView(
       ? (match.playerNames[round.impostorPlayerId] ?? 'لاعب')
       : null,
     impostorVotedOut: revealIdentity ? round.impostorVotedOut : null,
-    impostorGuessOptions: round.gamePhase === 'impostor-guess' ? round.impostorGuessOptions : [],
+    impostorGuessOptions:
+      round.gamePhase === 'impostor-guess' && round.selectedImageGuess === null
+        ? round.impostorGuessOptions
+        : [],
     canGuessImage:
       round.gamePhase === 'impostor-guess' && isImpostor && round.selectedImageGuess === null,
     hasSubmittedImageGuess: round.selectedImageGuess !== null,

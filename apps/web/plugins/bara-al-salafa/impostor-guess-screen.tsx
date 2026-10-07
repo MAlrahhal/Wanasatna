@@ -73,14 +73,20 @@ function GuessOptionButton({
         'relative flex min-h-[92px] flex-col items-center justify-center gap-1 rounded-[22px] border-2 px-3 py-5 text-center transition-all duration-200',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/45 focus-visible:ring-offset-2',
         'active:scale-[0.98]',
-        'disabled:cursor-not-allowed',
+        'disabled:cursor-not-allowed disabled:active:scale-100',
         selected
           ? 'scale-[1.02] border-wanas-accent bg-wanas-accent-soft shadow-[var(--wanas-game-shadow-hover)] ring-1 ring-wanas-accent/20'
           : 'border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] hover:border-wanas-accent/25 hover:shadow-[var(--wanas-game-shadow)]',
-        disabled && !selected && 'opacity-45',
+        disabled && !selected && 'opacity-75',
       )}
       aria-pressed={selected}
-      aria-label={selected ? `${option.label} — مختار` : `اختيار ${option.label}`}
+      aria-label={
+        disabled
+          ? `${option.label} — للعرض فقط`
+          : selected
+            ? `${option.label} — مختار`
+            : `اختيار ${option.label}`
+      }
     >
       <SelectionCheckIcon selected={selected} />
       <span className="max-w-full truncate px-1 text-base font-semibold leading-snug text-wanas-text-primary">
@@ -207,7 +213,7 @@ function ImpostorGuessWaitingView({
   options,
   showOptions,
   waitingTitle = 'برا السالفة يحاول تخمين الكلمة',
-  waitingHelper = 'بانتظار انتهاء المرحلة...',
+  waitingHelper = 'الكلمات المعروضة — انتظر اختيار اللاعب.',
 }: {
   options: readonly ImpostorGuessOption[];
   showOptions: boolean;

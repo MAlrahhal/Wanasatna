@@ -168,6 +168,7 @@ export type BaraAlSalafaPlayerView = {
   revealedImpostorPlayerId: string | null;
   revealedImpostorName: string | null;
   isImpostorGuessActivePlayer: boolean;
+  /** Public, ordered options during impostor-guess; empty in every other phase. */
   impostorGuessOptions: string[];
   hasSubmittedImpostorGuess: boolean;
   revealedWord: string | null;

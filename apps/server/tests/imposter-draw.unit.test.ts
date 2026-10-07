@@ -210,9 +210,18 @@ test('reveal and guess phases never expose reference image', () => {
     }),
   });
   const impostorGuess = buildImposterDrawPlayerView(guessMatch, 'p2', shell);
+  const crewGuess = buildImposterDrawPlayerView(guessMatch, 'p1', shell);
+  const spectatorGuess = buildImposterDrawSpectatorView(guessMatch, shell);
   assert.equal(impostorGuess.referenceImage, null);
   assert.equal(impostorGuess.revealedAnswerLabel, null);
   assert.deepEqual(impostorGuess.impostorGuessOptions, ['قطة', 'كلب', 'أسد']);
+  assert.equal(impostorGuess.canGuessImage, true);
+  assert.deepEqual(crewGuess.impostorGuessOptions, impostorGuess.impostorGuessOptions);
+  assert.equal(crewGuess.canGuessImage, false);
+  assert.deepEqual(spectatorGuess.impostorGuessOptions, impostorGuess.impostorGuessOptions);
+  assert.equal(spectatorGuess.canGuessImage, false);
+  assert.equal(crewGuess.revealedAnswerLabel, null);
+  assert.equal(spectatorGuess.revealedAnswerLabel, null);
   assert.ok(!impostorGuess.impostorGuessOptions.includes(guessMatch.round.imageUrl));
 });
 
@@ -231,6 +240,8 @@ test('guess-result messages and answer label after resolve', () => {
     'إجابة صحيحة!',
   );
   assert.equal(buildImposterDrawPlayerView(correct, 'p1', shell).revealedAnswerLabel, 'قطة');
+  assert.deepEqual(buildImposterDrawPlayerView(correct, 'p1', shell).impostorGuessOptions, []);
+  assert.deepEqual(buildImposterDrawSpectatorView(correct, shell).impostorGuessOptions, []);
 
   const wrong = makeMatch({
     round: makeRound({
