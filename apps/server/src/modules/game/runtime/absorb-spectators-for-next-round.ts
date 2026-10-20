@@ -134,7 +134,7 @@ async function persistPromotedSpectators(
   }
 }
 
-function queuePromotionPersistence(
+export function queuePromotionPersistence(
   io: Server,
   roomId: string,
   absorbedPlayerIds: string[],

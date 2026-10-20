@@ -7,6 +7,7 @@ export const ADMIN_ROUTES = {
   roomHistory: '/admin/room-history',
   users: '/admin/users',
   games: '/admin/games',
+  experimentalGames: '/admin/experimental-games',
   history: '/admin/history',
   auditLogs: '/admin/audit-logs',
   feedback: '/admin/feedback',
@@ -48,4 +49,10 @@ export const ADMIN_NAV_ITEMS = [
   { id: 'feedback', label: 'الملاحظات', href: ADMIN_ROUTES.feedback, placeholder: false },
   { id: 'users', label: 'المستخدمون', href: ADMIN_ROUTES.users, placeholder: false },
   { id: 'games', label: 'الألعاب', href: ADMIN_ROUTES.games, placeholder: false },
+  {
+    id: 'experimentalGames',
+    label: 'الألعاب التجريبية',
+    href: ADMIN_ROUTES.experimentalGames,
+    placeholder: false,
+  },
 ] as const;

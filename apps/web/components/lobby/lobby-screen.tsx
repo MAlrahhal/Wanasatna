@@ -64,10 +64,15 @@ export function LobbyScreen() {
   useMobileOverlayScrollLock(chatOpen, '(max-width: 1279px)');
 
   useEffect(() => {
-    if (selectedGameId && !isGameEnabled(selectedGameId) && isHost) {
+    if (
+      selectedGameId &&
+      room?.experimentalGameId !== selectedGameId &&
+      !isGameEnabled(selectedGameId) &&
+      isHost
+    ) {
       selectGame('');
     }
-  }, [isGameEnabled, isHost, selectGame, selectedGameId]);
+  }, [isGameEnabled, isHost, room?.experimentalGameId, selectGame, selectedGameId]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -137,9 +142,20 @@ export function LobbyScreen() {
     return () => document.removeEventListener('keydown', onKey);
   }, [chatOpen]);
 
+  const experimentalGameId = room?.experimentalGameId;
   const selectedGame = useMemo(
-    () => mockLobbyGames.find((game) => game.id === selectedGameId) ?? null,
-    [selectedGameId],
+    () =>
+      mockLobbyGames.find((game) => game.id === selectedGameId) ??
+      (experimentalGameId && experimentalGameId === selectedGameId
+        ? {
+            id: experimentalGameId,
+            title: 'العملاء السريون',
+            description: 'لعبة فرق مغلقة الاختبار',
+            iconLabel: 'س',
+            emoji: '🕵️',
+          }
+        : null),
+    [experimentalGameId, selectedGameId],
   );
 
   const selectedGameSettings = selectedGameId
@@ -299,6 +315,7 @@ export function LobbyScreen() {
             selectedRoundCategoryId={selectedRoundCategoryId}
             isHost={isHost}
             isWaitingForNextMatch={isWaitingForNextMatch}
+            hasActiveMatch={hasActiveMatch}
             onSelectCategory={selectRoundCategory}
           />
           <LobbyStartGamePanel />

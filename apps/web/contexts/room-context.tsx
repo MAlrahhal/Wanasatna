@@ -24,6 +24,7 @@ import {
   LOCK_ROOM_EVENT,
   UNLOCK_ROOM_EVENT,
   GAME_SHELL_STATE_EVENT,
+  isPlayableGameId,
   isWaitingForNextMatch,
   type GameShellNavigatePayload,
   type GameShellState,
@@ -355,6 +356,29 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       }
     });
   }, []);
+
+  // Experimental selection is room authority, not per-browser state. This lets
+  // invited guests and reconnecting clients follow the admin-selected game while
+  // also clearing stale local storage after the server revokes that selection.
+  useEffect(() => {
+    const authoritativeGameId = room?.experimentalGameId ?? null;
+    const localGameId = selectedGameIdRef.current;
+
+    if (authoritativeGameId) {
+      if (localGameId !== authoritativeGameId) {
+        setSelectedGameId(authoritativeGameId);
+        writeSelectedGameId(authoritativeGameId);
+        setSelectedRoundCategoryId(null);
+      }
+      return;
+    }
+
+    if (localGameId && !isPlayableGameId(localGameId)) {
+      setSelectedGameId(null);
+      writeSelectedGameId(null);
+      setSelectedRoundCategoryId(null);
+    }
+  }, [room?.experimentalGameId]);
 
   // Self-kick / leave terminal — manager owns PLAYER_KICKED; provider only reacts.
   useEffect(() => {

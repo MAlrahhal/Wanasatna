@@ -7,6 +7,7 @@ import type {
   AdminDashboardData,
   AdminErrorCode,
   AdminGamesData,
+  AdminExperimentalGamesData,
   AdminFeedbackData,
   AdminFeedbackDeleteData,
   AdminFeedbackStatusUpdateData,
@@ -51,6 +52,9 @@ import {
   listAdminFeedback,
   setAdminFeedbackStatus,
 } from './admin-feedback.service.js';
+import { env } from '../../config/env.js';
+import { listExperimentalGames } from '../game/experimental/experimental-game.registry.js';
+import { registerAllExperimentalGames } from '../game/experimental/register-experimental-games.js';
 
 export const adminRouter = Router();
 
@@ -457,6 +461,18 @@ adminRouter.get('/games', requireAdmin, async (_req, res) => {
     }
     sendAdminJsonError(res, 500, 'INTERNAL_ERROR', ADMIN_LOAD_FAILED);
   }
+});
+
+adminRouter.get('/experimental-games', requireAdmin, (_req, res) => {
+  if (env.experimentalGamesEnabled) {
+    registerAllExperimentalGames();
+  }
+
+  const data: AdminExperimentalGamesData = {
+    enabled: env.experimentalGamesEnabled,
+    games: env.experimentalGamesEnabled ? listExperimentalGames() : [],
+  };
+  res.status(200).json({ success: true, data } satisfies AdminActionResponse<typeof data>);
 });
 
 adminRouter.get('/audit', requireAdmin, async (req, res) => {

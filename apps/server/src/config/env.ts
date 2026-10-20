@@ -1,7 +1,10 @@
 import { resolveDatabaseUrl } from './database-url.js';
+import { isExperimentalGamesCapabilityEnabled } from './experimental-games.js';
+
+const nodeEnv = process.env.NODE_ENV ?? 'development';
 
 export const env = {
-  nodeEnv: process.env.NODE_ENV ?? 'development',
+  nodeEnv,
   port: Number(process.env.PORT ?? 4000),
   clientOrigin: process.env.CLIENT_ORIGIN ?? 'http://localhost:3000',
   databaseUrl: resolveDatabaseUrl(),
@@ -9,4 +12,10 @@ export const env = {
   testMode: process.env.WANASATNA_TEST_MODE === '1',
   authSessionTtlMs: Number(process.env.AUTH_SESSION_TTL_MS ?? 30 * 24 * 60 * 60 * 1000),
   adminTotpEncryptionKey: process.env.ADMIN_TOTP_ENCRYPTION_KEY,
+  /** Explicit non-production gate for owner-only experimental game testing. */
+  experimentalGamesEnabled: isExperimentalGamesCapabilityEnabled(
+    nodeEnv,
+    process.env.RAILWAY_ENVIRONMENT_NAME,
+    process.env.EXPERIMENTAL_GAMES_TEST_MODE,
+  ),
 };

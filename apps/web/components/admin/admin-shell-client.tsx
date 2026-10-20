@@ -25,6 +25,9 @@ function isNavActive(id: string, pathname: string): boolean {
   if (id === 'games') {
     return pathname === ADMIN_ROUTES.games;
   }
+  if (id === 'experimentalGames') {
+    return pathname === ADMIN_ROUTES.experimentalGames;
+  }
   if (id === 'log') {
     return pathname === ADMIN_ROUTES.history || pathname.startsWith(`${ADMIN_ROUTES.history}/`);
   }

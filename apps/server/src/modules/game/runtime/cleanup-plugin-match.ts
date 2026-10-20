@@ -31,11 +31,16 @@ import {
 } from '../plugins/timing-challenge/store.js';
 import { clearWhoWroteItPhaseTimerRuntime } from '../plugins/who-wrote-it/phase-timer.js';
 import { deleteWhoWroteItState } from '../plugins/who-wrote-it/store.js';
+import { getExperimentalGameRegistration } from '../experimental/experimental-game.registry.js';
 
 export function cleanupPluginMatchState(roomId: string, gameId: string | null): void {
   // Match teardown (abort, rematch, marathon game switch) must not clear
   // room content history. That map is removed only in onRoomDeleted.
   clearRoomRoundCategory(roomId);
+
+  if (gameId) {
+    getExperimentalGameRegistration(gameId)?.runtime?.cleanup(roomId);
+  }
 
   if (gameId === BARA_AL_SALAFA_GAME_ID) {
     clearPhaseTimerRuntime(roomId);

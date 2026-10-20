@@ -48,6 +48,15 @@ const startFromLobbySchema = z.object({
   drawGuess: drawGuessSettingsSchema.optional(),
 });
 
+const selectExperimentalGameSchema = z
+  .object({
+    gameId: z
+      .string()
+      .trim()
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Invalid game selection'),
+  })
+  .strict();
+
 type ValidationSuccess<T> = { success: true; data: T };
 type ValidationFailure = Extract<GameActionResponse<never>, { success: false }>;
 
@@ -88,6 +97,10 @@ export function validateSetGameShellReadyPayload(payload: unknown) {
 
 export function validateStartGameShellFromLobbyPayload(payload: unknown) {
   return validatePayload(startFromLobbySchema, payload ?? {});
+}
+
+export function validateSelectExperimentalGamePayload(payload: unknown) {
+  return validatePayload(selectExperimentalGameSchema, payload ?? {});
 }
 
 export function invalidGameContextError(message: string): GameActionResponse<never> {

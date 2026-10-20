@@ -15,6 +15,7 @@ import { handleJudgePermanentLeave } from '../plugins/judge/match-lifecycle.js';
 import { cleanupPluginMatchState } from './cleanup-plugin-match.js';
 import { clearPlayerRecoveryForTeardown } from './player-recovery.js';
 import { clearRoomContentHistory } from './room-content-history.js';
+import { clearExperimentalGameSelection } from '../experimental/experimental-game-selection.store.js';
 import {
   clearTeamsForRoom,
   loadEligibleLobbyPlayerIds,
@@ -27,6 +28,8 @@ import { cancelRoomDisconnectedPlayerExpiryTimers } from '../../room/services/di
 import { abortActiveMatch } from './abort-active-match.js';
 import { getGamePluginDefinition } from './plugin-registry.js';
 import { reconcileActivePersistedMatchParticipants } from '../../match/match-history.service.js';
+import { getExperimentalGameRegistration } from '../experimental/experimental-game.registry.js';
+import { getExperimentalGameSelection } from '../experimental/experimental-game-selection.store.js';
 
 /** Call after join so lobby team state tracks the roster. */
 export async function onRoomRosterJoined(io: Server, roomId: string): Promise<void> {
@@ -41,6 +44,9 @@ export async function onRoomRosterJoined(io: Server, roomId: string): Promise<vo
     const synced = await syncGameShell(roomId);
     if (synced.success && synced.data.state) {
       broadcastGameShellState(io, synced.data.state);
+      if (shell.gameId) {
+        getExperimentalGameRegistration(shell.gameId)?.runtime?.reconcileConnectivity?.(io, roomId);
+      }
     }
   }
 }
@@ -52,6 +58,9 @@ export async function onRoomPlayerRemoved(
   playerId: string,
   roomDeleted: boolean,
 ): Promise<void> {
+  if (getExperimentalGameSelection(roomId)?.hostPlayerId === playerId) {
+    clearExperimentalGameSelection(roomId);
+  }
   if (roomDeleted) {
     clearMarathonState(roomId);
     clearTeamsForRoom(roomId);
@@ -62,6 +71,14 @@ export async function onRoomPlayerRemoved(
 
   handleJudgePermanentLeave(io, roomId, playerId);
   handleGuessingChallengePermanentLeave(io, roomId, playerId);
+  const activeExperimentalGameId = getGameShellByRoomId(roomId)?.gameId;
+  if (activeExperimentalGameId) {
+    getExperimentalGameRegistration(activeExperimentalGameId)?.runtime?.onPermanentLeave?.(
+      io,
+      roomId,
+      playerId,
+    );
+  }
   markMarathonPlayerDeparted(roomId, playerId);
 
   const eligible = await loadEligibleLobbyPlayerIds(roomId);
@@ -103,6 +120,7 @@ export async function onRoomPlayerRemoved(
 export function onRoomDeleted(io: Server, roomId: string): void {
   cancelRoomDisconnectedPlayerExpiryTimers(roomId);
   const shell = getGameShellByRoomId(roomId);
+  const selectedExperimentalGameId = getExperimentalGameSelection(roomId)?.gameId ?? null;
   clearPlayerRecoveryForTeardown(io, roomId);
 
   if (shell) {
@@ -114,4 +132,8 @@ export function onRoomDeleted(io: Server, roomId: string): void {
   clearTeamsForRoom(roomId);
   clearMarathonState(roomId);
   clearRoomContentHistory(roomId);
+  if (selectedExperimentalGameId) {
+    getExperimentalGameRegistration(selectedExperimentalGameId)?.runtime?.cleanup(roomId);
+  }
+  clearExperimentalGameSelection(roomId);
 }

@@ -48,6 +48,7 @@ test('all known plugin ids are registered exactly once', () => {
       'guessing-challenge',
       'imposter-draw',
       'judge',
+      'secret-agents',
       'timing-challenge',
       'who-wrote-it',
     ],
@@ -108,7 +109,7 @@ test('timing-challenge lobby catalog ID matches plugin ID', () => {
 test('re-running registration is idempotent (Strict Mode / Fast Refresh safe)', () => {
   registerAllClientGamePlugins();
   registerAllClientGamePlugins();
-  assert.equal(listClientGamePlugins().length, 8, 'no duplicate registrations');
+  assert.equal(listClientGamePlugins().length, 9, 'no duplicate registrations');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

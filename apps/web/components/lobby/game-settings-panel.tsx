@@ -7,6 +7,7 @@ import {
   GUESSING_CHALLENGE_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
   DRAW_GUESS_GAME_ID,
+  SECRET_AGENTS_GAME_ID,
 } from '@wanasatna/shared';
 import { DrawGuessSettingsPanel } from './draw-guess-settings-panel';
 import { ExperimentalGameSettingsPanel } from './experimental-game-settings-panel';
@@ -14,14 +15,21 @@ import { GuessingChallengeSettingsPanel } from './guessing-challenge-settings-pa
 import { TimingChallengeSettingsPanel } from './timing-challenge-settings-panel';
 import { TeamAssignmentPanel } from './team-assignment-panel';
 import { getGameTeamCapability } from '@wanasatna/shared';
+import { SecretAgentsLobbyPanel } from './secret-agents-lobby-panel';
 
 type GameSettingsPanelProps = {
   selectedGame: LobbyGame | null;
   settings: LobbyGameSettingsPlaceholder[];
   isHost: boolean;
+  isActiveMatch: boolean;
 };
 
-export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettingsPanelProps) {
+export function GameSettingsPanel({
+  selectedGame,
+  settings,
+  isHost,
+  isActiveMatch,
+}: GameSettingsPanelProps) {
   const { user } = useAuth();
   const {
     room,
@@ -43,6 +51,7 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
   const isTimingChallenge = selectedGame?.id === TIMING_CHALLENGE_GAME_ID;
   const isGuessingChallenge = selectedGame?.id === GUESSING_CHALLENGE_GAME_ID;
   const isDrawGuess = selectedGame?.id === DRAW_GUESS_GAME_ID;
+  const isSecretAgents = selectedGame?.id === SECRET_AGENTS_GAME_ID;
   const showsTeams = Boolean(
     selectedGame &&
     getGameTeamCapability(selectedGame.id) &&
@@ -65,6 +74,8 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
 
       {!selectedGame ? (
         <p className="text-wanas-text-muted text-xs">لا توجد إعدادات حتى يتم اختيار لعبة.</p>
+      ) : isSecretAgents ? (
+        <SecretAgentsLobbyPanel isActiveMatch={isActiveMatch} />
       ) : isTimingChallenge ? (
         <TimingChallengeSettingsPanel
           settings={timingChallengeSettings}
@@ -104,7 +115,7 @@ export function GameSettingsPanel({ selectedGame, settings, isHost }: GameSettin
         <p className="text-wanas-text-muted text-xs">لا توجد إعدادات إضافية لهذه اللعبة.</p>
       )}
 
-      {isAdmin && isHost && selectedGame ? (
+      {isAdmin && isHost && selectedGame && !isSecretAgents ? (
         <ExperimentalGameSettingsPanel
           gameId={selectedGame.id}
           roomSettings={room?.gameSettings ?? null}

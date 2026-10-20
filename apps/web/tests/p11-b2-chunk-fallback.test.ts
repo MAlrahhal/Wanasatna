@@ -159,14 +159,14 @@ test('6. no automatic GameScreen chunk retry loop', () => {
   assert.doesNotMatch(reload, /setInterval|setTimeout/);
 });
 
-test('7. all 8 lazy registry entries still resolve and inherit retry', () => {
+test('7. all public and closed-test lazy registry entries resolve and inherit retry', () => {
   const ids = listClientGamePlugins().map((plugin) => plugin.metadata.id).sort();
-  assert.deepEqual(ids, [...GAMES].sort());
+  assert.deepEqual(ids, [...GAMES, 'secret-agents'].sort());
 
   const renderer = read('components/game-plugins/game-plugin-renderer.tsx');
   assert.match(renderer, /GameScreenChunkErrorBoundary key=\{gameId\}/);
 
-  for (const id of GAMES) {
+  for (const id of [...GAMES, 'secret-agents']) {
     const plugin = getClientGamePlugin(id);
     assert.ok(plugin, `${id} must resolve`);
     assert.equal(typeof plugin.GameScreen, 'function');

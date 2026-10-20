@@ -6,3 +6,4 @@ export * from './timing-challenge/types.js';
 export * from './who-wrote-it/types.js';
 export * from './judge/types.js';
 export * from './guessing-challenge/types.js';
+export * from './secret-agents/types.js';

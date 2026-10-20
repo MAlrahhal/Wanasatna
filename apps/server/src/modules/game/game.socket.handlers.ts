@@ -17,6 +17,7 @@ import {
 } from '@wanasatna/shared';
 import {
   cancelGameShellCountdown,
+  assertGameShellHost,
   getGameShellByRoomId,
   requestAbortGameShellByHost,
   initGameShell,
@@ -66,6 +67,9 @@ import {
   validateSetGameShellReadyPayload,
   validateStartGameShellFromLobbyPayload,
 } from './game.validators.js';
+import { resolveSocketAccountUser } from '../auth/socket-auth.js';
+import { isRegisteredExperimentalGameId } from './experimental/experimental-game.registry.js';
+import { preflightExperimentalGameStart } from './experimental/experimental-game-access.service.js';
 
 export function registerGameShellInitHandler(io: Server, socket: Socket): void {
   socket.on(GAME_SHELL_INIT_EVENT, async (payload: unknown, callback) => {
@@ -86,7 +90,20 @@ export function registerGameShellInitHandler(io: Server, socket: Socket): void {
     const { playerId, roomId } = socket.data;
 
     try {
-      const response = await initGameShell(roomId!, playerId!, validation.data);
+      const experimental = validation.data.gameId
+        ? isRegisteredExperimentalGameId(validation.data.gameId)
+        : false;
+      const accountUser = experimental ? await resolveSocketAccountUser(socket) : null;
+      const response = await initGameShell(roomId!, playerId!, validation.data, {
+        ...(experimental
+          ? {
+              experimentalAuthority: {
+                accountUserId: accountUser?.id ?? null,
+                accountRole: accountUser?.role ?? null,
+              },
+            }
+          : {}),
+      });
 
       if (response.success) {
         stopGameShellTimer(roomId!);
@@ -288,6 +305,31 @@ export function registerGameShellStartFromLobbyHandler(io: Server, socket: Socke
     const { playerId, roomId } = socket.data;
 
     try {
+      const hostCheck = await assertGameShellHost(roomId!, playerId!);
+
+      if (!hostCheck.success) {
+        sendGameResponse(callback, hostCheck);
+        return;
+      }
+
+      const experimental = isRegisteredExperimentalGameId(validation.data.gameId);
+      const accountUser = experimental ? await resolveSocketAccountUser(socket) : null;
+      if (experimental) {
+        const denied = await preflightExperimentalGameStart({
+          roomId: roomId!,
+          playerId: playerId!,
+          gameId: validation.data.gameId,
+          authority: {
+            accountUserId: accountUser?.id ?? null,
+            accountRole: accountUser?.role ?? null,
+          },
+        });
+        if (denied) {
+          sendGameResponse(callback, denied);
+          return;
+        }
+      }
+
       const marathon = getMarathonState(roomId!);
       if (marathon && marathon.status !== 'PREPARING') {
         sendGameResponse(callback, {
@@ -364,7 +406,16 @@ export function registerGameShellStartFromLobbyHandler(io: Server, socket: Socke
         clearTeamsIfGameChanged(roomId!, validation.data.gameId);
       }
 
-      const response = await startGameShellFromLobby(roomId!, playerId!, validation.data.gameId);
+      const response = await startGameShellFromLobby(roomId!, playerId!, validation.data.gameId, {
+        ...(experimental
+          ? {
+              experimentalAuthority: {
+                accountUserId: accountUser?.id ?? null,
+                accountRole: accountUser?.role ?? null,
+              },
+            }
+          : {}),
+      });
 
       if (response.success) {
         console.info('[game-restart]', {

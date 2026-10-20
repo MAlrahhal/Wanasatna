@@ -8,6 +8,7 @@ import {
   HOST_CHANGED_EVENT,
   ROOM_UPDATED_EVENT,
   ROOM_GAME_SETTINGS_UPDATED_EVENT,
+  EXPERIMENTAL_GAME_SELECTED_EVENT,
   PLAYER_KICKED_EVENT,
   ROOM_CLOSED_EVENT,
   type HostChangedPayload,
@@ -19,6 +20,7 @@ import {
   type RoomSessionData,
   type RoomUpdatedPayload,
   type RoomGameSettingsUpdatedPayload,
+  type ExperimentalGameSelectedPayload,
 } from '@wanasatna/shared';
 import { getRoomErrorMessage } from '@/lib/room/error-messages';
 import { disconnectRoomSocket, getRoomSocket, waitForRoomSocketConnection } from '@/lib/room/socket';
@@ -343,6 +345,12 @@ class RoomSessionManager {
 
       this.snapshot = {
         ...this.snapshot,
+        room: this.snapshot.room
+          ? {
+              ...this.snapshot.room,
+              experimentalGameId: payload.experimentalGameId ?? null,
+            }
+          : null,
         players: payload.players,
         player:
           payload.players.find((p) => p.id === this.session?.playerId) ?? this.snapshot.player,
@@ -397,6 +405,21 @@ class RoomSessionManager {
       };
       this.notify();
     });
+
+    socket.on(
+      EXPERIMENTAL_GAME_SELECTED_EVENT,
+      (payload: ExperimentalGameSelectedPayload) => {
+        if (!this.session || payload.roomId !== this.session.roomId || !this.snapshot.room) {
+          return;
+        }
+
+        this.snapshot = {
+          ...this.snapshot,
+          room: { ...this.snapshot.room, experimentalGameId: payload.gameId },
+        };
+        this.notify();
+      },
+    );
 
     socket.on(PLAYER_KICKED_EVENT, (payload: PlayerKickedPayload) => {
       if (!this.session || payload.roomId !== this.session.roomId) {

@@ -50,6 +50,7 @@ export type RoomGameSettingsUpdatedPayload = {
 export type RoomPlayersSnapshotPayload = {
   roomId: string;
   players: RoomPlayerData[];
+  experimentalGameId?: string | null;
 };
 
 export type PlayerKickedPayload = {

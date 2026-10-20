@@ -13,6 +13,7 @@ import {
   type InitGameShellPayload,
 } from '@wanasatna/shared';
 import { prisma } from '../../lib/prisma.js';
+import { env } from '../../config/env.js';
 import {
   abortPersistedMatch,
   beginPersistedMatch,
@@ -27,12 +28,21 @@ import {
 } from '../room/services/room-tx.js';
 import { resolveGameEnabledForStart } from './game-availability.service.js';
 import { validateGameStart } from './runtime/validate-game-start.js';
+import {
+  authorizeExperimentalGameStartLocked,
+  type ExperimentalGameAuthority,
+} from './experimental/experimental-game-access.service.js';
+import {
+  getExperimentalGameRegistration,
+  isRegisteredExperimentalGameId,
+} from './experimental/experimental-game.registry.js';
 
 export type GameShellRecord = GameShellState;
 
 type InitGameShellOptions = {
   participantPlayerIds?: readonly string[];
   validateCurrentRoster?: boolean;
+  experimentalAuthority?: ExperimentalGameAuthority;
 };
 
 const shellsByRoomId = new Map<string, GameShellRecord>();
@@ -81,6 +91,12 @@ async function rejectIfGameDisabled(
 ): Promise<Extract<GameActionResponse<never>, { success: false }> | null> {
   if (!gameId) {
     return null;
+  }
+
+  if (isRegisteredExperimentalGameId(gameId)) {
+    return env.experimentalGamesEnabled
+      ? null
+      : gameServiceError('GAME_DISABLED', GAME_DISABLED_MESSAGE);
   }
 
   const availability = await resolveGameEnabledForStart(gameId);
@@ -212,6 +228,29 @@ export function promoteConnectedSpectatorsIntoMatch(roomId: string): {
   };
 }
 
+/** Adds one connected guest to an experimental match's authoritative participant lock. */
+export function promotePlayerIntoActiveMatch(
+  roomId: string,
+  playerId: string,
+  maximumParticipants: number,
+): GameShellRecord | null {
+  const shell = getGameShellByRoomId(roomId);
+  if (!shell || shell.phase !== 'PLAYING' || !shell.matchParticipantIds) return null;
+  if (shell.matchParticipantIds.includes(playerId)) return shell;
+  if (shell.matchParticipantIds.length >= maximumParticipants) return null;
+  const player = shell.players.find((candidate) => candidate.id === playerId);
+  if (!player?.isConnected) return null;
+
+  return saveShell({
+    ...shell,
+    matchParticipantIds: [...shell.matchParticipantIds, playerId],
+    players: shell.players.map((candidate) =>
+      candidate.id === playerId ? { ...candidate, isSpectator: false } : candidate,
+    ),
+    updatedAt: nowIso(),
+  });
+}
+
 /**
  * A permanent leave before PLAYING must not leave an impossible lock pointing
  * at an absent player. PLAYING memberships stay historical and are handled by
@@ -334,6 +373,13 @@ async function assertHost(
   return { success: true, hostPlayerId: room.hostPlayerId };
 }
 
+export async function assertGameShellHost(
+  roomId: string,
+  playerId: string,
+): ReturnType<typeof assertHost> {
+  return assertHost(roomId, playerId);
+}
+
 export async function initGameShell(
   roomId: string,
   playerId: string,
@@ -381,6 +427,16 @@ export async function initGameShell(
           return gameServiceError('NOT_HOST', 'Only the host can perform this action.');
         }
 
+        if (payload.gameId && isRegisteredExperimentalGameId(payload.gameId)) {
+          const denied = await authorizeExperimentalGameStartLocked(tx, {
+            roomId,
+            playerId,
+            gameId: payload.gameId,
+            authority: options?.experimentalAuthority,
+          });
+          if (denied) return denied;
+        }
+
         // Re-check after the room lock: a concurrent start may have installed a
         // shell during rejectIfGameDisabled / the previous attempt.
         if (shellsByRoomId.has(roomId)) {
@@ -408,6 +464,23 @@ export async function initGameShell(
           }
         }
 
+        let participantPlayerIds = options?.participantPlayerIds;
+        if (payload.gameId && isRegisteredExperimentalGameId(payload.gameId)) {
+          const resolver = getExperimentalGameRegistration(
+            payload.gameId,
+          )?.resolveStartParticipantIds;
+          if (resolver) {
+            const resolved = resolver(roomId);
+            if (!resolved) {
+              return gameServiceError(
+                'VALIDATION_ERROR',
+                'Experimental match participants are no longer valid.',
+              );
+            }
+            participantPlayerIds = resolved;
+          }
+        }
+
         const shell: GameShellRecord = {
           shellId: randomUUID(),
           roomId,
@@ -423,8 +496,8 @@ export async function initGameShell(
           startedAt: null,
           finishedAt: null,
           updatedAt: nowIso(),
-          matchParticipantIds: options?.participantPlayerIds
-            ? retainPresentMatchParticipantIds(options.participantPlayerIds, players)
+          matchParticipantIds: participantPlayerIds
+            ? retainPresentMatchParticipantIds(participantPlayerIds, players)
             : lockMatchParticipantIds(players, payload.gameId),
         };
 
@@ -874,6 +947,13 @@ export async function resetGameShell(
     return phaseError;
   }
 
+  if (shell.gameId && isRegisteredExperimentalGameId(shell.gameId)) {
+    return gameServiceError(
+      'FORBIDDEN',
+      'Experimental games must return to the lobby and pass admin authorization again.',
+    );
+  }
+
   const players = await loadRoomPlayers(roomId, shell.hostPlayerId);
 
   const nextShell = saveShell({
@@ -902,6 +982,7 @@ export async function startGameShellFromLobby(
   options?: {
     skipSettingsHydration?: boolean;
     participantPlayerIds?: readonly string[];
+    experimentalAuthority?: ExperimentalGameAuthority;
   },
 ): Promise<GameActionResponse<{ state: GameShellState }>> {
   const hostCheck = await assertHost(roomId, playerId);
@@ -936,6 +1017,9 @@ export async function startGameShellFromLobby(
   // Marathon is the sole explicit caller with a preselected roster contract.
   const initOptions: InitGameShellOptions = {
     validateCurrentRoster: true,
+    ...(options?.experimentalAuthority
+      ? { experimentalAuthority: options.experimentalAuthority }
+      : {}),
     ...(options?.participantPlayerIds
       ? { participantPlayerIds: options.participantPlayerIds }
       : {}),

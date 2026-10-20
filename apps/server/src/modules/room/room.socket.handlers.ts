@@ -670,6 +670,7 @@ export function registerRoomSyncHandler(_io: Server, socket: Socket): void {
           socket.emit(ROOM_PLAYERS_SNAPSHOT_EVENT, {
             roomId: roomId!,
             players: freshPlayers,
+            experimentalGameId: response.data.room.experimentalGameId ?? null,
           });
 
           // Same recovery signal as reconnect: mounted plugins re-SYNC on GAME_SHELL_STATE.

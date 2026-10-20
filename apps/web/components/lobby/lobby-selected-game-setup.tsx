@@ -11,6 +11,7 @@ type LobbySelectedGameSetupProps = {
   selectedRoundCategoryId: string | null;
   isHost: boolean;
   isWaitingForNextMatch: boolean;
+  hasActiveMatch: boolean;
   onSelectCategory: (categoryId: string) => void;
 };
 
@@ -22,6 +23,7 @@ export function LobbySelectedGameSetup({
   selectedRoundCategoryId,
   isHost,
   isWaitingForNextMatch,
+  hasActiveMatch,
   onSelectCategory,
 }: LobbySelectedGameSetupProps) {
   return (
@@ -37,6 +39,7 @@ export function LobbySelectedGameSetup({
         selectedGame={selectedGame}
         settings={selectedGameSettings}
         isHost={isHost}
+        isActiveMatch={hasActiveMatch}
       />
     </div>
   );

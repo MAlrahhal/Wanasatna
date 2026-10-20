@@ -12,6 +12,7 @@ const ERROR_MESSAGES: Record<GameErrorCode, string> = {
   PLAYER_NOT_FOUND: 'تعذر العثور على اللاعب.',
   GAME_NOT_SELECTED: 'يرجى اختيار لعبة قبل البدء.',
   GAME_DISABLED: 'هذه اللعبة غير متاحة حالياً.',
+  FORBIDDEN: 'غير مصرح لك باستخدام هذه اللعبة التجريبية.',
   INTERNAL_ERROR: 'حدث خطأ غير متوقع. حاول مرة أخرى.',
   ALREADY_SUBMITTED: 'لقد أرسلت وصفك بالفعل.',
   NOT_PARTICIPANT: 'أنت لست مشاركاً في هذه الجولة.',

@@ -8,6 +8,7 @@ export type GameErrorCode =
   | 'PLAYER_NOT_FOUND'
   | 'GAME_NOT_SELECTED'
   | 'GAME_DISABLED'
+  | 'FORBIDDEN'
   | 'INTERNAL_ERROR'
   | 'ALREADY_SUBMITTED'
   | 'NOT_PARTICIPANT'

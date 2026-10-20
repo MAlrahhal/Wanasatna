@@ -13,6 +13,8 @@ export type RoomData = {
   playerCap: number;
   /** Sanitized public Admin game overrides. Never includes who configured them. */
   gameSettings: RoomGameSettings | null;
+  /** Safe room-local selection; absent from public discovery and never grants authority. */
+  experimentalGameId?: string | null;
 };
 
 export type RoomSessionData = {

@@ -23,12 +23,23 @@ export function LobbyStartGamePanel() {
     timingChallengeSettings,
     guessingChallengeMode,
     teamSnapshot,
+    room,
   } = useRoom();
   const { isGameEnabled } = usePlayableGameAvailability();
   const [isStarting, setIsStarting] = useState(false);
   const startingRef = useRef(false);
 
-  const selectedGame = mockLobbyGames.find((game) => game.id === selectedGameId) ?? null;
+  const selectedGame =
+    mockLobbyGames.find((game) => game.id === selectedGameId) ??
+    (room?.experimentalGameId && room.experimentalGameId === selectedGameId
+      ? {
+          id: room.experimentalGameId,
+          title: 'العملاء السريون',
+          description: 'لعبة فرق مغلقة الاختبار',
+          iconLabel: 'س',
+          emoji: '🕵️',
+        }
+      : null);
   const catalogEntry = selectedGameId ? getGameCatalogEntry(selectedGameId) : null;
 
   const activeParticipantCount = useMemo(
@@ -49,7 +60,11 @@ export function LobbyStartGamePanel() {
     if (catalogEntry?.availability === 'coming-soon') {
       return 'اللعبة غير متاحة';
     }
-    if (selectedGameId && !isGameEnabled(selectedGameId)) {
+    if (
+      selectedGameId &&
+      room?.experimentalGameId !== selectedGameId &&
+      !isGameEnabled(selectedGameId)
+    ) {
       return 'غير متاحة حالياً';
     }
 
@@ -78,6 +93,7 @@ export function LobbyStartGamePanel() {
     guessingChallengeMode,
     isGameEnabled,
     isWaitingForNextMatch,
+    room?.experimentalGameId,
     selectedGameId,
     status,
     teamSnapshot,

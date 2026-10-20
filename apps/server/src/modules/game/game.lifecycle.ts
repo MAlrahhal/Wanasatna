@@ -19,6 +19,7 @@ import {
 import { initializePluginOnPlaying } from './runtime/initialize-plugin-on-playing.js';
 import { broadcastRoomPlayersSnapshot } from '../room/room.utils.js';
 import { clearRoomSpectatorFlags } from '../room/services/clear-spectators.service.js';
+import { clearExperimentalGameSelection } from './experimental/experimental-game-selection.store.js';
 import { getMarathonState } from '../marathon/marathon.store.js';
 
 type LobbyWaitSchedule = {
@@ -230,6 +231,10 @@ export async function returnRoomToLobbyAfterMatch(
     message?: string;
   },
 ): Promise<void> {
+  // Experimental selection is single-match authorization. A new match always
+  // requires a fresh selection by the currently authenticated admin host.
+  clearExperimentalGameSelection(roomId);
+
   try {
     await clearRoomSpectatorFlags(roomId);
   } catch (error) {

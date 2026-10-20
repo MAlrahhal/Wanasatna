@@ -43,6 +43,7 @@ import {
   pauseWhoWroteItPhaseTimer,
   resumeWhoWroteItPhaseTimer,
 } from '../plugins/who-wrote-it/phase-timer.js';
+import { getExperimentalGameRegistration } from '../experimental/experimental-game.registry.js';
 
 type RecoverySchedule = {
   deadlineAt: number;
@@ -255,6 +256,15 @@ async function handleRecoveryTick(io: Server, roomId: string): Promise<void> {
   broadcastGameShellState(io, refreshedShell);
   reconcileGuessingChallengeConnectivity(io, roomId, refreshedShell);
 
+  const experimentalRuntime = refreshedShell.gameId
+    ? getExperimentalGameRegistration(refreshedShell.gameId)?.runtime
+    : null;
+  if (experimentalRuntime?.reconcileConnectivity) {
+    if (isPlayerRecoveryActive(roomId)) cancelPlayerRecovery(io, roomId);
+    experimentalRuntime.reconcileConnectivity(io, roomId);
+    return;
+  }
+
   if (refreshedShell.gameId === GUESSING_CHALLENGE_GAME_ID) {
     if (isPlayerRecoveryActive(roomId)) {
       cancelPlayerRecovery(io, roomId);
@@ -312,6 +322,15 @@ export async function evaluatePlayerRecovery(io: Server, roomId: string): Promis
 
   broadcastGameShellState(io, refreshedShell);
   reconcileGuessingChallengeConnectivity(io, roomId, refreshedShell);
+
+  const experimentalRuntime = refreshedShell.gameId
+    ? getExperimentalGameRegistration(refreshedShell.gameId)?.runtime
+    : null;
+  if (experimentalRuntime?.reconcileConnectivity) {
+    if (isPlayerRecoveryActive(roomId)) cancelPlayerRecovery(io, roomId);
+    experimentalRuntime.reconcileConnectivity(io, roomId);
+    return;
+  }
 
   if (refreshedShell.gameId === GUESSING_CHALLENGE_GAME_ID) {
     if (isPlayerRecoveryActive(roomId)) {

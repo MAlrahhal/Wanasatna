@@ -37,6 +37,7 @@ import { getWhoWroteItState } from '../plugins/who-wrote-it/store.js';
 import { abortActiveMatch } from './abort-active-match.js';
 import { pluginParticipantsMatchShell } from './plugin-participant-invariant.js';
 import { getGamePluginDefinition } from './plugin-registry.js';
+import { getExperimentalGameRegistration } from '../experimental/experimental-game.registry.js';
 
 function hasConnectedMatchParticipant(
   shell: NonNullable<ReturnType<typeof getGameShellByRoomId>>,
@@ -50,6 +51,10 @@ function hasConnectedMatchParticipant(
 }
 
 function hasInitializedPluginState(roomId: string, gameId: string): boolean {
+  const experimental = getExperimentalGameRegistration(gameId);
+  if (experimental?.runtime) {
+    return experimental.runtime.hasState(roomId);
+  }
   if (gameId === BARA_AL_SALAFA_GAME_ID) {
     return getBaraAlSalafaState(roomId) !== null;
   }
@@ -121,7 +126,9 @@ export async function initializePluginOnPlaying(
       return;
     }
 
+    const experimentalRuntime = getExperimentalGameRegistration(gameId)?.runtime;
     if (
+      !experimentalRuntime &&
       gameId !== BARA_AL_SALAFA_GAME_ID &&
       gameId !== DRAW_GUESS_GAME_ID &&
       gameId !== IMPOSTER_DRAW_GAME_ID &&
@@ -152,7 +159,7 @@ export async function initializePluginOnPlaying(
       }
     }
 
-    if (!hasConnectedMatchParticipant(shell)) {
+    if (!hasConnectedMatchParticipant(shell) && !experimentalRuntime?.handlesActorRecovery) {
       logGameShellDiagnostic('plugin-init-no-connected-participants', {
         roomId,
         shellId: shell.shellId,
@@ -179,7 +186,7 @@ export async function initializePluginOnPlaying(
                     ? ensureJudgeMatchStateWithTimer(io, roomId)
                     : gameId === GUESSING_CHALLENGE_GAME_ID
                       ? ensureGuessingChallengeMatchStateWithTimer(io, roomId)
-                      : null;
+                      : (experimentalRuntime?.initialize(io, roomId) ?? null);
 
     if (!match) {
       logGameShellDiagnostic('plugin-init-no-match-state', {
@@ -191,7 +198,8 @@ export async function initializePluginOnPlaying(
       return;
     }
 
-    if (!pluginParticipantsMatchShell(shell, match.playerIds)) {
+    const initialized = match as { playerIds?: string[] };
+    if (!initialized.playerIds || !pluginParticipantsMatchShell(shell, initialized.playerIds)) {
       await abortBrokenMatch(io, roomId, 'participant-mismatch');
     }
   } catch (error) {

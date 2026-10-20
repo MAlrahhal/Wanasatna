@@ -13,6 +13,7 @@ import type {
   AdminFeedbackStatusUpdateData,
   AdminGameAvailability,
   AdminGamesData,
+  AdminExperimentalGamesData,
   AdminHistoryData,
   AdminHistoryMatchListItem,
   AdminHistoryParticipant,
@@ -367,6 +368,38 @@ export async function fetchAdminGames(): Promise<AdminGamesResult> {
       return { ok: false, status: response.status || 500 };
     }
     return { ok: true, data: body.data };
+  } catch {
+    return { ok: false, status: 0 };
+  }
+}
+
+export type AdminExperimentalGamesResult =
+  { ok: true; data: AdminExperimentalGamesData } | { ok: false; status: number };
+
+export async function fetchAdminExperimentalGames(): Promise<AdminExperimentalGamesResult> {
+  try {
+    const response = await fetch(adminUrl('/experimental-games'), {
+      method: 'GET',
+      credentials: 'include',
+    });
+    const body = (await response.json()) as AdminActionResponse<AdminExperimentalGamesData>;
+    if (!response.ok || !body.success || !Array.isArray(body.data?.games)) {
+      return { ok: false, status: response.status || 500 };
+    }
+    return {
+      ok: true,
+      data: {
+        enabled: body.data.enabled === true,
+        games: body.data.games.filter(
+          (game) =>
+            typeof game?.gameId === 'string' &&
+            typeof game.title === 'string' &&
+            typeof game.description === 'string' &&
+            Number.isInteger(game.minPlayers) &&
+            Number.isInteger(game.maxPlayers),
+        ),
+      },
+    };
   } catch {
     return { ok: false, status: 0 };
   }

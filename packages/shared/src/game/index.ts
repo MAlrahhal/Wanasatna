@@ -8,6 +8,7 @@ export * from './constants.js';
 export * from './end-game.js';
 export * from './enums.js';
 export * from './errors.js';
+export * from './experimental.js';
 export * from './events.js';
 export * from './payloads.js';
 export * from './player.js';

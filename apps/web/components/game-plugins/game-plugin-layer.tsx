@@ -7,6 +7,7 @@ import {
   IMPOSTER_DRAW_GAME_ID,
   GUESSING_CHALLENGE_GAME_ID,
   JUDGE_GAME_ID,
+  SECRET_AGENTS_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
   WHO_WROTE_IT_GAME_ID,
 } from '@wanasatna/shared';
@@ -36,11 +37,16 @@ function usesPluginExperienceShell(gameId: string): boolean {
     gameId === FAST_ANSWER_GAME_ID ||
     gameId === WHO_WROTE_IT_GAME_ID ||
     gameId === JUDGE_GAME_ID ||
-    gameId === GUESSING_CHALLENGE_GAME_ID
+    gameId === GUESSING_CHALLENGE_GAME_ID ||
+    gameId === SECRET_AGENTS_GAME_ID
   );
 }
 
 function CountdownForGame({ gameId }: { gameId: string }) {
+  if (gameId === SECRET_AGENTS_GAME_ID) {
+    return <PluginMatchStarting />;
+  }
+
   if (gameId === DRAW_GUESS_GAME_ID) {
     return <DrawGuessCountdownLive />;
   }
