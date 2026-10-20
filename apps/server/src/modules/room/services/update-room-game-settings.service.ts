@@ -1,5 +1,9 @@
 import { PlayerStatus, Prisma, RoomStatus } from '@prisma/client';
-import type { RoomActionResponse, RoomGameSettings, UpdateRoomGameSettingsPayload } from '@wanasatna/shared';
+import type {
+  RoomActionResponse,
+  RoomGameSettings,
+  UpdateRoomGameSettingsPayload,
+} from '@wanasatna/shared';
 import {
   mergeGameSettingPatch,
   sanitizeGameSettingPatch,
@@ -7,6 +11,10 @@ import {
 } from '@wanasatna/shared';
 import { prisma } from '../../../lib/prisma.js';
 import { getGameShellByRoomId } from '../../game/game.service.js';
+import {
+  persistExperimentalGameSelection,
+  readPersistedExperimentalGameSelection,
+} from '../../game/experimental/experimental-game-selection.store.js';
 import { serviceError } from './shared-room.service.js';
 import { setRoomGameSettingsCache } from '../room-game-settings.store.js';
 
@@ -61,11 +69,15 @@ export async function updateRoomGameSettings(input: {
   const current = sanitizeRoomGameSettings(room.gameSettings);
   const merged = mergeGameSettingPatch(current, input.payload.gameId, patch.values);
   const persisted = sanitizeRoomGameSettings(merged);
+  const experimentalSelection = readPersistedExperimentalGameSelection(room.gameSettings);
+  const persistedDatabaseValue = experimentalSelection
+    ? persistExperimentalGameSelection(persisted, experimentalSelection)
+    : persisted;
 
   await prisma.room.update({
     where: { id: input.roomId },
     data: {
-      gameSettings: persisted === null ? Prisma.JsonNull : persisted,
+      gameSettings: persistedDatabaseValue === null ? Prisma.JsonNull : persistedDatabaseValue,
     },
   });
 

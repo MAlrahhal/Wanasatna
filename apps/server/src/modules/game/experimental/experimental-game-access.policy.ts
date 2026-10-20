@@ -14,6 +14,7 @@ export type ExperimentalAccessFacts = ExperimentalGameAuthority & {
   requestingPlayerId: string;
   linkedHostUserId: string | null;
   linkedHostUserRole: UserRole | null;
+  linkedHostAdminMfaEnabled: boolean;
 };
 
 export type ExperimentalAccessFailure = Extract<GameActionResponse<never>, { success: false }>;
@@ -35,6 +36,7 @@ export function evaluateExperimentalGameAccess(
     !facts.accountUserId ||
     facts.accountRole !== 'ADMIN' ||
     facts.linkedHostUserRole !== 'ADMIN' ||
+    !facts.linkedHostAdminMfaEnabled ||
     facts.linkedHostUserId !== facts.accountUserId
   ) {
     return experimentalAccessError(

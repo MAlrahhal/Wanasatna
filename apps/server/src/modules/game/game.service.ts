@@ -30,6 +30,8 @@ import { resolveGameEnabledForStart } from './game-availability.service.js';
 import { validateGameStart } from './runtime/validate-game-start.js';
 import {
   authorizeExperimentalGameStartLocked,
+  consumeExperimentalGameSelectionLocked,
+  forgetConsumedExperimentalGameSelection,
   type ExperimentalGameAuthority,
 } from './experimental/experimental-game-access.service.js';
 import {
@@ -402,9 +404,11 @@ export async function initGameShell(
   }
 
   let installedShellId: string | null = null;
+  let consumedExperimentalSelection = false;
 
   for (let attempt = 0; attempt < ROOM_TX_RETRY_LIMIT; attempt += 1) {
     installedShellId = null;
+    consumedExperimentalSelection = false;
 
     try {
       const result = await prisma.$transaction(async (tx) => {
@@ -479,6 +483,23 @@ export async function initGameShell(
             }
             participantPlayerIds = resolved;
           }
+
+          const adminUserId = options?.experimentalAuthority?.accountUserId;
+          if (
+            !adminUserId ||
+            !(await consumeExperimentalGameSelectionLocked(tx, {
+              roomId,
+              playerId,
+              gameId: payload.gameId,
+              adminUserId,
+            }))
+          ) {
+            return gameServiceError(
+              'FORBIDDEN',
+              'Select this experimental game from the protected admin flow before starting it.',
+            );
+          }
+          consumedExperimentalSelection = true;
         }
 
         const shell: GameShellRecord = {
@@ -511,6 +532,9 @@ export async function initGameShell(
         };
       });
 
+      if (result.success && consumedExperimentalSelection) {
+        forgetConsumedExperimentalGameSelection(roomId);
+      }
       return result;
     } catch (error) {
       if (installedShellId && getGameShellByRoomId(roomId)?.shellId === installedShellId) {

@@ -1,9 +1,12 @@
 export function isExperimentalGamesCapabilityEnabled(
   nodeEnv: string,
   railwayEnvironmentName: string | undefined,
-  configuredValue: string | undefined,
+  nonProductionValue: string | undefined,
+  productionPlaytestValue: string | undefined,
 ): boolean {
-  if (configuredValue !== '1') return false;
-  if (nodeEnv !== 'production') return true;
-  return railwayEnvironmentName?.trim().toLowerCase() === 'staging';
+  if (nodeEnv !== 'production') return nonProductionValue === '1';
+
+  return (
+    railwayEnvironmentName?.trim().toLowerCase() === 'production' && productionPlaytestValue === '1'
+  );
 }

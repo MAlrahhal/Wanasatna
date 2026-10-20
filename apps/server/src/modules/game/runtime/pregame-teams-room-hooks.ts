@@ -16,6 +16,7 @@ import { cleanupPluginMatchState } from './cleanup-plugin-match.js';
 import { clearPlayerRecoveryForTeardown } from './player-recovery.js';
 import { clearRoomContentHistory } from './room-content-history.js';
 import { clearExperimentalGameSelection } from '../experimental/experimental-game-selection.store.js';
+import { clearPersistedExperimentalGameSelection } from '../experimental/experimental-game-access.service.js';
 import {
   clearTeamsForRoom,
   loadEligibleLobbyPlayerIds,
@@ -58,10 +59,12 @@ export async function onRoomPlayerRemoved(
   playerId: string,
   roomDeleted: boolean,
 ): Promise<void> {
-  if (getExperimentalGameSelection(roomId)?.hostPlayerId === playerId) {
-    clearExperimentalGameSelection(roomId);
-  }
+  await clearPersistedExperimentalGameSelection({
+    roomId,
+    expectedHostPlayerId: playerId,
+  });
   if (roomDeleted) {
+    clearExperimentalGameSelection(roomId);
     clearMarathonState(roomId);
     clearTeamsForRoom(roomId);
     return;

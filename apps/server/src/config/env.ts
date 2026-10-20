@@ -12,10 +12,11 @@ export const env = {
   testMode: process.env.WANASATNA_TEST_MODE === '1',
   authSessionTtlMs: Number(process.env.AUTH_SESSION_TTL_MS ?? 30 * 24 * 60 * 60 * 1000),
   adminTotpEncryptionKey: process.env.ADMIN_TOTP_ENCRYPTION_KEY,
-  /** Explicit non-production gate for owner-only experimental game testing. */
+  /** Fail-closed server gate for owner-only experimental game testing. */
   experimentalGamesEnabled: isExperimentalGamesCapabilityEnabled(
     nodeEnv,
     process.env.RAILWAY_ENVIRONMENT_NAME,
     process.env.EXPERIMENTAL_GAMES_TEST_MODE,
+    process.env.EXPERIMENTAL_GAMES_PRODUCTION_PLAYTEST,
   ),
 };

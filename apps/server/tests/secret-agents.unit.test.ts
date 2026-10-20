@@ -39,6 +39,7 @@ import {
   SECRET_AGENTS_PROVISIONAL_WORDS,
   validateSecretAgentsProvisionalWords,
 } from '../src/modules/game/experimental/secret-agents/provisional-words.js';
+import { isExperimentalGamesCapabilityEnabled } from '../src/config/experimental-games.js';
 
 let passed = 0;
 let failed = 0;
@@ -269,6 +270,21 @@ test('all four timer combinations produce independent authoritative deadlines', 
     assert.equal(accepted.ok, true);
     assert.equal(accepted.ok && accepted.match.deadlineAtMs !== null, operativeTimerEnabled);
   }
+});
+
+test('an existing match remains playable when the availability decision is off', () => {
+  assert.equal(
+    isExperimentalGamesCapabilityEnabled('production', 'production', undefined, '0'),
+    false,
+  );
+  const current = cluePhaseForTeam(match());
+  const result = submitSecretAgentsClue(
+    current,
+    'redSpy',
+    { turnId: current.turnId, word: 'زمرد', value: 1 },
+    1_000,
+  );
+  assert.equal(result.ok, true);
 });
 
 test('first accepted clue wins and rejects a visible board word', () => {

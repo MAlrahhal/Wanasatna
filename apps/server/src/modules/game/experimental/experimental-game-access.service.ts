@@ -5,7 +5,13 @@ import { prisma } from '../../../lib/prisma.js';
 import { lockRoomRow } from '../../room/services/room-tx.js';
 import { isRegisteredExperimentalGameId } from './experimental-game.registry.js';
 import {
+  clearExperimentalGameSelection,
+  forgetExperimentalGameSelection,
   getExperimentalGameSelection,
+  hydrateExperimentalGameSelection,
+  persistExperimentalGameSelection,
+  readPersistedExperimentalGameSelection,
+  removePersistedExperimentalGameSelection,
   setExperimentalGameSelection,
 } from './experimental-game-selection.store.js';
 import {
@@ -25,17 +31,23 @@ async function loadExperimentalAccessFacts(
     playerId: string;
     gameId: string;
   },
-): Promise<ExperimentalAccessFacts | null> {
+): Promise<{ facts: ExperimentalAccessFacts; gameSettings: Prisma.JsonValue | null } | null> {
   const room = await tx.room.findUnique({
     where: { id: input.roomId },
     select: {
       status: true,
       hostPlayerId: true,
+      gameSettings: true,
       history: { select: { createdByAdmin: true } },
       hostPlayer: {
         select: {
           userId: true,
-          user: { select: { role: true } },
+          user: {
+            select: {
+              role: true,
+              adminTotpCredential: { select: { enabledAt: true } },
+            },
+          },
         },
       },
     },
@@ -44,17 +56,22 @@ async function loadExperimentalAccessFacts(
     return null;
   }
 
+  hydrateExperimentalGameSelection(input.roomId, room.gameSettings);
   return {
-    enabled: env.experimentalGamesEnabled,
-    registered: isRegisteredExperimentalGameId(input.gameId),
-    accountUserId: input.accountUserId,
-    accountRole: input.accountRole,
-    roomCreatedByAdmin: room.history?.createdByAdmin === true,
-    roomStatus: room.status,
-    roomHostPlayerId: room.hostPlayerId,
-    requestingPlayerId: input.playerId,
-    linkedHostUserId: room.hostPlayer.userId,
-    linkedHostUserRole: room.hostPlayer.user?.role ?? null,
+    facts: {
+      enabled: env.experimentalGamesEnabled,
+      registered: isRegisteredExperimentalGameId(input.gameId),
+      accountUserId: input.accountUserId,
+      accountRole: input.accountRole,
+      roomCreatedByAdmin: room.history?.createdByAdmin === true,
+      roomStatus: room.status,
+      roomHostPlayerId: room.hostPlayerId,
+      requestingPlayerId: input.playerId,
+      linkedHostUserId: room.hostPlayer.userId,
+      linkedHostUserRole: room.hostPlayer.user?.role ?? null,
+      linkedHostAdminMfaEnabled: Boolean(room.hostPlayer.user?.adminTotpCredential?.enabledAt),
+    },
+    gameSettings: room.gameSettings,
   };
 }
 
@@ -73,19 +90,31 @@ export async function selectExperimentalGameForRoom(input: {
       return experimentalAccessError('INVALID_PHASE', 'The game cannot be changed during a match.');
     }
 
-    const facts = await loadExperimentalAccessFacts(tx, {
+    const access = await loadExperimentalAccessFacts(tx, {
       roomId: input.roomId,
       playerId: input.playerId,
       gameId: input.gameId,
       ...input.authority,
     });
-    if (!facts) {
+    if (!access) {
       return experimentalAccessError('NOT_IN_ROOM', 'Room not found.');
     }
-    const denied = evaluateExperimentalGameAccess(facts);
+    const denied = evaluateExperimentalGameAccess(access.facts);
     if (denied) {
       return denied;
     }
+
+    const selection = {
+      gameId: input.gameId,
+      hostPlayerId: input.playerId,
+      adminUserId: input.authority.accountUserId!,
+    };
+    await tx.room.update({
+      where: { id: input.roomId },
+      data: {
+        gameSettings: persistExperimentalGameSelection(access.gameSettings, selection),
+      },
+    });
 
     return {
       success: true as const,
@@ -113,17 +142,17 @@ export async function authorizeExperimentalGameStartLocked(
     authority: ExperimentalGameAuthority | undefined;
   },
 ): Promise<ExperimentalAccessFailure | null> {
-  const facts = await loadExperimentalAccessFacts(tx, {
+  const access = await loadExperimentalAccessFacts(tx, {
     roomId: input.roomId,
     playerId: input.playerId,
     gameId: input.gameId,
     accountUserId: input.authority?.accountUserId ?? null,
     accountRole: input.authority?.accountRole ?? null,
   });
-  if (!facts) {
+  if (!access) {
     return experimentalAccessError('NOT_IN_ROOM', 'Room not found.');
   }
-  const denied = evaluateExperimentalGameAccess(facts);
+  const denied = evaluateExperimentalGameAccess(access.facts);
   if (denied) {
     return denied;
   }
@@ -155,4 +184,78 @@ export async function preflightExperimentalGameStart(input: {
     }
     return authorizeExperimentalGameStartLocked(tx, input);
   });
+}
+
+/** Caller must hold the Room row lock. Consumes one-match authorization atomically. */
+export async function consumeExperimentalGameSelectionLocked(
+  tx: Prisma.TransactionClient,
+  input: {
+    roomId: string;
+    playerId: string;
+    gameId: string;
+    adminUserId: string;
+  },
+): Promise<boolean> {
+  const room = await tx.room.findUnique({
+    where: { id: input.roomId },
+    select: { gameSettings: true },
+  });
+  if (!room) return false;
+
+  const selection = readPersistedExperimentalGameSelection(room.gameSettings);
+  if (
+    !selection ||
+    selection.gameId !== input.gameId ||
+    selection.hostPlayerId !== input.playerId ||
+    selection.adminUserId !== input.adminUserId
+  ) {
+    return false;
+  }
+
+  await tx.room.update({
+    where: { id: input.roomId },
+    data: { gameSettings: removePersistedExperimentalGameSelection(room.gameSettings) },
+  });
+  return true;
+}
+
+export function forgetConsumedExperimentalGameSelection(roomId: string): void {
+  forgetExperimentalGameSelection(roomId);
+}
+
+export async function clearPersistedExperimentalGameSelection(input: {
+  roomId: string;
+  expectedHostPlayerId?: string;
+}): Promise<boolean> {
+  const cleared = await prisma.$transaction(async (tx) => {
+    if (!(await lockRoomRow(tx, input.roomId))) {
+      return false;
+    }
+
+    const room = await tx.room.findUnique({
+      where: { id: input.roomId },
+      select: { gameSettings: true },
+    });
+    if (!room) return false;
+
+    const persistedSelection = readPersistedExperimentalGameSelection(room.gameSettings);
+    if (!persistedSelection) return false;
+    if (
+      input.expectedHostPlayerId &&
+      persistedSelection.hostPlayerId !== input.expectedHostPlayerId
+    ) {
+      return false;
+    }
+
+    await tx.room.update({
+      where: { id: input.roomId },
+      data: { gameSettings: removePersistedExperimentalGameSelection(room.gameSettings) },
+    });
+    return true;
+  });
+
+  if (cleared) {
+    clearExperimentalGameSelection(input.roomId);
+  }
+  return cleared;
 }

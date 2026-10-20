@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { PLAYABLE_GAME_IDS } from '@wanasatna/shared';
+import { PLAYABLE_GAME_IDS, sanitizeRoomGameSettings } from '@wanasatna/shared';
 import { isExperimentalGamesCapabilityEnabled } from '../src/config/experimental-games.js';
 import { authorizeAdmin } from '../src/modules/admin/require-admin.js';
 import { validateSelectExperimentalGamePayload } from '../src/modules/game/game.validators.js';
@@ -13,6 +13,10 @@ import {
   clearAllExperimentalGameSelectionsForTests,
   clearExperimentalGameSelection,
   getExperimentalGameSelection,
+  hydrateExperimentalGameSelection,
+  persistExperimentalGameSelection,
+  readPersistedExperimentalGameSelection,
+  removePersistedExperimentalGameSelection,
   setExperimentalGameSelection,
 } from '../src/modules/game/experimental/experimental-game-selection.store.js';
 
@@ -47,16 +51,24 @@ const allowedFacts = {
   requestingPlayerId: 'admin-player',
   linkedHostUserId: 'admin-user',
   linkedHostUserRole: 'ADMIN' as const,
+  linkedHostAdminMfaEnabled: true,
 };
 
-test('capability is explicit and always fail-closed in production', () => {
-  assert.equal(isExperimentalGamesCapabilityEnabled('development', undefined, '1'), true);
-  assert.equal(isExperimentalGamesCapabilityEnabled('test', undefined, '1'), true);
-  assert.equal(isExperimentalGamesCapabilityEnabled('development', undefined, undefined), false);
-  assert.equal(isExperimentalGamesCapabilityEnabled('development', undefined, '0'), false);
-  assert.equal(isExperimentalGamesCapabilityEnabled('production', 'staging', '1'), true);
-  assert.equal(isExperimentalGamesCapabilityEnabled('production', 'production', '1'), false);
-  assert.equal(isExperimentalGamesCapabilityEnabled('production', undefined, '1'), false);
+test('production playtest and non-production capability flags are separate and fail closed', () => {
+  assert.equal(
+    isExperimentalGamesCapabilityEnabled('development', undefined, '1', undefined),
+    true,
+  );
+  assert.equal(isExperimentalGamesCapabilityEnabled('test', undefined, '1', undefined), true);
+  assert.equal(
+    isExperimentalGamesCapabilityEnabled('development', undefined, undefined, '1'),
+    false,
+  );
+  assert.equal(isExperimentalGamesCapabilityEnabled('development', undefined, '0', '1'), false);
+  assert.equal(isExperimentalGamesCapabilityEnabled('production', 'staging', '1', '1'), false);
+  assert.equal(isExperimentalGamesCapabilityEnabled('production', 'production', '1', '1'), true);
+  assert.equal(isExperimentalGamesCapabilityEnabled('production', 'production', '1', '0'), false);
+  assert.equal(isExperimentalGamesCapabilityEnabled('production', undefined, '1', '1'), false);
 });
 
 test('real closed-test game registers separately and the public game count remains eight', () => {
@@ -108,6 +120,11 @@ test('only the linked current admin host in an admin-created lobby is allowed', 
   assert.equal(evaluateExperimentalGameAccess(allowedFacts), null);
 
   assert.equal(
+    evaluateExperimentalGameAccess({ ...allowedFacts, enabled: false })?.error.code,
+    'GAME_DISABLED',
+  );
+
+  assert.equal(
     evaluateExperimentalGameAccess({ ...allowedFacts, accountRole: 'USER' })?.error.code,
     'FORBIDDEN',
   );
@@ -122,6 +139,11 @@ test('only the linked current admin host in an admin-created lobby is allowed', 
   );
   assert.equal(
     evaluateExperimentalGameAccess({ ...allowedFacts, linkedHostUserId: 'other-user' })?.error.code,
+    'FORBIDDEN',
+  );
+  assert.equal(
+    evaluateExperimentalGameAccess({ ...allowedFacts, linkedHostAdminMfaEnabled: false })?.error
+      .code,
     'FORBIDDEN',
   );
   assert.equal(
@@ -146,19 +168,32 @@ test('selection payload rejects browser identity, admin, and test-mode claims', 
   );
 });
 
-test('temporary disconnect retains selection; lifecycle clear removes it', () => {
+test('selection persists in existing room JSON without becoming part of public settings', () => {
   clearAllExperimentalGameSelectionsForTests();
-  setExperimentalGameSelection('room-1', {
+  const selection = {
     gameId: 'future-game',
     hostPlayerId: 'admin-player',
     adminUserId: 'admin-user',
-  });
+  };
+  const persisted = persistExperimentalGameSelection(
+    { 'fast-answer': { roundCount: 7 } },
+    selection,
+  );
+  assert.deepEqual(readPersistedExperimentalGameSelection(persisted), selection);
+  assert.equal('__experimentalGameSelection' in (sanitizeRoomGameSettings(persisted) ?? {}), false);
+  const cleared = removePersistedExperimentalGameSelection(persisted);
+  assert.deepEqual(cleared, { 'fast-answer': { roundCount: 7 } });
+  assert.equal(readPersistedExperimentalGameSelection(cleared), null);
+  hydrateExperimentalGameSelection('room-1', persisted);
   assert.equal(getExperimentalGameSelection('room-1')?.gameId, 'future-game');
 
-  // A socket disconnect does not call the clear operation while the host seat remains.
+  // A temporary socket disconnect does not clear the authoritative room selection.
   assert.equal(getExperimentalGameSelection('room-1')?.hostPlayerId, 'admin-player');
   clearExperimentalGameSelection('room-1');
   assert.equal(getExperimentalGameSelection('room-1'), null);
+
+  setExperimentalGameSelection('room-1', selection);
+  assert.equal(getExperimentalGameSelection('room-1')?.adminUserId, 'admin-user');
 });
 
 test('finished experimental shells cannot be reset into a new match', () => {

@@ -35,7 +35,10 @@ import {
   sendGameInternalError,
   sendGameResponse,
 } from '../../game.socket.utils.js';
-import { getExperimentalGameSelection } from '../experimental-game-selection.store.js';
+import {
+  getExperimentalGameSelection,
+  hydrateExperimentalGameSelection,
+} from '../experimental-game-selection.store.js';
 import { queuePromotionPersistence } from '../../runtime/absorb-spectators-for-next-round.js';
 import { ensureSecretAgentsMatch } from './init-match.js';
 import {
@@ -81,6 +84,12 @@ async function canAdministerLobby(socket: Socket): Promise<boolean> {
   const roomId = socket.data.roomId as string | undefined;
   const playerId = socket.data.playerId as string | undefined;
   if (!roomId || !playerId || getGameShellByRoomId(roomId)) return false;
+  const persistedRoom = await prisma.room.findUnique({
+    where: { id: roomId },
+    select: { gameSettings: true },
+  });
+  if (!persistedRoom) return false;
+  hydrateExperimentalGameSelection(roomId, persistedRoom.gameSettings);
   const selection = getExperimentalGameSelection(roomId);
   const account = await resolveSocketAccountUser(socket);
   return Boolean(
@@ -95,9 +104,10 @@ async function canAdministerLobby(socket: Socket): Promise<boolean> {
 async function loadLobbyPlayers(roomId: string) {
   const room = await prisma.room.findUnique({
     where: { id: roomId },
-    select: { hostPlayerId: true },
+    select: { hostPlayerId: true, gameSettings: true },
   });
   if (!room) return null;
+  hydrateExperimentalGameSelection(roomId, room.gameSettings);
   const players = await loadActiveRoomPlayers(roomId, room.hostPlayerId);
   return players.map((player) => ({
     id: player.id,
@@ -198,6 +208,13 @@ export function registerSecretAgentsSocketHandlers(io: Server, socket: Socket): 
     try {
       const shell = getGameShellByRoomId(roomId);
       if (!shell) {
+        const persistedRoom = await prisma.room.findUnique({
+          where: { id: roomId },
+          select: { gameSettings: true },
+        });
+        if (persistedRoom) {
+          hydrateExperimentalGameSelection(roomId, persistedRoom.gameSettings);
+        }
         if (getExperimentalGameSelection(roomId)?.gameId !== SECRET_AGENTS_GAME_ID) {
           return sendGameResponse(callback, forbidden('هذه الغرفة ليست جلسة اختبار معتمدة.'));
         }

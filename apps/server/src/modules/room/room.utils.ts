@@ -12,7 +12,11 @@ import {
 } from '@wanasatna/shared';
 import { setRoomGameSettingsCache } from './room-game-settings.store.js';
 import { getPlayerAvatarId } from './player-avatar.store.js';
-import { getExperimentalGameSelection } from '../game/experimental/experimental-game-selection.store.js';
+import {
+  getExperimentalGameSelection,
+  hydrateExperimentalGameSelection,
+} from '../game/experimental/experimental-game-selection.store.js';
+import { env } from '../../config/env.js';
 
 export const ROOM_CODE_LENGTH = 6;
 export const MAX_CODE_GENERATION_ATTEMPTS = 10;
@@ -55,6 +59,7 @@ export function isReconnectExpired(lastSeenAt: Date): boolean {
 export function mapRoomData(room: Room): RoomData {
   const gameSettings = sanitizeRoomGameSettings(room.gameSettings);
   setRoomGameSettingsCache(room.id, gameSettings);
+  hydrateExperimentalGameSelection(room.id, room.gameSettings);
   return {
     id: room.id,
     code: room.code,
@@ -64,7 +69,9 @@ export function mapRoomData(room: Room): RoomData {
     createdAt: room.createdAt,
     playerCap: room.playerCap,
     gameSettings,
-    experimentalGameId: getExperimentalGameSelection(room.id)?.gameId ?? null,
+    experimentalGameId: env.experimentalGamesEnabled
+      ? (getExperimentalGameSelection(room.id)?.gameId ?? null)
+      : null,
   };
 }
 
@@ -111,7 +118,7 @@ export function mapRoomSession(
 export async function broadcastRoomPlayersSnapshot(io: Server, roomId: string): Promise<void> {
   const room = await prisma.room.findUnique({
     where: { id: roomId },
-    select: { hostPlayerId: true },
+    select: { hostPlayerId: true, gameSettings: true },
   });
 
   if (!room) {
@@ -119,10 +126,13 @@ export async function broadcastRoomPlayersSnapshot(io: Server, roomId: string): 
   }
 
   const players = await loadActiveRoomPlayers(roomId, room.hostPlayerId);
+  hydrateExperimentalGameSelection(roomId, room.gameSettings);
   io.to(getRoomChannel(roomId)).emit(ROOM_PLAYERS_SNAPSHOT_EVENT, {
     roomId,
     players,
-    experimentalGameId: getExperimentalGameSelection(roomId)?.gameId ?? null,
+    experimentalGameId: env.experimentalGamesEnabled
+      ? (getExperimentalGameSelection(roomId)?.gameId ?? null)
+      : null,
   });
 }
 
