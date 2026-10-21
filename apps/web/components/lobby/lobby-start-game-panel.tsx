@@ -57,7 +57,10 @@ export function LobbyStartGamePanel() {
     if (!selectedGameId) {
       return 'لم يتم اختيار لعبة';
     }
-    if (catalogEntry?.availability === 'coming-soon') {
+    if (
+      catalogEntry?.availability === 'coming-soon' &&
+      room?.experimentalGameId !== selectedGameId
+    ) {
       return 'اللعبة غير متاحة';
     }
     if (

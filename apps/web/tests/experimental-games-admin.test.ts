@@ -78,6 +78,18 @@ test('invited guests adopt only the server-backed experimental room selection', 
   assert.match(context, /localGameId && !isPlayableGameId\(localGameId\)/);
 });
 
+test('server-backed experimental selection can reach start without becoming publicly available', () => {
+  const startPanel = read('components/lobby/lobby-start-game-panel.tsx');
+  assert.match(
+    startPanel,
+    /catalogEntry\?\.availability === 'coming-soon'[\s\S]*room\?\.experimentalGameId !== selectedGameId/,
+  );
+  assert.match(
+    startPanel,
+    /room\?\.experimentalGameId !== selectedGameId[\s\S]*!isGameEnabled\(selectedGameId\)/,
+  );
+});
+
 test('experimental games remain absent from public and ordinary lobby discovery', () => {
   const publicCatalog = read('lib/public/game-catalog.ts');
   const publicCards = read('components/public/game-cards.tsx');
