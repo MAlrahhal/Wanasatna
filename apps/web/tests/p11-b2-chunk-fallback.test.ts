@@ -89,11 +89,17 @@ test('2-4. GameScreen import failure shows safe error with reload Retry', () => 
   assert.equal(presented.title, 'تعذر تحميل اللعبة.');
   assert.equal(presented.description, 'تحقق من اتصالك وحاول مرة ثانية.');
   assert.equal(SYSTEM_COPY.retry, 'إعادة المحاولة');
-  assert.doesNotMatch(presented.title + (presented.description ?? ''), /chunk|webpack|turbopack|dynamic import/i);
+  assert.doesNotMatch(
+    presented.title + (presented.description ?? ''),
+    /chunk|webpack|turbopack|dynamic import/i,
+  );
 
   const reload = read('lib/game-plugins/reload-stale-game-chunk.ts');
   assert.match(reload, /location\.reload/);
-  assert.doesNotMatch(reload, /leaveRoom|clearLocalParticipation|removeReconnectClaim|clearRoomSession/);
+  assert.doesNotMatch(
+    reload,
+    /leaveRoom|clearLocalParticipation|removeReconnectClaim|clearRoomSession/,
+  );
 });
 
 test('5. Retry reload does not clear Room identity or reconnect claim', () => {
@@ -160,13 +166,15 @@ test('6. no automatic GameScreen chunk retry loop', () => {
 });
 
 test('7. all public and closed-test lazy registry entries resolve and inherit retry', () => {
-  const ids = listClientGamePlugins().map((plugin) => plugin.metadata.id).sort();
-  assert.deepEqual(ids, [...GAMES, 'secret-agents'].sort());
+  const ids = listClientGamePlugins()
+    .map((plugin) => plugin.metadata.id)
+    .sort();
+  assert.deepEqual(ids, [...GAMES, 'emoji-language', 'most-likely-to', 'secret-agents'].sort());
 
   const renderer = read('components/game-plugins/game-plugin-renderer.tsx');
   assert.match(renderer, /GameScreenChunkErrorBoundary key=\{gameId\}/);
 
-  for (const id of [...GAMES, 'secret-agents']) {
+  for (const id of [...GAMES, 'emoji-language', 'most-likely-to', 'secret-agents']) {
     const plugin = getClientGamePlugin(id);
     assert.ok(plugin, `${id} must resolve`);
     assert.equal(typeof plugin.GameScreen, 'function');

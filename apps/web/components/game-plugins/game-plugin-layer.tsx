@@ -3,6 +3,7 @@
 import {
   BARA_AL_SALAFA_GAME_ID,
   DRAW_GUESS_GAME_ID,
+  EMOJI_LANGUAGE_GAME_ID,
   FAST_ANSWER_GAME_ID,
   IMPOSTER_DRAW_GAME_ID,
   GUESSING_CHALLENGE_GAME_ID,
@@ -38,12 +39,13 @@ function usesPluginExperienceShell(gameId: string): boolean {
     gameId === WHO_WROTE_IT_GAME_ID ||
     gameId === JUDGE_GAME_ID ||
     gameId === GUESSING_CHALLENGE_GAME_ID ||
-    gameId === SECRET_AGENTS_GAME_ID
+    gameId === SECRET_AGENTS_GAME_ID ||
+    gameId === EMOJI_LANGUAGE_GAME_ID
   );
 }
 
 function CountdownForGame({ gameId }: { gameId: string }) {
-  if (gameId === SECRET_AGENTS_GAME_ID) {
+  if (gameId === SECRET_AGENTS_GAME_ID || gameId === EMOJI_LANGUAGE_GAME_ID) {
     return <PluginMatchStarting />;
   }
 

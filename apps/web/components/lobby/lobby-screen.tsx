@@ -7,6 +7,7 @@ import { NativeAdPlacement } from '@/components/ads/native-ad-placement';
 import { useRoom } from '@/contexts/room-context';
 import { mockGameSettingsByGameId, mockLobbyGames } from '@/lib/lobby/mock-games';
 import { usePlayableGameAvailability } from '@/lib/games/use-game-availability';
+import { getExperimentalRoomGame } from '@/lib/games/experimental-room-game';
 import { SYSTEM_COPY } from '@/lib/ui/system-copy';
 import {
   LOBBY_LIFECYCLE_NOTICE_DISMISS_MS,
@@ -147,13 +148,7 @@ export function LobbyScreen() {
     () =>
       mockLobbyGames.find((game) => game.id === selectedGameId) ??
       (experimentalGameId && experimentalGameId === selectedGameId
-        ? {
-            id: experimentalGameId,
-            title: 'العملاء السريون',
-            description: 'لعبة فرق مغلقة الاختبار',
-            iconLabel: 'س',
-            emoji: '🕵️',
-          }
+        ? getExperimentalRoomGame(experimentalGameId)
         : null),
     [experimentalGameId, selectedGameId],
   );

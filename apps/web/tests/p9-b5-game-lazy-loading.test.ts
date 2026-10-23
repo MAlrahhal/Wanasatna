@@ -10,7 +10,7 @@ import { getClientGamePlugin, listClientGamePlugins } from '@/lib/game-plugins/r
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-const GAMES = [
+const PUBLIC_GAMES = [
   { id: 'bara-al-salafa', dir: 'bara-al-salafa', exportName: 'BaraAlSalafaGameScreen' },
   { id: 'draw-guess', dir: 'draw-guess', exportName: 'DrawGuessGameScreen' },
   { id: 'imposter-draw', dir: 'imposter-draw', exportName: 'ImposterDrawGameScreen' },
@@ -18,8 +18,24 @@ const GAMES = [
   { id: 'fast-answer', dir: 'fast-answer', exportName: 'FastAnswerGameScreen' },
   { id: 'who-wrote-it', dir: 'who-wrote-it', exportName: 'WhoWroteItGameScreen' },
   { id: 'judge', dir: 'judge', exportName: 'JudgeGameScreen' },
-  { id: 'guessing-challenge', dir: 'guessing-challenge', exportName: 'GuessingChallengeGameScreen' },
+  {
+    id: 'guessing-challenge',
+    dir: 'guessing-challenge',
+    exportName: 'GuessingChallengeGameScreen',
+  },
 ] as const;
+
+const CLOSED_EXPERIMENTAL_GAMES = [
+  { id: 'secret-agents', dir: 'secret-agents', exportName: 'SecretAgentsGameScreen' },
+  {
+    id: 'most-likely-to',
+    dir: 'most-likely-to',
+    exportName: 'MostLikelyToGameScreen',
+  },
+  { id: 'emoji-language', dir: 'emoji-language', exportName: 'EmojiLanguageGameScreen' },
+] as const;
+
+const GAMES = [...PUBLIC_GAMES, ...CLOSED_EXPERIMENTAL_GAMES];
 
 let passed = 0;
 let failed = 0;
@@ -40,18 +56,18 @@ function read(relativePath: string): string {
   return readFileSync(join(root, relativePath), 'utf8');
 }
 
-test('all 8 games resolve from the client registry', () => {
-  const ids = listClientGamePlugins().map((plugin) => plugin.metadata.id).sort();
-  assert.deepEqual(
-    ids,
-    [...GAMES.map((game) => game.id)].sort(),
-  );
+test('all 8 public and 3 closed experimental games resolve from the client registry', () => {
+  const ids = listClientGamePlugins()
+    .map((plugin) => plugin.metadata.id)
+    .sort();
+  assert.deepEqual(ids, [...GAMES.map((game) => game.id)].sort());
   for (const game of GAMES) {
     const plugin = getClientGamePlugin(game.id);
     assert.ok(plugin, `${game.id} must resolve`);
     assert.equal(plugin.metadata.id, game.id);
     assert.equal(typeof plugin.GameScreen, 'function');
   }
+  assert.equal(PUBLIC_GAMES.length, 8);
 });
 
 test('each plugin entry lazy-loads GameScreen instead of statically importing it', () => {
@@ -59,7 +75,7 @@ test('each plugin entry lazy-loads GameScreen instead of statically importing it
     const index = read(`plugins/${game.dir}/index.tsx`);
     assert.match(index, /lazyGameScreen/);
     assert.match(index, /import\('\.\/game-screen'\)/);
-    assert.match(index, new RegExp(`mod\\.${game.exportName}`));
+    assert.match(index, new RegExp(`(?:mod|module)\\.${game.exportName}`));
     assert.doesNotMatch(index, /from ['"]\.\/game-screen['"]/);
   }
 });

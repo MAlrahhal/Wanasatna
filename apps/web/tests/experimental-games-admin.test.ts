@@ -47,12 +47,14 @@ test('direct URL renders no protected content outside AdminShell', () => {
   assert.match(shell, /router\.replace\(ADMIN_ROUTES\.login\)/);
 });
 
-test('registry contains the approved closed-test game and keeps a useful empty fallback', () => {
+test('registry contains closed-test games and keeps a useful empty fallback', () => {
   const registration = read(
     '../server/src/modules/game/experimental/register-experimental-games.ts',
   );
   const client = read('components/admin/admin-experimental-games-client.tsx');
   assert.match(registration, /secretAgentsExperimentalRegistration/);
+  assert.match(registration, /mostLikelyToExperimentalRegistration/);
+  assert.match(registration, /emojiLanguageExperimentalRegistration/);
   assert.match(registration, /registerExperimentalGame/);
   assert.doesNotMatch(registration, /fake-game|placeholder-game/i);
   assert.match(client, /games\.length === 0/);
@@ -102,6 +104,10 @@ test('experimental games remain absent from public and ordinary lobby discovery'
   }
   assert.doesNotMatch(publicCatalog, /secret-agents|العملاء السريون/);
   assert.doesNotMatch(lobbyGames, /secret-agents|العملاء السريون/);
+  assert.doesNotMatch(publicCatalog, /most-likely-to|مين أكثر واحد/);
+  assert.doesNotMatch(lobbyGames, /most-likely-to|مين أكثر واحد/);
+  assert.doesNotMatch(publicCatalog, /emoji-language|لغة الإيموجي/);
+  assert.doesNotMatch(lobbyGames, /emoji-language|لغة الإيموجي/);
 });
 
 test('admin data request uses the protected endpoint with credentials', () => {
