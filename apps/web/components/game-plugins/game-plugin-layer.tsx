@@ -8,7 +8,9 @@ import {
   IMPOSTER_DRAW_GAME_ID,
   GUESSING_CHALLENGE_GAME_ID,
   JUDGE_GAME_ID,
+  MOST_LIKELY_TO_GAME_ID,
   SECRET_AGENTS_GAME_ID,
+  TIMELINE_PLACEMENT_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
   WHO_WROTE_IT_GAME_ID,
 } from '@wanasatna/shared';
@@ -40,12 +42,19 @@ function usesPluginExperienceShell(gameId: string): boolean {
     gameId === JUDGE_GAME_ID ||
     gameId === GUESSING_CHALLENGE_GAME_ID ||
     gameId === SECRET_AGENTS_GAME_ID ||
-    gameId === EMOJI_LANGUAGE_GAME_ID
+    gameId === MOST_LIKELY_TO_GAME_ID ||
+    gameId === EMOJI_LANGUAGE_GAME_ID ||
+    gameId === TIMELINE_PLACEMENT_GAME_ID
   );
 }
 
 function CountdownForGame({ gameId }: { gameId: string }) {
-  if (gameId === SECRET_AGENTS_GAME_ID || gameId === EMOJI_LANGUAGE_GAME_ID) {
+  if (
+    gameId === SECRET_AGENTS_GAME_ID ||
+    gameId === MOST_LIKELY_TO_GAME_ID ||
+    gameId === EMOJI_LANGUAGE_GAME_ID ||
+    gameId === TIMELINE_PLACEMENT_GAME_ID
+  ) {
     return <PluginMatchStarting />;
   }
 

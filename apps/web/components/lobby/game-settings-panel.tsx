@@ -9,6 +9,7 @@ import {
   DRAW_GUESS_GAME_ID,
   EMOJI_LANGUAGE_GAME_ID,
   SECRET_AGENTS_GAME_ID,
+  TIMELINE_PLACEMENT_GAME_ID,
 } from '@wanasatna/shared';
 import { DrawGuessSettingsPanel } from './draw-guess-settings-panel';
 import { ExperimentalGameSettingsPanel } from './experimental-game-settings-panel';
@@ -18,6 +19,7 @@ import { TeamAssignmentPanel } from './team-assignment-panel';
 import { getGameTeamCapability } from '@wanasatna/shared';
 import { SecretAgentsLobbyPanel } from './secret-agents-lobby-panel';
 import { EmojiLanguageLobbyPanel } from './emoji-language-lobby-panel';
+import { TimelinePlacementLobbyPanel } from './timeline-placement-lobby-panel';
 
 type GameSettingsPanelProps = {
   selectedGame: LobbyGame | null;
@@ -55,6 +57,7 @@ export function GameSettingsPanel({
   const isDrawGuess = selectedGame?.id === DRAW_GUESS_GAME_ID;
   const isSecretAgents = selectedGame?.id === SECRET_AGENTS_GAME_ID;
   const isEmojiLanguage = selectedGame?.id === EMOJI_LANGUAGE_GAME_ID;
+  const isTimelinePlacement = selectedGame?.id === TIMELINE_PLACEMENT_GAME_ID;
   const showsTeams = Boolean(
     selectedGame &&
     getGameTeamCapability(selectedGame.id) &&
@@ -81,6 +84,8 @@ export function GameSettingsPanel({
         <SecretAgentsLobbyPanel isActiveMatch={isActiveMatch} />
       ) : isEmojiLanguage ? (
         <EmojiLanguageLobbyPanel isActiveMatch={isActiveMatch} />
+      ) : isTimelinePlacement ? (
+        <TimelinePlacementLobbyPanel isActiveMatch={isActiveMatch} />
       ) : isTimingChallenge ? (
         <TimingChallengeSettingsPanel
           settings={timingChallengeSettings}
@@ -120,7 +125,12 @@ export function GameSettingsPanel({
         <p className="text-wanas-text-muted text-xs">لا توجد إعدادات إضافية لهذه اللعبة.</p>
       )}
 
-      {isAdmin && isHost && selectedGame && !isSecretAgents && !isEmojiLanguage ? (
+      {isAdmin &&
+      isHost &&
+      selectedGame &&
+      !isSecretAgents &&
+      !isEmojiLanguage &&
+      !isTimelinePlacement ? (
         <ExperimentalGameSettingsPanel
           gameId={selectedGame.id}
           roomSettings={room?.gameSettings ?? null}

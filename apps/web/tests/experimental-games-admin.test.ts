@@ -55,6 +55,7 @@ test('registry contains closed-test games and keeps a useful empty fallback', ()
   assert.match(registration, /secretAgentsExperimentalRegistration/);
   assert.match(registration, /mostLikelyToExperimentalRegistration/);
   assert.match(registration, /emojiLanguageExperimentalRegistration/);
+  assert.match(registration, /timelinePlacementExperimentalRegistration/);
   assert.match(registration, /registerExperimentalGame/);
   assert.doesNotMatch(registration, /fake-game|placeholder-game/i);
   assert.match(client, /games\.length === 0/);
@@ -108,6 +109,8 @@ test('experimental games remain absent from public and ordinary lobby discovery'
   assert.doesNotMatch(lobbyGames, /most-likely-to|مين أكثر واحد/);
   assert.doesNotMatch(publicCatalog, /emoji-language|لغة الإيموجي/);
   assert.doesNotMatch(lobbyGames, /emoji-language|لغة الإيموجي/);
+  assert.doesNotMatch(publicCatalog, /timeline-placement|زمانها وين/);
+  assert.doesNotMatch(lobbyGames, /timeline-placement|زمانها وين/);
 });
 
 test('admin data request uses the protected endpoint with credentials', () => {

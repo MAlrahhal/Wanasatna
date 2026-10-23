@@ -2,6 +2,7 @@ import {
   EMOJI_LANGUAGE_GAME_ID,
   MOST_LIKELY_TO_GAME_ID,
   SECRET_AGENTS_GAME_ID,
+  TIMELINE_PLACEMENT_GAME_ID,
 } from '@wanasatna/shared';
 import type { LobbyGame } from '@/lib/lobby/types';
 
@@ -26,6 +27,13 @@ const experimentalRoomGames: Record<string, LobbyGame> = {
     description: 'حوّل المعنى إلى رموز وافهم تلميحات الآخرين',
     iconLabel: '😀',
     emoji: '😀',
+  },
+  [TIMELINE_PLACEMENT_GAME_ID]: {
+    id: TIMELINE_PLACEMENT_GAME_ID,
+    title: 'زمانها وين؟',
+    description: 'ضع الحدث في مكانه الصحيح على الخط الزمني',
+    iconLabel: 'ز',
+    emoji: '🕰️',
   },
 };
 

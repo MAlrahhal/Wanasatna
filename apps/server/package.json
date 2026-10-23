@@ -37,6 +37,8 @@
     "test:most-likely-to": "tsx tests/most-likely-to.unit.test.ts",
     "test:emoji-language": "tsx tests/emoji-language.unit.test.ts",
     "test:emoji-language:integration": "cross-env WANASATNA_TEST_MODE=1 tsx tests/emoji-language.integration.test.ts",
+    "test:timeline-placement": "tsx tests/timeline-placement.unit.test.ts",
+    "test:timeline-placement:integration": "cross-env WANASATNA_TEST_MODE=1 EXPERIMENTAL_GAMES_TEST_MODE=1 tsx tests/timeline-placement.integration.test.ts",
     "test:p14-a": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p14-a-admin.unit.test.ts",
     "test:p14-b": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p14-b-product-analytics.unit.test.ts",
     "test:p14-c": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p14-c-admin.unit.test.ts",

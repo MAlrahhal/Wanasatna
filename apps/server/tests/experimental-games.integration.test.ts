@@ -20,6 +20,7 @@ import {
   SECRET_AGENTS_SYNC_EVENT,
   SECRET_AGENTS_TOGGLE_NOMINATION_EVENT,
   SELECT_EXPERIMENTAL_GAME_EVENT,
+  TIMELINE_PLACEMENT_GAME_ID,
   type CreateRoomResponse,
   type GameActionResponse,
   type MostLikelyToPlayerView,
@@ -169,7 +170,12 @@ async function main(): Promise<void> {
       assert.equal(body.data.enabled, true);
       assert.deepEqual(
         body.data.games.map((game) => game.gameId),
-        [EMOJI_LANGUAGE_GAME_ID, MOST_LIKELY_TO_GAME_ID, SECRET_AGENTS_GAME_ID],
+        [
+          EMOJI_LANGUAGE_GAME_ID,
+          MOST_LIKELY_TO_GAME_ID,
+          SECRET_AGENTS_GAME_ID,
+          TIMELINE_PLACEMENT_GAME_ID,
+        ],
       );
     });
 

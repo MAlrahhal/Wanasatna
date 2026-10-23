@@ -10,6 +10,7 @@ import { whoWroteItClientPlugin } from '@/plugins/who-wrote-it';
 import { secretAgentsClientPlugin } from '@/plugins/secret-agents';
 import { mostLikelyToClientPlugin } from '@/plugins/most-likely-to';
 import { emojiLanguageClientPlugin } from '@/plugins/emoji-language';
+import { timelinePlacementClientPlugin } from '@/plugins/timeline-placement';
 
 const allClientGamePlugins = [
   baraAlSalafaClientPlugin,
@@ -23,6 +24,7 @@ const allClientGamePlugins = [
   secretAgentsClientPlugin,
   mostLikelyToClientPlugin,
   emojiLanguageClientPlugin,
+  timelinePlacementClientPlugin,
 ];
 
 export function registerAllClientGamePlugins(): void {
@@ -50,4 +52,5 @@ export {
   secretAgentsClientPlugin,
   mostLikelyToClientPlugin,
   emojiLanguageClientPlugin,
+  timelinePlacementClientPlugin,
 };
