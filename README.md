@@ -1,4 +1,4 @@
-# Wanasatna | ونساتنا
+# Wanasatna | وناستنا
 
 Arabic-first browser-based multiplayer party games platform. Players create a room, invite friends with a room code, and play together directly from the browser.
 
