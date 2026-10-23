@@ -10,6 +10,7 @@ import {
   EMOJI_LANGUAGE_GAME_ID,
   SECRET_AGENTS_GAME_ID,
   TIMELINE_PLACEMENT_GAME_ID,
+  ONE_WORD_ONLY_GAME_ID,
 } from '@wanasatna/shared';
 import { DrawGuessSettingsPanel } from './draw-guess-settings-panel';
 import { ExperimentalGameSettingsPanel } from './experimental-game-settings-panel';
@@ -20,6 +21,7 @@ import { getGameTeamCapability } from '@wanasatna/shared';
 import { SecretAgentsLobbyPanel } from './secret-agents-lobby-panel';
 import { EmojiLanguageLobbyPanel } from './emoji-language-lobby-panel';
 import { TimelinePlacementLobbyPanel } from './timeline-placement-lobby-panel';
+import { OneWordOnlyLobbyPanel } from './one-word-only-lobby-panel';
 
 type GameSettingsPanelProps = {
   selectedGame: LobbyGame | null;
@@ -58,6 +60,7 @@ export function GameSettingsPanel({
   const isSecretAgents = selectedGame?.id === SECRET_AGENTS_GAME_ID;
   const isEmojiLanguage = selectedGame?.id === EMOJI_LANGUAGE_GAME_ID;
   const isTimelinePlacement = selectedGame?.id === TIMELINE_PLACEMENT_GAME_ID;
+  const isOneWordOnly = selectedGame?.id === ONE_WORD_ONLY_GAME_ID;
   const showsTeams = Boolean(
     selectedGame &&
     getGameTeamCapability(selectedGame.id) &&
@@ -86,6 +89,8 @@ export function GameSettingsPanel({
         <EmojiLanguageLobbyPanel isActiveMatch={isActiveMatch} />
       ) : isTimelinePlacement ? (
         <TimelinePlacementLobbyPanel isActiveMatch={isActiveMatch} />
+      ) : isOneWordOnly ? (
+        <OneWordOnlyLobbyPanel isActiveMatch={isActiveMatch} />
       ) : isTimingChallenge ? (
         <TimingChallengeSettingsPanel
           settings={timingChallengeSettings}
@@ -130,7 +135,8 @@ export function GameSettingsPanel({
       selectedGame &&
       !isSecretAgents &&
       !isEmojiLanguage &&
-      !isTimelinePlacement ? (
+      !isTimelinePlacement &&
+      !isOneWordOnly ? (
         <ExperimentalGameSettingsPanel
           gameId={selectedGame.id}
           roomSettings={room?.gameSettings ?? null}

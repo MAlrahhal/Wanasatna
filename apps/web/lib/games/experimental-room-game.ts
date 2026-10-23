@@ -3,6 +3,7 @@ import {
   MOST_LIKELY_TO_GAME_ID,
   SECRET_AGENTS_GAME_ID,
   TIMELINE_PLACEMENT_GAME_ID,
+  ONE_WORD_ONLY_GAME_ID,
 } from '@wanasatna/shared';
 import type { LobbyGame } from '@/lib/lobby/types';
 
@@ -34,6 +35,13 @@ const experimentalRoomGames: Record<string, LobbyGame> = {
     description: 'ضع الحدث في مكانه الصحيح على الخط الزمني',
     iconLabel: 'ز',
     emoji: '🕰️',
+  },
+  [ONE_WORD_ONLY_GAME_ID]: {
+    id: ONE_WORD_ONLY_GAME_ID,
+    title: 'كلمة وحدة بس',
+    description: 'تلميحات فردية تقود المخمّن إلى اختيار واحد من ثمانية',
+    iconLabel: 'ك',
+    emoji: '💡',
   },
 };
 

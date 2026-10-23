@@ -11,6 +11,7 @@ import {
   MOST_LIKELY_TO_GAME_ID,
   SECRET_AGENTS_GAME_ID,
   TIMELINE_PLACEMENT_GAME_ID,
+  ONE_WORD_ONLY_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
   WHO_WROTE_IT_GAME_ID,
 } from '@wanasatna/shared';
@@ -44,7 +45,8 @@ function usesPluginExperienceShell(gameId: string): boolean {
     gameId === SECRET_AGENTS_GAME_ID ||
     gameId === MOST_LIKELY_TO_GAME_ID ||
     gameId === EMOJI_LANGUAGE_GAME_ID ||
-    gameId === TIMELINE_PLACEMENT_GAME_ID
+    gameId === TIMELINE_PLACEMENT_GAME_ID ||
+    gameId === ONE_WORD_ONLY_GAME_ID
   );
 }
 
@@ -53,7 +55,8 @@ function CountdownForGame({ gameId }: { gameId: string }) {
     gameId === SECRET_AGENTS_GAME_ID ||
     gameId === MOST_LIKELY_TO_GAME_ID ||
     gameId === EMOJI_LANGUAGE_GAME_ID ||
-    gameId === TIMELINE_PLACEMENT_GAME_ID
+    gameId === TIMELINE_PLACEMENT_GAME_ID ||
+    gameId === ONE_WORD_ONLY_GAME_ID
   ) {
     return <PluginMatchStarting />;
   }

@@ -75,7 +75,7 @@ test('real closed-test game registers separately and the public game count remai
   registerAllExperimentalGames();
   assert.deepEqual(
     listExperimentalGames().map((game) => game.gameId),
-    ['emoji-language', 'most-likely-to', 'secret-agents', 'timeline-placement'],
+    ['emoji-language', 'most-likely-to', 'one-word-only', 'secret-agents', 'timeline-placement'],
   );
   assert.equal(PLAYABLE_GAME_IDS.length, 8);
   assert.deepEqual(
@@ -261,6 +261,7 @@ test('closed-test implementation is registered while discovery remains separate'
     registrations,
     /registerExperimentalGame\(timelinePlacementExperimentalRegistration\)/,
   );
+  assert.match(registrations, /registerExperimentalGame\(oneWordOnlyExperimentalRegistration\)/);
   assert.doesNotMatch(availability, /experimental-game-select|future-game/);
   assert.doesNotMatch(publicRoutes, /experimental-games|listExperimentalGames/);
 });

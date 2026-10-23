@@ -10,3 +10,4 @@ export * from './secret-agents/types.js';
 export * from './most-likely-to/types.js';
 export * from './emoji-language/types.js';
 export * from './timeline-placement/types.js';
+export * from './one-word-only/types.js';

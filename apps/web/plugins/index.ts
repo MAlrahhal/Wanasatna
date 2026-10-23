@@ -11,6 +11,7 @@ import { secretAgentsClientPlugin } from '@/plugins/secret-agents';
 import { mostLikelyToClientPlugin } from '@/plugins/most-likely-to';
 import { emojiLanguageClientPlugin } from '@/plugins/emoji-language';
 import { timelinePlacementClientPlugin } from '@/plugins/timeline-placement';
+import { oneWordOnlyClientPlugin } from '@/plugins/one-word-only';
 
 const allClientGamePlugins = [
   baraAlSalafaClientPlugin,
@@ -25,6 +26,7 @@ const allClientGamePlugins = [
   mostLikelyToClientPlugin,
   emojiLanguageClientPlugin,
   timelinePlacementClientPlugin,
+  oneWordOnlyClientPlugin,
 ];
 
 export function registerAllClientGamePlugins(): void {
@@ -53,4 +55,5 @@ export {
   mostLikelyToClientPlugin,
   emojiLanguageClientPlugin,
   timelinePlacementClientPlugin,
+  oneWordOnlyClientPlugin,
 };
