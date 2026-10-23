@@ -474,7 +474,7 @@ export async function initGameShell(
             payload.gameId,
           )?.resolveStartParticipantIds;
           if (resolver) {
-            const resolved = resolver(roomId);
+            const resolved = resolver(roomId, players);
             if (!resolved) {
               return gameServiceError(
                 'VALIDATION_ERROR',

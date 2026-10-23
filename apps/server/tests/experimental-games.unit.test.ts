@@ -75,7 +75,7 @@ test('real closed-test game registers separately and the public game count remai
   registerAllExperimentalGames();
   assert.deepEqual(
     listExperimentalGames().map((game) => game.gameId),
-    ['secret-agents'],
+    ['secret-agents', 'timeline-placement'],
   );
   assert.equal(PLAYABLE_GAME_IDS.length, 8);
   assert.deepEqual(
@@ -255,6 +255,10 @@ test('closed-test implementation is registered while discovery remains separate'
   const availability = read('../../packages/shared/src/game/availability.ts');
   const publicRoutes = read('../web/lib/public/game-catalog.ts');
   assert.match(registrations, /registerExperimentalGame\(secretAgentsExperimentalRegistration\)/);
+  assert.match(
+    registrations,
+    /registerExperimentalGame\(timelinePlacementExperimentalRegistration\)/,
+  );
   assert.doesNotMatch(availability, /experimental-game-select|future-game/);
   assert.doesNotMatch(publicRoutes, /experimental-games|listExperimentalGames/);
 });

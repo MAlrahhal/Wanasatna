@@ -53,6 +53,7 @@ test('registry contains the approved closed-test game and keeps a useful empty f
   );
   const client = read('components/admin/admin-experimental-games-client.tsx');
   assert.match(registration, /secretAgentsExperimentalRegistration/);
+  assert.match(registration, /timelinePlacementExperimentalRegistration/);
   assert.match(registration, /registerExperimentalGame/);
   assert.doesNotMatch(registration, /fake-game|placeholder-game/i);
   assert.match(client, /games\.length === 0/);
@@ -102,6 +103,8 @@ test('experimental games remain absent from public and ordinary lobby discovery'
   }
   assert.doesNotMatch(publicCatalog, /secret-agents|العملاء السريون/);
   assert.doesNotMatch(lobbyGames, /secret-agents|العملاء السريون/);
+  assert.doesNotMatch(publicCatalog, /timeline-placement|زمانها وين/);
+  assert.doesNotMatch(lobbyGames, /timeline-placement|زمانها وين/);
 });
 
 test('admin data request uses the protected endpoint with credentials', () => {

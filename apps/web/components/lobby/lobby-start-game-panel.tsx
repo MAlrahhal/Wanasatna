@@ -11,6 +11,7 @@ import { mockLobbyGames } from '@/lib/lobby/mock-games';
 import { Button } from '@/components/ui/button';
 import { SystemStatus } from '@/components/ui/system-status';
 import { cn } from '@/lib/utils';
+import { getExperimentalRoomLobbyGame } from '@/lib/games/experimental-room-game';
 
 export function LobbyStartGamePanel() {
   const {
@@ -32,13 +33,7 @@ export function LobbyStartGamePanel() {
   const selectedGame =
     mockLobbyGames.find((game) => game.id === selectedGameId) ??
     (room?.experimentalGameId && room.experimentalGameId === selectedGameId
-      ? {
-          id: room.experimentalGameId,
-          title: 'العملاء السريون',
-          description: 'لعبة فرق مغلقة الاختبار',
-          iconLabel: 'س',
-          emoji: '🕵️',
-        }
+      ? getExperimentalRoomLobbyGame(room.experimentalGameId)
       : null);
   const catalogEntry = selectedGameId ? getGameCatalogEntry(selectedGameId) : null;
 
