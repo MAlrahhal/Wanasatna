@@ -11,6 +11,7 @@ import { mockLobbyGames } from '@/lib/lobby/mock-games';
 import { Button } from '@/components/ui/button';
 import { SystemStatus } from '@/components/ui/system-status';
 import { cn } from '@/lib/utils';
+import { getExperimentalRoomLobbyGame } from '@/lib/games/experimental-room-game';
 
 export function LobbyStartGamePanel() {
   const {
@@ -32,13 +33,7 @@ export function LobbyStartGamePanel() {
   const selectedGame =
     mockLobbyGames.find((game) => game.id === selectedGameId) ??
     (room?.experimentalGameId && room.experimentalGameId === selectedGameId
-      ? {
-          id: room.experimentalGameId,
-          title: 'العملاء السريون',
-          description: 'لعبة فرق مغلقة الاختبار',
-          iconLabel: 'س',
-          emoji: '🕵️',
-        }
+      ? getExperimentalRoomLobbyGame(room.experimentalGameId)
       : null);
   const catalogEntry = selectedGameId ? getGameCatalogEntry(selectedGameId) : null;
 
@@ -122,7 +117,7 @@ export function LobbyStartGamePanel() {
 
   if (!isHost) {
     return (
-      <section className="rounded-xl border border-wanas-border bg-wanas-surface px-3 py-2">
+      <section className="border-wanas-border bg-wanas-surface rounded-xl border px-3 py-2">
         <SystemStatus tone="info" title="بانتظار المضيف لبدء اللعبة." />
       </section>
     );
@@ -134,7 +129,7 @@ export function LobbyStartGamePanel() {
     const parts = splitGameStartPlayerRequirementReason(reason);
 
     return (
-      <p className="mt-1.5 text-center text-xs font-medium text-wanas-text-muted">
+      <p className="text-wanas-text-muted mt-1.5 text-center text-xs font-medium">
         {parts ? (
           <>
             {parts.before}
@@ -165,13 +160,13 @@ export function LobbyStartGamePanel() {
 
   return (
     <>
-      <section className="hidden rounded-xl border-2 border-wanas-accent/45 bg-wanas-surface px-3 py-3 xl:block">
+      <section className="border-wanas-accent/45 bg-wanas-surface hidden rounded-xl border-2 px-3 py-3 xl:block">
         <div className="mb-2.5 flex items-center justify-between gap-2">
-          <p className="text-sm font-bold text-wanas-text-primary">بدء اللعبة</p>
+          <p className="text-wanas-text-primary text-sm font-bold">بدء اللعبة</p>
           {selectedGame ? (
-            <p className="truncate text-[11px] text-wanas-text-muted">{selectedGame.title}</p>
+            <p className="text-wanas-text-muted truncate text-[11px]">{selectedGame.title}</p>
           ) : (
-            <p className="text-[11px] text-wanas-text-muted">اختر لعبة من القائمة ثم ابدأ.</p>
+            <p className="text-wanas-text-muted text-[11px]">اختر لعبة من القائمة ثم ابدأ.</p>
           )}
         </div>
         {renderStartButton()}
@@ -189,7 +184,7 @@ export function LobbyStartGamePanel() {
       />
       <div
         data-lobby-sticky-start=""
-        className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-wanas-accent/40 bg-wanas-surface/95 px-3 pt-2.5 backdrop-blur-sm xl:hidden"
+        className="border-wanas-accent/40 bg-wanas-surface/95 fixed inset-x-0 bottom-0 z-40 border-t-2 px-3 pt-2.5 backdrop-blur-sm xl:hidden"
         style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}
       >
         {renderStartButton()}

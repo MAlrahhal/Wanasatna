@@ -1,11 +1,19 @@
-import { isPlayableGameId, type ExperimentalGameSummary } from '@wanasatna/shared';
+import {
+  isPlayableGameId,
+  type ExperimentalGameSummary,
+  type GameShellPlayer,
+} from '@wanasatna/shared';
 import type { ServerGamePlugin } from '../runtime/plugin.types.js';
 import type { Server } from 'socket.io';
 import { registerGame } from '../runtime/plugin-registry.js';
 
 export type ExperimentalGameRegistration = ExperimentalGameSummary & {
   plugin: ServerGamePlugin;
-  resolveStartParticipantIds?: (roomId: string) => readonly string[] | null;
+  resolveStartParticipantIds?: (
+    roomId: string,
+    players: readonly GameShellPlayer[],
+  ) => readonly string[] | null;
+  hydrateLobbyState?: (roomId: string, gameSettings: unknown) => void;
   runtime?: {
     handlesActorRecovery?: boolean;
     hasState: (roomId: string) => boolean;
@@ -50,8 +58,13 @@ export function isRegisteredExperimentalGameId(gameId: string): boolean {
 export function listExperimentalGames(): ExperimentalGameSummary[] {
   return [...registrations.values()]
     .map(
-      ({ plugin: _plugin, runtime: _runtime, resolveStartParticipantIds: _resolve, ...summary }) =>
-        summary,
+      ({
+        plugin: _plugin,
+        runtime: _runtime,
+        resolveStartParticipantIds: _resolve,
+        hydrateLobbyState: _hydrate,
+        ...summary
+      }) => summary,
     )
     .sort((left, right) => left.gameId.localeCompare(right.gameId));
 }

@@ -60,8 +60,10 @@ export function removePersistedExperimentalGameSelection(
 
 export function hydrateExperimentalGameSelection(roomId: string, gameSettings: unknown): void {
   const selection = readPersistedExperimentalGameSelection(gameSettings);
-  if (selection) selectionsByRoomId.set(roomId, selection);
-  else selectionsByRoomId.delete(roomId);
+  if (selection) {
+    selectionsByRoomId.set(roomId, selection);
+    getExperimentalGameRegistration(selection.gameId)?.hydrateLobbyState?.(roomId, gameSettings);
+  } else selectionsByRoomId.delete(roomId);
 }
 
 export function getExperimentalGameSelection(roomId: string): ExperimentalGameSelection | null {

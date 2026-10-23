@@ -4,6 +4,7 @@ import { createServer } from 'node:http';
 import { io as ioClient, type Socket } from 'socket.io-client';
 import {
   CREATE_ROOM_EVENT,
+  EMOJI_LANGUAGE_GAME_ID,
   GAME_SHELL_START_FROM_LOBBY_EVENT,
   JOIN_ROOM_EVENT,
   LEAVE_ROOM_EVENT,
@@ -152,7 +153,7 @@ async function main(): Promise<void> {
       assert.equal(body.data.enabled, true);
       assert.deepEqual(
         body.data.games.map((game) => game.gameId),
-        [SECRET_AGENTS_GAME_ID],
+        [EMOJI_LANGUAGE_GAME_ID, SECRET_AGENTS_GAME_ID],
       );
     });
 

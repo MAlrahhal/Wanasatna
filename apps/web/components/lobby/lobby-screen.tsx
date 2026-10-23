@@ -28,6 +28,7 @@ import { PlayersPanel } from './players-panel';
 import { AvatarPickerDialog } from './avatar-picker-dialog';
 import { cn } from '@/lib/utils';
 import { useMobileOverlayScrollLock } from '@/lib/ui/use-mobile-overlay-scroll-lock';
+import { getExperimentalRoomLobbyGame } from '@/lib/games/experimental-room-game';
 
 export function LobbyScreen() {
   const {
@@ -147,13 +148,7 @@ export function LobbyScreen() {
     () =>
       mockLobbyGames.find((game) => game.id === selectedGameId) ??
       (experimentalGameId && experimentalGameId === selectedGameId
-        ? {
-            id: experimentalGameId,
-            title: 'العملاء السريون',
-            description: 'لعبة فرق مغلقة الاختبار',
-            iconLabel: 'س',
-            emoji: '🕵️',
-          }
+        ? getExperimentalRoomLobbyGame(experimentalGameId)
         : null),
     [experimentalGameId, selectedGameId],
   );

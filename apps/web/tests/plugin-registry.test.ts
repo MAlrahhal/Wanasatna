@@ -39,20 +39,18 @@ test('registry is populated immediately after importing the bootstrap', () => {
 
 test('all known plugin ids are registered exactly once', () => {
   const ids = listClientGamePlugins().map((plugin) => plugin.metadata.id);
-  assert.deepEqual(
-    [...ids].sort(),
-    [
-      'bara-al-salafa',
-      'draw-guess',
-      'fast-answer',
-      'guessing-challenge',
-      'imposter-draw',
-      'judge',
-      'secret-agents',
-      'timing-challenge',
-      'who-wrote-it',
-    ],
-  );
+  assert.deepEqual([...ids].sort(), [
+    'bara-al-salafa',
+    'draw-guess',
+    'emoji-language',
+    'fast-answer',
+    'guessing-challenge',
+    'imposter-draw',
+    'judge',
+    'secret-agents',
+    'timing-challenge',
+    'who-wrote-it',
+  ]);
 });
 
 test('fast-answer client plugin is registered', () => {
@@ -109,7 +107,7 @@ test('timing-challenge lobby catalog ID matches plugin ID', () => {
 test('re-running registration is idempotent (Strict Mode / Fast Refresh safe)', () => {
   registerAllClientGamePlugins();
   registerAllClientGamePlugins();
-  assert.equal(listClientGamePlugins().length, 9, 'no duplicate registrations');
+  assert.equal(listClientGamePlugins().length, 10, 'no duplicate registrations');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
