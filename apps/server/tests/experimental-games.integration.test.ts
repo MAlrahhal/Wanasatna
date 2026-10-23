@@ -7,6 +7,10 @@ import {
   GAME_SHELL_START_FROM_LOBBY_EVENT,
   JOIN_ROOM_EVENT,
   LEAVE_ROOM_EVENT,
+  MOST_LIKELY_TO_ADVANCE_EVENT,
+  MOST_LIKELY_TO_GAME_ID,
+  MOST_LIKELY_TO_SYNC_EVENT,
+  MOST_LIKELY_TO_VOTE_EVENT,
   RECONNECT_EVENT,
   SECRET_AGENTS_ASSIGN_EVENT,
   SECRET_AGENTS_CONFIRM_CARD_EVENT,
@@ -17,6 +21,7 @@ import {
   SELECT_EXPERIMENTAL_GAME_EVENT,
   type CreateRoomResponse,
   type GameActionResponse,
+  type MostLikelyToPlayerView,
   type ReconnectResponse,
   type RoomActionResponse,
   type RoomSessionData,
@@ -91,6 +96,17 @@ async function waitForMatchView(socket: Socket): Promise<SecretAgentsPlayerView>
   return response.data.view;
 }
 
+async function waitForMostLikelyToView(socket: Socket): Promise<MostLikelyToPlayerView> {
+  const response = await ack<Ack<{ view: MostLikelyToPlayerView }>>(
+    socket,
+    MOST_LIKELY_TO_SYNC_EVENT,
+    {},
+  );
+  assert.equal(response.success, true, response.success ? '' : response.error.message);
+  if (!response.success) throw new Error(response.error.message);
+  return response.data.view;
+}
+
 async function createAdminFixture() {
   const marker = randomUUID();
   const userId = randomUUID();
@@ -152,8 +168,224 @@ async function main(): Promise<void> {
       assert.equal(body.data.enabled, true);
       assert.deepEqual(
         body.data.games.map((game) => game.gameId),
-        [SECRET_AGENTS_GAME_ID],
+        [MOST_LIKELY_TO_GAME_ID, SECRET_AGENTS_GAME_ID],
       );
+    });
+
+    await test('Most Likely To keeps votes private, restores reconnect, and uses current host controls', async () => {
+      const host = await connect(baseUrl, admin.token);
+      sockets.push(host);
+      const created = await ack<CreateRoomResponse>(host, CREATE_ROOM_EVENT, {
+        playerName: 'مضيف مين أكثر',
+      });
+      assert.equal(created.success, true, created.success ? '' : created.error.message);
+      if (!created.success) throw new Error(created.error.message);
+      roomIds.push(created.data.room.id);
+
+      const selected = await ack<Ack<unknown>>(host, SELECT_EXPERIMENTAL_GAME_EVENT, {
+        gameId: MOST_LIKELY_TO_GAME_ID,
+      });
+      assert.equal(selected.success, true, selected.success ? '' : selected.error.message);
+
+      const joinedPlayers: Array<{ socket: Socket; session: RoomSessionData }> = [];
+      for (const name of ['لاعب ثان', 'لاعب ثالث']) {
+        const socket = await connect(baseUrl);
+        sockets.push(socket);
+        const joined = await ack<RoomActionResponse<RoomSessionData>>(socket, JOIN_ROOM_EVENT, {
+          roomCode: created.data.room.code,
+          playerName: name,
+        });
+        assert.equal(joined.success, true, joined.success ? '' : joined.error.message);
+        if (!joined.success) throw new Error(joined.error.message);
+        joinedPlayers.push({ socket, session: joined.data });
+      }
+
+      const forgedSelection = await ack<Ack<unknown>>(
+        joinedPlayers[0]!.socket,
+        SELECT_EXPERIMENTAL_GAME_EVENT,
+        { gameId: MOST_LIKELY_TO_GAME_ID, isAdmin: true },
+      );
+      assert.equal(forgedSelection.success, false);
+      if (!forgedSelection.success) assert.equal(forgedSelection.error.code, 'VALIDATION_ERROR');
+
+      const forgedStart = await ack<Ack<unknown>>(
+        joinedPlayers[0]!.socket,
+        GAME_SHELL_START_FROM_LOBBY_EVENT,
+        { gameId: MOST_LIKELY_TO_GAME_ID, isAdmin: true },
+      );
+      assert.equal(forgedStart.success, false);
+      if (!forgedStart.success) assert.equal(forgedStart.error.code, 'NOT_HOST');
+
+      const started = await ack<Ack<{ state: unknown }>>(host, GAME_SHELL_START_FROM_LOBBY_EVENT, {
+        gameId: MOST_LIKELY_TO_GAME_ID,
+      });
+      assert.equal(started.success, true, started.success ? '' : started.error.message);
+      await new Promise((resolve) => setTimeout(resolve, 3_500));
+
+      const initialViews = await Promise.all(
+        [host, ...joinedPlayers.map((entry) => entry.socket)].map(waitForMostLikelyToView),
+      );
+      assert.ok(initialViews.every((view) => view.questionId === initialViews[0]!.questionId));
+      assert.ok(initialViews.every((view) => view.nominees.length === 3));
+      assert.ok(
+        initialViews.every((view) => view.result === null && view.ownVotePlayerId === null),
+      );
+
+      const forgedVote = await ack<Ack<unknown>>(
+        joinedPlayers[0]!.socket,
+        MOST_LIKELY_TO_VOTE_EVENT,
+        {
+          questionId: initialViews[0]!.questionId,
+          nomineePlayerId: joinedPlayers[0]!.session.player.id,
+          requestId: randomUUID(),
+          voterPlayerId: created.data.player.id,
+        },
+      );
+      assert.equal(forgedVote.success, false);
+      if (!forgedVote.success) assert.equal(forgedVote.error.code, 'VALIDATION_ERROR');
+
+      const firstVote = await ack<Ack<{ view: MostLikelyToPlayerView }>>(
+        joinedPlayers[0]!.socket,
+        MOST_LIKELY_TO_VOTE_EVENT,
+        {
+          questionId: initialViews[0]!.questionId,
+          nomineePlayerId: joinedPlayers[0]!.session.player.id,
+          requestId: randomUUID(),
+        },
+      );
+      assert.equal(firstVote.success, true, firstVote.success ? '' : firstVote.error.message);
+      if (!firstVote.success) throw new Error(firstVote.error.message);
+      assert.equal(firstVote.data.view.ownVotePlayerId, joinedPlayers[0]!.session.player.id);
+
+      const hostPrivateView = await waitForMostLikelyToView(host);
+      assert.equal(hostPrivateView.submittedVoteCount, 1);
+      assert.equal(hostPrivateView.ownVotePlayerId, null);
+      assert.equal(hostPrivateView.result, null);
+
+      const disconnected = joinedPlayers[0]!;
+      disconnected.socket.disconnect();
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      const reconnectedSocket = await connect(baseUrl);
+      sockets.push(reconnectedSocket);
+      const reconnected = await ack<ReconnectResponse>(reconnectedSocket, RECONNECT_EVENT, {
+        playerId: disconnected.session.player.id,
+        reconnectToken: disconnected.session.reconnectToken,
+        roomCode: created.data.room.code,
+      });
+      assert.equal(reconnected.success, true, reconnected.success ? '' : reconnected.error.message);
+      disconnected.socket = reconnectedSocket;
+      const restored = await waitForMostLikelyToView(reconnectedSocket);
+      assert.equal(restored.ownVotePlayerId, disconnected.session.player.id);
+      assert.equal(restored.questionId, initialViews[0]!.questionId);
+      assert.ok((restored.remainingSeconds ?? 0) > 0);
+
+      const lateJoinSocket = await connect(baseUrl);
+      sockets.push(lateJoinSocket);
+      const lateJoin = await ack<RoomActionResponse<RoomSessionData>>(
+        lateJoinSocket,
+        JOIN_ROOM_EVENT,
+        {
+          roomCode: created.data.room.code,
+          playerName: 'منضم لاحق',
+        },
+      );
+      assert.equal(lateJoin.success, true, lateJoin.success ? '' : lateJoin.error.message);
+      if (!lateJoin.success) throw new Error(lateJoin.error.message);
+      const waiting = await waitForMostLikelyToView(lateJoinSocket);
+      assert.equal(waiting.canVote, false);
+      assert.equal(waiting.isWaitingForNextQuestion, true);
+      assert.equal(waiting.nominees.length, 3);
+
+      const secondVote = await ack<Ack<{ view: MostLikelyToPlayerView }>>(
+        joinedPlayers[1]!.socket,
+        MOST_LIKELY_TO_VOTE_EVENT,
+        {
+          questionId: initialViews[0]!.questionId,
+          nomineePlayerId: created.data.player.id,
+          requestId: randomUUID(),
+        },
+      );
+      assert.equal(secondVote.success, true, secondVote.success ? '' : secondVote.error.message);
+      const finalVote = await ack<Ack<{ view: MostLikelyToPlayerView }>>(
+        host,
+        MOST_LIKELY_TO_VOTE_EVENT,
+        {
+          questionId: initialViews[0]!.questionId,
+          nomineePlayerId: joinedPlayers[0]!.session.player.id,
+          requestId: randomUUID(),
+        },
+      );
+      assert.equal(finalVote.success, true, finalVote.success ? '' : finalVote.error.message);
+      if (!finalVote.success) throw new Error(finalVote.error.message);
+      assert.equal(finalVote.data.view.phase, 'reveal');
+      assert.equal(finalVote.data.view.result?.totalVotes, 3);
+      assert.equal(finalVote.data.view.result?.votes.length, 3);
+
+      const nonHostAdvance = await ack<Ack<unknown>>(
+        joinedPlayers[1]!.socket,
+        MOST_LIKELY_TO_ADVANCE_EVENT,
+        { questionId: initialViews[0]!.questionId, requestId: randomUUID() },
+      );
+      assert.equal(nonHostAdvance.success, false);
+      if (!nonHostAdvance.success) assert.equal(nonHostAdvance.error.code, 'NOT_HOST');
+
+      const advancePayload = {
+        questionId: initialViews[0]!.questionId,
+        requestId: randomUUID(),
+      };
+      const [advanced, duplicateAdvance] = await Promise.all([
+        ack<Ack<{ view: MostLikelyToPlayerView }>>(
+          host,
+          MOST_LIKELY_TO_ADVANCE_EVENT,
+          advancePayload,
+        ),
+        ack<Ack<{ view: MostLikelyToPlayerView }>>(
+          host,
+          MOST_LIKELY_TO_ADVANCE_EVENT,
+          advancePayload,
+        ),
+      ]);
+      assert.equal(advanced.success, true, advanced.success ? '' : advanced.error.message);
+      assert.equal(
+        duplicateAdvance.success,
+        true,
+        duplicateAdvance.success ? '' : duplicateAdvance.error.message,
+      );
+      if (!advanced.success) throw new Error(advanced.error.message);
+      if (!duplicateAdvance.success) throw new Error(duplicateAdvance.error.message);
+      assert.equal(advanced.data.view.questionNumber, 2);
+      assert.equal(advanced.data.view.nominees.length, 4);
+      assert.equal(duplicateAdvance.data.view.questionNumber, 2);
+      assert.equal(duplicateAdvance.data.view.questionId, advanced.data.view.questionId);
+      const promoted = await waitForMostLikelyToView(lateJoinSocket);
+      assert.equal(promoted.canVote, true);
+      assert.equal(promoted.isWaitingForNextQuestion, false);
+
+      const voters = [
+        { socket: host, nominee: joinedPlayers[0]!.session.player.id },
+        { socket: joinedPlayers[0]!.socket, nominee: created.data.player.id },
+        { socket: joinedPlayers[1]!.socket, nominee: lateJoin.data.player.id },
+        { socket: lateJoinSocket, nominee: created.data.player.id },
+      ];
+      for (const entry of voters) {
+        const response = await ack<Ack<{ view: MostLikelyToPlayerView }>>(
+          entry.socket,
+          MOST_LIKELY_TO_VOTE_EVENT,
+          {
+            questionId: advanced.data.view.questionId,
+            nomineePlayerId: entry.nominee,
+            requestId: randomUUID(),
+          },
+        );
+        assert.equal(response.success, true, response.success ? '' : response.error.message);
+      }
+
+      const left = await ack<RoomActionResponse<unknown>>(host, LEAVE_ROOM_EVENT, {});
+      assert.equal(left.success, true, left.success ? '' : left.error.message);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      const transferredView = await waitForMostLikelyToView(joinedPlayers[0]!.socket);
+      assert.equal(transferredView.phase, 'reveal');
+      assert.equal(transferredView.canAdvance, true);
     });
 
     await test('MFA admin creates; invited guests join and complete clue/nominate/confirm flow', async () => {
@@ -437,6 +669,7 @@ async function main(): Promise<void> {
     for (const roomId of roomIds) {
       cleanupGameShellRuntime(roomId);
       cleanupPluginMatchState(roomId, SECRET_AGENTS_GAME_ID);
+      cleanupPluginMatchState(roomId, MOST_LIKELY_TO_GAME_ID);
       deleteGameShell(roomId);
     }
     stopDisconnectedPlayerExpirySweep();

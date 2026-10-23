@@ -8,6 +8,7 @@ import { judgeClientPlugin } from '@/plugins/judge';
 import { timingChallengeClientPlugin } from '@/plugins/timing-challenge';
 import { whoWroteItClientPlugin } from '@/plugins/who-wrote-it';
 import { secretAgentsClientPlugin } from '@/plugins/secret-agents';
+import { mostLikelyToClientPlugin } from '@/plugins/most-likely-to';
 
 const allClientGamePlugins = [
   baraAlSalafaClientPlugin,
@@ -19,6 +20,7 @@ const allClientGamePlugins = [
   timingChallengeClientPlugin,
   whoWroteItClientPlugin,
   secretAgentsClientPlugin,
+  mostLikelyToClientPlugin,
 ];
 
 export function registerAllClientGamePlugins(): void {
@@ -44,4 +46,5 @@ export {
   timingChallengeClientPlugin,
   whoWroteItClientPlugin,
   secretAgentsClientPlugin,
+  mostLikelyToClientPlugin,
 };

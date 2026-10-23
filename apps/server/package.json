@@ -34,6 +34,7 @@
     "test:experimental-games": "tsx tests/experimental-games.unit.test.ts",
     "test:experimental-games:integration": "cross-env WANASATNA_TEST_MODE=1 tsx tests/experimental-games.integration.test.ts",
     "test:secret-agents": "tsx tests/secret-agents.unit.test.ts",
+    "test:most-likely-to": "tsx tests/most-likely-to.unit.test.ts",
     "test:p14-a": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p14-a-admin.unit.test.ts",
     "test:p14-b": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p14-b-product-analytics.unit.test.ts",
     "test:p14-c": "cross-env WANASATNA_TEST_MODE=1 tsx tests/p14-c-admin.unit.test.ts",

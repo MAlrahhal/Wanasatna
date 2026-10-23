@@ -1,11 +1,18 @@
-import { isPlayableGameId, type ExperimentalGameSummary } from '@wanasatna/shared';
+import {
+  isPlayableGameId,
+  type ExperimentalGameSummary,
+  type GameShellPlayer,
+} from '@wanasatna/shared';
 import type { ServerGamePlugin } from '../runtime/plugin.types.js';
 import type { Server } from 'socket.io';
 import { registerGame } from '../runtime/plugin-registry.js';
 
 export type ExperimentalGameRegistration = ExperimentalGameSummary & {
   plugin: ServerGamePlugin;
-  resolveStartParticipantIds?: (roomId: string) => readonly string[] | null;
+  resolveStartParticipantIds?: (
+    roomId: string,
+    players: readonly GameShellPlayer[],
+  ) => readonly string[] | null;
   runtime?: {
     handlesActorRecovery?: boolean;
     hasState: (roomId: string) => boolean;
