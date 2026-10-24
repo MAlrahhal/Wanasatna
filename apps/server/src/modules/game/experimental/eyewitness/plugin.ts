@@ -1,0 +1,60 @@
+import type { GamePluginDefinition, GamePluginSettings } from '@wanasatna/shared';
+import {
+  EYEWITNESS_ADVANCE_EVENT,
+  EYEWITNESS_CLEAR_CANVAS_EVENT,
+  EYEWITNESS_CONFIRM_VOTE_EVENT,
+  EYEWITNESS_DEFAULT_SETTINGS,
+  EYEWITNESS_GAME_ID,
+  EYEWITNESS_LOBBY_SYNC_EVENT,
+  EYEWITNESS_MAX_PLAYERS,
+  EYEWITNESS_MIN_PLAYERS,
+  EYEWITNESS_PHASE_CHANGED_EVENT,
+  EYEWITNESS_STATE_EVENT,
+  EYEWITNESS_STROKE_EVENT,
+  EYEWITNESS_STROKE_POINTS_EVENT,
+  EYEWITNESS_SUBMIT_ARTWORK_EVENT,
+  EYEWITNESS_SUBMIT_DESCRIPTION_EVENT,
+  EYEWITNESS_SYNC_EVENT,
+  EYEWITNESS_UNDO_EVENT,
+  EYEWITNESS_UPDATE_DESCRIPTION_EVENT,
+  EYEWITNESS_UPDATE_SETTINGS_EVENT,
+} from '@wanasatna/shared';
+import { createEyewitnessMatch, type EyewitnessMatchState } from './state.js';
+
+export const eyewitnessPluginDefinition: GamePluginDefinition = {
+  id: EYEWITNESS_GAME_ID,
+  title: 'شاهد عيان',
+  description: 'شاهد يصف صورة خيالية، والآخرون يرسمونها ثم يصوّتون لأفضل رسمة.',
+  iconLabel: '👁',
+  minPlayers: EYEWITNESS_MIN_PLAYERS,
+  maxPlayers: EYEWITNESS_MAX_PLAYERS,
+  defaultSettings: {} satisfies GamePluginSettings,
+  settingsSchema: [],
+  createInitialState: (context) =>
+    createEyewitnessMatch({
+      playerIds: context.players.map((player) => player.id),
+      playerNames: Object.fromEntries(context.players.map((player) => [player.id, player.name])),
+      settings: EYEWITNESS_DEFAULT_SETTINGS,
+    }),
+  serializeState: (state) => state,
+  deserializeState: (payload) => payload as EyewitnessMatchState,
+  lifecycle: {},
+  socket: {
+    events: {
+      lobbySync: EYEWITNESS_LOBBY_SYNC_EVENT,
+      updateSettings: EYEWITNESS_UPDATE_SETTINGS_EVENT,
+      sync: EYEWITNESS_SYNC_EVENT,
+      updateDescription: EYEWITNESS_UPDATE_DESCRIPTION_EVENT,
+      submitDescription: EYEWITNESS_SUBMIT_DESCRIPTION_EVENT,
+      stroke: EYEWITNESS_STROKE_EVENT,
+      strokePoints: EYEWITNESS_STROKE_POINTS_EVENT,
+      clearCanvas: EYEWITNESS_CLEAR_CANVAS_EVENT,
+      undo: EYEWITNESS_UNDO_EVENT,
+      submitArtwork: EYEWITNESS_SUBMIT_ARTWORK_EVENT,
+      confirmVote: EYEWITNESS_CONFIRM_VOTE_EVENT,
+      advance: EYEWITNESS_ADVANCE_EVENT,
+      phaseChanged: EYEWITNESS_PHASE_CHANGED_EVENT,
+      state: EYEWITNESS_STATE_EVENT,
+    },
+  },
+};

@@ -75,7 +75,14 @@ test('real closed-test game registers separately and the public game count remai
   registerAllExperimentalGames();
   assert.deepEqual(
     listExperimentalGames().map((game) => game.gameId),
-    ['emoji-language', 'most-likely-to', 'one-word-only', 'secret-agents', 'timeline-placement'],
+    [
+      'emoji-language',
+      'eyewitness',
+      'most-likely-to',
+      'one-word-only',
+      'secret-agents',
+      'timeline-placement',
+    ],
   );
   assert.equal(PLAYABLE_GAME_IDS.length, 8);
   assert.deepEqual(

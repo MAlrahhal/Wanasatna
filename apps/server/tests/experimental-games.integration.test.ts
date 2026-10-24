@@ -5,6 +5,7 @@ import { io as ioClient, type Socket } from 'socket.io-client';
 import {
   CREATE_ROOM_EVENT,
   EMOJI_LANGUAGE_GAME_ID,
+  EYEWITNESS_GAME_ID,
   GAME_SHELL_START_FROM_LOBBY_EVENT,
   JOIN_ROOM_EVENT,
   LEAVE_ROOM_EVENT,
@@ -173,6 +174,7 @@ async function main(): Promise<void> {
         body.data.games.map((game) => game.gameId),
         [
           EMOJI_LANGUAGE_GAME_ID,
+          EYEWITNESS_GAME_ID,
           MOST_LIKELY_TO_GAME_ID,
           ONE_WORD_ONLY_GAME_ID,
           SECRET_AGENTS_GAME_ID,

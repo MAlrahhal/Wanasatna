@@ -12,6 +12,7 @@ import { mostLikelyToClientPlugin } from '@/plugins/most-likely-to';
 import { emojiLanguageClientPlugin } from '@/plugins/emoji-language';
 import { timelinePlacementClientPlugin } from '@/plugins/timeline-placement';
 import { oneWordOnlyClientPlugin } from '@/plugins/one-word-only';
+import { eyewitnessClientPlugin } from '@/plugins/eyewitness';
 
 const allClientGamePlugins = [
   baraAlSalafaClientPlugin,
@@ -27,6 +28,7 @@ const allClientGamePlugins = [
   emojiLanguageClientPlugin,
   timelinePlacementClientPlugin,
   oneWordOnlyClientPlugin,
+  eyewitnessClientPlugin,
 ];
 
 export function registerAllClientGamePlugins(): void {
@@ -56,4 +58,5 @@ export {
   emojiLanguageClientPlugin,
   timelinePlacementClientPlugin,
   oneWordOnlyClientPlugin,
+  eyewitnessClientPlugin,
 };

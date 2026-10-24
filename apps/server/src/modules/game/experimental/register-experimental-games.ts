@@ -4,6 +4,7 @@ import { mostLikelyToExperimentalRegistration } from './most-likely-to/index.js'
 import { emojiLanguageExperimentalRegistration } from './emoji-language/index.js';
 import { timelinePlacementExperimentalRegistration } from './timeline-placement/index.js';
 import { oneWordOnlyExperimentalRegistration } from './one-word-only/index.js';
+import { eyewitnessExperimentalRegistration } from './eyewitness/index.js';
 
 export function registerAllExperimentalGames(): void {
   registerExperimentalGame(secretAgentsExperimentalRegistration);
@@ -11,4 +12,5 @@ export function registerAllExperimentalGames(): void {
   registerExperimentalGame(emojiLanguageExperimentalRegistration);
   registerExperimentalGame(timelinePlacementExperimentalRegistration);
   registerExperimentalGame(oneWordOnlyExperimentalRegistration);
+  registerExperimentalGame(eyewitnessExperimentalRegistration);
 }

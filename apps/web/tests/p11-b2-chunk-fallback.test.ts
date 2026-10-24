@@ -171,6 +171,7 @@ test('7. all public and closed-test lazy registry entries resolve and inherit re
     .sort();
   const closedGames = [
     'emoji-language',
+    'eyewitness',
     'most-likely-to',
     'one-word-only',
     'secret-agents',

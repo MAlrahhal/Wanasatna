@@ -114,6 +114,8 @@ test('experimental games remain absent from public and ordinary lobby discovery'
   assert.doesNotMatch(lobbyGames, /timeline-placement|زمانها وين/);
   assert.doesNotMatch(publicCatalog, /one-word-only|كلمة وحدة بس/);
   assert.doesNotMatch(lobbyGames, /one-word-only|كلمة وحدة بس/);
+  assert.doesNotMatch(publicCatalog, /eyewitness|شاهد عيان/);
+  assert.doesNotMatch(lobbyGames, /eyewitness|شاهد عيان/);
 });
 
 test('admin data request uses the protected endpoint with credentials', () => {
