@@ -126,6 +126,25 @@ export type GuessingChallengeLeaderboardEntry = {
   score: number;
 };
 
+export type GuessingChallengeTeamResultMember = {
+  playerId: string;
+  name: string;
+  score: number;
+};
+
+export type GuessingChallengeTeamResultEntry = {
+  teamId: GuessingChallengeTeamId;
+  teamLabel: string;
+  totalPoints: number;
+  members: GuessingChallengeTeamResultMember[];
+};
+
+export type GuessingChallengeTeamResults = {
+  isTie: boolean;
+  winningTeamId: GuessingChallengeTeamId | null;
+  teams: GuessingChallengeTeamResultEntry[];
+};
+
 export type GuessingChallengeOpponentView = {
   playerId: string;
   name: string;
@@ -221,6 +240,8 @@ export type GuessingChallengePlayerView = {
     rank: number;
     isFirstPlace: boolean;
   }>;
+  /** Authoritative 2v2 final result. Null in 1v1 and before match completion. */
+  teamResults: GuessingChallengeTeamResults | null;
   isHost: boolean;
   canContinueFromRoundResults: boolean;
   roundResultsContinueLabel: string | null;

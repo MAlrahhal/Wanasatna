@@ -46,6 +46,7 @@ import {
   buildLeaderboardEntries,
   buildResultsLeaderboardEntries,
   buildRoundResultEntries,
+  buildTeamResults,
 } from './scoring.js';
 
 const PHASE_LABELS = {
@@ -1244,6 +1245,8 @@ export function buildGuessingChallengePlayerView(
     roundResults: revealed && !hideSecrets ? buildRoundResultEntries(match) : [],
     leaderboard: buildLeaderboardEntries(match),
     resultsLeaderboard: buildResultsLeaderboardEntries(match),
+    teamResults:
+      match.mode === '2v2' && phase === 'match-completed' ? buildTeamResults(match) : null,
     ...buildRoundResultsInteractionView(match, shell, playerId),
     isMatchSpectator,
     spectatorTeams,

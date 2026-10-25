@@ -67,6 +67,7 @@ function createMockView(
   phase: GuessingChallengePlayerView['gamePhase'],
 ): GuessingChallengePlayerView {
   const isResults = phase === 'round-results' || phase === 'match-completed';
+  const opponentTeam = team === 'blue' ? 'red' : 'blue';
   return {
     gamePhase: phase,
     phaseLabel:
@@ -170,6 +171,33 @@ function createMockView(
       { playerId: 'self', name: 'سارة', totalPoints: 200, rank: 1, isFirstPlace: true },
       { playerId: 'o0', name: 'علي', totalPoints: 100, rank: 2, isFirstPlace: false },
     ],
+    teamResults:
+      mode === '2v2' && phase === 'match-completed'
+        ? {
+            isTie: false,
+            winningTeamId: 'blue',
+            teams: [
+              {
+                teamId: team,
+                teamLabel: team === 'blue' ? 'الفريق الأزرق' : 'الفريق الأحمر',
+                totalPoints: team === 'blue' ? 200 : 100,
+                members: [
+                  { playerId: 'self', name: 'سارة', score: team === 'blue' ? 200 : 100 },
+                  { playerId: 'tm', name: 'محمد', score: team === 'blue' ? 200 : 100 },
+                ],
+              },
+              {
+                teamId: opponentTeam,
+                teamLabel: opponentTeam === 'blue' ? 'الفريق الأزرق' : 'الفريق الأحمر',
+                totalPoints: opponentTeam === 'blue' ? 200 : 100,
+                members: [
+                  { playerId: 'o0', name: 'خالد', score: opponentTeam === 'blue' ? 200 : 100 },
+                  { playerId: 'o1', name: 'علي', score: opponentTeam === 'blue' ? 200 : 100 },
+                ],
+              },
+            ],
+          }
+        : null,
     isHost: true,
     canContinueFromRoundResults: true,
     roundResultsContinueLabel: 'التالي الآن',

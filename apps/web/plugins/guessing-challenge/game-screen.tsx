@@ -216,6 +216,27 @@ export function GuessingChallengeGameScreen(_props: GamePluginScreenProps) {
           isFirstPlace: entry.isFirstPlace,
           isCurrentPlayer: entry.playerId === player.id,
         }))}
+        teamResults={
+          activeFinalResultsView.mode === '2v2' && activeFinalResultsView.teamResults
+            ? {
+                isTie: activeFinalResultsView.teamResults.isTie,
+                winningTeamId: activeFinalResultsView.teamResults.winningTeamId,
+                teams: activeFinalResultsView.teamResults.teams.map((team) => ({
+                  teamId: team.teamId,
+                  teamLabel: team.teamLabel,
+                  totalPoints: team.totalPoints,
+                  members: team.members.map((member) => ({
+                    id: member.playerId,
+                    name: member.name,
+                    score: member.score,
+                  })),
+                })),
+              }
+            : null
+        }
+        currentTeamId={
+          activeFinalResultsView.mode === '2v2' ? activeFinalResultsView.selfTeam : null
+        }
         currentPlayerId={player.id}
         totalRounds={activeFinalResultsView.totalRounds}
         playerCount={activeFinalResultsView.resultsLeaderboard.length}

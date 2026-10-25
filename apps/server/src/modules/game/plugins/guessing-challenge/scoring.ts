@@ -2,6 +2,8 @@ import type {
   GuessingChallengeLeaderboardEntry,
   GuessingChallengeMatchState,
   GuessingChallengeRoundResultEntry,
+  GuessingChallengeTeamId,
+  GuessingChallengeTeamResults,
 } from '@wanasatna/shared';
 import { GUESSING_CHALLENGE_WINNER_POINTS } from '@wanasatna/shared';
 
@@ -108,4 +110,40 @@ export function buildResultsLeaderboardEntries(match: GuessingChallengeMatchStat
       isFirstPlace: rank === 1,
     };
   });
+}
+
+const TEAM_LABELS: Record<GuessingChallengeTeamId, string> = {
+  blue: 'الفريق الأزرق',
+  red: 'الفريق الأحمر',
+};
+
+export function buildTeamResults(match: GuessingChallengeMatchState): GuessingChallengeTeamResults {
+  const blueScore = match.teamScores.blue ?? 0;
+  const redScore = match.teamScores.red ?? 0;
+  const isTie = blueScore === redScore;
+  const winningTeamId: GuessingChallengeTeamId | null = isTie
+    ? null
+    : blueScore > redScore
+      ? 'blue'
+      : 'red';
+
+  return {
+    isTie,
+    winningTeamId,
+    teams: (['blue', 'red'] as const).map((teamId) => ({
+      teamId,
+      teamLabel: TEAM_LABELS[teamId],
+      totalPoints: match.teamScores[teamId] ?? 0,
+      members: match.playerIds
+        .filter((playerId) => match.teamByPlayerId[playerId] === teamId)
+        .sort(
+          (left, right) => (match.seatByPlayerId[left] ?? 0) - (match.seatByPlayerId[right] ?? 0),
+        )
+        .map((playerId) => ({
+          playerId,
+          name: match.playerNames[playerId] ?? 'لاعب',
+          score: match.scores[playerId] ?? 0,
+        })),
+    })),
+  };
 }

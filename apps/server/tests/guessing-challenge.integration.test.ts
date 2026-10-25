@@ -90,6 +90,22 @@ type SyncView = {
   winningGuess: string | null;
   revealEntries: Array<{ playerId: string; identity: { value: string | null }; isWinner: boolean }>;
   roundResults: Array<{ playerId: string; roundPoints: number; isWinner: boolean }>;
+  resultsLeaderboard: Array<{
+    playerId: string;
+    totalPoints: number;
+    rank: number;
+    isFirstPlace: boolean;
+  }>;
+  teamResults: {
+    isTie: boolean;
+    winningTeamId: 'blue' | 'red' | null;
+    teams: Array<{
+      teamId: 'blue' | 'red';
+      teamLabel: string;
+      totalPoints: number;
+      members: Array<{ playerId: string; name: string; score: number }>;
+    }>;
+  } | null;
   canContinueFromRoundResults: boolean;
   isMatchSpectator: boolean;
   spectatorTeams: {
@@ -687,6 +703,103 @@ async function main(): Promise<void> {
       client.socket.disconnect();
     }
   });
+
+  await runTest(
+    '2v2 final results rank teams for participants, spectator, and reconnect',
+    async () => {
+      const { a, b, c, d } = await startMatch2v2();
+      const spectator = emptyClient('مشاهد');
+      spectator.socket = await connectClient();
+      spectator.roomCode = a.roomCode;
+      trackClientEvents(spectator);
+      const join = await ack<{
+        success: boolean;
+        data: { player: { id: string }; room: { id: string }; reconnectToken?: string };
+      }>(spectator.socket, 'join-room', {
+        roomCode: a.roomCode,
+        playerName: spectator.name,
+      });
+      assert.equal(join.success, true);
+      spectator.id = join.data.player.id;
+      spectator.roomId = join.data.room.id;
+      spectator.reconnectToken = join.data.reconnectToken ?? '';
+
+      const winningTeamId = 'blue' as const;
+      for (let round = 1; round <= 4; round += 1) {
+        let viewA = await syncView(a);
+        let viewB = await syncView(b);
+        if (viewA.currentTurnTeamId !== winningTeamId) {
+          const passed = await endQuestion(viewB.isMyTurn ? b : d);
+          assert.equal(passed.success, true, passed.error?.message ?? 'red turn pass failed');
+          viewA = await syncView(a);
+          viewB = await syncView(b);
+        }
+        assert.equal(viewA.currentTurnTeamId, winningTeamId);
+        const ownSecret = viewB.opponent.visibleIdentity?.value;
+        assert.ok(ownSecret);
+
+        const correct = await submitGuess(viewA.isMyTurn ? a : c, ownSecret);
+        assert.equal(correct.success, true, correct.error?.message ?? '2v2 correct guess failed');
+        assert.equal(correct.data.guessCorrect, true);
+        const continued = await continueResults(a);
+        assert.equal(continued.success, true, continued.error?.message ?? 'result continue failed');
+        if (round < 4) {
+          await waitFor(
+            async () => {
+              const next = await syncView(a);
+              return next.gamePhase === 'playing' && next.currentRound === round + 1 ? next : null;
+            },
+            5_000,
+            `2v2 team-results round ${round + 1}`,
+          );
+        }
+      }
+
+      const final = await waitFor(
+        async () => {
+          const view = await syncView(a);
+          return view.gamePhase === 'match-completed' ? view : null;
+        },
+        5_000,
+        '2v2 final team results',
+      );
+      assert.ok(final.teamResults);
+      assert.equal(final.teamResults.isTie, false);
+      assert.equal(final.teamResults.winningTeamId, winningTeamId);
+      assert.equal(
+        final.resultsLeaderboard.filter((entry) => entry.isFirstPlace).length,
+        2,
+        'both winning teammates still share the secondary individual score',
+      );
+      const winningTeam = final.teamResults.teams.find((team) => team.teamId === winningTeamId);
+      const losingTeam = final.teamResults.teams.find((team) => team.teamId !== winningTeamId);
+      assert.equal(winningTeam?.totalPoints, 400);
+      assert.equal(winningTeam?.members.length, 2);
+      assert.equal(losingTeam?.totalPoints, 0);
+      assert.equal(losingTeam?.members.length, 2);
+
+      for (const client of [b, c, d, spectator]) {
+        assert.deepEqual((await syncView(client)).teamResults, final.teamResults);
+      }
+
+      c.socket.disconnect();
+      c.socket = await connectClient();
+      trackClientEvents(c);
+      const resume = await ack<{ success: boolean; error?: { message?: string } }>(
+        c.socket,
+        RECONNECT_EVENT,
+        {
+          playerId: c.id,
+          roomId: c.roomId,
+          roomCode: c.roomCode,
+          reconnectToken: c.reconnectToken,
+        },
+      );
+      assert.equal(resume.success, true, resume.error?.message ?? 'final-results reconnect failed');
+      assert.deepEqual((await syncView(c)).teamResults, final.teamResults);
+      disconnectAll([a, b, c, d, spectator]);
+    },
+  );
 
   await runTest('natural four rounds auto-progress and clean shell for Game B', async () => {
     const { a, b } = await startMatch1v1();

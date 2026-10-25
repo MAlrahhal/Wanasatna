@@ -1099,6 +1099,74 @@ test('tie-safe final rankings share rank one', () => {
   assert.equal(rankings[1]?.isFirstPlace, true);
 });
 
+test('2v2 final result ranks authoritative teams instead of tied teammates', () => {
+  const match = makeMatch2v2({
+    teamScores: { blue: 200, red: 100 },
+    scores: { p1: 200, p2: 100, p3: 200, p4: 100 },
+    matchStatus: 'completed',
+    round: makeRound({ gamePhase: 'match-completed' }),
+  });
+  const connectedShell = makeShell(['p1', 'p2', 'p3', 'p4']);
+  const disconnectedShell = makeShell(['p1', 'p2', 'p3', 'p4'], ['p2', 'p3', 'p4']);
+  const participantView = buildGuessingChallengePlayerView(match, 'p1', connectedShell);
+  const disconnectedView = buildGuessingChallengePlayerView(match, 'p1', disconnectedShell);
+  const reconnectedView = buildGuessingChallengePlayerView(match, 'p1', connectedShell);
+  const spectatorView = buildGuessingChallengePlayerView(match, 'spectator', makeSpectatorShell());
+
+  assert.equal(
+    participantView.resultsLeaderboard.filter((entry) => entry.isFirstPlace).length,
+    2,
+    'the legacy individual projection contains the two tied blue teammates',
+  );
+  assert.equal(participantView.teamResults?.isTie, false);
+  assert.equal(participantView.teamResults?.winningTeamId, 'blue');
+  assert.deepEqual(
+    participantView.teamResults?.teams.find((team) => team.teamId === 'blue'),
+    {
+      teamId: 'blue',
+      teamLabel: 'الفريق الأزرق',
+      totalPoints: 200,
+      members: [
+        { playerId: 'p1', name: 'محمد', score: 200 },
+        { playerId: 'p3', name: 'سارة', score: 200 },
+      ],
+    },
+  );
+  assert.equal(
+    participantView.teamResults?.teams.find((team) => team.teamId === 'red')?.totalPoints,
+    100,
+  );
+  assert.deepEqual(disconnectedView.teamResults, participantView.teamResults);
+  assert.deepEqual(reconnectedView.teamResults, participantView.teamResults);
+  assert.deepEqual(spectatorView.teamResults, participantView.teamResults);
+});
+
+test('2v2 final result declares a tie only when team totals are equal', () => {
+  const match = makeMatch2v2({
+    teamScores: { blue: 200, red: 200 },
+    scores: { p1: 200, p2: 200, p3: 200, p4: 200 },
+    matchStatus: 'completed',
+    round: makeRound({ gamePhase: 'match-completed' }),
+  });
+  const view = buildGuessingChallengePlayerView(match, 'spectator', makeSpectatorShell());
+  assert.equal(view.teamResults?.isTie, true);
+  assert.equal(view.teamResults?.winningTeamId, null);
+  assert.deepEqual(
+    view.teamResults?.teams.map((team) => team.totalPoints),
+    [200, 200],
+  );
+});
+
+test('1v1 final result keeps the individual results contract', () => {
+  const match = makeMatch1v1({
+    matchStatus: 'completed',
+    round: makeRound({ gamePhase: 'match-completed' }),
+  });
+  const view = buildGuessingChallengePlayerView(match, 'p1', makeShell());
+  assert.equal(view.teamResults, null);
+  assert.equal(view.resultsLeaderboard.length, 2);
+});
+
 test('all four 2v2 seats receive authoritative winning team', () => {
   const match = makeMatch2v2({
     round: makeRound({

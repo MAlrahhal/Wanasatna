@@ -247,6 +247,28 @@ test('start validation enforces exact 2 / 4 by mode', () => {
   assert.match(validation, /2 ضد 2/);
 });
 
+test('2v2 final screen uses authoritative team results while 1v1 stays individual', () => {
+  const game = readPlugin('game-screen.tsx');
+  const results = readFileSync(
+    join(root, 'plugins/bara-al-salafa/match-results-screen.tsx'),
+    'utf8',
+  );
+
+  assert.match(game, /activeFinalResultsView\.mode === '2v2'/);
+  assert.match(game, /activeFinalResultsView\.teamResults/);
+  assert.match(game, /currentTeamId=/);
+  assert.match(results, /teamResults\.winningTeamId/);
+  assert.match(results, /teamResults\.isTie \? 'تعادل الفريقان!'/);
+  assert.match(results, /الفائز: \$\{winner\?\.teamLabel/);
+  assert.match(results, /نتيجة فريقك/);
+  assert.match(results, /مجموع الفريق/);
+  assert.match(results, /النتيجة الرسمية تُحسب بمجموع كل فريق/);
+  assert.match(results, /activeTeamResults \?/);
+  assert.match(results, /<WinnerHero winners=\{winners\}/);
+  assert.match(results, /<CurrentPlayerSummary entry=\{currentPlayerEntry\}/);
+  assert.match(results, /<FinalLeaderboard leaderboard=\{leaderboard\}/);
+});
+
 test('plugin registry maxPlayers is 4', () => {
   const index = readPlugin('index.tsx');
   assert.match(index, /minPlayers:\s*2/);

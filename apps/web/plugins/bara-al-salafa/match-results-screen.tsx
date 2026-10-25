@@ -21,8 +21,27 @@ export type MatchLeaderboardEntry = {
   isCurrentPlayer: boolean;
 };
 
+export type MatchTeamResultEntry = {
+  teamId: string;
+  teamLabel: string;
+  totalPoints: number;
+  members: Array<{
+    id: string;
+    name: string;
+    score: number;
+  }>;
+};
+
+export type MatchTeamResults = {
+  isTie: boolean;
+  winningTeamId: string | null;
+  teams: readonly MatchTeamResultEntry[];
+};
+
 export type MatchResultsScreenProps = {
   leaderboard: readonly MatchLeaderboardEntry[];
+  teamResults?: MatchTeamResults | null;
+  currentTeamId?: string | null;
   currentPlayerId: string;
   totalRounds: number;
   playerCount: number;
@@ -43,6 +62,163 @@ function getRankMedal(rank: number, isFirstPlace: boolean): string {
   if (rank === 2) return '🥈';
   if (rank === 3) return '🥉';
   return String(rank);
+}
+
+function teamResultTone(teamId: string): string {
+  return teamId === 'red' ? 'border-red-400/50 bg-red-500/10' : 'border-blue-400/50 bg-blue-500/10';
+}
+
+function TeamWinnerHero({ teamResults }: { teamResults: MatchTeamResults }) {
+  const winner = teamResults.teams.find((team) => team.teamId === teamResults.winningTeamId);
+  const featuredTeams = teamResults.isTie ? teamResults.teams : winner ? [winner] : [];
+
+  return (
+    <div className="wanas-game-card border-wanas-warning-border/70 bg-wanas-warning-surface rounded-[1.5rem] px-4 py-4 text-center sm:rounded-[2rem] sm:px-8 sm:py-8">
+      <div className="flex flex-col items-center gap-3 sm:gap-5">
+        <span className="text-4xl sm:text-6xl" aria-hidden>
+          {teamResults.isTie ? '⚖️' : '🏆'}
+        </span>
+        <h2 className="text-wanas-warning-dark text-xl font-semibold sm:text-2xl">
+          {teamResults.isTie ? 'تعادل الفريقان!' : `الفائز: ${winner?.teamLabel ?? ''}`}
+        </h2>
+        <div
+          className={cn(
+            'grid w-full gap-3',
+            featuredTeams.length > 1 ? 'max-w-2xl grid-cols-1 sm:grid-cols-2' : 'max-w-sm',
+          )}
+        >
+          {featuredTeams.map((team) => (
+            <div
+              key={team.teamId}
+              className={cn('rounded-[1.25rem] border-2 px-4 py-4', teamResultTone(team.teamId))}
+            >
+              <p className="text-wanas-text-primary text-lg font-bold">{team.teamLabel}</p>
+              <p className="text-wanas-text-primary mt-1 font-mono text-3xl font-black tabular-nums">
+                {team.totalPoints}
+              </p>
+              <p className="text-wanas-text-muted text-xs font-medium">نقطة</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CurrentTeamSummary({
+  teamResults,
+  currentTeamId,
+}: {
+  teamResults: MatchTeamResults;
+  currentTeamId: string | null;
+}) {
+  const currentTeam = teamResults.teams.find((team) => team.teamId === currentTeamId);
+  if (!currentTeam) {
+    return null;
+  }
+
+  const outcome = teamResults.isTie
+    ? 'تعادل فريقك'
+    : teamResults.winningTeamId === currentTeam.teamId
+      ? 'فاز فريقك'
+      : 'خسر فريقك';
+
+  return (
+    <div className="border-wanas-accent/25 bg-wanas-accent-soft/35 rounded-[1.25rem] border-2 px-5 py-4 sm:px-6 sm:py-5">
+      <p className="text-wanas-text-muted text-xs font-medium">نتيجة فريقك</p>
+      <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-wanas-text-primary text-lg font-semibold">{outcome}</p>
+          <p className="text-wanas-accent-hover mt-0.5 text-sm font-medium">
+            {currentTeam.teamLabel}
+          </p>
+        </div>
+        <div className="text-end">
+          <p className="text-wanas-text-muted text-xs font-medium">مجموع الفريق</p>
+          <p className="text-wanas-text-primary font-mono text-2xl font-bold tabular-nums">
+            {currentTeam.totalPoints}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FinalTeamLeaderboard({
+  teamResults,
+  currentPlayerId,
+}: {
+  teamResults: MatchTeamResults;
+  currentPlayerId: string;
+}) {
+  const rankedTeams = [...teamResults.teams].sort((left, right) => {
+    if (right.totalPoints !== left.totalPoints) {
+      return right.totalPoints - left.totalPoints;
+    }
+    return left.teamId.localeCompare(right.teamId);
+  });
+
+  return (
+    <GameCard className="p-5 sm:p-6">
+      <h2 className="wanas-game-title mb-4">النتيجة النهائية للفرق</h2>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {rankedTeams.map((team, index) => {
+          const rank = teamResults.isTie ? 1 : index + 1;
+          return (
+            <section
+              key={team.teamId}
+              className={cn('rounded-[1.25rem] border-2 p-4', teamResultTone(team.teamId))}
+              aria-label={`${team.teamLabel}، المركز ${rank}`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-wanas-text-primary text-base font-bold">{team.teamLabel}</p>
+                  <p className="text-wanas-text-muted text-xs">
+                    {teamResults.isTie ? 'متعادل' : `المركز ${rank}`}
+                  </p>
+                </div>
+                <p className="text-wanas-text-primary font-mono text-2xl font-black tabular-nums">
+                  {team.totalPoints}
+                </p>
+              </div>
+              <ul className="mt-4 space-y-2" aria-label={`لاعبو ${team.teamLabel}`}>
+                {team.members.map((member) => {
+                  const isCurrentPlayer = member.id === currentPlayerId;
+                  return (
+                    <li
+                      key={member.id}
+                      className={cn(
+                        'flex items-center gap-2 rounded-xl border border-[color:var(--wanas-game-card-border)] bg-[color:var(--wanas-game-card)] px-3 py-2',
+                        isCurrentPlayer && 'ring-wanas-accent/35 ring-2',
+                      )}
+                      aria-current={isCurrentPlayer ? 'true' : undefined}
+                    >
+                      <PlayerAvatar
+                        playerId={member.id}
+                        playerName={member.name}
+                        className="size-9 ring-2 ring-[color:var(--wanas-game-card-border)]"
+                        sizes="36px"
+                      />
+                      <p className="text-wanas-text-primary min-w-0 flex-1 truncate text-sm font-semibold">
+                        {member.name}
+                        {isCurrentPlayer ? ` · أنت` : ''}
+                      </p>
+                      <span className="text-wanas-text-muted shrink-0 font-mono text-sm font-bold tabular-nums">
+                        {member.score}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          );
+        })}
+      </div>
+      <p className="text-wanas-text-muted mt-3 text-center text-xs">
+        النتيجة الرسمية تُحسب بمجموع كل فريق؛ ونقاط اللاعبين تفصيل إضافي.
+      </p>
+    </GameCard>
+  );
 }
 
 function getArabicRankLabel(rank: number): string {
@@ -315,6 +491,8 @@ function MatchActionsFooter({
 
 export function MatchResultsScreen({
   leaderboard,
+  teamResults = null,
+  currentTeamId = null,
   currentPlayerId,
   totalRounds,
   playerCount,
@@ -330,9 +508,12 @@ export function MatchResultsScreen({
   className,
 }: MatchResultsScreenProps) {
   const shellActive = useGameExperienceShellActive();
+  const activeTeamResults = teamResults && teamResults.teams.length > 0 ? teamResults : null;
   const winners = leaderboard.filter((entry) => entry.isFirstPlace);
   const currentPlayerEntry = leaderboard.find((entry) => entry.id === currentPlayerId);
-  const highestScore = leaderboard.reduce((max, entry) => Math.max(max, entry.totalPoints), 0);
+  const highestScore = activeTeamResults
+    ? activeTeamResults.teams.reduce((max, team) => Math.max(max, team.totalPoints), 0)
+    : leaderboard.reduce((max, entry) => Math.max(max, entry.totalPoints), 0);
 
   return (
     <GameScreen ariaLabel="النتائج النهائية" maxWidth="4xl" className={className}>
@@ -347,11 +528,23 @@ export function MatchResultsScreen({
 
       <div className="flex flex-col gap-6 sm:gap-7">
         <p className="text-wanas-accent text-center text-sm font-bold">النتائج النهائية</p>
-        {winners.length > 0 ? <WinnerHero winners={winners} /> : null}
+        {activeTeamResults ? (
+          <TeamWinnerHero teamResults={activeTeamResults} />
+        ) : winners.length > 0 ? (
+          <WinnerHero winners={winners} />
+        ) : null}
 
-        <CurrentPlayerSummary entry={currentPlayerEntry} />
+        {activeTeamResults ? (
+          <CurrentTeamSummary teamResults={activeTeamResults} currentTeamId={currentTeamId} />
+        ) : (
+          <CurrentPlayerSummary entry={currentPlayerEntry} />
+        )}
 
-        <FinalLeaderboard leaderboard={leaderboard} currentPlayerId={currentPlayerId} />
+        {activeTeamResults ? (
+          <FinalTeamLeaderboard teamResults={activeTeamResults} currentPlayerId={currentPlayerId} />
+        ) : (
+          <FinalLeaderboard leaderboard={leaderboard} currentPlayerId={currentPlayerId} />
+        )}
 
         <ResultsAdPlacement />
 
