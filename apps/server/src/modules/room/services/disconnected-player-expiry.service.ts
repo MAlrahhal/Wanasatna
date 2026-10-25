@@ -7,7 +7,11 @@ import {
   onRoomDeleted,
   onRoomPlayerRemoved,
 } from '../../game/runtime/pregame-teams-room-hooks.js';
-import { broadcastRoomPlayersSnapshot, getRoomChannel, RECONNECT_WINDOW_MS } from '../room.utils.js';
+import {
+  broadcastRoomPlayersSnapshot,
+  getReconnectWindowMs,
+  getRoomChannel,
+} from '../room.utils.js';
 import { permanentlyDepartPlayer } from './permanent-departure.service.js';
 import { clearPlayerAvatarId, clearRoomPlayerAvatars } from '../player-avatar.store.js';
 import {
@@ -54,12 +58,12 @@ const defaultLoadPersistedDisconnectedPlayers = (): Promise<PersistedDisconnecte
 let loadPersistedDisconnectedPlayers = defaultLoadPersistedDisconnectedPlayers;
 
 function reconnectCutoff(nowMs = disconnectedPlayerExpiryNowMs()): Date {
-  return new Date(nowMs - RECONNECT_WINDOW_MS);
+  return new Date(nowMs - getReconnectWindowMs());
 }
 
 function reconnectDeadlineMs(disconnectedAt: Date): number {
   // isReconnectExpired uses a strict `>` comparison, so preserve the full window.
-  return disconnectedAt.getTime() + RECONNECT_WINDOW_MS + 1;
+  return disconnectedAt.getTime() + getReconnectWindowMs() + 1;
 }
 
 /**
@@ -73,7 +77,7 @@ export async function expireDisconnectedPlayer(
 ): Promise<ExpiredDisconnectedPlayer | null> {
   if (
     expectedLastSeenAt &&
-    disconnectedPlayerExpiryNowMs() - expectedLastSeenAt.getTime() <= RECONNECT_WINDOW_MS
+    disconnectedPlayerExpiryNowMs() - expectedLastSeenAt.getTime() <= getReconnectWindowMs()
   ) {
     return null;
   }
@@ -238,7 +242,7 @@ export async function startDisconnectedPlayerExpiryScheduler(io: Server): Promis
     let scheduled = 0;
 
     for (const candidate of candidates) {
-      if (nowMs > candidate.lastSeenAt.getTime() + RECONNECT_WINDOW_MS) {
+      if (nowMs > candidate.lastSeenAt.getTime() + getReconnectWindowMs()) {
         try {
           const result = await processExpiry(
             io,

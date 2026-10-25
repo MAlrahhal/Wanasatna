@@ -25,7 +25,8 @@ import {
   setDisconnectedPlayerExpiryClockForTests,
   type ExpiryTimerClock,
 } from '../src/modules/room/services/disconnected-player-expiry-timers.js';
-import { RECONNECT_WINDOW_MS } from '../src/modules/room/room.utils.js';
+import { getReconnectWindowMs, RECONNECT_WINDOW_MS } from '../src/modules/room/room.utils.js';
+import { TEST_RECONNECT_WINDOW_MS } from '../src/config/test-timers.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 let passed = 0;
@@ -144,6 +145,11 @@ async function withApp(run: (baseUrl: string) => Promise<void>): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  await test('test mode shortens only the effective reconnect window', () => {
+    assert.equal(RECONNECT_WINDOW_MS, 3 * 60 * 1000);
+    assert.equal(getReconnectWindowMs(), TEST_RECONNECT_WINDOW_MS);
+  });
+
   await test('zero disconnected players performs one startup query and never polls', async () => {
     const fake = createFakeTimeoutClock(1_000_000);
     setDisconnectedPlayerExpiryClockForTests(fake.clock);
@@ -171,6 +177,7 @@ async function main(): Promise<void> {
 
   await test('disconnect schedules exact deadline and expires once', async () => {
     const disconnectedAtMs = 2_000_000;
+    const reconnectWindowMs = getReconnectWindowMs();
     const fake = createFakeTimeoutClock(disconnectedAtMs);
     setDisconnectedPlayerExpiryClockForTests(fake.clock);
     const processed: string[] = [];
@@ -185,9 +192,9 @@ async function main(): Promise<void> {
 
     scheduleDisconnectedPlayerExpiry('player-1', 'room-1', new Date(disconnectedAtMs));
     const pending = getPendingDisconnectedPlayerExpiryForTests('player-1');
-    assert.equal(pending?.deadlineAtMs, disconnectedAtMs + RECONNECT_WINDOW_MS + 1);
+    assert.equal(pending?.deadlineAtMs, disconnectedAtMs + reconnectWindowMs + 1);
 
-    fake.advanceBy(RECONNECT_WINDOW_MS);
+    fake.advanceBy(reconnectWindowMs);
     await flushAsync();
     assert.deepEqual(processed, []);
 
@@ -199,6 +206,7 @@ async function main(): Promise<void> {
 
   await test('same-room expiry timers serialize their database mutations', async () => {
     const disconnectedAtMs = 2_500_000;
+    const reconnectWindowMs = getReconnectWindowMs();
     const fake = createFakeTimeoutClock(disconnectedAtMs);
     setDisconnectedPlayerExpiryClockForTests(fake.clock);
     const processed: string[] = [];
@@ -226,7 +234,7 @@ async function main(): Promise<void> {
 
     scheduleDisconnectedPlayerExpiry('player-a', 'shared-room', new Date(disconnectedAtMs));
     scheduleDisconnectedPlayerExpiry('player-b', 'shared-room', new Date(disconnectedAtMs));
-    fake.advanceBy(RECONNECT_WINDOW_MS + 1);
+    fake.advanceBy(reconnectWindowMs + 1);
     await flushAsync();
 
     assert.deepEqual(processed, ['player-a:start']);
@@ -246,6 +254,7 @@ async function main(): Promise<void> {
 
   await test('reconnect cancellation and a stale first timer cannot expire a new disconnect', async () => {
     const firstAtMs = 3_000_000;
+    const reconnectWindowMs = getReconnectWindowMs();
     const fake = createFakeTimeoutClock(firstAtMs);
     setDisconnectedPlayerExpiryClockForTests(fake.clock);
     const processed: string[] = [];
@@ -260,21 +269,22 @@ async function main(): Promise<void> {
 
     scheduleDisconnectedPlayerExpiry('player-2', 'room-2', new Date(firstAtMs));
     assert.equal(cancelDisconnectedPlayerExpiry('player-2'), true);
-    fake.advanceBy(60_000);
-    const secondAtMs = firstAtMs + 60_000;
+    fake.advanceBy(1_000);
+    const secondAtMs = firstAtMs + 1_000;
     scheduleDisconnectedPlayerExpiry('player-2', 'room-2', new Date(secondAtMs));
 
-    fake.advanceBy(RECONNECT_WINDOW_MS - 60_000 + 1);
+    fake.advanceBy(reconnectWindowMs - 1_000 + 1);
     await flushAsync();
     assert.deepEqual(processed, []);
 
-    fake.advanceBy(60_000);
+    fake.advanceBy(1_000);
     await flushAsync();
     assert.deepEqual(processed, [`player-2:${secondAtMs}`]);
   });
 
   await test('startup reconciliation restores future timers and processes expired rows once', async () => {
     const nowMs = Date.now();
+    const reconnectWindowMs = getReconnectWindowMs();
     const fake = createFakeTimeoutClock(nowMs);
     setDisconnectedPlayerExpiryClockForTests(fake.clock);
     let loads = 0;
@@ -286,12 +296,12 @@ async function main(): Promise<void> {
           {
             id: 'expired-player',
             roomId: 'expired-room',
-            lastSeenAt: new Date(nowMs - RECONNECT_WINDOW_MS - 10),
+            lastSeenAt: new Date(nowMs - reconnectWindowMs - 10),
           },
           {
             id: 'future-player',
             roomId: 'future-room',
-            lastSeenAt: new Date(nowMs - 30_000),
+            lastSeenAt: new Date(nowMs - Math.floor(reconnectWindowMs / 2)),
           },
         ];
       },
@@ -318,6 +328,7 @@ async function main(): Promise<void> {
 
   await test('a transient expiry failure retries only that pending player', async () => {
     const disconnectedAtMs = 4_000_000;
+    const reconnectWindowMs = getReconnectWindowMs();
     const fake = createFakeTimeoutClock(disconnectedAtMs);
     setDisconnectedPlayerExpiryClockForTests(fake.clock);
     let attempts = 0;
@@ -334,7 +345,7 @@ async function main(): Promise<void> {
     await startDisconnectedPlayerExpiryScheduler(fakeIo);
     scheduleDisconnectedPlayerExpiry('retry-player', 'retry-room', new Date(disconnectedAtMs));
 
-    fake.advanceBy(RECONNECT_WINDOW_MS + 1);
+    fake.advanceBy(reconnectWindowMs + 1);
     await flushAsync();
     assert.equal(attempts, 1);
     assert.ok(getPendingDisconnectedPlayerExpiryForTests('retry-player'));

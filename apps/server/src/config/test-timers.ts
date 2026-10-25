@@ -41,6 +41,8 @@ const TEST_ROUND_RESULTS_SECONDS = 3;
 const TEST_LOBBY_WAIT_MS = 50;
 const TEST_SHELL_COUNTDOWN_SECONDS = 1;
 export const TEST_PLAYER_RECOVERY_SECONDS = 10;
+// Preserve the production ordering: reconnect stays available beyond a full interactive turn.
+export const TEST_RECONNECT_WINDOW_MS = 20_000;
 
 /** Returns production or 1-second test duration. Production constants stay unchanged. */
 export function resolveTimedPhaseSeconds(productionSeconds: number): number {
@@ -104,6 +106,10 @@ export function resolveMatchRounds(settingsRounds: number | undefined, defaultRo
 
 export function resolvePlayerRecoverySeconds(): number {
   return env.testMode ? TEST_PLAYER_RECOVERY_SECONDS : DEFAULT_PLAYER_RECOVERY_SECONDS;
+}
+
+export function resolveReconnectWindowMs(productionMs: number): number {
+  return env.testMode ? TEST_RECONNECT_WINDOW_MS : productionMs;
 }
 
 export const timedPhaseDurations = {

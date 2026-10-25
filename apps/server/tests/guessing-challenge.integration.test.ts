@@ -25,6 +25,9 @@ import {
   waitForServer,
   type TestClient,
 } from './helpers/socket-utils.js';
+import { TEST_RECONNECT_WINDOW_MS } from '../src/config/test-timers.js';
+
+const SOCKET_EXPIRY_TIMEOUT_MS = TEST_RECONNECT_WINDOW_MS + 5_000;
 
 let passed = 0;
 let failed = 0;
@@ -981,15 +984,10 @@ async function main(): Promise<void> {
       return view.gamePhase === 'playing' ? view : null;
     }, 5000, 'still playing after disconnect');
 
-    await prisma.player.update({
-      where: { id: b.id },
-      data: { lastSeenAt: new Date(Date.now() - 4 * 60 * 1000) },
-    });
-
     await waitFor(async () => {
       const row = await prisma.player.findUnique({ where: { id: b.id }, select: { status: true } });
       return row?.status === 'LEFT' ? true : null;
-    }, 4000, '1v1 expired to LEFT', 100);
+    }, SOCKET_EXPIRY_TIMEOUT_MS, '1v1 expired to LEFT', 100);
 
     await waitFor(
       async () => (a.navigations.some((path) => String(path).includes('lobby')) ? true : null),
@@ -1033,15 +1031,20 @@ async function main(): Promise<void> {
       const row = await prisma.player.findUnique({ where: { id: c.id }, select: { status: true } });
       return row?.status === 'DISCONNECTED' ? true : null;
     }, 5000, 'C disconnected', 50);
-    await prisma.player.update({
-      where: { id: c.id },
-      data: { lastSeenAt: new Date(Date.now() - 4 * 60 * 1000) },
-    });
-
     await waitFor(async () => {
       const row = await prisma.player.findUnique({ where: { id: c.id }, select: { status: true } });
       return row?.status === 'LEFT' ? true : null;
-    }, 4000, 'teammate expired to LEFT', 100);
+    }, SOCKET_EXPIRY_TIMEOUT_MS, 'teammate expired to LEFT', 100);
+
+    const afterTeammateExpiry = await syncView(a);
+    if (afterTeammateExpiry.currentTurnTeamId === 'red') {
+      const passedToBlue = await endQuestion(b);
+      assert.equal(
+        passedToBlue.success,
+        true,
+        passedToBlue.error?.message ?? 'opposing team can pass to remaining teammate',
+      );
+    }
 
     const continued = await endQuestion(a);
     assert.equal(continued.success, true, continued.error?.message ?? 'remaining teammate can still act');
@@ -1051,10 +1054,10 @@ async function main(): Promise<void> {
       const row = await prisma.player.findUnique({ where: { id: a.id }, select: { status: true } });
       return row?.status === 'DISCONNECTED' ? true : null;
     }, 5000, 'A disconnected', 50);
-    await prisma.player.update({
-      where: { id: a.id },
-      data: { lastSeenAt: new Date(Date.now() - 4 * 60 * 1000) },
-    });
+    await waitFor(async () => {
+      const row = await prisma.player.findUnique({ where: { id: a.id }, select: { status: true } });
+      return row?.status === 'LEFT' ? true : null;
+    }, SOCKET_EXPIRY_TIMEOUT_MS, 'last teammate expired to LEFT', 100);
 
     await waitFor(
       async () => (b.navigations.some((path) => String(path).includes('lobby')) ? true : null),

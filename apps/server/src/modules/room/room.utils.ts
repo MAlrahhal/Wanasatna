@@ -17,11 +17,16 @@ import {
   hydrateExperimentalGameSelection,
 } from '../game/experimental/experimental-game-selection.store.js';
 import { env } from '../../config/env.js';
+import { resolveReconnectWindowMs } from '../../config/test-timers.js';
 
 export const ROOM_CODE_LENGTH = 6;
 export const MAX_CODE_GENERATION_ATTEMPTS = 10;
 export { MAX_ROOM_PLAYERS, ADMIN_ROOM_PLAYER_CAP };
 export const RECONNECT_WINDOW_MS = 3 * 60 * 1000;
+
+export function getReconnectWindowMs(): number {
+  return resolveReconnectWindowMs(RECONNECT_WINDOW_MS);
+}
 
 export function getRoomChannel(roomId: string): string {
   return `room:${roomId}`;
@@ -53,7 +58,7 @@ export async function generateUniqueRoomCode(): Promise<string> {
 }
 
 export function isReconnectExpired(lastSeenAt: Date): boolean {
-  return Date.now() - lastSeenAt.getTime() > RECONNECT_WINDOW_MS;
+  return Date.now() - lastSeenAt.getTime() > getReconnectWindowMs();
 }
 
 export function mapRoomData(room: Room): RoomData {

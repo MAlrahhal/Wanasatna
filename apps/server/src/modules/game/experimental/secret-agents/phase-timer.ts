@@ -1,6 +1,6 @@
 import type { Server } from 'socket.io';
 import { SECRET_AGENTS_GAME_ID } from '@wanasatna/shared';
-import { getRoomChannel, RECONNECT_WINDOW_MS } from '../../../room/room.utils.js';
+import { getReconnectWindowMs, getRoomChannel } from '../../../room/room.utils.js';
 import { getGameShellByRoomId } from '../../game.service.js';
 import {
   expireSecretAgentsPhase,
@@ -141,7 +141,7 @@ export function reconcileSecretAgentsConnectivity(io: Server, roomId: string): v
     const reason = match.phase === 'clue' ? 'missing-spymaster' : 'missing-operative';
     setSecretAgentsMatch(
       roomId,
-      pauseSecretAgentsMatch(match, reason, Date.now() + RECONNECT_WINDOW_MS),
+      pauseSecretAgentsMatch(match, reason, Date.now() + getReconnectWindowMs()),
     );
     io.to(getRoomChannel(roomId)).emit(SECRET_AGENTS_PHASE_CHANGED_EVENT, {});
   }
