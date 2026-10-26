@@ -68,7 +68,8 @@ test('game navbar shows شرح اللعبة for everyone', () => {
   assert.equal(HOW_TO_PLAY_BUTTON_LABEL, 'شرح اللعبة');
   assert.match(copy, /شرح اللعبة/);
   assert.match(ui, /HOW_TO_PLAY_BUTTON_LABEL/);
-  assert.match(ui, /data-testid="game-how-to-play-button"/);
+  assert.match(ui, /testId = 'game-how-to-play-button'/);
+  assert.match(ui, /data-testid=\{testId\}/);
   assert.match(header, /from '@\/components\/game\/game-how-to-play'/);
   assert.match(header, /<GameHowToPlayControl gameId=\{gameId\} compact \/>/);
   assert.match(header, /<GameHowToPlayControl gameId=\{gameId\} \/>/);
@@ -84,11 +85,32 @@ test('how-to dialog opens and closes without touching game state', () => {
   assert.match(ui, /setOpen\(true\)/);
   assert.match(ui, /onClose=\{\(\) => setOpen\(false\)\}/);
   assert.match(ui, /event\.key === 'Escape'/);
+  assert.match(ui, /event\.key === 'Tab'/);
   assert.match(ui, /data-testid="game-how-to-play-backdrop"/);
   assert.match(ui, /data-testid="game-how-to-play-close"/);
   assert.match(ui, /if \(!open\) \{\s*return null;/);
   assert.doesNotMatch(ui, /emit\(|submitVote|secretWord|setExperienceMeta/);
   assert.doesNotMatch(header, /GameHowToPlayDialog/);
+});
+
+test('all eight published lobby cards open their matching guide without selecting a game', () => {
+  const grid = read('components/lobby/game-grid.tsx');
+  const card = read('components/lobby/game-card.tsx');
+
+  assert.equal(PLAYABLE_GAME_IDS.length, 8);
+  assert.match(grid, /showHowToPlay/);
+  assert.match(card, /gameId=\{game\.id\}/);
+  assert.match(card, /lobby-game-help-\$\{game\.id\}/);
+  assert.match(card, /absolute left-2 top-2/);
+  assert.match(
+    card,
+    /<div className=\{cardClassName\}>\s*<button[\s\S]*?onClick=\{\(\) => onSelect\(game\.id\)\}[\s\S]*?<\/button>\s*\{showHowToPlay \? \(/,
+  );
+  assert.doesNotMatch(card, /onClick=\{\(event\)[\s\S]*stopPropagation/);
+
+  for (const gameId of PLAYABLE_GAME_IDS) {
+    assert.equal(getHowToPlayGuide(gameId)?.gameId, gameId);
+  }
 });
 
 test('each playable game has the matching static how-to copy', () => {

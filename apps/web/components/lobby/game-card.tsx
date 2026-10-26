@@ -2,6 +2,7 @@ import type { HomeGameAvailability } from '@/lib/home/game-showcase';
 import type { LobbyGame } from '@/lib/lobby/types';
 import { StatusBadge } from '@/components/public/status-badge';
 import { GameArtwork } from '@/components/game/game-artwork';
+import { GameHowToPlayControl } from '@/components/game/game-how-to-play';
 import { getGameCatalogEntry } from '@/lib/public/game-catalog';
 import { cn } from '@/lib/utils';
 
@@ -17,6 +18,7 @@ type GameCardProps = {
   showcase?: boolean;
   iconClassName?: string;
   hoverBorderClassName?: string;
+  showHowToPlay?: boolean;
 };
 
 export function GameCard({
@@ -31,6 +33,7 @@ export function GameCard({
   showcase = false,
   iconClassName,
   hoverBorderClassName,
+  showHowToPlay = false,
 }: GameCardProps) {
   const imagePath = getGameCatalogEntry(game.id).imagePath;
   const isComingSoon = availability === 'coming-soon';
@@ -41,14 +44,14 @@ export function GameCard({
 
   const cardClassName = cn(
     'group relative flex h-full flex-col rounded-xl border text-center transition-colors duration-200',
-    isShowcaseCard ? 'min-h-[168px] p-3' : 'min-h-0 p-2.5 xl:min-h-[168px] xl:p-3',
+    isShowcaseCard ? 'min-h-[168px] p-3' : 'min-h-0 xl:min-h-[168px]',
     selected
       ? 'border-wanas-accent bg-wanas-accent/10 ring-2 ring-wanas-accent'
       : 'bg-wanas-surface-soft',
     isLobbyCard &&
       !isDisabled &&
       !selected &&
-      'hover:border-wanas-accent/35 hover:bg-wanas-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/30',
+      'hover:border-wanas-accent/35 hover:bg-wanas-surface',
     isLobbyCard && isDisabled && 'cursor-default',
     isShowcaseCard &&
       !isComingSoon &&
@@ -81,6 +84,7 @@ export function GameCard({
         <div
           className={cn(
             'mx-auto mb-1.5 shrink-0 xl:mb-2',
+            showHowToPlay && isLobbyCard && 'mt-8',
             isShowcaseCard ? 'size-16' : 'size-14 xl:size-16',
             iconClassName,
           )}
@@ -91,6 +95,7 @@ export function GameCard({
         <div
           className={cn(
             'mx-auto mb-1.5 flex items-center justify-center rounded-full leading-none xl:mb-2',
+            showHowToPlay && isLobbyCard && 'mt-8',
             isShowcaseCard ? 'size-12 text-2xl' : 'size-10 text-xl xl:size-12 xl:text-2xl',
             iconClassName,
           )}
@@ -131,20 +136,43 @@ export function GameCard({
 
   if (isDisabled) {
     return (
-      <div className={cardClassName} aria-disabled="true">
-        {cardContent}
+      <div className={cardClassName}>
+        <button
+          type="button"
+          disabled
+          aria-pressed={selected}
+          className="flex h-full w-full flex-col rounded-xl p-2.5 text-center xl:p-3"
+        >
+          {cardContent}
+        </button>
+        {showHowToPlay ? (
+          <GameHowToPlayControl
+            gameId={game.id}
+            testId={`lobby-game-help-${game.id}`}
+            className="absolute left-2 top-2 z-10 min-h-8 px-2 py-1 text-[11px] leading-4 shadow-sm sm:text-xs"
+          />
+        ) : null}
       </div>
     );
   }
 
   return (
-    <button
-      type="button"
-      aria-pressed={selected}
-      onClick={() => onSelect(game.id)}
-      className={cardClassName}
-    >
-      {cardContent}
-    </button>
+    <div className={cardClassName}>
+      <button
+        type="button"
+        aria-pressed={selected}
+        onClick={() => onSelect(game.id)}
+        className="focus-visible:ring-wanas-accent/30 flex h-full w-full flex-col rounded-xl p-2.5 text-center focus-visible:outline-none focus-visible:ring-2 xl:p-3"
+      >
+        {cardContent}
+      </button>
+      {showHowToPlay ? (
+        <GameHowToPlayControl
+          gameId={game.id}
+          testId={`lobby-game-help-${game.id}`}
+          className="absolute left-2 top-2 z-10 min-h-8 px-2 py-1 text-[11px] leading-4 shadow-sm sm:text-xs"
+        />
+      ) : null}
+    </div>
   );
 }

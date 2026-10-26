@@ -53,6 +53,7 @@ export function GameGrid({
               iconBg={entry.iconBg}
               iconText={entry.iconText}
               playerRange={entry.playerRange}
+              showHowToPlay
             />
           );
         })}

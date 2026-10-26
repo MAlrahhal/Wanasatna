@@ -13,9 +13,15 @@ type GameHowToPlayControlProps = {
   gameId: string | null | undefined;
   compact?: boolean;
   className?: string;
+  testId?: string;
 };
 
-export function GameHowToPlayControl({ gameId, compact = false, className }: GameHowToPlayControlProps) {
+export function GameHowToPlayControl({
+  gameId,
+  compact = false,
+  className,
+  testId = 'game-how-to-play-button',
+}: GameHowToPlayControlProps) {
   const guide = getHowToPlayGuide(gameId);
   const [open, setOpen] = useState(false);
 
@@ -39,7 +45,7 @@ export function GameHowToPlayControl({ gameId, compact = false, className }: Gam
         aria-label={compact ? HOW_TO_PLAY_BUTTON_LABEL : undefined}
         aria-haspopup="dialog"
         aria-expanded={open}
-        data-testid="game-how-to-play-button"
+        data-testid={testId}
         onClick={() => setOpen(true)}
       >
         {compact ? <span aria-hidden>؟</span> : HOW_TO_PLAY_BUTTON_LABEL}
@@ -65,12 +71,16 @@ export function GameHowToPlayDialog({ open, guide, onClose }: GameHowToPlayDialo
       return;
     }
 
-    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     closeRef.current?.focus();
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();
+      } else if (event.key === 'Tab') {
+        event.preventDefault();
+        closeRef.current?.focus();
       }
     };
 
@@ -91,10 +101,9 @@ export function GameHowToPlayDialog({ open, guide, onClose }: GameHowToPlayDialo
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:p-4">
-      <button
-        type="button"
-        aria-label="إغلاق"
-        className="absolute inset-0 bg-wanas-text-primary/50"
+      <div
+        aria-hidden="true"
+        className="bg-wanas-text-primary/50 absolute inset-0"
         data-testid="game-how-to-play-backdrop"
         onClick={onClose}
       />
@@ -132,7 +141,7 @@ export function GameHowToPlayDialog({ open, guide, onClose }: GameHowToPlayDialo
               'inline-flex size-11 min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg',
               'text-[color:var(--wanas-game-text-secondary,var(--wanas-text-secondary))]',
               'hover:bg-[color:var(--wanas-game-card,var(--wanas-surface-soft))]',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wanas-accent/45',
+              'focus-visible:ring-wanas-accent/45 focus-visible:outline-none focus-visible:ring-2',
             )}
             aria-label="إغلاق"
             data-testid="game-how-to-play-close"
