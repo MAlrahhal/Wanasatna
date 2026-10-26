@@ -27,6 +27,8 @@ export function EyewitnessLobbyPanel({ isActiveMatch }: { isActiveMatch: boolean
     if (response.success) {
       setView(response.data.view);
       setError(null);
+    } else if (response.error.code === 'RATE_LIMITED') {
+      return 'rate-limited' as const;
     } else setError(response.error.message);
   }, []);
 
@@ -60,10 +62,10 @@ export function EyewitnessLobbyPanel({ isActiveMatch }: { isActiveMatch: boolean
   const editable = view.canEditSettings && !isActiveMatch && !busy;
   return (
     <div className="space-y-3" data-eyewitness-lobby="">
-      <div className="rounded-xl border border-amber-400/40 bg-amber-400/10 p-3">
-        <p className="text-sm font-bold text-amber-200">اختبار مغلق — شاهد عيان</p>
+      <div className="border-wanas-accent/30 bg-wanas-primary-surface rounded-xl border p-3">
+        <p className="text-wanas-text-primary text-sm font-bold">صف، ارسم، ثم صوّت</p>
         <p className="text-wanas-text-muted mt-1 text-xs">
-          الإعدادات مؤقتة للاختبار المغلق ويشاهدها الجميع. التعديل لمضيف الاختبار الموثّق فقط.
+          يشاهد شخص واحد الصورة، ويحوّل الآخرون وصفه إلى رسومات مجهولة حتى النتائج.
         </p>
       </div>
       <fieldset
@@ -100,7 +102,7 @@ export function EyewitnessLobbyPanel({ isActiveMatch }: { isActiveMatch: boolean
         />
       </fieldset>
       <p className="text-wanas-text-muted text-xs">
-        اللاعبون الجاهزون: {view.participantCount} · الحد الأدنى {view.minPlayers} لاعبين.
+        جاهزون الآن: {view.participantCount} · يلزم {view.minPlayers} لاعبين على الأقل.
       </p>
       {error ? (
         <p role="alert" className="text-wanas-error text-xs">

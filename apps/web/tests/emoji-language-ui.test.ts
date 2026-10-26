@@ -30,9 +30,12 @@ test('lobby exposes both modes and hides the writer timer in server mode', () =>
   assert.match(source, /view\.canEditSettings && !isActiveMatch/);
 });
 
-test('writer uses only the curated on-site picker with ordered removal and 10-token cap', () => {
+test('writer uses the curated picker in usable categories with ordered removal and 10-token cap', () => {
   const source = read('plugins/emoji-language/game-screen.tsx');
-  assert.match(source, /EMOJI_LANGUAGE_PICKER\.map/);
+  assert.match(source, /EMOJI_PICKER_GROUPS/);
+  assert.match(source, /مشاعر/);
+  assert.match(source, /طبيعة وحيوانات/);
+  assert.match(source, /group\.emojis\.map/);
   assert.match(source, /selectedEmojis\.length < 10/);
   assert.match(source, /filter\(\(_, candidate\) => candidate !== index\)/);
   assert.match(source, /اعتماد التلميح نهائيًا/);
@@ -55,7 +58,10 @@ test('game is lazy registered and uses the shared themed room experience', () =>
   assert.match(plugin, /lazyGameScreen/);
   assert.match(plugin, /import\('\.\/game-screen'\)/);
   assert.match(layer, /EMOJI_LANGUAGE_GAME_ID/);
-  assert.match(layer, /<GameExperienceShell>\{pluginContent\}<\/GameExperienceShell>/);
+  assert.match(
+    layer,
+    /<GameExperienceShell gameId=\{state\.gameId\}>\{pluginContent\}<\/GameExperienceShell>/,
+  );
 });
 
 test('Emoji Language remains absent from all public discovery catalogs', () => {

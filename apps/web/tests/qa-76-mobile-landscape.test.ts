@@ -61,7 +61,7 @@ test('short landscape chat uses the available dynamic viewport', () => {
   assert.match(css, /max-height:\s*100dvh/);
   assert.match(lobbyChat, /mobileSheetOpen \? 'h-full flex-1'/);
   assert.match(lobby, /h-\[55dvh\] max-h-\[55dvh\]/);
-  assert.match(game, /h-\[45dvh\] max-h-\[45dvh\]/);
+  assert.match(game, /h-\[42dvh\] max-h-\[32rem\]/);
 });
 
 test('both chat sheets protect every physical safe-area edge', () => {

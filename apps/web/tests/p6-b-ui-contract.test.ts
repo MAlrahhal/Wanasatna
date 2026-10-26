@@ -90,7 +90,7 @@ test('first mobile Chat open mounts a fully constrained sheet with a usable comp
   );
 
   assert.match(firstOpenSheet, /data-testid="mobile-game-chat-sheet"/);
-  assert.match(firstOpenSheet, /flex h-\[45dvh\] max-h-\[45dvh\] flex-col/);
+  assert.match(firstOpenSheet, /flex h-\[42dvh\] max-h-\[32rem\] flex-col/);
   assert.match(firstOpenSheet, /flex min-h-0 flex-1 flex-col overflow-hidden/);
   assert.match(firstOpenSheet, /GameChatMockPanel className="h-full flex-1/);
   assert.match(chat, /data-testid="room-chat-composer"/);

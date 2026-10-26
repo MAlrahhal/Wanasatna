@@ -23,12 +23,13 @@ function read(relativePath: string): string {
   return readFileSync(join(root, relativePath), 'utf8');
 }
 
-test('Arabic mobile voting UI shows question, progress, timer, and confirmed own selection', () => {
+test('Arabic mobile voting UI shows question, progress, shared timer, and confirmed own selection', () => {
   const screen = read('plugins/most-likely-to/game-screen.tsx');
+  const experience = read('lib/game/experimental-game-experience.ts');
   assert.match(screen, /مين أكثر واحد؟/);
-  assert.match(screen, /السؤال \{view\.questionNumber\} من \{view\.totalQuestions\}/);
+  assert.match(screen, /السؤال \{view\.questionNumber\} \/ \{view\.totalQuestions\}/);
   assert.match(screen, /صوّت \{view\.submittedVoteCount\} من \{view\.eligibleVoterCount\}/);
-  assert.match(screen, /remainingSeconds/);
+  assert.match(experience, /view\.phase === 'voting' \? countdown\(view\.deadlineAtMs\)/);
   assert.match(screen, /grid-cols-2[\s\S]*sm:grid-cols-3[\s\S]*lg:grid-cols-4/);
   assert.match(screen, /min-h-32/);
   assert.match(screen, /aria-pressed=\{selected\}/);
@@ -63,11 +64,12 @@ test('private voting copy and waiting/spectator states do not expose other choic
   assert.doesNotMatch(voting, /voterNames|result\.votes|nominee\.voteCount/);
 });
 
-test('reveal covers named disclosures, positive ties, zero votes, and reduced motion', () => {
+test('reveal covers named disclosures, positive ties, zero votes, and a controlled crown', () => {
   const screen = read('plugins/most-likely-to/game-screen.tsx');
   assert.match(screen, /لا توجد أصوات لهذا السؤال/);
   assert.match(screen, /topNomineePlayerIds\.includes/);
-  assert.match(screen, /motion-safe:animate-bounce/);
+  assert.match(screen, /aria-label="من الأكثر ترشيحًا"/);
+  assert.doesNotMatch(screen, /animate-bounce/);
   assert.match(screen, /صوّت له:/);
   assert.match(screen, /عرض كل اختيارات اللاعبين/);
   assert.match(screen, /\{vote\.voterName\} صوّت لـ \{vote\.nomineeName\}/);

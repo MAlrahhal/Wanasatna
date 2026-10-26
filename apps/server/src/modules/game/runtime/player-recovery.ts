@@ -1,9 +1,6 @@
 import type { Server } from 'socket.io';
 import type { GameActionResponse, GameShellPlayerRecoveryPayload } from '@wanasatna/shared';
-import {
-  GAME_SHELL_PLAYER_RECOVERY_EVENT,
-  GUESSING_CHALLENGE_GAME_ID,
-} from '@wanasatna/shared';
+import { GAME_SHELL_PLAYER_RECOVERY_EVENT, GUESSING_CHALLENGE_GAME_ID } from '@wanasatna/shared';
 import { resolvePlayerRecoverySeconds } from '../../../config/test-timers.js';
 import { getRoomChannel } from '../../room/room.utils.js';
 import { getGameShellByRoomId, syncGameShell } from '../game.service.js';
@@ -35,10 +32,7 @@ import {
   resumeGuessingChallengePhaseTimer,
 } from '../plugins/guessing-challenge/phase-timer.js';
 import { reconcileGuessingChallengeConnectivity } from '../plugins/guessing-challenge/match-lifecycle.js';
-import {
-  pauseJudgePhaseTimer,
-  resumeJudgePhaseTimer,
-} from '../plugins/judge/phase-timer.js';
+import { pauseJudgePhaseTimer, resumeJudgePhaseTimer } from '../plugins/judge/phase-timer.js';
 import {
   pauseWhoWroteItPhaseTimer,
   resumeWhoWroteItPhaseTimer,
@@ -71,7 +65,9 @@ function buildRecoveryPayload(
   deadlineAt: number | null,
   sequence?: number,
 ): GameShellPlayerRecoveryPayload {
-  const resolvedSequence = sequence ?? (deadlineAt === null ? nextRecoverySequence(roomId) : currentRecoverySequence(roomId));
+  const resolvedSequence =
+    sequence ??
+    (deadlineAt === null ? nextRecoverySequence(roomId) : currentRecoverySequence(roomId));
 
   if (deadlineAt === null) {
     return {
@@ -124,11 +120,7 @@ export function clearPlayerRecoveryForTeardown(io: Server, roomId: string): void
 
   clearRecoverySchedule(roomId);
   const sequence = nextRecoverySequence(roomId);
-  broadcastRecoveryState(
-    io,
-    roomId,
-    buildRecoveryPayload(roomId, 0, 0, null, sequence),
-  );
+  broadcastRecoveryState(io, roomId, buildRecoveryPayload(roomId, 0, 0, null, sequence));
 }
 
 export function snapshotPlayerRecovery(roomId: string): GameShellPlayerRecoveryPayload {
@@ -158,7 +150,10 @@ export function isPlayerRecoveryActive(roomId: string): boolean {
   return recoveryByRoomId.has(roomId);
 }
 
-export function playerRecoveryBlockedError(): Extract<GameActionResponse<never>, { success: false }> {
+export function playerRecoveryBlockedError(): Extract<
+  GameActionResponse<never>,
+  { success: false }
+> {
   return {
     success: false,
     error: {
@@ -195,7 +190,12 @@ export function cancelPlayerRecovery(io: Server, roomId: string): void {
   );
 }
 
-function startRecovery(io: Server, roomId: string, connectedCount: number, minimumCount: number): void {
+function startRecovery(
+  io: Server,
+  roomId: string,
+  connectedCount: number,
+  minimumCount: number,
+): void {
   if (recoveryByRoomId.has(roomId)) {
     return;
   }
@@ -298,7 +298,13 @@ async function handleRecoveryTick(io: Server, roomId: string): Promise<void> {
   broadcastRecoveryState(
     io,
     roomId,
-    buildRecoveryPayload(roomId, connectedCount, schedule.minimumCount, schedule.deadlineAt, currentRecoverySequence(roomId)),
+    buildRecoveryPayload(
+      roomId,
+      connectedCount,
+      schedule.minimumCount,
+      schedule.deadlineAt,
+      currentRecoverySequence(roomId),
+    ),
   );
 }
 

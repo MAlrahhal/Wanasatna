@@ -25,14 +25,17 @@ test('lobby shows authoritative settings to all and gates editing on server view
   assert.match(source, /TIMELINE_PLACEMENT_ROUND_OPTIONS/);
   assert.match(source, /TIMELINE_PLACEMENT_SELECTION_OPTIONS/);
   assert.match(source, /view\.canEditSettings && !isActiveMatch/);
-  assert.match(source, /بنك الأحداث الحالي مؤقت/);
+  assert.match(source, /ضع كل حدث بين حدثين معروفين/);
+  assert.match(source, /جاهزون الآن:/);
   assert.doesNotMatch(source, /isAdmin:\s*true|premium:\s*true|userId:/);
 });
 
 test('timeline is mobile-scrollable with large gap controls and read-only spectator state', () => {
   const source = read('plugins/timeline-placement/game-screen.tsx');
-  assert.match(source, /max-h-\[58dvh\]/);
+  assert.match(source, /max-h-\[62dvh\]/);
   assert.match(source, /overflow-y-auto/);
+  assert.match(source, /dir="ltr"/);
+  assert.match(source, /dir="rtl"/);
   assert.match(source, /min-h-12 w-full/);
   assert.match(source, /view\.isSpectator/);
   assert.match(source, /لا يمكنك اختيار موقع حدث/);
@@ -60,7 +63,10 @@ test('game is lazy registered and uses the shared room experience shell', () => 
   assert.match(plugin, /lazyGameScreen/);
   assert.match(plugin, /import\('\.\/game-screen'\)/);
   assert.match(layer, /TIMELINE_PLACEMENT_GAME_ID/);
-  assert.match(layer, /<GameExperienceShell>\{pluginContent\}<\/GameExperienceShell>/);
+  assert.match(
+    layer,
+    /<GameExperienceShell gameId=\{state\.gameId\}>\{pluginContent\}<\/GameExperienceShell>/,
+  );
 });
 
 test('Timeline Placement remains absent from all public discovery paths', () => {

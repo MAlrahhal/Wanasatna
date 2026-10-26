@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import type {
   MostLikelyToAggregateResult,
   MostLikelyToPlayerView,
@@ -14,25 +14,31 @@ import {
   GameSystemLoading,
   SpectatorNotice,
 } from '@/components/room/room-system-state';
+import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
+import { mostLikelyToExperienceMeta } from '@/lib/game/experimental-game-experience';
 import { cn } from '@/lib/utils';
 import { useMostLikelyToPlayerView } from './use-player-view';
 
-function useRemainingSeconds(deadlineAtMs: number | null): number | null {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    if (deadlineAtMs === null) return;
-    const timer = window.setInterval(() => setNow(Date.now()), 250);
-    return () => window.clearInterval(timer);
-  }, [deadlineAtMs]);
-  return deadlineAtMs === null ? null : Math.max(0, Math.ceil((deadlineAtMs - now) / 1000));
-}
-
 export function MostLikelyToGameScreen() {
   const { state: shell } = useGameShell();
+  const setExperienceMeta = useSetGameExperienceMeta();
   const enabled = shell?.gameId === MOST_LIKELY_TO_GAME_ID && shell.phase === 'PLAYING';
   const { view, error, loading, submitting, vote, advance } = useMostLikelyToPlayerView(enabled);
-  const remainingSeconds = useRemainingSeconds(view?.deadlineAtMs ?? null);
+
+  useEffect(() => {
+    if (!enabled) {
+      setExperienceMeta(null);
+      return;
+    }
+    setExperienceMeta(
+      view
+        ? mostLikelyToExperienceMeta(view)
+        : { gameName: 'مين أكثر واحد؟', gameIcon: '👑', phaseLabel: 'جارٍ التحميل…' },
+    );
+  }, [enabled, setExperienceMeta, view]);
+
+  useEffect(() => () => setExperienceMeta(null), [setExperienceMeta]);
 
   if (!enabled) return null;
   if (loading && !view) return <GameSystemLoading />;
@@ -41,26 +47,21 @@ export function MostLikelyToGameScreen() {
 
   return (
     <GameScreen ariaLabel="مين أكثر واحد؟" maxWidth="6xl" className="min-w-0 gap-3">
-      <header className="border-wanas-border bg-wanas-surface rounded-2xl border p-4 text-center">
-        <p className="text-xs font-bold text-amber-300">للاختبار المغلق · محتوى مؤقت</p>
-        <h1 className="text-wanas-text-primary mt-1 text-2xl font-black">مين أكثر واحد؟</h1>
-        <p className="text-wanas-accent mt-2 text-sm font-black">
-          السؤال {view.questionNumber} من {view.totalQuestions}
+      <section className="border-wanas-accent/30 bg-wanas-primary-surface rounded-2xl border px-4 py-5 text-center sm:px-6">
+        <p className="text-wanas-accent text-xs font-black">
+          السؤال {view.questionNumber} / {view.totalQuestions}
         </p>
-        <p className="text-wanas-text-primary mx-auto mt-3 max-w-3xl text-lg font-bold leading-relaxed sm:text-2xl">
+        <p className="text-wanas-text-primary mx-auto mt-2 max-w-3xl text-xl font-black leading-relaxed sm:text-2xl">
           {view.question}
         </p>
         {view.phase === 'voting' ? (
-          <div className="text-wanas-text-muted mt-3 flex flex-wrap items-center justify-center gap-2 text-sm">
+          <div className="text-wanas-text-muted mt-4 flex flex-wrap items-center justify-center gap-2 text-sm">
             <span className="bg-wanas-surface-soft rounded-full px-3 py-1.5 font-bold">
               صوّت {view.submittedVoteCount} من {view.eligibleVoterCount}
             </span>
-            <span className="bg-wanas-primary-surface text-wanas-text-primary rounded-full px-3 py-1.5 font-mono font-black">
-              {remainingSeconds ?? 0}ث
-            </span>
           </div>
         ) : null}
-      </header>
+      </section>
 
       {view.phase === 'voting' ? (
         <VotingPanel view={view} busy={submitting} onVote={vote} />
@@ -117,7 +118,7 @@ function VotingPanel(props: {
               disabled={!props.view.canVote || props.busy}
               onClick={() => void props.onVote(nominee.playerId)}
               className={cn(
-                'border-wanas-border bg-wanas-surface relative flex min-h-32 flex-col items-center justify-center gap-2 rounded-2xl border p-3 text-center transition disabled:cursor-default',
+                'border-wanas-border bg-wanas-surface relative flex min-h-28 min-w-0 flex-col items-center justify-center gap-2 rounded-2xl border p-3 text-center transition disabled:cursor-default sm:min-h-32',
                 props.view.canVote &&
                   'hover:border-wanas-accent focus-visible:outline-wanas-accent focus-visible:outline-2',
                 selected && 'border-wanas-accent bg-wanas-primary-surface ring-wanas-accent ring-2',
@@ -128,7 +129,9 @@ function VotingPanel(props: {
                 playerName={nominee.name}
                 className="size-14 sm:size-16"
               />
-              <span className="text-wanas-text-primary text-sm font-black">{nominee.name}</span>
+              <span className="text-wanas-text-primary max-w-full text-sm font-black [overflow-wrap:anywhere]">
+                {nominee.name}
+              </span>
               {self ? <span className="text-wanas-text-muted text-[11px]">أنت</span> : null}
               {selected ? (
                 <span className="bg-wanas-accent absolute left-2 top-2 rounded-full px-2 py-1 text-[10px] font-bold text-white">
@@ -152,8 +155,17 @@ function VotingPanel(props: {
           description="ترى السؤال والتقدم، لكنك لست ضمن لقطة المشاركين لهذا السؤال."
         />
       ) : (
-        <p className="text-wanas-text-muted text-center text-xs">
-          يمكنك تغيير اختيارك حتى ينتهي التصويت. لن يظهر اختيارك للآخرين قبل الكشف.
+        <p
+          className={cn(
+            'rounded-xl px-3 py-2 text-center text-xs',
+            props.view.ownVotePlayerId
+              ? 'bg-emerald-300/10 font-bold text-emerald-100'
+              : 'text-wanas-text-muted',
+          )}
+        >
+          {props.view.ownVotePlayerId
+            ? 'تم اعتماد اختيارك. يمكنك تغييره حتى ينتهي التصويت.'
+            : 'اختر لاعبًا. لن يظهر اختيارك للآخرين قبل الكشف.'}
         </p>
       )}
     </>
@@ -194,7 +206,7 @@ function RevealPanel({ result }: { result: MostLikelyToQuestionResult | null }) 
               >
                 {top ? (
                   <span
-                    className="absolute -top-3 text-3xl motion-safe:animate-bounce"
+                    className="absolute -top-3 text-3xl drop-shadow-[0_4px_10px_rgba(251,191,36,0.35)]"
                     aria-label="من الأكثر ترشيحًا"
                   >
                     👑
@@ -205,7 +217,9 @@ function RevealPanel({ result }: { result: MostLikelyToQuestionResult | null }) 
                   playerName={nominee.name}
                   className="mt-2 size-14"
                 />
-                <h2 className="text-wanas-text-primary mt-2 font-black">{nominee.name}</h2>
+                <h2 className="text-wanas-text-primary mt-2 max-w-full font-black [overflow-wrap:anywhere]">
+                  {nominee.name}
+                </h2>
                 <p className="text-wanas-accent text-lg font-black">{nominee.voteCount} صوت</p>
                 <p className="text-wanas-text-muted mt-1 text-xs leading-relaxed">
                   {nominee.voterNames.length > 0

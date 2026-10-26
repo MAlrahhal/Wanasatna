@@ -85,168 +85,168 @@ function createFakeSocket() {
 
 async function main(): Promise<void> {
   await test('stale ACK after a newer request is dropped', () => {
-  const gate = new AckGenerationGate();
-  const first = gate.next();
-  const second = gate.next();
-  assert.equal(gate.isCurrent(second), true);
-  assert.equal(gate.isCurrent(first), false);
-});
+    const gate = new AckGenerationGate();
+    const first = gate.next();
+    const second = gate.next();
+    assert.equal(gate.isCurrent(second), true);
+    assert.equal(gate.isCurrent(first), false);
+  });
 
   await test('invalidate drops in-flight requests (disable / unmount)', () => {
-  const gate = new AckGenerationGate();
-  const requestId = gate.next();
-  gate.invalidate();
-  assert.equal(gate.isCurrent(requestId), false);
-});
+    const gate = new AckGenerationGate();
+    const requestId = gate.next();
+    gate.invalidate();
+    assert.equal(gate.isCurrent(requestId), false);
+  });
 
   await test('plugin state before snapshot: slower first SYNC cannot overwrite later phase', async () => {
-  const gate = new AckGenerationGate();
-  let applied = '';
+    const gate = new AckGenerationGate();
+    let applied = '';
 
-  const slowFirst = runLatestAck(gate, async () => {
-    await new Promise((resolve) => setTimeout(resolve, 20));
-    return 'timer';
-  }).then((value) => {
-    if (value !== undefined) {
-      applied = value;
-    }
+    const slowFirst = runLatestAck(gate, async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      return 'timer';
+    }).then((value) => {
+      if (value !== undefined) {
+        applied = value;
+      }
+    });
+
+    const fastSecond = runLatestAck(gate, async () => 'playing').then((value) => {
+      if (value !== undefined) {
+        applied = value;
+      }
+    });
+
+    await Promise.all([slowFirst, fastSecond]);
+    assert.equal(applied, 'playing');
   });
-
-  const fastSecond = runLatestAck(gate, async () => 'playing').then((value) => {
-    if (value !== undefined) {
-      applied = value;
-    }
-  });
-
-  await Promise.all([slowFirst, fastSecond]);
-  assert.equal(applied, 'playing');
-});
 
   await test('snapshot before plugin state: later SYNC still wins', async () => {
-  const gate = new AckGenerationGate();
-  let applied = '';
+    const gate = new AckGenerationGate();
+    let applied = '';
 
-  const first = await runLatestAck(gate, async () => 'lobby-shell');
-  if (first !== undefined) {
-    applied = first;
-  }
+    const first = await runLatestAck(gate, async () => 'lobby-shell');
+    if (first !== undefined) {
+      applied = first;
+    }
 
-  const second = await runLatestAck(gate, async () => 'round-1');
-  if (second !== undefined) {
-    applied = second;
-  }
+    const second = await runLatestAck(gate, async () => 'round-1');
+    if (second !== undefined) {
+      applied = second;
+    }
 
-  assert.equal(applied, 'round-1');
-});
+    assert.equal(applied, 'round-1');
+  });
 
   await test('match start + plugin state: concurrent ACKs keep the latest generation', async () => {
-  const gate = new AckGenerationGate();
-  const results: Array<string | undefined> = [];
+    const gate = new AckGenerationGate();
+    const results: Array<string | undefined> = [];
 
-  await Promise.all([
-    runLatestAck(gate, async () => {
-      await new Promise((resolve) => setTimeout(resolve, 15));
-      return 'countdown';
-    }).then((value) => results.push(value)),
-    runLatestAck(gate, async () => {
-      await new Promise((resolve) => setTimeout(resolve, 5));
-      return 'round-start';
-    }).then((value) => results.push(value)),
-    runLatestAck(gate, async () => 'turn-start').then((value) => results.push(value)),
-  ]);
+    await Promise.all([
+      runLatestAck(gate, async () => {
+        await new Promise((resolve) => setTimeout(resolve, 15));
+        return 'countdown';
+      }).then((value) => results.push(value)),
+      runLatestAck(gate, async () => {
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        return 'round-start';
+      }).then((value) => results.push(value)),
+      runLatestAck(gate, async () => 'turn-start').then((value) => results.push(value)),
+    ]);
 
-  const applied = results.filter((value): value is string => value !== undefined);
-  assert.deepEqual(applied, ['turn-start']);
-});
+    const applied = results.filter((value): value is string => value !== undefined);
+    assert.deepEqual(applied, ['turn-start']);
+  });
 
   await test('all plugin player-view hooks re-SYNC on PHASE_CHANGED and GAME_SHELL_STATE', () => {
-  const files = pluginViewFiles();
-  assert.ok(files.length >= 8, `expected plugin hooks, found ${files.length}`);
+    const files = pluginViewFiles();
+    assert.ok(files.length >= 8, `expected plugin hooks, found ${files.length}`);
 
-  for (const file of files) {
-    const source = readFileSync(file, 'utf8');
-    assert.match(source, /AckGenerationGate/, file);
-    assert.match(source, /runLatestAck/, file);
-    assert.match(source, /bindPluginViewResync/, file);
-  }
+    for (const file of files) {
+      const source = readFileSync(file, 'utf8');
+      assert.match(source, /AckGenerationGate/, file);
+      assert.match(source, /runLatestAck/, file);
+      assert.match(source, /bindPluginViewResync/, file);
+    }
 
-  const helper = readFileSync(join(root, 'lib/game-plugins/bind-plugin-view-resync.ts'), 'utf8');
-  assert.match(helper, /GAME_SHELL_STATE_EVENT/);
-  assert.match(helper, /phaseChangedEvent/);
-  assert.match(helper, /inFlight/);
-  assert.match(helper, /pending/);
-  assert.match(helper, /PLUGIN_SYNC_RATE_LIMIT_RETRY_MS/);
-});
+    const helper = readFileSync(join(root, 'lib/game-plugins/bind-plugin-view-resync.ts'), 'utf8');
+    assert.match(helper, /GAME_SHELL_STATE_EVENT/);
+    assert.match(helper, /phaseChangedEvent/);
+    assert.match(helper, /inFlight/);
+    assert.match(helper, /pending/);
+    assert.match(helper, /PLUGIN_SYNC_RATE_LIMIT_RETRY_MS/);
+  });
 
   await test('GAME_SHELL_STATE coalesces until the in-flight SYNC finishes, then follow-up', async () => {
-  const gate = new AckGenerationGate();
-  let applied = '';
-  const first = createDeferred<string>();
-  let started = 0;
+    const gate = new AckGenerationGate();
+    let applied = '';
+    const first = createDeferred<string>();
+    let started = 0;
 
-  const socket = createFakeSocket();
-  const syncView = () =>
-    runLatestAck(gate, async () => {
-      started += 1;
-      if (started === 1) {
-        return first.promise;
-      }
-      return 'turn-2';
-    }).then((value) => {
-      if (value !== undefined) {
-        applied = value;
-      }
-    });
+    const socket = createFakeSocket();
+    const syncView = () =>
+      runLatestAck(gate, async () => {
+        started += 1;
+        if (started === 1) {
+          return first.promise;
+        }
+        return 'turn-2';
+      }).then((value) => {
+        if (value !== undefined) {
+          applied = value;
+        }
+      });
 
-  const unbind = bindPluginViewResync(
-    socket as unknown as PluginResyncSocket,
-    'plugin-phase-changed',
-    syncView,
-  );
-  socket.emit(GAME_SHELL_STATE_EVENT);
-  await Promise.resolve();
-  assert.equal(started, 1);
-  first.resolve('stale-turn-1');
-  await delay(0);
-  assert.equal(started, 2);
-  assert.equal(applied, 'turn-2');
-  unbind();
-});
+    const unbind = bindPluginViewResync(
+      socket as unknown as PluginResyncSocket,
+      'plugin-phase-changed',
+      syncView,
+    );
+    socket.emit(GAME_SHELL_STATE_EVENT);
+    await Promise.resolve();
+    assert.equal(started, 1);
+    first.resolve('stale-turn-1');
+    await delay(0);
+    assert.equal(started, 2);
+    assert.equal(applied, 'turn-2');
+    unbind();
+  });
 
   await test('duplicate PHASE_CHANGED coalesces into one follow-up SYNC', async () => {
-  const gate = new AckGenerationGate();
-  let applied = '';
-  const first = createDeferred<string>();
-  let started = 0;
+    const gate = new AckGenerationGate();
+    let applied = '';
+    const first = createDeferred<string>();
+    let started = 0;
 
-  const socket = createFakeSocket();
-  const syncView = () =>
-    runLatestAck(gate, async () => {
-      started += 1;
-      if (started === 1) {
-        return first.promise;
-      }
-      return 'after-second-phase';
-    }).then((value) => {
-      if (value !== undefined) {
-        applied = value;
-      }
-    });
+    const socket = createFakeSocket();
+    const syncView = () =>
+      runLatestAck(gate, async () => {
+        started += 1;
+        if (started === 1) {
+          return first.promise;
+        }
+        return 'after-second-phase';
+      }).then((value) => {
+        if (value !== undefined) {
+          applied = value;
+        }
+      });
 
-  const unbind = bindPluginViewResync(
-    socket as unknown as PluginResyncSocket,
-    'plugin-phase-changed',
-    syncView,
-  );
-  socket.emit('plugin-phase-changed');
-  await Promise.resolve();
-  assert.equal(started, 1);
-  first.resolve('after-first-phase');
-  await delay(0);
-  assert.equal(started, 2);
-  assert.equal(applied, 'after-second-phase');
-  unbind();
-});
+    const unbind = bindPluginViewResync(
+      socket as unknown as PluginResyncSocket,
+      'plugin-phase-changed',
+      syncView,
+    );
+    socket.emit('plugin-phase-changed');
+    await Promise.resolve();
+    assert.equal(started, 1);
+    first.resolve('after-first-phase');
+    await delay(0);
+    assert.equal(started, 2);
+    assert.equal(applied, 'after-second-phase');
+    unbind();
+  });
 
   await test('QA-34: mount + GAME_SHELL_STATE + PHASE_CHANGED burst is two SYNCs not five', async () => {
     const socket = createFakeSocket();
@@ -360,10 +360,7 @@ async function main(): Promise<void> {
     assert.match(roomContext, /skipTeamSync/);
 
     const shell = readFileSync(join(root, 'contexts/game-shell-context.tsx'), 'utf8');
-    assert.match(
-      shell,
-      /syncViewRef\.current\.status === 'ready' && syncViewRef\.current\.state/,
-    );
+    assert.match(shell, /syncViewRef\.current\.status === 'ready' && syncViewRef\.current\.state/);
   });
 
   await test('QA-34: all eight plugin hooks treat RATE_LIMITED as retryable', () => {
@@ -376,46 +373,83 @@ async function main(): Promise<void> {
     }
   });
 
+  await test('experimental lobby SYNC panels return RATE_LIMITED to the bounded retry helper', () => {
+    const panels = [
+      'secret-agents-lobby-panel.tsx',
+      'emoji-language-lobby-panel.tsx',
+      'timeline-placement-lobby-panel.tsx',
+      'one-word-only-lobby-panel.tsx',
+      'eyewitness-lobby-panel.tsx',
+    ];
+
+    for (const panel of panels) {
+      const source = readFileSync(join(root, 'components', 'lobby', panel), 'utf8');
+      assert.match(source, /response\.error\.code === 'RATE_LIMITED'/, panel);
+      assert.match(source, /return 'rate-limited'/, panel);
+      assert.match(source, /bindPluginViewResync/, panel);
+    }
+  });
+
   await test('reconnect and bound ROOM_SYNC deliver GAME_SHELL_STATE; plugins recover via SYNC not event replay', () => {
-  const handlers = readFileSync(
-    join(root, '..', 'server', 'src', 'modules', 'room', 'room.socket.handlers.ts'),
-    'utf8',
-  );
-  const reconnect = handlers.slice(handlers.indexOf('export function registerReconnectHandler'));
-  assert.match(reconnect, /emitGameShellStateToSocket/);
-  assert.match(reconnect, /emitPlayerRecoverySnapshotToSocket/);
-  const pluginPhase = reconnect.search(/PHASE_CHANGED_EVENT/);
-  assert.equal(pluginPhase, -1);
+    const handlers = readFileSync(
+      join(root, '..', 'server', 'src', 'modules', 'room', 'room.socket.handlers.ts'),
+      'utf8',
+    );
+    const reconnect = handlers.slice(handlers.indexOf('export function registerReconnectHandler'));
+    assert.match(reconnect, /emitGameShellStateToSocket/);
+    assert.match(reconnect, /emitPlayerRecoverySnapshotToSocket/);
+    const pluginPhase = reconnect.search(/PHASE_CHANGED_EVENT/);
+    assert.equal(pluginPhase, -1);
 
-  const roomSyncEnd = handlers.indexOf('export function registerDisconnectHandler');
-  const syncBody = handlers.slice(
-    handlers.indexOf('export function registerRoomSyncHandler'),
-    roomSyncEnd,
-  );
-  assert.match(syncBody, /emitGameShellStateToSocket/);
-  assert.match(syncBody, /emitPlayerRecoverySnapshotToSocket/);
-  assert.doesNotMatch(syncBody, /PHASE_CHANGED_EVENT/);
+    const roomSyncEnd = handlers.indexOf('export function registerDisconnectHandler');
+    const syncBody = handlers.slice(
+      handlers.indexOf('export function registerRoomSyncHandler'),
+      roomSyncEnd,
+    );
+    assert.match(syncBody, /emitGameShellStateToSocket/);
+    assert.match(syncBody, /emitPlayerRecoverySnapshotToSocket/);
+    assert.doesNotMatch(syncBody, /PHASE_CHANGED_EVENT/);
 
-  const timingLifecycle = readFileSync(
-    join(root, '..', 'server', 'src', 'modules', 'game', 'plugins', 'timing-challenge', 'match-lifecycle.ts'),
-    'utf8',
-  );
-  assert.match(timingLifecycle, /TIMING_CHALLENGE_PHASE_CHANGED_EVENT, \{\}/);
+    const timingLifecycle = readFileSync(
+      join(
+        root,
+        '..',
+        'server',
+        'src',
+        'modules',
+        'game',
+        'plugins',
+        'timing-challenge',
+        'match-lifecycle.ts',
+      ),
+      'utf8',
+    );
+    assert.match(timingLifecycle, /TIMING_CHALLENGE_PHASE_CHANGED_EVENT, \{\}/);
 
-  const baraLifecycle = readFileSync(
-    join(root, '..', 'server', 'src', 'modules', 'game', 'plugins', 'bara-al-salafa', 'match-lifecycle.ts'),
-    'utf8',
-  );
-  assert.match(baraLifecycle, /BARA_AL_SALAFA_PHASE_CHANGED_EVENT, \{\}/);
-});
+    const baraLifecycle = readFileSync(
+      join(
+        root,
+        '..',
+        'server',
+        'src',
+        'modules',
+        'game',
+        'plugins',
+        'bara-al-salafa',
+        'match-lifecycle.ts',
+      ),
+      'utf8',
+    );
+    assert.match(baraLifecycle, /BARA_AL_SALAFA_PHASE_CHANGED_EVENT, \{\}/);
+  });
 
   await test('lobby presence mapping keeps DISCONNECTED seats visible as offline, not LEFT', () => {
-  const mapPlayer = readFileSync(join(root, 'lib', 'room', 'map-player.ts'), 'utf8');
-  assert.match(mapPlayer, /player\.status === 'CONNECTED'/);
-  const playerCard = readFileSync(join(root, 'components', 'lobby', 'player-card.tsx'), 'utf8');
-  assert.match(playerCard, /غير متصل/);
-  assert.doesNotMatch(playerCard, /غادر/);
-});
+    const mapPlayer = readFileSync(join(root, 'lib', 'room', 'map-player.ts'), 'utf8');
+    assert.match(mapPlayer, /player\.status === 'CONNECTED'/);
+    const playerCard = readFileSync(join(root, 'components', 'lobby', 'player-card.tsx'), 'utf8');
+    assert.match(playerCard, /غير متصل/);
+    assert.doesNotMatch(playerCard, /غادر/);
+  });
 
   await test('QA-47: CONNECTION_FAILED plugin SYNC is retryable like RATE_LIMITED', () => {
     assert.equal(
@@ -430,7 +464,10 @@ async function main(): Promise<void> {
       true,
     );
     assert.equal(
-      isRateLimitedPluginSyncResult({ view: { ok: true }, errorMessage: getGameShellErrorMessage('CONNECTION_FAILED') }),
+      isRateLimitedPluginSyncResult({
+        view: { ok: true },
+        errorMessage: getGameShellErrorMessage('CONNECTION_FAILED'),
+      }),
       false,
     );
   });

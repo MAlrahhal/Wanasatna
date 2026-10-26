@@ -8,11 +8,26 @@ import {
   MOST_LIKELY_TO_SYNC_EVENT,
   MOST_LIKELY_TO_VOTE_EVENT,
 } from '@wanasatna/shared';
+import {
+  AckGenerationGate,
+  isRateLimitedPluginSyncResult,
+  runLatestAck,
+} from '@/lib/game-plugins/ack-generation';
 import { bindPluginViewResync } from '@/lib/game-plugins/bind-plugin-view-resync';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
 
 type ViewResponse = { view: MostLikelyToPlayerView };
+
+async function fetchPlayerView(): Promise<{
+  view: MostLikelyToPlayerView | null;
+  errorMessage: string | null;
+}> {
+  const response = await emitPluginWithAck<ViewResponse>(MOST_LIKELY_TO_SYNC_EVENT, {});
+  return response.success
+    ? { view: response.data.view, errorMessage: null }
+    : { view: null, errorMessage: response.error.message };
+}
 
 function requestId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
@@ -24,27 +39,43 @@ export function useMostLikelyToPlayerView(enabled: boolean) {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const hasView = useRef(false);
+  const syncGate = useRef(new AckGenerationGate());
 
   const sync = useCallback(async () => {
     if (!enabled) return;
-    if (!hasView.current) setLoading(true);
-    const response = await emitPluginWithAck<ViewResponse>(MOST_LIKELY_TO_SYNC_EVENT, {});
-    if (response.success) {
+    const isInitialLoad = !hasView.current;
+    if (isInitialLoad) setLoading(true);
+    const result = await runLatestAck(
+      syncGate.current,
+      fetchPlayerView,
+      isRateLimitedPluginSyncResult,
+    );
+    if (result === undefined) return;
+    if (result.view) {
       hasView.current = true;
-      setView(response.data.view);
+      setView(result.view);
       setError(null);
-    } else if (!hasView.current) {
-      setError(response.error.message);
+    } else if (isRateLimitedPluginSyncResult(result)) {
+      return 'rate-limited';
+    } else if (isInitialLoad) {
+      setError(result.errorMessage);
     }
-    setLoading(false);
+    if (isInitialLoad) setLoading(false);
   }, [enabled]);
 
   useEffect(() => {
+    const gate = syncGate.current;
     if (!enabled) {
+      gate.invalidate();
       hasView.current = false;
       return;
     }
-    return bindPluginViewResync(getRoomSocket(), MOST_LIKELY_TO_PHASE_CHANGED_EVENT, sync);
+    const unbind = bindPluginViewResync(getRoomSocket(), MOST_LIKELY_TO_PHASE_CHANGED_EVENT, sync);
+    return () => {
+      gate.invalidate();
+      hasView.current = false;
+      unbind();
+    };
   }, [enabled, sync]);
 
   const action = useCallback(

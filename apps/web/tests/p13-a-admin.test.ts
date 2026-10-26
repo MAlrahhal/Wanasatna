@@ -92,7 +92,7 @@ test('admin panel gates on server /api/admin/me; logout returns to admin login',
   assert.doesNotMatch(auth, /leaveRoom/);
 });
 
-test('admin shell has desktop sidebar, mobile nav, placeholder sections', () => {
+test('admin shell has desktop sidebar, mobile nav, and all protected sections', () => {
   const panel = read('components/admin/admin-shell-client.tsx');
   assert.match(panel, /md:flex/);
   assert.match(panel, /md:hidden/);
@@ -109,6 +109,7 @@ test('admin shell has desktop sidebar, mobile nav, placeholder sections', () => 
     'الملاحظات',
     'المستخدمون',
     'الألعاب',
+    'الألعاب التجريبية',
   ]);
   assert.equal(ADMIN_COPY.panelTitle, 'لوحة الإدارة');
   assert.doesNotMatch(panel, /إحصائيات|premium|20-player|playerCap/i);

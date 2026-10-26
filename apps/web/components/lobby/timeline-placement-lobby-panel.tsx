@@ -25,6 +25,8 @@ export function TimelinePlacementLobbyPanel({ isActiveMatch }: { isActiveMatch: 
     if (response.success) {
       setView(response.data.view);
       setError(null);
+    } else if (response.error.code === 'RATE_LIMITED') {
+      return 'rate-limited' as const;
     } else {
       setError(response.error.message);
     }
@@ -62,10 +64,10 @@ export function TimelinePlacementLobbyPanel({ isActiveMatch }: { isActiveMatch: 
   const editable = view.canEditSettings && !isActiveMatch && !busy;
   return (
     <div className="space-y-3" data-timeline-placement-lobby="">
-      <div className="rounded-xl border border-amber-400/40 bg-amber-400/10 p-3">
-        <p className="text-sm font-bold text-amber-200">اختبار مغلق — زمانها وين؟</p>
+      <div className="border-wanas-accent/30 bg-wanas-primary-surface rounded-xl border p-3">
+        <p className="text-wanas-text-primary text-sm font-bold">رتّبوا التاريخ معًا</p>
         <p className="text-wanas-text-muted mt-1 text-xs">
-          يشاهد الجميع الإعدادات، ويعدّلها مضيف الاختبار الموثّق فقط قبل البدء.
+          ضع كل حدث بين حدثين معروفين، ويمكنك تغيير اختيارك حتى نهاية الوقت.
         </p>
       </div>
 
@@ -90,8 +92,7 @@ export function TimelinePlacementLobbyPanel({ isActiveMatch }: { isActiveMatch: 
       </fieldset>
 
       <p className="text-wanas-text-muted text-xs">
-        اللاعبون الجاهزون: {view.participantCount} · المطلوب {view.minPlayers}–{view.maxPlayers}.
-        بنك الأحداث الحالي مؤقت ومعلّم للمراجعة قبل الاعتماد.
+        جاهزون الآن: {view.participantCount} · المناسب {view.minPlayers}–{view.maxPlayers} لاعبين.
       </p>
       {error ? (
         <p role="alert" className="text-wanas-error text-xs">

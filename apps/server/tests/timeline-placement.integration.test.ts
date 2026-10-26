@@ -4,10 +4,13 @@ import { createServer } from 'node:http';
 import { io as ioClient, type Socket } from 'socket.io-client';
 import {
   CREATE_ROOM_EVENT,
+  GAME_SHELL_STATE_EVENT,
   GAME_SHELL_START_FROM_LOBBY_EVENT,
+  HOST_CHANGED_EVENT,
   JOIN_ROOM_EVENT,
   LEAVE_ROOM_EVENT,
   RECONNECT_EVENT,
+  ROOM_PLAYERS_SNAPSHOT_EVENT,
   SELECT_EXPERIMENTAL_GAME_EVENT,
   TIMELINE_PLACEMENT_CHOOSE_EVENT,
   TIMELINE_PLACEMENT_CONTINUE_EVENT,
@@ -17,8 +20,11 @@ import {
   TIMELINE_PLACEMENT_UPDATE_SETTINGS_EVENT,
   type CreateRoomResponse,
   type GameActionResponse,
+  type GameShellState,
+  type HostChangedPayload,
   type ReconnectResponse,
   type RoomActionResponse,
+  type RoomPlayersSnapshotPayload,
   type RoomSessionData,
   type TimelinePlacementPlayerView,
 } from '@wanasatna/shared';
@@ -30,6 +36,7 @@ import { stopExpiredAuthSessionCleanup } from '../src/modules/auth/auth-session-
 import { generateSessionToken, hashSessionToken } from '../src/modules/auth/session-token.js';
 import { clearAllExperimentalGameSelectionsForTests } from '../src/modules/game/experimental/experimental-game-selection.store.js';
 import { settleTimelinePlacementDeadline } from '../src/modules/game/experimental/timeline-placement/phase-timer.js';
+import { expireTimelinePlacementPhase } from '../src/modules/game/experimental/timeline-placement/state.js';
 import { getTimelinePlacementMatch } from '../src/modules/game/experimental/timeline-placement/store.js';
 import { cleanupGameShellRuntime } from '../src/modules/game/game.lifecycle.js';
 import { deleteGameShell, getGameShellByRoomId } from '../src/modules/game/game.service.js';
@@ -63,6 +70,27 @@ function ack<T>(socket: Socket, event: string, payload: unknown): Promise<T> {
       .emit(event, payload, (error: Error | null, response: T) =>
         error ? reject(error) : resolve(response),
       );
+  });
+}
+
+function waitForEvent<T>(
+  socket: Socket,
+  event: string,
+  predicate: (payload: T) => boolean,
+  timeoutMs = 5_000,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      socket.off(event, handler);
+      reject(new Error(`Timed out waiting for ${event}`));
+    }, timeoutMs);
+    const handler = (payload: T) => {
+      if (!predicate(payload)) return;
+      clearTimeout(timer);
+      socket.off(event, handler);
+      resolve(payload);
+    };
+    socket.on(event, handler);
   });
 }
 
@@ -288,18 +316,142 @@ async function main(): Promise<void> {
       );
       assert.equal(nonHostContinue.success, false);
 
+      const matchBeforeTransfer = getTimelinePlacementMatch(created.data.room.id);
+      assert.ok(matchBeforeTransfer);
+      const newHostPlayerId = guestSessions[0]!.player.id;
+      const hostChangedPromise = waitForEvent<HostChangedPayload>(
+        guestSockets[0]!,
+        HOST_CHANGED_EVENT,
+        (payload) => payload.hostPlayerId === newHostPlayerId,
+      );
+      const shellChangedPromise = waitForEvent<{ state: GameShellState | null }>(
+        guestSockets[0]!,
+        GAME_SHELL_STATE_EVENT,
+        (payload) => payload.state?.hostPlayerId === newHostPlayerId,
+      );
       const left = await ack<RoomActionResponse<unknown>>(host, LEAVE_ROOM_EVENT, {});
       assert.equal(left.success, true, left.success ? '' : left.error.message);
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      const [hostChanged, shellChanged] = await Promise.all([
+        hostChangedPromise,
+        shellChangedPromise,
+      ]);
+      assert.equal(hostChanged.hostPlayerId, newHostPlayerId);
+      assert.equal(shellChanged.state?.hostPlayerId, newHostPlayerId);
+      assert.equal(shellChanged.state?.phase, 'PLAYING');
+
+      const persistedRoom = await prisma.room.findUnique({
+        where: { id: created.data.room.id },
+        select: { hostPlayerId: true },
+      });
+      assert.equal(persistedRoom?.hostPlayerId, newHostPlayerId);
       const afterTransfer = getTimelinePlacementMatch(created.data.room.id);
       assert.equal(afterTransfer?.round.phase, 'answer-reveal');
       assert.equal(afterTransfer?.round.deadlineAtMs, answer.deadlineAtMs);
+      assert.equal(afterTransfer?.currentRound, answer.currentRound);
+      assert.deepEqual(afterTransfer?.scores, matchBeforeTransfer.scores);
+      assert.deepEqual(
+        afterTransfer?.round.choicesByPlayerId,
+        matchBeforeTransfer.round.choicesByPlayerId,
+      );
+      assert.equal(getGameShellByRoomId(created.data.room.id)?.hostPlayerId, newHostPlayerId);
+
+      const formerHostAdvance = await ack<Ack<ViewData>>(host, TIMELINE_PLACEMENT_CONTINUE_EVENT, {
+        roundId: answer.roundId,
+      });
+      assert.equal(formerHostAdvance.success, false);
+      if (!formerHostAdvance.success) assert.equal(formerHostAdvance.error.code, 'NOT_IN_ROOM');
+
+      const otherPlayerView = await syncView(guestSockets[1]!);
+      assert.equal(otherPlayerView.isHost, false);
+      assert.equal(otherPlayerView.canAdvance, false);
+
+      const unauthorizedSettings = await ack<Ack<unknown>>(
+        guestSockets[0]!,
+        TIMELINE_PLACEMENT_UPDATE_SETTINGS_EVENT,
+        TIMELINE_PLACEMENT_DEFAULT_SETTINGS,
+      );
+      assert.equal(unauthorizedSettings.success, false);
+      if (!unauthorizedSettings.success) {
+        assert.equal(unauthorizedSettings.error.code, 'FORBIDDEN');
+      }
+
+      const disconnectedSnapshotPromise = waitForEvent<RoomPlayersSnapshotPayload>(
+        guestSockets[1]!,
+        ROOM_PLAYERS_SNAPSHOT_EVENT,
+        (payload) =>
+          payload.players.some(
+            (player) => player.id === newHostPlayerId && player.status === 'DISCONNECTED',
+          ),
+      );
+      guestSockets[0]!.disconnect();
+      await disconnectedSnapshotPromise;
       assert.equal(
-        getGameShellByRoomId(created.data.room.id)?.hostPlayerId,
-        guestSessions[0]!.player.id,
+        (
+          await prisma.room.findUnique({
+            where: { id: created.data.room.id },
+            select: { hostPlayerId: true },
+          })
+        )?.hostPlayerId,
+        newHostPlayerId,
       );
 
-      let current = answer;
+      const reconnectedHostSocket = await connect(baseUrl);
+      sockets.push(reconnectedHostSocket);
+      const reconnectedShellPromise = waitForEvent<{ state: GameShellState | null }>(
+        reconnectedHostSocket,
+        GAME_SHELL_STATE_EVENT,
+        (payload) => payload.state?.hostPlayerId === newHostPlayerId,
+      );
+      const reconnectedHost = await ack<ReconnectResponse>(reconnectedHostSocket, RECONNECT_EVENT, {
+        playerId: newHostPlayerId,
+        reconnectToken: guestSessions[0]!.reconnectToken,
+        roomCode: created.data.room.code,
+      });
+      assert.equal(
+        reconnectedHost.success,
+        true,
+        reconnectedHost.success ? '' : reconnectedHost.error.message,
+      );
+      if (!reconnectedHost.success) throw new Error(reconnectedHost.error.message);
+      assert.equal(reconnectedHost.data.room.hostPlayerId, newHostPlayerId);
+      const reconnectedShell = await reconnectedShellPromise;
+      assert.equal(reconnectedShell.state?.hostPlayerId, newHostPlayerId);
+      guestSockets[0] = reconnectedHostSocket;
+
+      const reconnectedHostView = await syncView(reconnectedHostSocket);
+      assert.equal(reconnectedHostView.isHost, true);
+      assert.equal(reconnectedHostView.canAdvance, true);
+
+      const duplicateRoundId = reconnectedHostView.roundId;
+      const duplicateDeadlineAtMs = reconnectedHostView.deadlineAtMs;
+      const duplicateRoundNumber = reconnectedHostView.currentRound;
+      const duplicateAdvances = await Promise.all([
+        ack<Ack<ViewData>>(reconnectedHostSocket, TIMELINE_PLACEMENT_CONTINUE_EVENT, {
+          roundId: duplicateRoundId,
+        }),
+        ack<Ack<ViewData>>(reconnectedHostSocket, TIMELINE_PLACEMENT_CONTINUE_EVENT, {
+          roundId: duplicateRoundId,
+        }),
+      ]);
+      const successfulAdvance = duplicateAdvances.find((response) => response.success);
+      assert.equal(duplicateAdvances.filter((response) => response.success).length, 1);
+      assert.ok(successfulAdvance?.success);
+      if (!successfulAdvance?.success) throw new Error('Expected exactly one successful advance.');
+      assert.equal(successfulAdvance.data.view.currentRound, duplicateRoundNumber + 1);
+      assert.ok(duplicateDeadlineAtMs);
+      const afterSingleAdvance = getTimelinePlacementMatch(created.data.room.id);
+      assert.ok(afterSingleAdvance);
+      assert.equal(
+        expireTimelinePlacementPhase(
+          afterSingleAdvance,
+          duplicateRoundId,
+          'answer-reveal',
+          duplicateDeadlineAtMs,
+        ),
+        null,
+      );
+
+      let current = successfulAdvance.data.view;
       while (current.phase !== 'completed') {
         if (current.phase === 'answer-reveal') {
           const advanced = await ack<Ack<ViewData>>(

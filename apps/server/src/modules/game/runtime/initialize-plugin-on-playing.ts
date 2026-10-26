@@ -141,7 +141,9 @@ export async function initializePluginOnPlaying(
       return;
     }
 
-    if (!hasInitializedPluginState(roomId, gameId)) {
+    const pluginWasInitialized = hasInitializedPluginState(roomId, gameId);
+
+    if (!pluginWasInitialized) {
       const reconciled = reconcileUninitializedMatchParticipants(roomId);
       if (reconciled) {
         shell = reconciled;
@@ -199,7 +201,10 @@ export async function initializePluginOnPlaying(
     }
 
     const initialized = match as { playerIds?: string[] };
-    if (!initialized.playerIds || !pluginParticipantsMatchShell(shell, initialized.playerIds)) {
+    if (
+      !initialized.playerIds ||
+      (!pluginWasInitialized && !pluginParticipantsMatchShell(shell, initialized.playerIds))
+    ) {
       await abortBrokenMatch(io, roomId, 'participant-mismatch');
     }
   } catch (error) {

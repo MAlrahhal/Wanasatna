@@ -41,10 +41,7 @@ const GAME_SCREENS = [
 
 test('presentSystemCopy normalizes ASCII ellipsis for display', () => {
   assert.equal(presentSystemCopy('الجولة التالية تبدأ تلقائياً...'), SYSTEM_COPY.nextRoundAuto);
-  assert.equal(
-    presentSystemCopy(null, SYSTEM_COPY.nextRoundAuto),
-    SYSTEM_COPY.nextRoundAuto,
-  );
+  assert.equal(presentSystemCopy(null, SYSTEM_COPY.nextRoundAuto), SYSTEM_COPY.nextRoundAuto);
   assert.equal(presentSystemCopy('التالي الآن'), 'التالي الآن');
 });
 
@@ -62,7 +59,9 @@ test('GameScreen default density is compact shared chrome', () => {
 
 test('spectator body copy is the notice sentence, not a duplicate header title', () => {
   const notice = read('components/room/room-system-state.tsx');
-  assert.match(notice, /title=\{SYSTEM_COPY\.spectator\}/);
+  assert.match(notice, /title = SYSTEM_COPY\.spectator/);
+  assert.match(notice, /description = SYSTEM_COPY\.spectatorHint/);
+  assert.match(notice, /title=\{title\} description=\{description\}/);
   assert.doesNotMatch(notice, /title=\{SYSTEM_COPY\.spectatorTitle\}/);
 });
 
@@ -132,8 +131,11 @@ test('countdown does not repeat round metadata already in the header chip', () =
 
 test('leaderboard current-player badge is readable', () => {
   const panel = read('components/game-experience/game-leaderboard-panel.tsx');
+  assert.match(panel, /entry\.isCurrentPlayer/);
   assert.match(panel, /أنت/);
-  assert.match(panel, /text-xs font-semibold leading-4 text-wanas-accent/);
+  assert.match(panel, /text-wanas-accent/);
+  assert.match(panel, /text-xs font-semibold leading-4/);
+  assert.match(panel, /bg-wanas-accent\/20/);
 });
 
 test('primary CTA remains white and chat stays honest', () => {

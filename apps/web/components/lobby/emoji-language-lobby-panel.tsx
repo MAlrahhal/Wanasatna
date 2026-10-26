@@ -27,6 +27,8 @@ export function EmojiLanguageLobbyPanel({ isActiveMatch }: { isActiveMatch: bool
     if (response.success) {
       setView(response.data.view);
       setError(null);
+    } else if (response.error.code === 'RATE_LIMITED') {
+      return 'rate-limited' as const;
     } else {
       setError(response.error.message);
     }
@@ -64,10 +66,10 @@ export function EmojiLanguageLobbyPanel({ isActiveMatch }: { isActiveMatch: bool
   const editable = view.canEditSettings && !isActiveMatch && !busy;
   return (
     <div className="space-y-3" data-emoji-language-lobby="">
-      <div className="rounded-xl border border-amber-400/40 bg-amber-400/10 p-3">
-        <p className="text-sm font-bold text-amber-200">اختبار مغلق — لغة الإيموجي</p>
+      <div className="border-wanas-accent/30 bg-wanas-primary-surface rounded-xl border p-3">
+        <p className="text-wanas-text-primary text-sm font-bold">اختر طريقة اللعب</p>
         <p className="text-wanas-text-muted mt-1 text-xs">
-          الإعدادات ظاهرة للجميع، ويعدّلها مضيف الاختبار الموثّق فقط قبل البدء.
+          إما أن يصنع لاعب التلميح، أو تعرض اللعبة لغزًا جاهزًا. يرى الجميع الإعدادات نفسها.
         </p>
       </div>
 
@@ -128,8 +130,7 @@ export function EmojiLanguageLobbyPanel({ isActiveMatch }: { isActiveMatch: bool
       </fieldset>
 
       <p className="text-wanas-text-muted text-xs">
-        اللاعبون الجاهزون: {view.participantCount} · الحد الأدنى {view.minPlayers}. المحتوى الحالي
-        مؤقت للاختبار وليس بنكًا نهائيًا معتمدًا.
+        جاهزون الآن: {view.participantCount} · يلزم {view.minPlayers} على الأقل للبدء.
       </p>
       {error ? (
         <p role="alert" className="text-wanas-error text-xs">

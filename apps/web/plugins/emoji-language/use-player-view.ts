@@ -8,6 +8,11 @@ import {
   EMOJI_LANGUAGE_SUBMIT_GUESS_EVENT,
   EMOJI_LANGUAGE_SYNC_EVENT,
 } from '@wanasatna/shared';
+import {
+  AckGenerationGate,
+  isRateLimitedPluginSyncResult,
+  runLatestAck,
+} from '@/lib/game-plugins/ack-generation';
 import { bindPluginViewResync } from '@/lib/game-plugins/bind-plugin-view-resync';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
@@ -16,6 +21,16 @@ type ViewResponse = {
   view: EmojiLanguagePlayerView;
   feedback?: EmojiLanguageGuessFeedback;
 };
+
+async function fetchPlayerView(): Promise<{
+  view: EmojiLanguagePlayerView | null;
+  errorMessage: string | null;
+}> {
+  const response = await emitPluginWithAck<ViewResponse>(EMOJI_LANGUAGE_SYNC_EVENT);
+  return response.success
+    ? { view: response.data.view, errorMessage: null }
+    : { view: null, errorMessage: response.error.message };
+}
 
 function requestId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
@@ -29,6 +44,7 @@ export function useEmojiLanguagePlayerView(enabled: boolean) {
   const [submitting, setSubmitting] = useState(false);
   const hasView = useRef(false);
   const roundId = useRef<string | null>(null);
+  const syncGate = useRef(new AckGenerationGate());
 
   const acceptView = useCallback((nextView: EmojiLanguagePlayerView) => {
     if (roundId.current !== nextView.roundId) {
@@ -40,24 +56,39 @@ export function useEmojiLanguagePlayerView(enabled: boolean) {
 
   const sync = useCallback(async () => {
     if (!enabled) return;
-    if (!hasView.current) setLoading(true);
-    const response = await emitPluginWithAck<ViewResponse>(EMOJI_LANGUAGE_SYNC_EVENT);
-    if (response.success) {
+    const isInitialLoad = !hasView.current;
+    if (isInitialLoad) setLoading(true);
+    const result = await runLatestAck(
+      syncGate.current,
+      fetchPlayerView,
+      isRateLimitedPluginSyncResult,
+    );
+    if (result === undefined) return;
+    if (result.view) {
       hasView.current = true;
-      acceptView(response.data.view);
+      acceptView(result.view);
       setError(null);
-    } else if (!hasView.current) {
-      setError(response.error.message);
+    } else if (isRateLimitedPluginSyncResult(result)) {
+      return 'rate-limited';
+    } else if (isInitialLoad) {
+      setError(result.errorMessage);
     }
-    setLoading(false);
+    if (isInitialLoad) setLoading(false);
   }, [acceptView, enabled]);
 
   useEffect(() => {
+    const gate = syncGate.current;
     if (!enabled) {
+      gate.invalidate();
       hasView.current = false;
       return;
     }
-    return bindPluginViewResync(getRoomSocket(), EMOJI_LANGUAGE_PHASE_CHANGED_EVENT, sync);
+    const unbind = bindPluginViewResync(getRoomSocket(), EMOJI_LANGUAGE_PHASE_CHANGED_EVENT, sync);
+    return () => {
+      gate.invalidate();
+      hasView.current = false;
+      unbind();
+    };
   }, [enabled, sync]);
 
   const action = useCallback(

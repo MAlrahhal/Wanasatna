@@ -9,19 +9,11 @@ import {
   GameSystemLoading,
   SpectatorNotice,
 } from '@/components/room/room-system-state';
+import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
+import { emojiLanguageExperienceMeta } from '@/lib/game/experimental-game-experience';
 import { cn } from '@/lib/utils';
 import { useEmojiLanguagePlayerView } from './use-player-view';
-
-function useRemainingSeconds(deadlineAtMs: number | null): number | null {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    if (deadlineAtMs === null) return;
-    const timer = window.setInterval(() => setNow(Date.now()), 250);
-    return () => window.clearInterval(timer);
-  }, [deadlineAtMs]);
-  return deadlineAtMs === null ? null : Math.max(0, Math.ceil((deadlineAtMs - now) / 1000));
-}
 
 function EmojiSequence({ emojis, label }: { emojis: readonly string[]; label: string }) {
   return (
@@ -39,12 +31,33 @@ function EmojiSequence({ emojis, label }: { emojis: readonly string[]; label: st
   );
 }
 
+const EMOJI_PICKER_GROUPS = [
+  { label: 'مشاعر', emojis: EMOJI_LANGUAGE_PICKER.slice(0, 17) },
+  { label: 'طبيعة وحيوانات', emojis: EMOJI_LANGUAGE_PICKER.slice(17, 30) },
+  { label: 'أماكن وحركة', emojis: EMOJI_LANGUAGE_PICKER.slice(30, 43) },
+  { label: 'أنشطة وأشياء', emojis: EMOJI_LANGUAGE_PICKER.slice(43) },
+] as const;
+
 export function EmojiLanguageGameScreen() {
   const { state: shell } = useGameShell();
+  const setExperienceMeta = useSetGameExperienceMeta();
   const enabled = shell?.gameId === EMOJI_LANGUAGE_GAME_ID && shell.phase === 'PLAYING';
   const { view, error, feedback, loading, submitting, clearFeedback, submitClue, submitGuess } =
     useEmojiLanguagePlayerView(enabled);
-  const remainingSeconds = useRemainingSeconds(view?.deadlineAtMs ?? null);
+
+  useEffect(() => {
+    if (!enabled) {
+      setExperienceMeta(null);
+      return;
+    }
+    setExperienceMeta(
+      view
+        ? emojiLanguageExperienceMeta(view)
+        : { gameName: 'لغة الإيموجي', gameIcon: '😀', phaseLabel: 'جارٍ التحميل…' },
+    );
+  }, [enabled, setExperienceMeta, view]);
+
+  useEffect(() => () => setExperienceMeta(null), [setExperienceMeta]);
 
   if (!enabled) return null;
   if (loading && !view) return <GameSystemLoading />;
@@ -53,33 +66,14 @@ export function EmojiLanguageGameScreen() {
 
   return (
     <GameScreen ariaLabel="لغة الإيموجي" maxWidth="4xl" className="min-w-0 gap-3">
-      <header className="border-wanas-border bg-wanas-surface rounded-2xl border p-3 sm:p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <p className="text-xs font-bold text-amber-300">اختبار مغلق</p>
-            <h1 className="text-wanas-text-primary text-xl font-black">لغة الإيموجي</h1>
-          </div>
-          <div className="text-wanas-text-muted flex items-center gap-2 text-xs font-bold">
-            <span>
-              الجولة {view.currentRound}/{view.totalRounds}
-            </span>
-            <span className="border-wanas-border bg-wanas-surface-soft rounded-full border px-3 py-1.5">
-              {view.mode === 'player-clue' ? 'لاعب يشرح' : 'لغز جاهز'}
-            </span>
-            {remainingSeconds !== null ? (
-              <span className="text-wanas-text-primary rounded-lg bg-black/20 px-2 py-1 font-mono text-base font-black">
-                {remainingSeconds}ث
-              </span>
-            ) : null}
-          </div>
+      <section className="border-wanas-border bg-wanas-surface flex flex-wrap items-center justify-between gap-2 rounded-2xl border px-3 py-2.5">
+        <p className="text-wanas-text-primary text-sm font-bold">
+          {view.mode === 'player-clue' ? '✍️ تلميح يصنعه لاعب' : '🧩 لغز جاهز من اللعبة'}
+        </p>
+        <div className="text-wanas-text-muted flex items-center gap-2 text-xs font-bold">
+          <span>أجاب {view.correctAnswerCount} إجابة صحيحة</span>
         </div>
-        {view.writerName ? (
-          <p className="text-wanas-text-muted mt-2 text-sm">
-            كاتب الجولة:{' '}
-            <span className="text-wanas-text-primary font-bold">{view.writerName}</span>
-          </p>
-        ) : null}
-      </header>
+      </section>
 
       <InteractiveRound
         key={view.roundId}
@@ -206,7 +200,7 @@ function WriterComposer(props: {
         <p className="text-xs font-bold text-amber-200">الإجابة الخاصة بك — لا تعرضها للآخرين</p>
         <p className="text-wanas-text-primary mt-1 text-xl font-black">{props.answer}</p>
       </div>
-      <div className="border-wanas-border bg-wanas-surface-soft min-h-20 rounded-xl border p-3">
+      <div className="border-wanas-accent/35 bg-wanas-primary-surface min-h-24 rounded-xl border p-3">
         {props.selected.length ? (
           <div
             className="flex flex-wrap justify-center gap-2"
@@ -217,7 +211,7 @@ function WriterComposer(props: {
                 key={`${emoji}-${index}`}
                 type="button"
                 onClick={() => props.onRemove(index)}
-                className="border-wanas-border bg-wanas-surface flex size-12 items-center justify-center rounded-xl border text-2xl"
+                className="border-wanas-border bg-wanas-surface hover:border-wanas-error flex size-12 items-center justify-center rounded-xl border text-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--wanas-game-accent)]"
                 aria-label={`حذف الرمز رقم ${index + 1}: ${emoji}`}
               >
                 {emoji}
@@ -229,20 +223,27 @@ function WriterComposer(props: {
         )}
       </div>
       <div
-        className="grid max-h-64 grid-cols-7 gap-1.5 overflow-y-auto rounded-xl p-1 sm:grid-cols-10"
+        className="border-wanas-border bg-wanas-surface-soft max-h-72 space-y-3 overflow-y-auto overscroll-contain rounded-xl border p-2"
         aria-label="لوحة إيموجي اللعبة"
       >
-        {EMOJI_LANGUAGE_PICKER.map((emoji) => (
-          <button
-            key={emoji}
-            type="button"
-            disabled={props.selected.length >= 10}
-            onClick={() => props.onAdd(emoji)}
-            className="border-wanas-border bg-wanas-surface-soft hover:border-wanas-accent flex aspect-square min-h-11 items-center justify-center rounded-xl border text-xl disabled:opacity-35 sm:text-2xl"
-            aria-label={`إضافة ${emoji}`}
-          >
-            {emoji}
-          </button>
+        {EMOJI_PICKER_GROUPS.map((group) => (
+          <section key={group.label} aria-label={group.label}>
+            <h3 className="text-wanas-text-muted mb-1.5 px-1 text-xs font-bold">{group.label}</h3>
+            <div className="grid grid-cols-7 gap-1.5 sm:grid-cols-10">
+              {group.emojis.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  disabled={props.selected.length >= 10}
+                  onClick={() => props.onAdd(emoji)}
+                  className="border-wanas-border bg-wanas-surface hover:border-wanas-accent flex aspect-square min-h-11 items-center justify-center rounded-xl border text-xl disabled:opacity-35 sm:text-2xl"
+                  aria-label={`إضافة ${emoji}`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </section>
         ))}
       </div>
       <button

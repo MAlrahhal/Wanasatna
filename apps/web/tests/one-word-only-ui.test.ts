@@ -19,20 +19,21 @@ function test(name: string, run: () => void): void {
   }
 }
 
-test('lobby exposes provisional server values and uses the server edit permission', () => {
+test('lobby explains the cooperative flow and uses the server edit permission', () => {
   const source = read('components/lobby/one-word-only-lobby-panel.tsx');
   assert.match(source, /ONE_WORD_ONLY_ROUND_OPTIONS/);
   assert.match(source, /ONE_WORD_ONLY_CLUE_SECONDS_OPTIONS/);
   assert.match(source, /ONE_WORD_ONLY_GUESS_SECONDS_OPTIONS/);
   assert.match(source, /view\.canEditSettings && !isActiveMatch/);
-  assert.match(source, /القيم التالية مؤقتة للاختبار المغلق/);
+  assert.match(source, /تحدٍ تعاوني بكلمة واحدة/);
+  assert.match(source, /جاهزون الآن:/);
   assert.doesNotMatch(source, /isAdmin:\s*true|premium:\s*true|userId:/);
 });
 
 test('mobile guessing requires a separate selection and confirmation action', () => {
   const source = read('plugins/one-word-only/game-screen.tsx');
-  assert.match(source, /grid grid-cols-1 gap-2 sm:grid-cols-2/);
-  assert.match(source, /min-h-14/);
+  assert.match(source, /grid grid-cols-2 gap-2 lg:grid-cols-4/);
+  assert.match(source, /min-h-16/);
   assert.match(source, /aria-pressed=\{props\.selectedOptionId === option\.id\}/);
   assert.match(source, /تأكيد الإجابة/);
   assert.match(source, /onClick=\{\(\) => props\.setSelectedOptionId\(option\.id\)\}/);

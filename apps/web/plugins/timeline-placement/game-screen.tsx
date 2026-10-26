@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import type {
   TimelineGap,
   TimelinePlacementPlayerView,
@@ -13,19 +14,33 @@ import {
   GameSystemLoading,
   SpectatorNotice,
 } from '@/components/room/room-system-state';
+import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
-import { useDeadlineClock } from '@/lib/game/use-deadline-clock';
+import { timelinePlacementExperienceMeta } from '@/lib/game/experimental-game-experience';
 import { cn } from '@/lib/utils';
 import { useTimelinePlacementPlayerView } from './use-player-view';
 
 export function TimelinePlacementGameScreen() {
   const { state: shell } = useGameShell();
+  const setExperienceMeta = useSetGameExperienceMeta();
   const enabled = shell?.gameId === TIMELINE_PLACEMENT_GAME_ID && shell.phase === 'PLAYING';
   const { view, error, loading, submitting, chooseGap, continueRound } =
     useTimelinePlacementPlayerView(enabled);
   const deadlineAtMs = view?.deadlineAtMs ?? null;
-  const liveRemainingSeconds = useDeadlineClock(deadlineAtMs, 200);
-  const remaining = deadlineAtMs === null ? null : liveRemainingSeconds;
+
+  useEffect(() => {
+    if (!enabled) {
+      setExperienceMeta(null);
+      return;
+    }
+    setExperienceMeta(
+      view
+        ? timelinePlacementExperienceMeta(view)
+        : { gameName: 'زمانها وين؟', gameIcon: '🕰️', phaseLabel: 'جارٍ التحميل…' },
+    );
+  }, [enabled, setExperienceMeta, view]);
+
+  useEffect(() => () => setExperienceMeta(null), [setExperienceMeta]);
 
   if (!enabled) return null;
   if (loading && !view) return <GameSystemLoading />;
@@ -42,30 +57,14 @@ export function TimelinePlacementGameScreen() {
         />
       ) : null}
 
-      <header className="border-wanas-border bg-wanas-surface rounded-2xl border p-3 sm:p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <p className="text-xs font-bold text-amber-300">اختبار مغلق</p>
-            <h1 className="text-wanas-text-primary text-xl font-black">زمانها وين؟</h1>
-          </div>
-          <div className="text-wanas-text-muted flex items-center gap-2 text-xs font-bold">
-            <span>
-              السؤال {view.currentRound} من {view.totalRounds}
-            </span>
-            {remaining !== null ? (
-              <span className="text-wanas-text-primary rounded-lg bg-black/20 px-2 py-1 font-mono text-base font-black">
-                {Math.ceil(remaining)}ث
-              </span>
-            ) : null}
-          </div>
-        </div>
-        {view.candidate ? (
-          <div className="mt-3 rounded-xl border border-amber-300/40 bg-amber-300/10 p-3 text-center">
-            <p className="text-wanas-text-muted text-xs">ضع هذا الحدث في مكانه الصحيح</p>
-            <p className="text-wanas-text-primary mt-1 text-lg font-black">{view.candidate.text}</p>
-          </div>
-        ) : null}
-      </header>
+      {view.candidate ? (
+        <section className="rounded-2xl border border-amber-300/40 bg-amber-300/10 px-4 py-4 text-center">
+          <p className="text-xs font-bold text-amber-100">ضع الحدث في موقعه الزمني</p>
+          <p className="text-wanas-text-primary mx-auto mt-1 max-w-3xl text-lg font-black leading-relaxed sm:text-xl">
+            {view.candidate.text}
+          </p>
+        </section>
+      ) : null}
 
       {view.phase === 'completed' ? (
         <FinalResults view={view} />
@@ -162,7 +161,8 @@ function TimelineBoard(props: {
   return (
     <section className="border-wanas-border bg-wanas-surface rounded-2xl border p-3 sm:p-4">
       <div
-        className="max-h-[58dvh] space-y-2 overflow-y-auto overscroll-contain px-1"
+        className="max-h-[62dvh] space-y-2 overflow-y-auto overscroll-contain px-1"
+        dir="ltr"
         data-timeline-scroll=""
       >
         {view.availableGaps.map((gap, index) => (
@@ -198,15 +198,16 @@ function GapControl(props: {
   onChoose: (gapId: string) => void;
 }) {
   return (
-    <div className="py-1">
+    <div className="py-1" dir="rtl">
       <button
         type="button"
         disabled={props.disabled}
         aria-pressed={props.selected}
         onClick={() => props.onChoose(props.gap.id)}
         className={cn(
-          'border-wanas-border bg-wanas-surface-soft text-wanas-text-muted min-h-12 w-full rounded-xl border-2 border-dashed px-3 py-2 text-sm font-bold',
-          props.selected && 'border-wanas-accent bg-wanas-primary-surface text-wanas-text-primary',
+          'border-wanas-border bg-wanas-surface-soft text-wanas-text-muted min-h-12 w-full rounded-xl border-2 border-dashed px-3 py-2 text-sm font-bold transition-colors',
+          props.selected &&
+            'border-wanas-accent bg-wanas-primary-surface text-wanas-text-primary ring-wanas-accent/30 ring-2',
           !props.disabled &&
             'hover:border-wanas-accent focus-visible:ring-wanas-accent cursor-pointer focus-visible:outline-none focus-visible:ring-2',
         )}
@@ -238,11 +239,16 @@ function GapControl(props: {
 
 function EventCard({ event }: { event: TimelinePublicEvent }) {
   return (
-    <article className="border-wanas-border bg-wanas-surface-soft grid grid-cols-[4.5rem_1fr] items-center gap-3 rounded-xl border p-3">
+    <article
+      className="border-wanas-border bg-wanas-surface-soft grid grid-cols-[4.5rem_1fr] items-center gap-3 rounded-xl border p-3"
+      dir="ltr"
+    >
       <span className="text-wanas-accent text-center text-lg font-black" dir="ltr">
         {event.year}
       </span>
-      <p className="text-wanas-text-primary text-sm font-bold">{event.text}</p>
+      <p className="text-wanas-text-primary text-right text-sm font-bold" dir="rtl">
+        {event.text}
+      </p>
     </article>
   );
 }
@@ -251,7 +257,8 @@ function OrderedEvents({ events }: { events: TimelinePublicEvent[] }) {
   return (
     <section className="border-wanas-border bg-wanas-surface rounded-2xl border p-3 sm:p-4">
       <div
-        className="max-h-[58dvh] space-y-2 overflow-y-auto overscroll-contain"
+        className="max-h-[62dvh] space-y-2 overflow-y-auto overscroll-contain"
+        dir="ltr"
         data-timeline-scroll=""
       >
         {events.map((event) => (

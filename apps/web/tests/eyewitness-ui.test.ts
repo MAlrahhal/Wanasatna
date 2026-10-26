@@ -31,8 +31,11 @@ test('lobby exposes four authoritative provisional settings to everyone', () => 
 
 test('witness view supports mobile zoom, optional description, autosave and explicit locking', () => {
   const source = read('plugins/eyewitness/game-screen.tsx');
-  assert.match(source, /type="range"/);
+  assert.match(source, /aria-label="تصغير الصورة"/);
+  assert.match(source, /aria-label="تكبير الصورة"/);
+  assert.match(source, /setZoom\(1\)/);
   assert.match(source, /touch-pan-x touch-pan-y/);
+  assert.match(source, /overscroll-contain/);
   assert.match(source, /maxLength=\{600\}/);
   assert.match(source, /إرسال الوصف/);
   assert.match(source, /saveDescriptionRef/);

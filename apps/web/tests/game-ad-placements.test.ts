@@ -18,7 +18,10 @@ const games = [
 
 const shell = read('components/game-experience/game-experience-shell.tsx');
 const pluginLayer = read('components/game-plugins/game-plugin-layer.tsx');
-assert.match(pluginLayer, /<GameExperienceShell>\{pluginContent\}<\/GameExperienceShell>/);
+assert.match(
+  pluginLayer,
+  /<GameExperienceShell gameId=\{state\.gameId\}>\{pluginContent\}<\/GameExperienceShell>/,
+);
 for (const game of games) {
   assert.match(read(`plugins/${game}/game-screen.tsx`), /useSetGameExperienceMeta/, game);
 }

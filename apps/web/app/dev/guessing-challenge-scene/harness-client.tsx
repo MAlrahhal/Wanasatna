@@ -167,10 +167,18 @@ function createMockView(
       { playerId: 'self', name: 'سارة', score: 100 },
       { playerId: 'o0', name: 'علي', score: 0 },
     ],
-    resultsLeaderboard: [
-      { playerId: 'self', name: 'سارة', totalPoints: 200, rank: 1, isFirstPlace: true },
-      { playerId: 'o0', name: 'علي', totalPoints: 100, rank: 2, isFirstPlace: false },
-    ],
+    resultsLeaderboard:
+      mode === '2v2'
+        ? [
+            { playerId: 'self', name: 'سارة', totalPoints: 100, rank: 1, isFirstPlace: true },
+            { playerId: 'tm', name: 'محمد', totalPoints: 100, rank: 1, isFirstPlace: true },
+            { playerId: 'o0', name: 'خالد', totalPoints: 60, rank: 3, isFirstPlace: false },
+            { playerId: 'o1', name: 'علي', totalPoints: 40, rank: 4, isFirstPlace: false },
+          ]
+        : [
+            { playerId: 'self', name: 'سارة', totalPoints: 200, rank: 1, isFirstPlace: true },
+            { playerId: 'o0', name: 'علي', totalPoints: 100, rank: 2, isFirstPlace: false },
+          ],
     teamResults:
       mode === '2v2' && phase === 'match-completed'
         ? {
@@ -182,8 +190,8 @@ function createMockView(
                 teamLabel: team === 'blue' ? 'الفريق الأزرق' : 'الفريق الأحمر',
                 totalPoints: team === 'blue' ? 200 : 100,
                 members: [
-                  { playerId: 'self', name: 'سارة', score: team === 'blue' ? 200 : 100 },
-                  { playerId: 'tm', name: 'محمد', score: team === 'blue' ? 200 : 100 },
+                  { playerId: 'self', name: 'سارة', score: team === 'blue' ? 100 : 60 },
+                  { playerId: 'tm', name: 'محمد', score: team === 'blue' ? 100 : 40 },
                 ],
               },
               {
@@ -191,8 +199,8 @@ function createMockView(
                 teamLabel: opponentTeam === 'blue' ? 'الفريق الأزرق' : 'الفريق الأحمر',
                 totalPoints: opponentTeam === 'blue' ? 200 : 100,
                 members: [
-                  { playerId: 'o0', name: 'خالد', score: opponentTeam === 'blue' ? 200 : 100 },
-                  { playerId: 'o1', name: 'علي', score: opponentTeam === 'blue' ? 200 : 100 },
+                  { playerId: 'o0', name: 'خالد', score: opponentTeam === 'blue' ? 100 : 60 },
+                  { playerId: 'o1', name: 'علي', score: opponentTeam === 'blue' ? 100 : 40 },
                 ],
               },
             ],
@@ -338,6 +346,25 @@ export function GuessingChallengeSceneHarness() {
           isFirstPlace: entry.isFirstPlace,
           isCurrentPlayer: entry.playerId === 'self',
         }))}
+        teamResults={
+          view.mode === '2v2' && view.teamResults
+            ? {
+                isTie: view.teamResults.isTie,
+                winningTeamId: view.teamResults.winningTeamId,
+                teams: view.teamResults.teams.map((team) => ({
+                  teamId: team.teamId,
+                  teamLabel: team.teamLabel,
+                  totalPoints: team.totalPoints,
+                  members: team.members.map((member) => ({
+                    id: member.playerId,
+                    name: member.name,
+                    score: member.score,
+                  })),
+                })),
+              }
+            : null
+        }
+        currentTeamId={view.mode === '2v2' ? view.selfTeam : null}
         currentPlayerId="self"
         totalRounds={4}
         playerCount={view.resultsLeaderboard.length}

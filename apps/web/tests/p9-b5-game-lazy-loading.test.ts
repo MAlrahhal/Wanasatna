@@ -33,6 +33,13 @@ const CLOSED_EXPERIMENTAL_GAMES = [
     exportName: 'MostLikelyToGameScreen',
   },
   { id: 'emoji-language', dir: 'emoji-language', exportName: 'EmojiLanguageGameScreen' },
+  {
+    id: 'timeline-placement',
+    dir: 'timeline-placement',
+    exportName: 'TimelinePlacementGameScreen',
+  },
+  { id: 'one-word-only', dir: 'one-word-only', exportName: 'OneWordOnlyGameScreen' },
+  { id: 'eyewitness', dir: 'eyewitness', exportName: 'EyewitnessGameScreen' },
 ] as const;
 
 const GAMES = [...PUBLIC_GAMES, ...CLOSED_EXPERIMENTAL_GAMES];
@@ -56,7 +63,7 @@ function read(relativePath: string): string {
   return readFileSync(join(root, relativePath), 'utf8');
 }
 
-test('all 8 public and 3 closed experimental games resolve from the client registry', () => {
+test('all 8 public and 6 closed experimental games resolve from the client registry', () => {
   const ids = listClientGamePlugins()
     .map((plugin) => plugin.metadata.id)
     .sort();
@@ -68,6 +75,7 @@ test('all 8 public and 3 closed experimental games resolve from the client regis
     assert.equal(typeof plugin.GameScreen, 'function');
   }
   assert.equal(PUBLIC_GAMES.length, 8);
+  assert.equal(CLOSED_EXPERIMENTAL_GAMES.length, 6);
 });
 
 test('each plugin entry lazy-loads GameScreen instead of statically importing it', () => {

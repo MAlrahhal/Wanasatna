@@ -85,9 +85,7 @@ export function RoomChatPanel({ className, variant = 'lobby' }: RoomChatPanelPro
   function onSubmit(event: FormEvent) {
     event.preventDefault();
     const submitter = (event.nativeEvent as SubmitEvent).submitter;
-    void submit(
-      document.activeElement === inputRef.current || submitter === sendButtonRef.current,
-    );
+    void submit(document.activeElement === inputRef.current || submitter === sendButtonRef.current);
   }
 
   return (
@@ -108,20 +106,30 @@ export function RoomChatPanel({ className, variant = 'lobby' }: RoomChatPanelPro
         )}
       >
         {isLoading && messages.length === 0 ? (
-          <p className={cn('py-6 text-center text-xs', isGame ? 'text-[color:var(--wanas-game-text-secondary)]' : 'text-wanas-text-muted')}>
+          <p
+            className={cn(
+              'py-6 text-center text-xs',
+              isGame ? 'text-[color:var(--wanas-game-text-secondary)]' : 'text-wanas-text-muted',
+            )}
+          >
             {SYSTEM_COPY.loading}
           </p>
         ) : null}
         {loadError ? (
           <div className="space-y-2 py-4 text-center">
-            <p className="text-xs text-wanas-error">{loadError}</p>
+            <p className="text-wanas-error text-xs">{loadError}</p>
             <Button type="button" size="sm" variant="outline" onClick={() => void reload()}>
               {SYSTEM_COPY.retry}
             </Button>
           </div>
         ) : null}
         {!isLoading && !loadError && messages.length === 0 ? (
-          <p className={cn('py-6 text-center text-xs', isGame ? 'text-[color:var(--wanas-game-text-secondary)]' : 'text-wanas-text-muted')}>
+          <p
+            className={cn(
+              'py-6 text-center text-xs',
+              isGame ? 'text-[color:var(--wanas-game-text-secondary)]' : 'text-wanas-text-muted',
+            )}
+          >
             {SYSTEM_COPY.chatEmpty}
           </p>
         ) : null}
@@ -130,22 +138,34 @@ export function RoomChatPanel({ className, variant = 'lobby' }: RoomChatPanelPro
           return (
             <div
               key={message.id}
-              className={cn('flex items-start gap-2 rounded-xl px-3 py-2 text-sm leading-6', own && 'bg-wanas-surface-soft')}
+              className={cn(
+                'flex items-start gap-2 rounded-xl px-3 py-2 text-sm leading-6',
+                own && 'bg-wanas-surface-soft',
+              )}
             >
               {message.playerId ? (
-                <PlayerAvatar playerId={message.playerId} playerName={message.senderName} className="mt-0.5 size-8" sizes="32px" />
+                <PlayerAvatar
+                  playerId={message.playerId}
+                  playerName={message.senderName}
+                  className="mt-0.5 size-8"
+                  sizes="32px"
+                />
               ) : null}
               <div className="min-w-0 flex-1">
                 <p
                   className={cn(
                     'truncate text-[11px] font-semibold',
-                    isGame ? 'text-[color:var(--wanas-game-text-secondary)]' : 'text-wanas-text-muted',
+                    isGame
+                      ? 'text-[color:var(--wanas-game-text-secondary)]'
+                      : 'text-wanas-text-muted',
                   )}
                   title={message.senderName}
                 >
                   {message.senderName}
                 </p>
-                <p className="mt-0.5 whitespace-pre-wrap break-words">{message.content}</p>
+                <p className="mt-0.5 whitespace-pre-wrap [overflow-wrap:anywhere]">
+                  {message.content}
+                </p>
               </div>
             </div>
           );
@@ -175,9 +195,10 @@ export function RoomChatPanel({ className, variant = 'lobby' }: RoomChatPanelPro
           }}
           placeholder={SYSTEM_COPY.chatPlaceholder}
           className={cn(
-            'h-11 min-h-11 min-w-0 flex-1 rounded-[var(--wanas-radius-control)] border bg-wanas-surface-soft px-3 text-base text-wanas-text-primary outline-none lg:text-sm',
-            'placeholder:text-wanas-text-muted focus:border-wanas-accent focus:ring-2 focus:ring-wanas-accent/25',
-            isGame && 'border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] text-[color:var(--wanas-game-text-primary)]',
+            'bg-wanas-surface-soft text-wanas-text-primary h-11 min-h-11 min-w-0 flex-1 rounded-[var(--wanas-radius-control)] border px-3 text-base outline-none lg:text-sm',
+            'placeholder:text-wanas-text-muted focus:border-wanas-accent focus:ring-wanas-accent/25 focus:ring-2',
+            isGame &&
+              'border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-card)] text-[color:var(--wanas-game-text-primary)]',
           )}
         />
         <Button
@@ -192,7 +213,7 @@ export function RoomChatPanel({ className, variant = 'lobby' }: RoomChatPanelPro
         </Button>
       </form>
       {sendError ? (
-        <p role="alert" className="mt-1 text-xs text-wanas-error">
+        <p role="alert" className="text-wanas-error mt-1 text-xs">
           {sendError}
         </p>
       ) : null}

@@ -7,6 +7,7 @@ import { FeedbackButton } from '@/components/feedback/feedback-button';
 import { useGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
 import { clearGameAudioEventKeys, stopAllGameSounds } from '@/lib/game/sounds';
+import { getExperimentalRoomGame } from '@/lib/games/experimental-room-game';
 import { cn } from '@/lib/utils';
 import { useMobileOverlayScrollLock } from '@/lib/ui/use-mobile-overlay-scroll-lock';
 import { GameChatMockPanel } from './game-chat-mock-panel';
@@ -16,6 +17,7 @@ import { GamePlayerRecoveryOverlay } from './game-player-recovery-overlay';
 
 type GameExperienceShellProps = {
   children: ReactNode;
+  gameId?: string;
 };
 
 function ChatIcon() {
@@ -44,7 +46,7 @@ function RankingIcon() {
   );
 }
 
-export function GameExperienceShell({ children }: GameExperienceShellProps) {
+export function GameExperienceShell({ children, gameId }: GameExperienceShellProps) {
   const meta = useGameExperienceMeta();
   const { playerRecovery } = useGameShell();
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
@@ -99,7 +101,20 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
     };
   }, [chatOpen, leaderboardOpen]);
 
-  if (!meta) {
+  const experimentalGame = getExperimentalRoomGame(gameId);
+  const effectiveMeta =
+    meta ??
+    (experimentalGame
+      ? {
+          gameName: experimentalGame.title,
+          gameIcon: experimentalGame.emoji,
+          layoutMode: 'gameplay' as const,
+          phaseLabel: 'جارٍ تجهيز حالة الجولة',
+          leaderboardEntries: [],
+        }
+      : null);
+
+  if (!effectiveMeta) {
     return <>{children}</>;
   }
 
@@ -145,11 +160,13 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col gap-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-      <GameExperienceHeader meta={meta} mobilePanelControls={mobileControls} />
+      <GameExperienceHeader meta={effectiveMeta} mobilePanelControls={mobileControls} />
 
       <div className="min-h-0 flex-1 lg:grid lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)_minmax(220px,260px)] lg:gap-2 xl:grid-cols-[300px_minmax(0,1fr)_minmax(220px,260px)]">
         <div className="hidden min-h-0 flex-col gap-3 lg:flex">
-          <GameChatMockPanel className={cn('max-h-[min(560px,calc(100vh-12rem))]')} />
+          <GameChatMockPanel
+            className={cn('h-[min(26rem,calc(100dvh-13rem))] max-h-[26rem] min-h-64')}
+          />
           <AdPlacement placement="game-chat-rectangle" className="hidden xl:block" />
         </div>
         <div className="relative min-w-0" data-game-primary-content>
@@ -162,8 +179,8 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
           data-game-support-section="leaderboard"
         >
           <GameLeaderboardPanel
-            entries={meta.leaderboardEntries}
-            className={cn('max-h-[min(560px,calc(100vh-12rem))]')}
+            entries={effectiveMeta.leaderboardEntries}
+            className={cn('max-h-[min(26rem,calc(100dvh-13rem))]')}
           />
           <div
             className="hidden min-w-0 xl:flex xl:justify-center"
@@ -177,7 +194,7 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
       {chatOpen ? (
         <div
           ref={chatPanelRef}
-          className="mobile-room-chat-sheet fixed inset-x-0 bottom-0 z-50 flex h-[45dvh] max-h-[45dvh] flex-col overflow-hidden rounded-t-2xl border-t border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-panel-bg)] p-4 shadow-[var(--wanas-game-shadow)] lg:hidden"
+          className="mobile-room-chat-sheet fixed inset-x-0 bottom-0 z-50 flex h-[42dvh] max-h-[32rem] flex-col overflow-hidden rounded-t-2xl border-t border-[color:var(--wanas-game-panel-border)] bg-[color:var(--wanas-game-panel-bg)] p-4 shadow-[var(--wanas-game-shadow)] lg:hidden"
           style={{
             paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))',
             paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
@@ -239,7 +256,7 @@ export function GameExperienceShell({ children }: GameExperienceShellProps) {
             </button>
           </div>
           <div className="max-h-[calc(55dvh-4.5rem)] overflow-y-auto">
-            <GameLeaderboardPanel entries={meta.leaderboardEntries} />
+            <GameLeaderboardPanel entries={effectiveMeta.leaderboardEntries} />
           </div>
         </div>
       ) : null}

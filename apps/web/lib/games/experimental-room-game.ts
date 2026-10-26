@@ -1,5 +1,6 @@
 import {
   EMOJI_LANGUAGE_GAME_ID,
+  EYEWITNESS_GAME_ID,
   MOST_LIKELY_TO_GAME_ID,
   SECRET_AGENTS_GAME_ID,
   TIMELINE_PLACEMENT_GAME_ID,
@@ -42,6 +43,13 @@ const experimentalRoomGames: Record<string, LobbyGame> = {
     description: 'تلميحات فردية تقود المخمّن إلى اختيار واحد من ثمانية',
     iconLabel: 'ك',
     emoji: '💡',
+  },
+  [EYEWITNESS_GAME_ID]: {
+    id: EYEWITNESS_GAME_ID,
+    title: 'شاهد عيان',
+    description: 'صف الصورة ليرسمها اللاعبون ثم اختاروا أفضل رسمة',
+    iconLabel: 'ع',
+    emoji: '👁️',
   },
 };
 

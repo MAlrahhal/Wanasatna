@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { OneWordOnlyPlayerView } from '@wanasatna/shared';
 import { ONE_WORD_ONLY_GAME_ID } from '@wanasatna/shared';
 import { DeadlineProgress } from '@/components/game/deadline-progress';
@@ -10,13 +10,15 @@ import {
   GameSystemLoading,
   SpectatorNotice,
 } from '@/components/room/room-system-state';
+import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
-import { useDeadlineClock } from '@/lib/game/use-deadline-clock';
+import { oneWordOnlyExperienceMeta } from '@/lib/game/experimental-game-experience';
 import { cn } from '@/lib/utils';
 import { useOneWordOnlyPlayerView } from './use-player-view';
 
 export function OneWordOnlyGameScreen() {
   const { state: shell } = useGameShell();
+  const setExperienceMeta = useSetGameExperienceMeta();
   const enabled = shell?.gameId === ONE_WORD_ONLY_GAME_ID && shell.phase === 'PLAYING';
   const { view, error, loading, submitting, submitClue, confirmAnswer, advance } =
     useOneWordOnlyPlayerView(enabled);
@@ -25,7 +27,20 @@ export function OneWordOnlyGameScreen() {
     roundId: string;
     optionId: string | null;
   }>({ roundId: '', optionId: null });
-  const remaining = useDeadlineClock(view?.deadlineAtMs ?? null, 200);
+
+  useEffect(() => {
+    if (!enabled) {
+      setExperienceMeta(null);
+      return;
+    }
+    setExperienceMeta(
+      view
+        ? oneWordOnlyExperienceMeta(view)
+        : { gameName: 'كلمة وحدة بس', gameIcon: '💡', phaseLabel: 'جارٍ التحميل…' },
+    );
+  }, [enabled, setExperienceMeta, view]);
+
+  useEffect(() => () => setExperienceMeta(null), [setExperienceMeta]);
 
   if (!enabled) return null;
   if (loading && !view) return <GameSystemLoading />;
@@ -44,31 +59,24 @@ export function OneWordOnlyGameScreen() {
           className="h-2"
         />
       ) : null}
-      <header className="border-wanas-border bg-wanas-surface rounded-2xl border p-3 sm:p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <p className="text-xs font-bold text-amber-300">اختبار مغلق · تعاوني</p>
-            <h1 className="text-wanas-text-primary text-xl font-black">كلمة وحدة بس</h1>
-          </div>
-          <div className="text-wanas-text-muted flex items-center gap-2 text-xs font-bold">
-            <span>
-              الجولة {view.currentRound} من {view.totalRounds}
-            </span>
-            {view.deadlineAtMs !== null ? (
-              <span
-                className="text-wanas-text-primary rounded-lg bg-black/20 px-2 py-1 font-mono text-base font-black"
-                aria-label={`الوقت المتبقي ${Math.ceil(remaining)} ثانية`}
-              >
-                {Math.ceil(remaining)}ث
-              </span>
-            ) : null}
-          </div>
+      <section className="border-wanas-border bg-wanas-surface flex flex-wrap items-center justify-between gap-3 rounded-2xl border px-4 py-3">
+        <div>
+          <p className="text-wanas-text-muted text-xs font-bold">دورك في هذه الجولة</p>
+          <p className="text-wanas-text-primary mt-0.5 text-base font-black">
+            {view.isSpectator
+              ? 'مشاهدة فقط'
+              : view.isGuesser
+                ? 'أنت المخمّن — انتظر التلميحات'
+                : 'أنت كاتب تلميح — كلمة واحدة فقط'}
+          </p>
         </div>
-        <p className="text-wanas-text-muted mt-2 text-sm">
-          المخمّن: <strong className="text-wanas-text-primary">{view.guesserName}</strong> ·{' '}
-          {view.correctRoundCount} صحيحة من {view.roundsPlayed} جولات
-        </p>
-      </header>
+        <div className="bg-wanas-primary-surface rounded-xl px-3 py-2 text-center">
+          <p className="text-wanas-text-muted text-[11px]">تقدم المجموعة</p>
+          <p className="text-wanas-text-primary text-sm font-black">
+            {view.correctRoundCount} صحيحة / {view.roundsPlayed} مكتملة
+          </p>
+        </div>
+      </section>
 
       {view.phase === 'clue-writing' ? (
         <ClueWriting
@@ -236,7 +244,7 @@ function Guessing(props: {
           بانتظار عودة المخمّن؛ وقت التخمين متوقف ومحفوظ.
         </p>
       ) : null}
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2" aria-label="خيارات الإجابة الثمانية">
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4" aria-label="خيارات الإجابة الثمانية">
         {view.answerOptions.map((option) => (
           <button
             key={option.id}
@@ -245,7 +253,7 @@ function Guessing(props: {
             aria-pressed={props.selectedOptionId === option.id}
             onClick={() => props.setSelectedOptionId(option.id)}
             className={cn(
-              'border-wanas-border bg-wanas-surface-soft text-wanas-text-primary min-h-14 rounded-xl border-2 px-4 py-3 text-base font-bold',
+              'border-wanas-border bg-wanas-surface-soft text-wanas-text-primary min-h-16 rounded-xl border-2 px-3 py-3 text-sm font-bold transition-colors [overflow-wrap:anywhere] sm:text-base',
               props.selectedOptionId === option.id &&
                 'border-wanas-accent bg-wanas-primary-surface',
               view.canConfirmAnswer &&

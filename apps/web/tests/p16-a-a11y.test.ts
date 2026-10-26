@@ -64,7 +64,10 @@ test('5 login fields labeled', () => {
   assert.match(login, /AUTH_COPY\.emailLabel/);
   assert.match(login, /AUTH_COPY\.passwordLabel/);
   assert.match(login, /autoComplete="email"/);
-  assert.match(login, /autoComplete=\{mode === 'register' \? 'new-password' : 'current-password'\}/);
+  assert.match(
+    login,
+    /autoComplete=\{mode === 'register' \? 'new-password' : 'current-password'\}/,
+  );
   assert.match(login, /role="alert"/);
 });
 
@@ -103,7 +106,10 @@ test('8 Admin destructive dialogs accessible', () => {
 });
 
 test('9 icon-only controls labeled', () => {
-  assert.match(read('components/public/public-navbar.tsx'), /aria-label=\{mobileOpen \? 'إغلاق القائمة' : 'فتح القائمة'\}/);
+  assert.match(
+    read('components/public/public-navbar.tsx'),
+    /aria-label=\{mobileOpen \? 'إغلاق القائمة' : 'فتح القائمة'\}/,
+  );
   assert.match(read('plugins/draw-guess/drawing-toolbar.tsx'), /aria-label=\{preset\.label\}/);
   assert.match(read('components/lobby/lobby-screen.tsx'), /aria-label="إغلاق"/);
 });
@@ -120,7 +126,10 @@ test('11 spectator status accessible', () => {
   assert.equal(SYSTEM_COPY.spectator, 'أنت متفرج في هذه الجولة');
   const notice = read('components/room/room-system-state.tsx');
   assert.match(notice, /SYSTEM_COPY\.spectator/);
-  assert.match(read('components/ui/system-status.tsx'), /role=\{tone === 'error' \|\| tone === 'disconnected' \? 'alert' : 'status'\}/);
+  assert.match(
+    read('components/ui/system-status.tsx'),
+    /role=\{tone === 'error' \|\| tone === 'disconnected' \? 'alert' : 'status'\}/,
+  );
 });
 
 test('12 timers avoid 1Hz aria-live spam', () => {
@@ -134,8 +143,10 @@ test('13 GC Blue/Red labeled textually', () => {
   assert.match(read('components/lobby/team-assignment-panel.tsx'), /title="الفريق الأزرق"/);
   assert.match(read('components/lobby/team-assignment-panel.tsx'), /title="الفريق الأحمر"/);
   assert.match(read('components/lobby/team-assignment-panel.tsx'), /الفريق الأزرق/);
-  assert.match(read('plugins/guessing-challenge/game-screen.tsx'), /الفريق الأزرق/);
-  assert.match(read('plugins/guessing-challenge/game-screen.tsx'), /الفريق الأحمر/);
+  const spectatorHud = read('plugins/guessing-challenge/spectator-identity-hud.tsx');
+  assert.match(spectatorHud, /teamId: 'blue',[\s\S]*label: 'هوية الأزرق'/);
+  assert.match(spectatorHud, /teamId: 'red',[\s\S]*label: 'هوية الأحمر'/);
+  assert.match(spectatorHud, /aria-label=\{`\$\{item\.label\}: \$\{value\}`\}/);
 });
 
 test('14 public game links have context', () => {

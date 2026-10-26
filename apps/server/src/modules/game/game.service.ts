@@ -553,54 +553,53 @@ export async function initGameShell(
 export async function syncGameShell(
   roomId: string,
 ): Promise<GameActionResponse<{ state: GameShellState | null }>> {
-  const shell = getGameShellByRoomId(roomId);
-
-  if (!shell) {
+  if (!getGameShellByRoomId(roomId)) {
     return {
       success: true,
       data: { state: null },
     };
   }
 
-  const room = await prisma.room.findUnique({
-    where: { id: roomId },
-    select: { hostPlayerId: true },
+  const state = await prisma.$transaction(async (tx) => {
+    // Host transfer owns this same row lock. Holding it through the in-memory
+    // shell write prevents an older reconnect SYNC from finishing later and
+    // restoring the departed host over the newly assigned one.
+    const roomLocked = await lockRoomRow(tx, roomId);
+    const shellBeforeLoad = getGameShellByRoomId(roomId);
+
+    if (!roomLocked || !shellBeforeLoad) {
+      return null;
+    }
+
+    const room = await tx.room.findUnique({
+      where: { id: roomId },
+      select: { hostPlayerId: true },
+    });
+    if (!room) return null;
+    const hostPlayerId = room.hostPlayerId;
+    const players = await loadRoomPlayers(roomId, hostPlayerId, tx);
+
+    // Re-read after DB awaits so timer/lifecycle progress is never rolled back.
+    const currentShell = getGameShellByRoomId(roomId);
+    if (!currentShell) {
+      return null;
+    }
+
+    return saveShell(
+      withUpdatedPlayers(
+        {
+          ...currentShell,
+          hostPlayerId,
+          players,
+        },
+        players,
+      ),
+    );
   });
-
-  const hostPlayerId = room?.hostPlayerId ?? shell.hostPlayerId;
-  const players = await loadRoomPlayers(roomId, hostPlayerId);
-
-  // Re-read after awaits. Lobby wait / countdown may have advanced (or aborted)
-  // the shell while players were loading. Writing the pre-await snapshot would
-  // regress COUNTDOWN/PLAYING back to WAITING and stall the match start UI.
-  const currentShell = getGameShellByRoomId(roomId);
-
-  if (!currentShell) {
-    return {
-      success: true,
-      data: { state: null },
-    };
-  }
-
-  const effectiveHostPlayerId = room?.hostPlayerId ?? currentShell.hostPlayerId;
 
   return {
     success: true,
-    data: {
-      state: saveShell(
-        withUpdatedPlayers(
-          {
-            ...currentShell,
-            hostPlayerId: effectiveHostPlayerId,
-            players: players.map((player) => ({
-              ...player,
-              isHost: player.id === effectiveHostPlayerId,
-            })),
-          },
-          players,
-        ),
-      ),
-    },
+    data: { state },
   };
 }
 

@@ -472,11 +472,23 @@ test('Lobby notice is informational, not a fatal crash error', () => {
   assert.match(presented, /INSUFFICIENT_PLAYERS_ABORT_MESSAGE/);
 });
 
-test('server null-shell contract remains success + state null', () => {
+test('server null-shell contract short-circuits before locking and returns success + state null', () => {
   const service = readFileSync(join(root, '../server/src/modules/game/game.service.ts'), 'utf8');
+  const syncStart = service.indexOf('export async function syncGameShell');
+  const syncEnd = service.indexOf('\nexport async function', syncStart + 1);
+  const syncSource = service.slice(syncStart, syncEnd === -1 ? undefined : syncEnd);
+  const noShellCheck = syncSource.indexOf('if (!getGameShellByRoomId(roomId))');
+  const transactionStart = syncSource.indexOf('prisma.$transaction');
+
+  assert.ok(syncStart >= 0, 'syncGameShell must remain exported');
+  assert.ok(noShellCheck >= 0, 'syncGameShell must recognize an absent in-memory shell');
+  assert.ok(
+    transactionStart > noShellCheck,
+    'an absent shell must not open a database transaction',
+  );
   assert.match(
-    service,
-    /export async function syncGameShell\([\s\S]*?if \(!shell\) \{\s*return \{\s*success: true,\s*data: \{ state: null \},/,
+    syncSource.slice(noShellCheck, transactionStart),
+    /return \{\s*success: true,\s*data: \{ state: null \},\s*\};/,
   );
 });
 

@@ -44,7 +44,7 @@ test('Admin lobby shows إعدادات تجريبية; Guest/USER sources do not
 
 test('experimental settings require ADMIN and current host', () => {
   const panel = read('components/lobby/game-settings-panel.tsx');
-  assert.match(panel, /isAdmin && isHost && selectedGame/);
+  assert.match(panel, /isAdmin\s*&&\s*isHost\s*&&\s*selectedGame/);
   assert.doesNotMatch(panel, /isAdmin && selectedGame \?/);
   assert.doesNotMatch(panel, /إعدادات تجريبية/);
 });

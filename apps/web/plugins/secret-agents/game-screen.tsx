@@ -14,7 +14,9 @@ import {
   GameSystemLoading,
   SpectatorNotice,
 } from '@/components/room/room-system-state';
+import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
+import { secretAgentsExperienceMeta } from '@/lib/game/experimental-game-experience';
 import { cn } from '@/lib/utils';
 import { useSecretAgentsPlayerView } from './use-player-view';
 
@@ -30,18 +32,9 @@ const typeLabel: Record<SecretAgentsCardType, string> = {
   assassin: 'القاتل',
 };
 
-function useRemainingSeconds(deadlineAtMs: number | null): number | null {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    if (deadlineAtMs === null) return;
-    const timer = window.setInterval(() => setNow(Date.now()), 250);
-    return () => window.clearInterval(timer);
-  }, [deadlineAtMs]);
-  return deadlineAtMs === null ? null : Math.max(0, Math.ceil((deadlineAtMs - now) / 1000));
-}
-
 export function SecretAgentsGameScreen() {
   const { state: shell } = useGameShell();
+  const setExperienceMeta = useSetGameExperienceMeta();
   const enabled = shell?.gameId === SECRET_AGENTS_GAME_ID && shell.phase === 'PLAYING';
   const {
     view,
@@ -56,9 +49,20 @@ export function SecretAgentsGameScreen() {
   } = useSecretAgentsPlayerView(enabled);
   const [clueWord, setClueWord] = useState('');
   const [clueValue, setClueValue] = useState<string>('1');
-  const remainingSeconds = useRemainingSeconds(
-    view?.phase === 'paused' ? (view.recoveryDeadlineAtMs ?? null) : (view?.deadlineAtMs ?? null),
-  );
+
+  useEffect(() => {
+    if (!enabled) {
+      setExperienceMeta(null);
+      return;
+    }
+    setExperienceMeta(
+      view
+        ? secretAgentsExperienceMeta(view)
+        : { gameName: 'العملاء السريون', gameIcon: '🕵️', phaseLabel: 'جارٍ التحميل…' },
+    );
+  }, [enabled, setExperienceMeta, view]);
+
+  useEffect(() => () => setExperienceMeta(null), [setExperienceMeta]);
 
   if (!enabled) return null;
   if (loading && !view) return <GameSystemLoading />;
@@ -70,50 +74,56 @@ export function SecretAgentsGameScreen() {
 
   return (
     <GameScreen ariaLabel="العملاء السريون" maxWidth="6xl" className="min-w-0 gap-3">
-      <header className="border-wanas-border bg-wanas-surface rounded-2xl border p-3 sm:p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <p className="text-xs font-bold text-amber-300">اختبار مغلق</p>
-            <h1 className="text-wanas-text-primary text-xl font-black">العملاء السريون</h1>
-          </div>
-          <div className="flex items-center gap-2 text-xs font-bold">
-            <span className="rounded-full bg-red-500/20 px-3 py-1.5 text-red-100">
-              الأحمر: {view.remainingByTeam.red}
-            </span>
-            <span className="rounded-full bg-blue-500/20 px-3 py-1.5 text-blue-100">
-              الأزرق: {view.remainingByTeam.blue}
-            </span>
-          </div>
-        </div>
-        <div className="text-wanas-text-muted mt-3 flex flex-wrap items-center gap-2 text-sm">
-          <span>الدور {view.turnNumber}</span>
-          <span>•</span>
-          <span>فريق {activeTeamLabel}</span>
-          <span>•</span>
-          <span>
+      <section
+        className={cn(
+          'grid gap-3 rounded-2xl border p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-4',
+          view.activeTeam === 'red'
+            ? 'border-red-400/35 bg-red-500/10'
+            : 'border-blue-400/35 bg-blue-500/10',
+        )}
+        aria-label="حالة الدور"
+      >
+        <div className="min-w-0 text-center sm:text-right">
+          <p className="text-wanas-text-muted text-xs font-bold">
             {view.phase === 'clue'
-              ? 'بانتظار التلميح'
+              ? `بانتظار تلميح قائد ${activeTeamLabel}`
               : view.phase === 'guessing'
-                ? 'مرحلة التخمين'
+                ? `مخمّنو ${activeTeamLabel} يختارون الآن`
                 : view.phase === 'paused'
-                  ? 'المباراة متوقفة مؤقتًا'
-                  : 'انتهت المباراة'}
-          </span>
-          {remainingSeconds !== null ? (
-            <span className="text-wanas-text-primary rounded-lg bg-black/20 px-2 py-1 font-mono font-black">
-              {remainingSeconds}ث
-            </span>
+                  ? 'الدور محفوظ حتى عودة لاعب مؤهل'
+                  : 'اكتملت المباراة'}
+          </p>
+          {view.clue ? (
+            <p className="text-wanas-text-primary mt-1 truncate text-xl font-black sm:text-2xl">
+              {view.clue.word}{' '}
+              <span className="text-wanas-accent">
+                · {view.clue.value === 'unlimited' ? '∞' : view.clue.value}
+              </span>
+            </p>
+          ) : (
+            <p className="text-wanas-text-primary mt-1 text-lg font-black">
+              {view.selfAssignment
+                ? `دورك: ${roleLabel[view.selfAssignment.role]} — ${view.selfAssignment.team === 'red' ? 'الأحمر' : 'الأزرق'}`
+                : 'تابع اللوحة واختر دورًا متاحًا'}
+            </p>
+          )}
+          {view.clue ? (
+            <p className="text-wanas-text-muted mt-1 text-xs">
+              {view.maxConfirmedGuesses !== null
+                ? `باقي ${Math.max(0, view.maxConfirmedGuesses - view.confirmedGuesses)} تخمينات مؤكدة`
+                : 'عدد التخمينات غير محدود'}
+            </p>
           ) : null}
         </div>
-        {view.clue ? (
-          <p className="border-wanas-accent/40 bg-wanas-primary-surface text-wanas-text-primary mt-3 rounded-xl border p-3 text-center font-bold">
-            التلميح: {view.clue.word} — {view.clue.value === 'unlimited' ? '∞' : view.clue.value}
-            {view.maxConfirmedGuesses !== null
-              ? ` · المتبقي ${Math.max(0, view.maxConfirmedGuesses - view.confirmedGuesses)}`
-              : ' · بلا حد عددي'}
-          </p>
-        ) : null}
-      </header>
+        <div className="flex items-center justify-center gap-2 sm:justify-end">
+          <span className="min-w-24 rounded-xl border border-red-300/25 bg-red-500/15 px-3 py-2 text-center text-xs font-black text-red-100">
+            🔴 {view.remainingByTeam.red} متبقٍ
+          </span>
+          <span className="min-w-24 rounded-xl border border-blue-300/25 bg-blue-500/15 px-3 py-2 text-center text-xs font-black text-blue-100">
+            🔵 {view.remainingByTeam.blue} متبقٍ
+          </span>
+        </div>
+      </section>
 
       {view.phase === 'paused' ? (
         <section className="rounded-2xl border border-amber-400/50 bg-amber-400/10 p-4 text-center">
@@ -185,63 +195,68 @@ export function SecretAgentsGameScreen() {
         </p>
       ) : null}
 
-      <section className="grid grid-cols-5 gap-1.5 sm:gap-2" aria-label="لوحة الكلمات 5 في 5">
-        {view.cards
-          .slice()
-          .sort((left, right) => left.position - right.position)
-          .map((card) => {
-            const privateType = view.secretKey?.[card.id] ?? null;
-            const visualType = card.revealedType ?? privateType;
-            const selfNominated = card.nominations.some(
-              (nomination) => nomination.playerId === view.selfPlayerId,
-            );
-            return (
-              <article
-                key={card.id}
-                className={cn(
-                  'relative flex min-h-24 min-w-0 flex-col items-stretch justify-between overflow-hidden rounded-xl border p-1.5 sm:min-h-28 sm:p-2',
-                  cardColor(visualType, card.revealed),
-                  selfNominated && !card.revealed && 'ring-2 ring-amber-300',
-                )}
-              >
-                <button
-                  type="button"
-                  disabled={!view.canNominate || card.revealed || submitting}
-                  onClick={() => void toggleNomination(card.id)}
-                  className="text-wanas-text-primary flex min-h-12 flex-1 items-center justify-center break-words text-center text-[11px] font-black leading-tight disabled:cursor-default sm:text-base"
-                  aria-label={`${card.word}${view.canNominate ? ' — تبديل ترشيحي' : ''}`}
+      <section
+        className="rounded-2xl border border-white/5 bg-black/10 p-1.5 shadow-inner sm:p-2"
+        aria-label="لوحة العملاء السريين"
+      >
+        <div className="grid grid-cols-5 gap-1 sm:gap-2" aria-label="لوحة الكلمات 5 في 5">
+          {view.cards
+            .slice()
+            .sort((left, right) => left.position - right.position)
+            .map((card) => {
+              const privateType = view.secretKey?.[card.id] ?? null;
+              const visualType = card.revealedType ?? privateType;
+              const selfNominated = card.nominations.some(
+                (nomination) => nomination.playerId === view.selfPlayerId,
+              );
+              return (
+                <article
+                  key={card.id}
+                  className={cn(
+                    'relative flex min-h-[4.75rem] min-w-0 flex-col items-stretch justify-between overflow-hidden rounded-lg border p-1 sm:min-h-28 sm:rounded-xl sm:p-2',
+                    cardColor(visualType, card.revealed),
+                    selfNominated && !card.revealed && 'ring-2 ring-amber-300',
+                  )}
                 >
-                  {card.word}
-                </button>
-                {card.nominations.length > 0 && !card.revealed ? (
-                  <p className="line-clamp-2 text-center text-[9px] leading-tight text-amber-100 sm:text-[11px]">
-                    {card.nominations.map((entry) => entry.name).join('، ')}
-                  </p>
-                ) : null}
-                {view.canConfirm && !card.revealed ? (
                   <button
                     type="button"
-                    disabled={submitting}
-                    onClick={() => void confirmCard(card.id)}
-                    className="absolute left-1 top-1 flex size-8 items-center justify-center rounded-lg border border-emerald-200/50 bg-emerald-500 text-base font-black text-white shadow disabled:opacity-50"
-                    aria-label={`تأكيد ${card.word} كإجابة نهائية`}
+                    disabled={!view.canNominate || card.revealed || submitting}
+                    onClick={() => void toggleNomination(card.id)}
+                    className="text-wanas-text-primary flex min-h-10 flex-1 items-center justify-center text-center text-xs font-black leading-tight [overflow-wrap:anywhere] disabled:cursor-default sm:min-h-12 sm:text-base"
+                    aria-label={`${card.word}${view.canNominate ? ' — تبديل ترشيحي' : ''}`}
                   >
-                    ✓
+                    {card.word}
                   </button>
-                ) : null}
-                {card.revealedType ? (
-                  <span className="text-center text-[9px] font-bold text-white/90 sm:text-xs">
-                    {typeLabel[card.revealedType]}
-                  </span>
-                ) : null}
-              </article>
-            );
-          })}
+                  {card.nominations.length > 0 && !card.revealed ? (
+                    <p className="line-clamp-1 text-center text-[9px] font-bold leading-tight text-amber-100 sm:text-[11px]">
+                      ترشيحات: {card.nominations.length}
+                    </p>
+                  ) : null}
+                  {view.canConfirm && !card.revealed ? (
+                    <button
+                      type="button"
+                      disabled={submitting}
+                      onClick={() => void confirmCard(card.id)}
+                      className="absolute inset-x-1 bottom-1 flex min-h-8 items-center justify-center rounded-md border border-emerald-200/50 bg-emerald-500/95 px-1 text-[10px] font-black text-white shadow disabled:opacity-50 sm:inset-x-2 sm:min-h-9 sm:text-xs"
+                      aria-label={`تأكيد ${card.word} كإجابة نهائية`}
+                    >
+                      تأكيد ✓
+                    </button>
+                  ) : null}
+                  {card.revealedType ? (
+                    <span className="text-center text-[9px] font-bold text-white/90 sm:text-xs">
+                      {typeLabel[card.revealedType]}
+                    </span>
+                  ) : null}
+                </article>
+              );
+            })}
+        </div>
       </section>
 
       {view.canNominate ? (
         <p className="text-wanas-text-muted text-center text-xs">
-          اضغط متن البطاقة لترشيحها لفريقك فقط. زر ✓ في الزاوية يثبت الإجابة فورًا.
+          اضغط الكلمة لترشيحها لفريقك فقط. زر «تأكيد ✓» إجراء نهائي منفصل.
         </p>
       ) : null}
       {view.canPass ? (
@@ -261,9 +276,11 @@ export function SecretAgentsGameScreen() {
 
       <TeamRoster view={view} />
 
-      <section className="border-wanas-border bg-wanas-surface rounded-2xl border p-3">
-        <h2 className="text-wanas-text-primary text-sm font-bold">سجل المباراة</h2>
-        <ol className="text-wanas-text-muted mt-2 max-h-64 space-y-1 overflow-y-auto text-xs">
+      <details className="border-wanas-border bg-wanas-surface rounded-2xl border p-3">
+        <summary className="text-wanas-text-primary cursor-pointer text-sm font-bold">
+          سجل المباراة ({view.log.length})
+        </summary>
+        <ol className="text-wanas-text-muted mt-2 max-h-52 space-y-1 overflow-y-auto text-xs">
           {view.log.map((entry) => (
             <li key={entry.id} className="bg-wanas-surface-soft rounded-lg px-2 py-1.5">
               <span className={entry.team === 'red' ? 'text-red-200' : 'text-blue-200'}>
@@ -274,7 +291,7 @@ export function SecretAgentsGameScreen() {
             </li>
           ))}
         </ol>
-      </section>
+      </details>
 
       {isUnassigned ? (
         <SpectatorNotice
@@ -358,8 +375,26 @@ function TeamRoster({ view }: { view: SecretAgentsPlayerView }) {
             {view.roster
               .filter((entry) => entry.assignment?.team === team)
               .map((entry) => (
-                <li key={entry.playerId} className={entry.isConnected ? '' : 'opacity-50'}>
-                  {entry.name} — {entry.assignment ? roleLabel[entry.assignment.role] : ''}
+                <li
+                  key={entry.playerId}
+                  className={cn(
+                    'flex min-w-0 items-center gap-2 rounded-lg bg-black/10 px-2 py-1.5',
+                    !entry.isConnected && 'opacity-50',
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'size-2 shrink-0 rounded-full',
+                      entry.isConnected ? 'bg-emerald-300' : 'bg-slate-500',
+                    )}
+                    aria-label={entry.isConnected ? 'متصل' : 'غير متصل'}
+                  />
+                  <span className="min-w-0 flex-1 truncate" title={entry.name}>
+                    {entry.name}
+                  </span>
+                  <span className="shrink-0 font-bold">
+                    {entry.assignment ? roleLabel[entry.assignment.role] : ''}
+                  </span>
                 </li>
               ))}
           </ul>

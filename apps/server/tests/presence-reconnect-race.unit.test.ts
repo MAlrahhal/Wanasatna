@@ -93,7 +93,7 @@ async function main(): Promise<void> {
     assert.match(handlers, /applySocketDisconnectPresence/);
     assert.match(handlers, /disconnect-restored-after-rebind/);
     assert.doesNotMatch(handlers, /transferHostIfCurrentHostDisconnected/);
-  assert.match(handlers, /emitGameShellStateToSocket/);
+    assert.match(handlers, /emitGameShellStateToSocket/);
     assert.match(handlers, /emitPlayerRecoverySnapshotToSocket/);
 
     const presenceHelper = read('src/modules/room/services/presence-disconnect.service.ts');
@@ -104,10 +104,8 @@ async function main(): Promise<void> {
     assert.doesNotMatch(reconnect, /ROOM_JOINED/);
 
     const gameService = read('src/modules/game/game.service.ts');
-    assert.match(
-      gameService,
-      /filter\(\(player\) => player\.isConnected && !player\.isSpectator\)/,
-    );
+    assert.match(gameService, /!player\.isSpectator/);
+    assert.match(gameService, /gameId !== GUESSING_CHALLENGE_GAME_ID \|\| player\.isConnected/);
   });
 
   await test('refresh disconnect does not LEFT and keeps the same seat in the roster', async () => {

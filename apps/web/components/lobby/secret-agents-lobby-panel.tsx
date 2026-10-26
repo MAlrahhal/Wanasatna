@@ -13,6 +13,8 @@ import { bindPluginViewResync } from '@/lib/game-plugins/bind-plugin-view-resync
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
 import { cn } from '@/lib/utils';
+import { PlayerAvatar } from '@/components/player/player-avatar';
+import { useRoom } from '@/contexts/room-context';
 
 type ViewResponse = { view: SecretAgentsLobbyView };
 
@@ -22,6 +24,7 @@ const roleLabel: Record<SecretAgentsRole, string> = {
 };
 
 export function SecretAgentsLobbyPanel({ isActiveMatch }: { isActiveMatch: boolean }) {
+  const { players } = useRoom();
   const [view, setView] = useState<SecretAgentsLobbyView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -31,6 +34,8 @@ export function SecretAgentsLobbyPanel({ isActiveMatch }: { isActiveMatch: boole
     if (response.success) {
       setView(response.data.view);
       setError(null);
+    } else if (response.error.code === 'RATE_LIMITED') {
+      return 'rate-limited' as const;
     } else {
       setError(response.error.message);
     }
@@ -72,11 +77,12 @@ export function SecretAgentsLobbyPanel({ isActiveMatch }: { isActiveMatch: boole
     blue: view.roster.filter((entry) => entry.assignment?.team === 'blue'),
   };
   const self = view.roster.find((entry) => entry.playerId === view.selfPlayerId);
+  const roomPlayerById = new Map(players.map((entry) => [entry.id, entry]));
 
   return (
     <div className="space-y-3" data-secret-agents-lobby="">
-      <div className="rounded-xl border border-amber-400/40 bg-amber-400/10 p-3">
-        <p className="text-sm font-bold text-amber-200">اختبار مغلق — العملاء السريون</p>
+      <div className="border-wanas-accent/30 bg-wanas-primary-surface rounded-xl border p-3">
+        <p className="text-wanas-text-primary text-sm font-bold">جهّز الفريقين</p>
         <p className="text-wanas-text-muted mt-1 text-xs">
           اختر فريقك ودورك. يحتاج كل فريق إلى قائد ومخمّن واحد على الأقل.
         </p>
@@ -104,16 +110,41 @@ export function SecretAgentsLobbyPanel({ isActiveMatch }: { isActiveMatch: boole
             <h4 className="text-wanas-text-primary text-xs font-bold">{label}</h4>
             <ul className="text-wanas-text-muted mt-2 space-y-1 text-xs">
               {groups[group].length === 0 ? <li>لا يوجد</li> : null}
-              {groups[group].map((entry) => (
-                <li key={entry.playerId} className="flex items-center justify-between gap-2">
-                  <span className={entry.isConnected ? '' : 'opacity-50'}>{entry.name}</span>
-                  {entry.assignment ? (
-                    <span className="rounded-full bg-black/15 px-2 py-0.5">
-                      {roleLabel[entry.assignment.role]}
+              {groups[group].map((entry) => {
+                const roomPlayer = roomPlayerById.get(entry.playerId);
+                return (
+                  <li
+                    key={entry.playerId}
+                    className={cn(
+                      'flex min-w-0 items-center justify-between gap-2 rounded-lg bg-black/10 px-2 py-1.5',
+                      !entry.isConnected && 'opacity-55',
+                    )}
+                  >
+                    <span className="flex min-w-0 items-center gap-2">
+                      <PlayerAvatar
+                        playerId={entry.playerId}
+                        playerName={entry.name}
+                        avatarId={roomPlayer?.avatarId}
+                        className="size-8"
+                        sizes="32px"
+                      />
+                      <span className="min-w-0 truncate" title={entry.name}>
+                        {entry.name}
+                      </span>
+                      {roomPlayer?.isHost ? (
+                        <span title="المضيف" aria-label="المضيف">
+                          👑
+                        </span>
+                      ) : null}
                     </span>
-                  ) : null}
-                </li>
-              ))}
+                    {entry.assignment ? (
+                      <span className="shrink-0 rounded-full bg-black/15 px-2 py-0.5">
+                        {roleLabel[entry.assignment.role]}
+                      </span>
+                    ) : null}
+                  </li>
+                );
+              })}
             </ul>
           </section>
         ))}

@@ -137,7 +137,7 @@ export function GamePluginLayer() {
 
   return (
     <GameExperienceProvider shellActive={shellActive}>
-      <GameExperienceShell>{pluginContent}</GameExperienceShell>
+      <GameExperienceShell gameId={state.gameId}>{pluginContent}</GameExperienceShell>
     </GameExperienceProvider>
   );
 }

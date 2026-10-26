@@ -38,8 +38,9 @@ test('mobile board is fixed 5 columns with separate nomination and confirm contr
   assert.match(source, /toggleNomination\(card\.id\)/);
   assert.match(source, /confirmCard\(card\.id\)/);
   assert.match(source, /aria-label={`تأكيد \$\{card\.word\} كإجابة نهائية`}/);
-  assert.match(source, />\s*✓\s*</);
-  assert.match(source, /اضغط متن البطاقة لترشيحها/);
+  assert.match(source, /تأكيد ✓/);
+  assert.match(source, /زر «تأكيد ✓» إجراء نهائي منفصل/);
+  assert.match(source, /bottom-1/);
 });
 
 test('secret key is rendered only from the private player view', () => {
@@ -55,7 +56,10 @@ test('closed-test game uses the shared themed and ad-policy game shell', () => {
   const layer = read('components/game-plugins/game-plugin-layer.tsx');
   assert.match(layer, /SECRET_AGENTS_GAME_ID/);
   assert.match(layer, /gameId === SECRET_AGENTS_GAME_ID/);
-  assert.match(layer, /<GameExperienceShell>\{pluginContent\}<\/GameExperienceShell>/);
+  assert.match(
+    layer,
+    /<GameExperienceShell gameId=\{state\.gameId\}>\{pluginContent\}<\/GameExperienceShell>/,
+  );
 });
 
 test('game remains absent from public and ordinary lobby catalogs', () => {

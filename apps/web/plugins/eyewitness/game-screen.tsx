@@ -15,8 +15,9 @@ import {
   GameSystemLoading,
   SpectatorNotice,
 } from '@/components/room/room-system-state';
+import { useSetGameExperienceMeta } from '@/contexts/game-experience-context';
 import { useGameShell } from '@/contexts/game-shell-context';
-import { useDeadlineClock } from '@/lib/game/use-deadline-clock';
+import { eyewitnessExperienceMeta } from '@/lib/game/experimental-game-experience';
 import { cn } from '@/lib/utils';
 import { DrawingCanvas } from '@/plugins/draw-guess/drawing-canvas';
 import { DrawingToolbar } from '@/plugins/draw-guess/drawing-toolbar';
@@ -24,6 +25,7 @@ import { useEyewitnessPlayerView } from './use-player-view';
 
 export function EyewitnessGameScreen() {
   const { state: shell } = useGameShell();
+  const setExperienceMeta = useSetGameExperienceMeta();
   const enabled = shell?.gameId === EYEWITNESS_GAME_ID && shell.phase === 'PLAYING';
   const actions = useEyewitnessPlayerView(enabled);
   const { view, error, loading, submitting } = actions;
@@ -34,7 +36,6 @@ export function EyewitnessGameScreen() {
   }>({ roundId: '', artworkId: null });
   const [preview, setPreview] = useState<EyewitnessAnonymousArtwork | null>(null);
   const saveDescriptionRef = useRef(actions.saveDescription);
-  const remaining = useDeadlineClock(view?.deadlineAtMs ?? null, 200);
   const currentDraft = view
     ? draft.roundId === view.roundId
       ? draft.value
@@ -45,6 +46,20 @@ export function EyewitnessGameScreen() {
       ? voteSelection.artworkId
       : view.confirmedArtworkId
     : null;
+
+  useEffect(() => {
+    if (!enabled) {
+      setExperienceMeta(null);
+      return;
+    }
+    setExperienceMeta(
+      view
+        ? eyewitnessExperienceMeta(view)
+        : { gameName: 'شاهد عيان', gameIcon: '👁️', phaseLabel: 'جارٍ التحميل…' },
+    );
+  }, [enabled, setExperienceMeta, view]);
+
+  useEffect(() => () => setExperienceMeta(null), [setExperienceMeta]);
 
   useEffect(() => {
     saveDescriptionRef.current = actions.saveDescription;
@@ -73,27 +88,25 @@ export function EyewitnessGameScreen() {
           className="h-2"
         />
       ) : null}
-      <header className="border-wanas-border bg-wanas-surface rounded-2xl border p-3 sm:p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <p className="text-xs font-bold text-amber-300">اختبار مغلق · رسم وتواصل</p>
-            <h1 className="text-wanas-text-primary text-xl font-black">شاهد عيان</h1>
-          </div>
-          <div className="text-wanas-text-muted flex items-center gap-2 text-xs font-bold">
-            <span>
-              الجولة {view.currentRound} من {view.totalRounds}
-            </span>
-            {view.deadlineAtMs !== null ? (
-              <span className="text-wanas-text-primary rounded-lg bg-black/20 px-2 py-1 font-mono text-base font-black">
-                {Math.ceil(remaining)}ث
-              </span>
-            ) : null}
-          </div>
+      <section className="border-wanas-border bg-wanas-surface flex flex-wrap items-center justify-between gap-3 rounded-2xl border px-4 py-3">
+        <div>
+          <p className="text-wanas-text-muted text-xs font-bold">مهمتك الآن</p>
+          <p className="text-wanas-text-primary mt-0.5 font-black">
+            {view.isSpectator
+              ? 'شاهد الجولة دون إجراء'
+              : view.phase === 'witness' && view.isWitness
+                ? 'شاهد الصورة ثم صفها للمجموعة'
+                : view.phase === 'drawing' && view.isArtist
+                  ? 'ارسم اعتمادًا على وصف الشاهد'
+                  : view.phase === 'voting' && view.canVote
+                    ? 'قارن الرسومات ثم اختر الأفضل'
+                    : 'انتظر اكتمال إجراء اللاعبين'}
+          </p>
         </div>
-        <p className="text-wanas-text-muted mt-2 text-sm">
-          شاهد الجولة: <strong className="text-wanas-text-primary">{view.witnessName}</strong>
-        </p>
-      </header>
+        <span className="bg-wanas-primary-surface text-wanas-text-primary rounded-xl px-3 py-2 text-sm font-bold">
+          👁️ الشاهد: {view.witnessName}
+        </span>
+      </section>
 
       {view.phase === 'witness' ? (
         <WitnessPhase
@@ -166,21 +179,38 @@ function WitnessPhase(props: {
   return (
     <section className="border-wanas-border bg-wanas-surface grid gap-4 rounded-2xl border p-3 lg:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.75fr)] lg:p-5">
       <div className="min-w-0 space-y-2">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-wanas-text-primary font-black">الصورة السرية — صفها دون إظهارها</p>
-          <label className="text-wanas-text-muted flex items-center gap-2 text-xs">
-            تكبير
-            <input
-              type="range"
-              min="1"
-              max="2.5"
-              step="0.25"
-              value={zoom}
-              onChange={(event) => setZoom(Number(event.target.value))}
-            />
-          </label>
+          <div
+            className="border-wanas-border bg-wanas-surface-soft flex items-center gap-1 rounded-xl border p-1"
+            aria-label="أدوات تكبير الصورة"
+          >
+            <button
+              type="button"
+              onClick={() => setZoom((value) => Math.max(1, value - 0.25))}
+              className="text-wanas-text-primary size-10 rounded-lg font-black hover:bg-white/5"
+              aria-label="تصغير الصورة"
+            >
+              −
+            </button>
+            <button
+              type="button"
+              onClick={() => setZoom(1)}
+              className="text-wanas-text-muted min-h-10 rounded-lg px-2 text-xs font-bold hover:bg-white/5"
+            >
+              {Math.round(zoom * 100)}٪ · إعادة
+            </button>
+            <button
+              type="button"
+              onClick={() => setZoom((value) => Math.min(2.5, value + 0.25))}
+              className="text-wanas-text-primary size-10 rounded-lg font-black hover:bg-white/5"
+              aria-label="تكبير الصورة"
+            >
+              +
+            </button>
+          </div>
         </div>
-        <div className="border-wanas-border h-[min(55dvh,34rem)] touch-pan-x touch-pan-y overflow-auto rounded-xl border bg-white">
+        <div className="border-wanas-border h-[min(52dvh,34rem)] touch-pan-x touch-pan-y overflow-auto overscroll-contain rounded-xl border bg-white">
           {props.view.privateReferenceImageDataUrl ? (
             <Image
               src={props.view.privateReferenceImageDataUrl}
@@ -191,7 +221,7 @@ function WitnessPhase(props: {
               priority
               draggable={false}
               className="max-w-none select-none"
-              style={{ width: `${zoom * 100}%`, height: 'auto' }}
+              style={{ width: `${zoom * 100}%`, height: 'auto', transformOrigin: 'top right' }}
             />
           ) : null}
         </div>
@@ -213,7 +243,7 @@ function WitnessPhase(props: {
           onBlur={props.saveDraft}
           maxLength={600}
           rows={9}
-          className="border-wanas-border bg-wanas-surface-soft text-wanas-text-primary min-h-36 rounded-xl border p-3 text-base"
+          className="border-wanas-border bg-wanas-surface-soft text-wanas-text-primary min-h-32 flex-1 rounded-xl border p-3 text-base lg:min-h-48"
           placeholder="اكتب تفاصيل المخلوق، ألوانه، ملابسه، وما يحمله… أو اتركه فارغًا واشرح بصوتك."
         />
         <p className="text-wanas-text-muted text-xs">
@@ -262,7 +292,7 @@ function DrawingPhase({
             تم تثبيت رسمتك. انتظر بدء التصويت.
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3" data-eyewitness-drawing-workspace="">
             <DrawingCanvas
               strokes={view.ownStrokes}
               readOnly={!view.canDraw}
@@ -273,6 +303,7 @@ function DrawingPhase({
               onStrokeStart={(payload) => void actions.strokeStart(payload)}
               onStrokePoints={(payload) => void actions.strokePoints(payload)}
               onStrokeEnd={({ strokeId }) => void actions.strokeEnd(strokeId)}
+              className="[&>canvas]:h-[min(58dvh,34rem)] [&>canvas]:min-h-64"
             />
             <DrawingToolbar
               tool={tool}
@@ -358,7 +389,7 @@ function VotingPhase(props: {
               <button
                 type="button"
                 onClick={() => props.setPreview(artwork)}
-                className="w-full"
+                className="w-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--wanas-game-accent)]"
                 aria-label={`تكبير الرسمة ${index + 1}`}
               >
                 <DrawingCanvas strokes={artwork.strokes} readOnly className="pointer-events-none" />
@@ -415,7 +446,7 @@ function ArtworkModal({
       role="dialog"
       aria-modal="true"
       aria-label="معاينة الرسمة"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-[max(0.75rem,env(safe-area-inset-top))]"
       onClick={close}
     >
       <div className="w-full max-w-4xl" onClick={(event) => event.stopPropagation()}>
