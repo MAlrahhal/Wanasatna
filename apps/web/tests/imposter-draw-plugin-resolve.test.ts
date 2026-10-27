@@ -56,5 +56,26 @@ test('spectator voting mounts read-only VotingScreen instead of a countdown stub
   assert.doesNotMatch(waiting, /secretWord/);
 });
 
+test('guess phase renders authoritative choices read-only for observers', () => {
+  const source = readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), '..', 'plugins/imposter-draw/game-screen.tsx'),
+    'utf8',
+  );
+  assert.match(source, /showOptionsToObservers/);
+  assert.match(source, /waitingTitle="الإمبوستر يختار الإجابة"/);
+  assert.match(source, /onSelectWord=\{view\.role === 'impostor'/);
+  assert.match(source, /onSubmit=\{[\s\S]*view\.role === 'impostor'/);
+
+  const sharedScreen = readFileSync(
+    join(
+      dirname(fileURLToPath(import.meta.url)),
+      '..',
+      'plugins/bara-al-salafa/impostor-guess-screen.tsx',
+    ),
+    'utf8',
+  );
+  assert.match(sharedScreen, /showOptions \? \([\s\S]*<GuessOptionButton[\s\S]*disabled/);
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

@@ -398,9 +398,9 @@ export function ImposterDrawGameScreen(_props: GamePluginScreenProps) {
         remainingSeconds={0}
         deadlineAtMs={view.deadlineAtMs}
         showTimer
-        showOptionsToObservers={false}
-        waitingTitle="الإمبوستر يحاول تخمين الصورة..."
-        waitingHelper="انتظر نتيجة التخمين."
+        showOptionsToObservers
+        waitingTitle="الإمبوستر يختار الإجابة"
+        waitingHelper="الخيارات معروضة للمتابعة فقط."
         heroTitle="وش الصورة؟"
         heroHelper="اختر الإجابة الصحيحة دون معرفة الصورة مسبقاً."
         onSelectWord={view.role === 'impostor' ? setSelectedGuessWord : undefined}

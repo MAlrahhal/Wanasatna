@@ -278,7 +278,10 @@ async function playThroughDrawing(
   return drawers;
 }
 
-async function completeVotingAndGuess(clients: TestClient[]): Promise<void> {
+async function completeVotingAndGuess(
+  clients: TestClient[],
+  verifyReconnectAndSpectator = false,
+): Promise<void> {
   const host = clients[0]!;
   await waitForPhase(host, 'voting', 'voting phase');
 
@@ -316,6 +319,103 @@ async function completeVotingAndGuess(clients: TestClient[]): Promise<void> {
   assert.ok(impostor, 'impostor guesser');
   assert.equal(impostor.view.referenceImage, null);
   assert.ok(impostor.view.impostorGuessOptions.length >= 2);
+
+  for (const { view } of guessViews) {
+    assert.deepEqual(
+      view.impostorGuessOptions,
+      impostor.view.impostorGuessOptions,
+      'all match players receive the same ordered safe choices',
+    );
+    assert.equal(view.referenceImage, null);
+    assert.equal(view.revealedAnswerLabel, null);
+    assert.equal(view.selectedImageGuess, null);
+    assert.equal(view.impostorGuessedCorrectly, null);
+    assert.equal(view.canGuessImage, view.role === 'impostor');
+  }
+
+  const ordinary = guessViews.find((entry) => entry.view.role !== 'impostor');
+  assert.ok(ordinary, 'ordinary player');
+  const forgedPlayerGuess = await ack<{
+    success: boolean;
+    error?: { code: string };
+  }>(ordinary.client.socket, IMPOSTER_DRAW_SUBMIT_IMAGE_GUESS_EVENT, {
+    selectedWord: impostor.view.impostorGuessOptions[0],
+  });
+  assert.equal(forgedPlayerGuess.success, false);
+  assert.equal(forgedPlayerGuess.error?.code, 'INVALID_ACTION');
+
+  if (verifyReconnectAndSpectator) {
+    const choicesBeforeReconnect = ordinary.view.impostorGuessOptions;
+    ordinary.client.socket.disconnect();
+    await sleep(200);
+    ordinary.client.socket = await connectClient();
+    trackClientEvents(ordinary.client);
+    const reconnectRes = await ack<{
+      success: boolean;
+      data?: { reconnectToken?: string };
+      error?: { message?: string };
+    }>(ordinary.client.socket, 'reconnect', {
+      playerId: ordinary.client.id,
+      roomId: ordinary.client.roomId,
+      roomCode: ordinary.client.roomCode,
+      reconnectToken: ordinary.client.reconnectToken,
+    });
+    assert.ok(reconnectRes.success, reconnectRes.error?.message ?? 'reconnect ordinary player');
+    ordinary.client.reconnectToken =
+      reconnectRes.data?.reconnectToken ?? ordinary.client.reconnectToken;
+    const reconnectedView = await syncView(ordinary.client.socket);
+    assert.deepEqual(reconnectedView.impostorGuessOptions, choicesBeforeReconnect);
+    assert.equal(reconnectedView.canGuessImage, false);
+    assert.equal(reconnectedView.selectedImageGuess, null);
+
+    const spectatorSocket = await connectClient();
+    const spectator: TestClient = {
+      name: 'مشاهد',
+      socket: spectatorSocket,
+      id: '',
+      roomId: '',
+      roomCode: host.roomCode,
+      reconnectToken: '',
+      shellEvents: [],
+      roster: [],
+      rosterPlayers: [],
+      navigations: [],
+      recoveryEvents: [],
+    };
+    trackClientEvents(spectator);
+    const joinRes = await ack<{
+      success: boolean;
+      data?: { player: { id: string }; room: { id: string }; reconnectToken?: string };
+      error?: { message?: string };
+    }>(spectator.socket, 'join-room', {
+      roomCode: host.roomCode,
+      playerName: spectator.name,
+    });
+    assert.ok(joinRes.success, joinRes.error?.message ?? 'spectator joins running match');
+    spectator.id = joinRes.data!.player.id;
+    spectator.roomId = joinRes.data!.room.id;
+    spectator.reconnectToken = joinRes.data!.reconnectToken ?? '';
+
+    const spectatorView = await syncView(spectator.socket);
+    assert.equal(spectatorView.isMatchSpectator, true);
+    assert.deepEqual(spectatorView.impostorGuessOptions, impostor.view.impostorGuessOptions);
+    assert.equal(spectatorView.canGuessImage, false);
+    assert.equal(spectatorView.referenceImage, null);
+    assert.equal(spectatorView.revealedAnswerLabel, null);
+    assert.equal(spectatorView.selectedImageGuess, null);
+    assert.equal(spectatorView.impostorGuessedCorrectly, null);
+
+    const forgedSpectatorGuess = await ack<{
+      success: boolean;
+      error?: { code: string };
+    }>(spectator.socket, IMPOSTER_DRAW_SUBMIT_IMAGE_GUESS_EVENT, {
+      selectedWord: impostor.view.impostorGuessOptions[0],
+    });
+    assert.equal(forgedSpectatorGuess.success, false);
+    assert.equal(forgedSpectatorGuess.error?.code, 'NOT_PARTICIPANT');
+
+    spectator.socket.disconnect();
+  }
 
   const wrongOption =
     impostor.view.impostorGuessOptions.find((option) => option !== impostor.view.revealedAnswerLabel) ??
@@ -374,7 +474,7 @@ async function runCompleteMatch(playerCount: number): Promise<void> {
       const afterDrawing = await syncView(host.socket);
       assert.ok(afterDrawing.strokes.length >= 1, 'cumulative canvas kept strokes');
 
-      await completeVotingAndGuess(clients);
+      await completeVotingAndGuess(clients, round === 1 && playerCount === 3);
 
       if (round < 3) {
         const continueRes = await ack<{

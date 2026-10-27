@@ -187,7 +187,7 @@ test('crew sees image only during briefing; impostor never does', () => {
   assert.equal(buildImposterDrawPlayerView(drawingMatch, 'p2', shell).referenceImage, null);
 });
 
-test('reveal and guess phases never expose reference image', () => {
+test('guess choices are identical and safe for impostor, crew, and spectators', () => {
   const shell = makeShell();
   const revealMatch = makeMatch({
     round: makeRound({
@@ -210,9 +210,22 @@ test('reveal and guess phases never expose reference image', () => {
     }),
   });
   const impostorGuess = buildImposterDrawPlayerView(guessMatch, 'p2', shell);
+  const crewGuess = buildImposterDrawPlayerView(guessMatch, 'p1', shell);
+  const spectatorGuess = buildImposterDrawSpectatorView(guessMatch, shell);
   assert.equal(impostorGuess.referenceImage, null);
   assert.equal(impostorGuess.revealedAnswerLabel, null);
   assert.deepEqual(impostorGuess.impostorGuessOptions, ['قطة', 'كلب', 'أسد']);
+  assert.deepEqual(crewGuess.impostorGuessOptions, impostorGuess.impostorGuessOptions);
+  assert.deepEqual(spectatorGuess.impostorGuessOptions, impostorGuess.impostorGuessOptions);
+  assert.equal(impostorGuess.canGuessImage, true);
+  assert.equal(crewGuess.canGuessImage, false);
+  assert.equal(spectatorGuess.canGuessImage, false);
+  for (const view of [impostorGuess, crewGuess, spectatorGuess]) {
+    assert.equal(view.referenceImage, null);
+    assert.equal(view.revealedAnswerLabel, null);
+    assert.equal(view.selectedImageGuess, null);
+    assert.equal(view.impostorGuessedCorrectly, null);
+  }
   assert.ok(!impostorGuess.impostorGuessOptions.includes(guessMatch.round.imageUrl));
 });
 
