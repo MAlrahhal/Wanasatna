@@ -25,7 +25,7 @@ export const ADSTERRA_BANNER_300x250 = {
   height: 250,
   width: 300,
   params: {},
-  invokeSrc: 'https://www.highrevenueformat.com/def2570bbac8dbcccbff340a7eff4565/invoke.js',
+  invokeSrc: 'https://bauval.org/22/def2570bbac8dbcccbff340a7eff4565',
 } as const satisfies AdsterraBannerZone;
 
 export const ADSTERRA_BANNER_MOBILE_320x50 = {
@@ -35,7 +35,7 @@ export const ADSTERRA_BANNER_MOBILE_320x50 = {
   height: 50,
   width: 320,
   params: {},
-  invokeSrc: 'https://www.highrevenueformat.com/8ab90065c8e99084fa144b118690d7ef/invoke.js',
+  invokeSrc: 'https://bauval.org/22/8ab90065c8e99084fa144b118690d7ef',
   maxViewportWidth: 799,
 } as const satisfies AdsterraBannerZone;
 
@@ -46,7 +46,7 @@ export const ADSTERRA_BANNER_DESKTOP_728x90 = {
   height: 90,
   width: 728,
   params: {},
-  invokeSrc: 'https://www.highrevenueformat.com/8c7899da0472ebe9381fa1297c9ea859/invoke.js',
+  invokeSrc: 'https://bauval.org/22/8c7899da0472ebe9381fa1297c9ea859',
   minViewportWidth: 800,
 } as const satisfies AdsterraBannerZone;
 
@@ -57,7 +57,7 @@ export const ADSTERRA_BANNER_160x600 = {
   height: 600,
   width: 160,
   params: {},
-  invokeSrc: 'https://www.highrevenueformat.com/863737c9637f7fa3bac6344d36097d8b/invoke.js',
+  invokeSrc: 'https://bauval.org/22/863737c9637f7fa3bac6344d36097d8b',
   minViewportWidth: 1536,
 } as const satisfies AdsterraBannerZone;
 
@@ -68,7 +68,7 @@ export const ADSTERRA_BANNER_468x60 = {
   height: 60,
   width: 468,
   params: {},
-  invokeSrc: 'https://www.highrevenueformat.com/eb85acaa87873198ac330afab579920e/invoke.js',
+  invokeSrc: 'https://bauval.org/22/eb85acaa87873198ac330afab579920e',
   minViewportWidth: 800,
 } as const satisfies AdsterraBannerZone;
 
@@ -79,7 +79,7 @@ export const ADSTERRA_BANNER_160x300 = {
   height: 300,
   width: 160,
   params: {},
-  invokeSrc: 'https://www.highrevenueformat.com/4614f03613a254f4dbc71d0546e42ccf/invoke.js',
+  invokeSrc: 'https://bauval.org/22/4614f03613a254f4dbc71d0546e42ccf',
   minViewportWidth: 1280,
 } as const satisfies AdsterraBannerZone;
 

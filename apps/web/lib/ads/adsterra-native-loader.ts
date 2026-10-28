@@ -236,7 +236,8 @@ export function createAdsterraNativeLoader({
       script.dataset.adsterraNativeUnit = unit.id;
       script.onload = detectRendered;
       script.onerror = () => removeRecord('error');
-      slot.append(script, container);
+      // The provider expects its target to exist before the async loader can execute.
+      slot.append(container, script);
       host.appendChild(slot);
       records.set(unit.id, record);
       setDiagnostic(host, unit, 'loading');

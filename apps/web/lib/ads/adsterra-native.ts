@@ -11,20 +11,17 @@ export type AdsterraNativeUnit = {
 export const ADSTERRA_NATIVE_UNITS = {
   'home-native': {
     id: 'home-native',
-    invokeSrc:
-      'https://pl31429875.profitableratecpmnetwork.com/3dd3ec9a400fe77f9d05bdaef34d52f4/invoke.js',
+    invokeSrc: 'https://bauval.org/21/3dd3ec9a400fe77f9d05bdaef34d52f4',
     containerId: 'container-3dd3ec9a400fe77f9d05bdaef34d52f4',
   },
   'lobby-native': {
     id: 'lobby-native',
-    invokeSrc:
-      'https://pl31429877.profitableratecpmnetwork.com/73dd4ecebe7efa0f366b1fc9060c7f22/invoke.js',
+    invokeSrc: 'https://bauval.org/21/73dd4ecebe7efa0f366b1fc9060c7f22',
     containerId: 'container-73dd4ecebe7efa0f366b1fc9060c7f22',
   },
   'results-native': {
     id: 'results-native',
-    invokeSrc:
-      'https://pl31429876.profitableratecpmnetwork.com/b2785198615471bba4ff6b7b78337072/invoke.js',
+    invokeSrc: 'https://bauval.org/21/b2785198615471bba4ff6b7b78337072',
     containerId: 'container-b2785198615471bba4ff6b7b78337072',
   },
 } as const satisfies Record<AdsterraNativeUnitId, AdsterraNativeUnit>;

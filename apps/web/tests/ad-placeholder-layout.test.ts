@@ -36,6 +36,9 @@ for (const source of [staticPlacement, staticBanner, nativePlacement]) {
 assert.match(staticPlacement, /w-full/);
 assert.match(staticBanner, /justify-center/);
 assert.match(nativePlacement, /w-full min-w-0 overflow-hidden/);
-assert.doesNotMatch(read('app/layout.tsx'), /highrevenueformat|AdsterraBanner|AdPlacement/);
+assert.doesNotMatch(
+  read('app/layout.tsx'),
+  /highrevenueformat|profitableratecpmnetwork|bauval\.org|AdsterraBanner|AdPlacement/,
+);
 
 console.log('Production ad placement layout contract passed');

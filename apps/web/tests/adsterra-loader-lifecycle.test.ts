@@ -140,6 +140,7 @@ async function verifyMultipleBannerIsolation(): Promise<void> {
   await flushQueue();
   const scriptA = scriptIn(hostA);
   assert.ok(scriptA, 'the first placement inserts its script');
+  assert.equal(scriptA.src, ADSTERRA_BANNER_DESKTOP_728x90.invokeSrc);
   assert.equal(scriptIn(hostB), null, 'the second placement waits for the first iframe');
   assert.equal(adWindow.atOptions?.key, ADSTERRA_BANNER_DESKTOP_728x90.key);
 
@@ -156,6 +157,7 @@ async function verifyMultipleBannerIsolation(): Promise<void> {
   await flushQueue();
   const scriptB = scriptIn(hostB);
   assert.ok(scriptB, 'the second placement starts after the first iframe exists');
+  assert.equal(scriptB.src, ADSTERRA_BANNER_468x60.invokeSrc);
   assert.equal(scriptB.dataset.adsterraKey, ADSTERRA_BANNER_468x60.key);
   assert.equal(hostA.querySelector('iframe'), frameA, 'the first ad remains in its own host');
 

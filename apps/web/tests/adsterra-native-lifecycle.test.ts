@@ -129,6 +129,14 @@ async function verifyDuplicateRefusalAndStrictModeAdoption(): Promise<void> {
   assert.equal(script.async, true);
   assert.equal(script.dataset.cfasync, 'false');
   assert.equal(containerIn(firstHost, unit.containerId).id, unit.containerId);
+  const slot = firstHost.children[0];
+  assert.ok(slot);
+  assert.equal(
+    slot.children[0]?.id,
+    unit.containerId,
+    'the Native target exists before its script',
+  );
+  assert.equal(slot.children[1], script, 'the Native script is appended after its target');
 
   const duplicate = loader.enqueue(duplicateHost as unknown as HTMLElement, unit);
   assert.equal(await duplicate.completion, 'duplicate');
