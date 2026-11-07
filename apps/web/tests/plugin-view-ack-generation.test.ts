@@ -380,6 +380,7 @@ async function main(): Promise<void> {
       'timeline-placement-lobby-panel.tsx',
       'one-word-only-lobby-panel.tsx',
       'eyewitness-lobby-panel.tsx',
+      'same-wavelength-lobby-panel.tsx',
     ];
 
     for (const panel of panels) {

@@ -50,6 +50,7 @@ test('all known plugin ids are registered exactly once', () => {
     'judge',
     'most-likely-to',
     'one-word-only',
+    'same-wavelength',
     'secret-agents',
     'timeline-placement',
     'timing-challenge',
@@ -111,7 +112,7 @@ test('timing-challenge lobby catalog ID matches plugin ID', () => {
 test('re-running registration is idempotent (Strict Mode / Fast Refresh safe)', () => {
   registerAllClientGamePlugins();
   registerAllClientGamePlugins();
-  assert.equal(listClientGamePlugins().length, 14, 'no duplicate registrations');
+  assert.equal(listClientGamePlugins().length, 15, 'no duplicate registrations');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

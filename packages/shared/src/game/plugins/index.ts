@@ -12,3 +12,4 @@ export * from './emoji-language/types.js';
 export * from './timeline-placement/types.js';
 export * from './one-word-only/types.js';
 export * from './eyewitness/types.js';
+export * from './same-wavelength/types.js';

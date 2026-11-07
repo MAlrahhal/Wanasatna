@@ -174,6 +174,7 @@ test('7. all public and closed-test lazy registry entries resolve and inherit re
     'eyewitness',
     'most-likely-to',
     'one-word-only',
+    'same-wavelength',
     'secret-agents',
     'timeline-placement',
   ];

@@ -13,6 +13,7 @@ import { emojiLanguageClientPlugin } from '@/plugins/emoji-language';
 import { timelinePlacementClientPlugin } from '@/plugins/timeline-placement';
 import { oneWordOnlyClientPlugin } from '@/plugins/one-word-only';
 import { eyewitnessClientPlugin } from '@/plugins/eyewitness';
+import { sameWavelengthClientPlugin } from '@/plugins/same-wavelength';
 
 const allClientGamePlugins = [
   baraAlSalafaClientPlugin,
@@ -29,6 +30,7 @@ const allClientGamePlugins = [
   timelinePlacementClientPlugin,
   oneWordOnlyClientPlugin,
   eyewitnessClientPlugin,
+  sameWavelengthClientPlugin,
 ];
 
 export function registerAllClientGamePlugins(): void {
@@ -59,4 +61,5 @@ export {
   timelinePlacementClientPlugin,
   oneWordOnlyClientPlugin,
   eyewitnessClientPlugin,
+  sameWavelengthClientPlugin,
 };

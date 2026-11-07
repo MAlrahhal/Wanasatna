@@ -5,6 +5,7 @@ import {
   SECRET_AGENTS_GAME_ID,
   TIMELINE_PLACEMENT_GAME_ID,
   ONE_WORD_ONLY_GAME_ID,
+  SAME_WAVELENGTH_GAME_ID,
 } from '@wanasatna/shared';
 import type { LobbyGame } from '@/lib/lobby/types';
 
@@ -50,6 +51,13 @@ const experimentalRoomGames: Record<string, LobbyGame> = {
     description: 'صف الصورة ليرسمها اللاعبون ثم اختاروا أفضل رسمة',
     iconLabel: 'ع',
     emoji: '👁️',
+  },
+  [SAME_WAVELENGTH_GAME_ID]: {
+    id: SAME_WAVELENGTH_GAME_ID,
+    title: 'على نفس الموجة',
+    description: 'تلميح واحد ونقطة سرية بين مفهومين متعاكسين',
+    iconLabel: '〰️',
+    emoji: '〰️',
   },
 };
 

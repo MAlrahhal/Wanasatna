@@ -5,6 +5,7 @@ import type {
   MostLikelyToPlayerView,
   OneWordOnlyPlayerView,
   SecretAgentsPlayerView,
+  SameWavelengthPlayerView,
   TimelinePlacementPlayerView,
 } from '@wanasatna/shared';
 import {
@@ -12,6 +13,7 @@ import {
   eyewitnessExperienceMeta,
   mostLikelyToExperienceMeta,
   oneWordOnlyExperienceMeta,
+  sameWavelengthExperienceMeta,
   secretAgentsExperienceMeta,
   timelinePlacementExperienceMeta,
 } from '../lib/game/experimental-game-experience';
@@ -31,7 +33,7 @@ function test(name: string, run: () => void): void {
   }
 }
 
-test('all six experimental games expose real phase, round, and timer state to the shared shell', () => {
+test('all seven experimental games expose real phase, round, and timer state to the shared shell', () => {
   const deadlineAtMs = 123_456;
   const secret = secretAgentsExperienceMeta({
     phase: 'guessing',
@@ -78,8 +80,17 @@ test('all six experimental games expose real phase, round, and timer state to th
     deadlineAtMs,
     leaderboard: [],
   } as unknown as EyewitnessPlayerView);
+  const sameWavelength = sameWavelengthExperienceMeta({
+    phase: 'guessing',
+    mode: 'individual',
+    clueGiverName: 'سارة',
+    currentRound: 3,
+    totalRounds: 5,
+    deadlineAtMs,
+    leaderboard: [],
+  } as unknown as SameWavelengthPlayerView);
 
-  for (const meta of [secret, social, emoji, timeline, oneWord, eyewitness]) {
+  for (const meta of [secret, social, emoji, timeline, oneWord, eyewitness, sameWavelength]) {
     assert.equal(meta.timer?.deadlineAtMs, deadlineAtMs);
     assert.ok(meta.phaseLabel);
     assert.ok(meta.gameName);
@@ -87,6 +98,7 @@ test('all six experimental games expose real phase, round, and timer state to th
   assert.deepEqual([social.currentRound, social.totalRounds], [4, 10]);
   assert.equal(oneWord.centerLabel, 'المخمّن: راشد');
   assert.equal(eyewitness.centerLabel, 'شاهد الجولة: نور');
+  assert.equal(sameWavelength.centerLabel, 'الملمّح: سارة');
 });
 
 test('shared shell mapping exposes public scores but never copies private answers or role keys', () => {

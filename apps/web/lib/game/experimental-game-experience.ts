@@ -5,6 +5,7 @@ import type {
   OneWordOnlyPlayerView,
   SecretAgentsPlayerView,
   TimelinePlacementPlayerView,
+  SameWavelengthPlayerView,
 } from '@wanasatna/shared';
 import type { GameExperienceMeta, GameExperienceTimer } from './shell-types';
 
@@ -190,5 +191,43 @@ export function eyewitnessExperienceMeta(view: EyewitnessPlayerView): GameExperi
       score: entry.wins,
       isCurrentPlayer: entry.playerId === view.selfPlayerId,
     })),
+  };
+}
+
+export function sameWavelengthExperienceMeta(view: SameWavelengthPlayerView): GameExperienceMeta {
+  const team = view.activeTeam === 'red' ? 'الفريق الأحمر' : 'الفريق الأزرق';
+  return {
+    gameName: 'على نفس الموجة',
+    gameIcon: '〰️',
+    layoutMode:
+      view.phase === 'completed'
+        ? 'final-results'
+        : view.phase === 'turn-results'
+          ? 'round-results'
+          : 'gameplay',
+    phaseLabel:
+      view.phase === 'clue-writing'
+        ? 'كتابة التلميح'
+        : view.phase === 'guessing'
+          ? 'وضع العلامة'
+          : view.phase === 'turn-results'
+            ? 'نتيجة الدور'
+            : 'النتائج النهائية',
+    centerLabel:
+      view.mode === 'team'
+        ? `الجولة ${view.currentRound} · دور ${team}`
+        : `الملمّح: ${view.clueGiverName ?? '—'}`,
+    currentRound: view.currentRound,
+    totalRounds: view.totalRounds,
+    timer: countdown(view.deadlineAtMs),
+    leaderboardEntries:
+      view.mode === 'individual'
+        ? view.leaderboard.map((entry) => ({
+            playerId: entry.playerId,
+            name: entry.name,
+            score: entry.score,
+            isCurrentPlayer: entry.playerId === view.selfPlayerId,
+          }))
+        : [],
   };
 }

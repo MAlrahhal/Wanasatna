@@ -15,6 +15,7 @@ import {
   EYEWITNESS_GAME_ID,
   TIMING_CHALLENGE_GAME_ID,
   WHO_WROTE_IT_GAME_ID,
+  SAME_WAVELENGTH_GAME_ID,
 } from '@wanasatna/shared';
 import { GameExperienceShell } from '@/components/game-experience/game-experience-shell';
 import { GameExperienceProvider } from '@/contexts/game-experience-context';
@@ -48,7 +49,8 @@ function usesPluginExperienceShell(gameId: string): boolean {
     gameId === EMOJI_LANGUAGE_GAME_ID ||
     gameId === TIMELINE_PLACEMENT_GAME_ID ||
     gameId === ONE_WORD_ONLY_GAME_ID ||
-    gameId === EYEWITNESS_GAME_ID
+    gameId === EYEWITNESS_GAME_ID ||
+    gameId === SAME_WAVELENGTH_GAME_ID
   );
 }
 
@@ -59,7 +61,8 @@ function CountdownForGame({ gameId }: { gameId: string }) {
     gameId === EMOJI_LANGUAGE_GAME_ID ||
     gameId === TIMELINE_PLACEMENT_GAME_ID ||
     gameId === ONE_WORD_ONLY_GAME_ID ||
-    gameId === EYEWITNESS_GAME_ID
+    gameId === EYEWITNESS_GAME_ID ||
+    gameId === SAME_WAVELENGTH_GAME_ID
   ) {
     return <PluginMatchStarting />;
   }

@@ -80,6 +80,7 @@ test('real closed-test game registers separately and the public game count remai
       'eyewitness',
       'most-likely-to',
       'one-word-only',
+      'same-wavelength',
       'secret-agents',
       'timeline-placement',
     ],
@@ -269,6 +270,7 @@ test('closed-test implementation is registered while discovery remains separate'
     /registerExperimentalGame\(timelinePlacementExperimentalRegistration\)/,
   );
   assert.match(registrations, /registerExperimentalGame\(oneWordOnlyExperimentalRegistration\)/);
+  assert.match(registrations, /registerExperimentalGame\(sameWavelengthExperimentalRegistration\)/);
   assert.doesNotMatch(availability, /experimental-game-select|future-game/);
   assert.doesNotMatch(publicRoutes, /experimental-games|listExperimentalGames/);
 });
