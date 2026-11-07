@@ -351,6 +351,16 @@ test('7b. mount GAME_SHELL_SYNC is skipped when live state already applied', () 
   assert.match(context, /syncViewRef\.current\.status === 'ready' && syncViewRef\.current\.state/);
 });
 
+test('7c. concurrent route observers share one active Game Shell sync', () => {
+  const context = read('contexts/room-context.tsx');
+  assert.match(context, /activeGameShellSyncInFlightRef/);
+  assert.match(context, /scopeKey = `\$\{socket\.id \?\? 'disconnected'\}:\$\{roomId\}`/);
+  assert.match(context, /activeGameShellSyncInFlightRef\.current\?\.scopeKey === scopeKey/);
+  assert.match(context, /return activeGameShellSyncInFlightRef\.current\.request/);
+  assert.match(context, /activeGameShellSyncInFlightRef\.current = \{ scopeKey, request \}/);
+  assert.match(context, /activeGameShellSyncInFlightRef\.current\?\.request === request/);
+});
+
 test('8. reconnect while game exists stays on /game', () => {
   const view = sync(createPendingShellSyncView(), {
     success: true,

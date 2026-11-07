@@ -212,6 +212,10 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     status: 'unknown',
   });
   const activeGameShellSyncGenerationRef = useRef(0);
+  const activeGameShellSyncInFlightRef = useRef<{
+    scopeKey: string;
+    request: Promise<AuthoritativeRuntimeSnapshot<GameShellState>>;
+  } | null>(null);
   const removeSocketListenersRef = useRef<(() => void) | null>(null);
   const roomCodeRef = useRef<string | null>(null);
   const selectedGameIdRef = useRef<string | null>(null);
@@ -273,24 +277,42 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   );
 
   const syncActiveGameShell = useCallback(async () => {
+    const socket = getRoomSocket();
+    const roomId = getRoomSessionManager().getState().session?.roomId ?? 'unbound';
+    const scopeKey = `${socket.id ?? 'disconnected'}:${roomId}`;
+    if (activeGameShellSyncInFlightRef.current?.scopeKey === scopeKey) {
+      return activeGameShellSyncInFlightRef.current.request;
+    }
+
     const requestGeneration = activeGameShellSyncGenerationRef.current + 1;
     activeGameShellSyncGenerationRef.current = requestGeneration;
     activeGameShellRouteSnapshotRef.current = { status: 'unknown' };
 
-    const response = await emitGameShellWithAck<{ state: GameShellState | null }>(
-      GAME_SHELL_SYNC_EVENT,
-    );
+    const request = (async () => {
+      const response = await emitGameShellWithAck<{ state: GameShellState | null }>(
+        GAME_SHELL_SYNC_EVENT,
+      );
 
-    if (response.success && requestGeneration === activeGameShellSyncGenerationRef.current) {
-      activeGameShellRef.current = response.data.state;
-      activeGameShellRouteSnapshotRef.current = {
-        status: 'ready',
-        state: response.data.state,
-      };
-      setActiveGameShell(response.data.state);
+      if (response.success && requestGeneration === activeGameShellSyncGenerationRef.current) {
+        activeGameShellRef.current = response.data.state;
+        activeGameShellRouteSnapshotRef.current = {
+          status: 'ready',
+          state: response.data.state,
+        };
+        setActiveGameShell(response.data.state);
+      }
+
+      return activeGameShellRouteSnapshotRef.current;
+    })();
+
+    activeGameShellSyncInFlightRef.current = { scopeKey, request };
+    try {
+      return await request;
+    } finally {
+      if (activeGameShellSyncInFlightRef.current?.request === request) {
+        activeGameShellSyncInFlightRef.current = null;
+      }
     }
-
-    return activeGameShellRouteSnapshotRef.current;
   }, []);
 
   const canonicalizeActiveLobbyUrl = useCallback(
