@@ -53,7 +53,7 @@ export type SameWavelengthLobbyView = {
 export type SameWavelengthProposalView = {
   playerId: string;
   name: string;
-  position: number;
+  position: number | null;
   confirmed: boolean;
 };
 

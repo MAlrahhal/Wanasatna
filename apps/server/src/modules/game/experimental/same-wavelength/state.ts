@@ -589,11 +589,14 @@ export function buildSameWavelengthPlayerView(
   const canSeeTeamProposals =
     match.settings.mode === 'team' && assignment?.team === match.turn.activeTeam;
   const proposals: SameWavelengthProposalView[] = canSeeTeamProposals
-    ? eligibleGuesserIds(match).flatMap((id) => {
+    ? eligibleGuesserIds(match).map((id) => {
         const proposal = match.turn.proposals[id];
-        return proposal
-          ? [{ playerId: id, name: match.playerNames[id] ?? 'لاعب', ...proposal }]
-          : [];
+        return {
+          playerId: id,
+          name: match.playerNames[id] ?? 'لاعب',
+          position: proposal?.position ?? null,
+          confirmed: proposal?.confirmed ?? false,
+        };
       })
     : [];
   const resultIds = match.playerIds.filter((id) => id !== match.turn.clueGiverPlayerId);

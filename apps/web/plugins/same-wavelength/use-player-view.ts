@@ -92,6 +92,48 @@ export function useSameWavelengthPlayerView(enabled: boolean) {
     [enabled, submitting],
   );
 
+  const submitIndividualGuess = useCallback(
+    async (position: number) => {
+      if (!enabled || submitting || !view || view.mode !== 'individual') return null;
+      setSubmitting(true);
+      setError(null);
+
+      let latestView = view;
+      if (view.ownProposal !== position || view.ownConfirmed) {
+        const proposalResponse = await emitPluginWithAck<ViewResponse>(
+          SAME_WAVELENGTH_PROPOSE_EVENT,
+          {
+            turnId: view.turnId,
+            position,
+            requestId: requestId(),
+          },
+        );
+        if (!proposalResponse.success) {
+          setError(proposalResponse.error.message);
+          setSubmitting(false);
+          return null;
+        }
+        latestView = proposalResponse.data.view;
+        hasView.current = true;
+        setView(latestView);
+      }
+
+      const confirmResponse = await emitPluginWithAck<ViewResponse>(SAME_WAVELENGTH_CONFIRM_EVENT, {
+        turnId: latestView.turnId,
+        requestId: requestId(),
+      });
+      if (confirmResponse.success) {
+        hasView.current = true;
+        setView(confirmResponse.data.view);
+      } else {
+        setError(confirmResponse.error.message);
+      }
+      setSubmitting(false);
+      return confirmResponse.success ? confirmResponse.data.view : null;
+    },
+    [enabled, submitting, view],
+  );
+
   return {
     view,
     error,
@@ -113,6 +155,7 @@ export function useSameWavelengthPlayerView(enabled: boolean) {
             requestId: requestId(),
           })
         : Promise.resolve(null),
+    submitIndividualGuess,
     confirm: () =>
       view
         ? action(SAME_WAVELENGTH_CONFIRM_EVENT, {

@@ -280,6 +280,14 @@ test('changing a team proposal invalidates its confirmation until that player co
 
 test('team scoring requires identical separately confirmed guesses and scores once', () => {
   let match = submitClue(create('team'));
+  const initialTeamView = buildSameWavelengthPlayerView(match, 'p2', shell(match));
+  assert.deepEqual(
+    initialTeamView.teamProposals.map(({ position, confirmed }) => ({ position, confirmed })),
+    [
+      { position: null, confirmed: false },
+      { position: null, confirmed: false },
+    ],
+  );
   for (const [index, playerId] of ['p2', 'p5'].entries()) {
     const proposed = proposeSameWavelengthPosition(
       match,

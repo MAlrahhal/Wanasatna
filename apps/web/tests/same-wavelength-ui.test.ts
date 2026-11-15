@@ -33,13 +33,37 @@ test('lobby exposes both authoritative modes and self-service team assignments',
   assert.doesNotMatch(lobby, /isAdmin:\s*true|userId:|premium:\s*true/);
 });
 
-test('game UI keeps proposing and confirming as separate actions and preserves zero', () => {
+test('single spectrum is the accessible pointer, touch, and keyboard control', () => {
   const game = read('plugins/same-wavelength/game-screen.tsx');
-  assert.match(game, /min=\{0\}/);
-  assert.match(game, /max=\{100\}/);
-  assert.match(game, /position !== null && void props\.propose\(position\)/);
-  assert.match(game, /onClick=\{\(\) => void props\.confirm\(\)\}/);
-  assert.match(game, /dir="ltr"/);
+  const spectrum = read('plugins/same-wavelength/spectrum-control.tsx');
+  assert.doesNotMatch(game, /type="range"/);
+  assert.match(game, /<SameWavelengthSpectrum/);
+  assert.match(spectrum, /type="range"/);
+  assert.match(spectrum, /min=\{0\}/);
+  assert.match(spectrum, /max=\{100\}/);
+  assert.match(spectrum, /dir="ltr"/);
+  assert.match(spectrum, /touch-none/);
+  assert.match(spectrum, /onInput=/);
+  assert.match(spectrum, /إنقاص الموقع درجة واحدة/);
+  assert.match(spectrum, /زيادة الموقع درجة واحدة/);
+  assert.match(spectrum, /لم يتم اختيار موقع بعد/);
+  assert.match(spectrum, /\[0, 25, 50, 75, 100\]/);
+  assert.match(spectrum, /position <= 8/);
+  assert.match(spectrum, /position >= 92/);
+});
+
+test('individual mode exposes one explicit confirmation while team mode preserves two steps', () => {
+  const game = read('plugins/same-wavelength/game-screen.tsx');
+  const hook = read('plugins/same-wavelength/use-player-view.ts');
+  assert.match(game, /submitIndividualGuess/);
+  assert.match(game, /تأكيد تخميني/);
+  assert.match(hook, /SAME_WAVELENGTH_PROPOSE_EVENT/);
+  assert.match(hook, /SAME_WAVELENGTH_CONFIRM_EVENT/);
+  assert.match(hook, /const submitIndividualGuess/);
+  assert.match(game, /إرسال اقتراحي/);
+  assert.match(game, /تأكيد الاتفاق على/);
+  assert.match(game, /أكّد \{confirmedCount\} من \{view\.teamProposals\.length\}/);
+  assert.match(game, /لم يقترح بعد/);
   assert.match(game, /يمكنك متابعة الطيف والتلميح والنتائج، لكن لا يمكنك إرسال علامة/);
 });
 
@@ -52,6 +76,22 @@ test('private target is rendered only from the server role-scoped field', () => 
   assert.match(hook, /AckGenerationGate/);
   assert.match(hook, /runLatestAck/);
   assert.match(hook, /bindPluginViewResync/);
+});
+
+test('clue and results UI avoid duplicated target copy and explain timeout outcomes', () => {
+  const game = read('plugins/same-wavelength/game-screen.tsx');
+  const spectrum = read('plugins/same-wavelength/spectrum-control.tsx');
+  assert.match(game, /الهدف السري:/);
+  assert.match(game, /tone: 'target'/);
+  assert.match(game, /اكتب مثالًا يلمّح إلى مكان الهدف/);
+  assert.doesNotMatch(game, /كوب شاي/);
+  assert.match(game, /انتهى الوقت بدون تلميح — لا نقاط لهذه الجولة/);
+  assert.match(game, /لم يصل الفريق إلى تأكيد جماعي/);
+  assert.match(game, /SameWavelengthResultEntry/);
+  assert.match(game, /showMarkerLegend/);
+  assert.match(spectrum, /مفتاح علامات النتيجة/);
+  assert.match(game, /<bdi dir="auto"/);
+  assert.match(game, /\{index \+ 1\}./);
 });
 
 test('game is registered lazily but absent from every public discovery source', () => {
