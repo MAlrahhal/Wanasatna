@@ -47,6 +47,8 @@ test('single spectrum is the accessible pointer, touch, and keyboard control', (
   assert.match(spectrum, /إنقاص الموقع درجة واحدة/);
   assert.match(spectrum, /زيادة الموقع درجة واحدة/);
   assert.match(spectrum, /لم يتم اختيار موقع بعد/);
+  assert.match(spectrum, /اضغط على المقياس لاختيار موقع، ثم اسحب لتعديله/);
+  assert.match(spectrum, /text-\[11px\] font-bold text-slate-300 sm:text-xs/);
   assert.match(spectrum, /\[0, 25, 50, 75, 100\]/);
   assert.match(spectrum, /position <= 8/);
   assert.match(spectrum, /position >= 92/);

@@ -151,7 +151,7 @@ export function SameWavelengthSpectrum(props: {
           </div>
 
           <div
-            className="text-wanas-text-muted mt-1 flex justify-between px-1 text-[10px]"
+            className="mt-1 flex justify-between px-1 text-[11px] font-bold text-slate-300 sm:text-xs"
             aria-hidden="true"
           >
             {[0, 25, 50, 75, 100].map((tick) => (
@@ -194,7 +194,9 @@ export function SameWavelengthSpectrum(props: {
               −
             </button>
             <p className="text-wanas-text-muted min-w-28 text-center text-xs" dir="rtl">
-              {value === null ? 'حرّك العلامة لاختيار موقع' : `الموقع المختار: ${value}`}
+              {value === null
+                ? 'اضغط على المقياس لاختيار موقع، ثم اسحب لتعديله'
+                : `الموقع المختار: ${value}`}
             </p>
             <button
               type="button"
