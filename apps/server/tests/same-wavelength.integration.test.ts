@@ -405,6 +405,113 @@ async function main(): Promise<void> {
       assert.equal(completed.totalRounds, 3);
     });
 
+    await test('individual timeout scores the latest accepted private selection after reconnect', async () => {
+      const room = await createSelectedRoom({
+        baseUrl,
+        token: admin.token,
+        guestNames: ['لاعب أول', 'لاعب ثان'],
+        sockets,
+        roomIds,
+      });
+      const shellReady = waitForPlayingShell(room.host);
+      const started = await ack<Ack<unknown>>(room.host, GAME_SHELL_START_FROM_LOBBY_EVENT, {
+        gameId: SAME_WAVELENGTH_GAME_ID,
+      });
+      assert.equal(started.success, true, started.success ? '' : started.error.message);
+      await shellReady;
+
+      const participants = [{ socket: room.host, session: room.created }, ...room.guests];
+      const initialViews = await Promise.all(participants.map((entry) => syncView(entry.socket)));
+      const clueIndex = initialViews.findIndex((view) => view.isClueGiver);
+      const guesserIndexes = initialViews.flatMap((view, index) =>
+        view.isClueGiver ? [] : [index],
+      );
+      assert.ok(clueIndex >= 0);
+      assert.equal(guesserIndexes.length, 2);
+
+      const clue = await ack<Ack<ViewData>>(
+        participants[clueIndex]!.socket,
+        SAME_WAVELENGTH_SUBMIT_CLUE_EVENT,
+        {
+          turnId: initialViews[clueIndex]!.turnId,
+          clue: 'مكان هادئ في المدينة',
+          requestId: randomUUID(),
+        },
+      );
+      assert.equal(clue.success, true, clue.success ? '' : clue.error.message);
+      if (!clue.success) return;
+      const guessingDeadline = clue.data.view.deadlineAtMs;
+      assert.ok(guessingDeadline);
+
+      const selectedIndex = guesserIndexes[0]!;
+      const idleIndex = guesserIndexes[1]!;
+      const selected = participants[selectedIndex]!;
+      const firstProposal = await ack<Ack<ViewData>>(
+        selected.socket,
+        SAME_WAVELENGTH_PROPOSE_EVENT,
+        {
+          turnId: clue.data.view.turnId,
+          position: 25,
+          requestId: randomUUID(),
+        },
+      );
+      assert.equal(
+        firstProposal.success,
+        true,
+        firstProposal.success ? '' : firstProposal.error.message,
+      );
+      const proposed = await ack<Ack<ViewData>>(selected.socket, SAME_WAVELENGTH_PROPOSE_EVENT, {
+        turnId: clue.data.view.turnId,
+        position: 0,
+        requestId: randomUUID(),
+      });
+      assert.equal(proposed.success, true, proposed.success ? '' : proposed.error.message);
+      if (!proposed.success) return;
+      assert.equal(proposed.data.view.ownProposal, 0);
+      assert.equal(proposed.data.view.ownConfirmed, false);
+      const privateOtherView = await syncView(participants[idleIndex]!.socket);
+      assert.equal(privateOtherView.ownProposal, null);
+      assert.deepEqual(privateOtherView.teamProposals, []);
+
+      selected.socket.disconnect();
+      const restoredSocket = await connect(baseUrl, selectedIndex === 0 ? admin.token : undefined);
+      sockets.push(restoredSocket);
+      const reconnected = await ack<ReconnectResponse>(restoredSocket, RECONNECT_EVENT, {
+        playerId: selected.session.player.id,
+        reconnectToken: selected.session.reconnectToken,
+        roomCode: room.created.room.code,
+      });
+      assert.equal(reconnected.success, true, reconnected.success ? '' : reconnected.error.message);
+      selected.socket = restoredSocket;
+      const restored = await syncView(restoredSocket);
+      assert.equal(restored.phase, 'guessing');
+      assert.equal(restored.deadlineAtMs, guessingDeadline);
+      assert.equal(restored.ownProposal, 0);
+      assert.equal(restored.ownConfirmed, false);
+
+      assert.equal(settleSameWavelengthDeadline(io, room.created.room.id, guessingDeadline!), true);
+      const results = await Promise.all(participants.map((entry) => syncView(entry.socket)));
+      assert.ok(results.every((view) => view.phase === 'turn-results'));
+      const selectedResult = results[0]!.roundResults.find(
+        (entry) => entry.playerId === selected.session.player.id,
+      );
+      const idleResult = results[0]!.roundResults.find(
+        (entry) => entry.playerId === participants[idleIndex]!.session.player.id,
+      );
+      assert.equal(selectedResult?.guess, 0);
+      assert.equal(idleResult?.guess, null);
+
+      const lateConfirm = await ack<Ack<unknown>>(restoredSocket, SAME_WAVELENGTH_CONFIRM_EVENT, {
+        turnId: clue.data.view.turnId,
+        requestId: randomUUID(),
+      });
+      assert.equal(lateConfirm.success, false);
+      assert.equal(
+        settleSameWavelengthDeadline(io, room.created.room.id, guessingDeadline!),
+        false,
+      );
+    });
+
     await test('individual mode completes five rounds with private guesses and authoritative scoring', async () => {
       const room = await createSelectedRoom({
         baseUrl,

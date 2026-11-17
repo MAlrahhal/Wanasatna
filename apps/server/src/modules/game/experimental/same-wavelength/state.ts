@@ -258,7 +258,7 @@ function finalizeTurn(
   } else if (reason === 'scored' && match.settings.mode === 'individual') {
     for (const playerId of eligibleGuesserIds(match)) {
       const proposal = match.turn.proposals[playerId];
-      if (proposal?.confirmed) {
+      if (proposal) {
         scores[playerId] =
           (scores[playerId] ?? 0) + sameWavelengthPoints(match.turn.target, proposal.position);
       }
@@ -335,6 +335,9 @@ export function proposeSameWavelengthPosition(
   }
   if (!eligibleGuesserIds(match).includes(playerId)) {
     return { ok: false, message: 'لا تملك صلاحية وضع علامة في هذا الدور.' };
+  }
+  if (match.settings.mode === 'individual' && match.turn.proposals[playerId]?.confirmed) {
+    return { ok: false, message: 'تم تثبيت تخمينك ولا يمكن تغييره.' };
   }
   if (!validPosition(payload.position)) {
     return { ok: false, message: 'يجب أن يكون الموقع عددًا صحيحًا بين 0 و100.' };
@@ -533,7 +536,7 @@ export function handleSameWavelengthPermanentLeave(
 
 function resultEntry(match: SameWavelengthMatchState, playerId: string): SameWavelengthResultEntry {
   const proposal = match.turn.proposals[playerId];
-  const guess = proposal?.confirmed ? proposal.position : null;
+  const guess = proposal?.position ?? null;
   const distance = guess === null ? null : Math.abs(guess - match.turn.target);
   const closeness = distance === null ? null : 100 - distance;
   return {
@@ -626,7 +629,11 @@ export function buildSameWavelengthPlayerView(
     isSpectator: !isParticipant,
     isClueGiver,
     canSubmitClue: isParticipant && isClueGiver && match.turn.phase === 'clue-writing',
-    canPropose: isParticipant && eligibleGuesser && match.turn.phase === 'guessing',
+    canPropose:
+      isParticipant &&
+      eligibleGuesser &&
+      match.turn.phase === 'guessing' &&
+      (match.settings.mode !== 'individual' || !ownProposal?.confirmed),
     canConfirm:
       isParticipant &&
       eligibleGuesser &&

@@ -44,10 +44,14 @@ test('single spectrum is the accessible pointer, touch, and keyboard control', (
   assert.match(spectrum, /dir="ltr"/);
   assert.match(spectrum, /touch-none/);
   assert.match(spectrum, /onInput=/);
+  assert.match(spectrum, /onPointerUp=/);
+  assert.match(spectrum, /onKeyUp=/);
+  assert.match(spectrum, /onCommit\?\.\(next\)/);
   assert.match(spectrum, /إنقاص الموقع درجة واحدة/);
   assert.match(spectrum, /زيادة الموقع درجة واحدة/);
   assert.match(spectrum, /لم يتم اختيار موقع بعد/);
-  assert.match(spectrum, /اضغط على المقياس لاختيار موقع، ثم اسحب لتعديله/);
+  assert.match(spectrum, /اختر موقعًا على المقياس/);
+  assert.doesNotMatch(spectrum, /ثم اسحب لتعديله/);
   assert.match(spectrum, /text-\[11px\] font-bold text-slate-300 sm:text-xs/);
   assert.match(spectrum, /\[0, 25, 50, 75, 100\]/);
   assert.match(spectrum, /position <= 8/);
@@ -58,10 +62,14 @@ test('individual mode exposes one explicit confirmation while team mode preserve
   const game = read('plugins/same-wavelength/game-screen.tsx');
   const hook = read('plugins/same-wavelength/use-player-view.ts');
   assert.match(game, /submitIndividualGuess/);
+  assert.match(game, /canPropose \|\| individualLocked/);
   assert.match(game, /تأكيد تخميني/);
   assert.match(hook, /SAME_WAVELENGTH_PROPOSE_EVENT/);
   assert.match(hook, /SAME_WAVELENGTH_CONFIRM_EVENT/);
   assert.match(hook, /const submitIndividualGuess/);
+  assert.match(game, /onCommit=/);
+  assert.doesNotMatch(game, /حرّك العلامة، ثم ثبّت تخمينك/);
+  assert.doesNotMatch(game, /اختر موقعًا لإرسال اقتراحك/);
   assert.match(game, /إرسال اقتراحي/);
   assert.match(game, /تأكيد الاتفاق على/);
   assert.match(game, /أكّد \{confirmedCount\} من \{view\.teamProposals\.length\}/);
@@ -78,6 +86,8 @@ test('private target is rendered only from the server role-scoped field', () => 
   assert.match(hook, /AckGenerationGate/);
   assert.match(hook, /runLatestAck/);
   assert.match(hook, /bindPluginViewResync/);
+  assert.match(hook, /shouldAcceptSameWavelengthView/);
+  assert.match(hook, /syncGate\.current\.invalidate\(\)/);
 });
 
 test('clue and results UI avoid duplicated target copy and explain timeout outcomes', () => {
@@ -90,6 +100,8 @@ test('clue and results UI avoid duplicated target copy and explain timeout outco
   assert.match(game, /انتهى الوقت بدون تلميح — لا نقاط لهذه الجولة/);
   assert.match(game, /لم يصل الفريق إلى تأكيد جماعي/);
   assert.match(game, /SameWavelengthResultEntry/);
+  assert.match(game, /لم يرسل تخمينًا · \+0/);
+  assert.doesNotMatch(game, /لم يؤكد تخمينًا/);
   assert.match(game, /showMarkerLegend/);
   assert.match(spectrum, /مفتاح علامات النتيجة/);
   assert.match(game, /<bdi dir="auto"/);

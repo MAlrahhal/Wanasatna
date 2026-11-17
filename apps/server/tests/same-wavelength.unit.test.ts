@@ -475,6 +475,85 @@ test('individual confirmations score independently without revealing another pri
   assert.equal(match.scores[second!], sameWavelengthPoints(match.turn.target, 0));
 });
 
+test('individual timeout scores the latest accepted selection, including zero, but not no selection', () => {
+  let match = submitClue(create('individual'));
+  const clueGiver = match.turn.clueGiverPlayerId!;
+  const [selectedPlayer, idlePlayer] = match.playerIds.filter((id) => id !== clueGiver);
+  const firstProposal = proposeSameWavelengthPosition(
+    match,
+    selectedPlayer!,
+    { turnId: match.turn.turnId, position: 25, requestId: requestId('timeout-position-first') },
+    3_000,
+  );
+  assert.equal(firstProposal.ok, true);
+  if (!firstProposal.ok) return;
+  match = firstProposal.match;
+  const proposed = proposeSameWavelengthPosition(
+    match,
+    selectedPlayer!,
+    { turnId: match.turn.turnId, position: 0, requestId: requestId('timeout-position-zero') },
+    3_100,
+  );
+  assert.equal(proposed.ok, true);
+  if (!proposed.ok) return;
+  match = proposed.match;
+
+  const expired = expireSameWavelengthPhase(
+    match,
+    match.turn.turnId,
+    'guessing',
+    match.turn.deadlineAtMs!,
+  );
+  assert.ok(expired);
+  assert.equal(expired.scores[selectedPlayer!], sameWavelengthPoints(expired.turn.target, 0));
+  assert.equal(expired.scores[idlePlayer!], 0);
+
+  const view = buildSameWavelengthPlayerView(expired, idlePlayer!, shell(expired));
+  const selectedResult = view.roundResults.find((entry) => entry.playerId === selectedPlayer);
+  const idleResult = view.roundResults.find((entry) => entry.playerId === idlePlayer);
+  assert.equal(selectedResult?.guess, 0);
+  assert.equal(idleResult?.guess, null);
+  assert.equal(
+    expireSameWavelengthPhase(expired, match.turn.turnId, 'guessing', match.turn.deadlineAtMs!),
+    null,
+  );
+});
+
+test('individual confirmation locks the accepted position on the server', () => {
+  let match = submitClue(create('individual'));
+  const clueGiver = match.turn.clueGiverPlayerId!;
+  const guesser = match.playerIds.find((id) => id !== clueGiver)!;
+  const proposed = proposeSameWavelengthPosition(
+    match,
+    guesser,
+    { turnId: match.turn.turnId, position: 25, requestId: requestId('locked-position') },
+    3_000,
+  );
+  assert.equal(proposed.ok, true);
+  if (!proposed.ok) return;
+  match = proposed.match;
+  const confirmed = confirmSameWavelengthPosition(
+    match,
+    guesser,
+    { turnId: match.turn.turnId, requestId: requestId('locked-confirm') },
+    3_100,
+  );
+  assert.equal(confirmed.ok, true);
+  if (!confirmed.ok) return;
+  const forgedRevision = proposeSameWavelengthPosition(
+    confirmed.match,
+    guesser,
+    { turnId: match.turn.turnId, position: 80, requestId: requestId('locked-revision') },
+    3_200,
+  );
+  assert.equal(forgedRevision.ok, false);
+  assert.deepEqual(confirmed.match.turn.proposals[guesser], { position: 25, confirmed: true });
+  assert.equal(
+    buildSameWavelengthPlayerView(confirmed.match, guesser, shell(match)).canPropose,
+    false,
+  );
+});
+
 test('permanent leave preserves a valid match but interrupts when a required team role is lost', () => {
   const team = create('team');
   const guesserLeft = handleSameWavelengthPermanentLeave(team, 'p5', 2_000);

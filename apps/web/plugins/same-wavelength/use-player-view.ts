@@ -18,6 +18,7 @@ import {
 import { bindPluginViewResync } from '@/lib/game-plugins/bind-plugin-view-resync';
 import { emitPluginWithAck } from '@/lib/game-plugins/emit';
 import { getRoomSocket } from '@/lib/room/socket';
+import { shouldAcceptSameWavelengthView } from './view-order';
 
 type ViewResponse = { view: SameWavelengthPlayerView };
 
@@ -39,6 +40,18 @@ export function useSameWavelengthPlayerView(enabled: boolean) {
   const [submitting, setSubmitting] = useState(false);
   const hasView = useRef(false);
   const syncGate = useRef(new AckGenerationGate());
+  const actionInFlight = useRef(false);
+  const retiredMatchIds = useRef(new Set<string>());
+
+  const applyView = useCallback((incoming: SameWavelengthPlayerView) => {
+    setView((current) => {
+      if (current && current.matchId !== incoming.matchId) {
+        if (retiredMatchIds.current.has(incoming.matchId)) return current;
+        retiredMatchIds.current.add(current.matchId);
+      }
+      return shouldAcceptSameWavelengthView(current, incoming) ? incoming : current;
+    });
+  }, []);
 
   const sync = useCallback(async () => {
     if (!enabled) return;
@@ -52,86 +65,105 @@ export function useSameWavelengthPlayerView(enabled: boolean) {
     if (result === undefined) return;
     if (result.view) {
       hasView.current = true;
-      setView(result.view);
+      applyView(result.view);
       setError(null);
     } else if (isRateLimitedPluginSyncResult(result)) return 'rate-limited';
     else if (initial) setError(result.errorMessage);
     if (initial) setLoading(false);
-  }, [enabled]);
+  }, [applyView, enabled]);
 
   useEffect(() => {
     const gate = syncGate.current;
+    const retired = retiredMatchIds.current;
     if (!enabled) {
       gate.invalidate();
       hasView.current = false;
+      retired.clear();
       return;
     }
     const unbind = bindPluginViewResync(getRoomSocket(), SAME_WAVELENGTH_PHASE_CHANGED_EVENT, sync);
     return () => {
       gate.invalidate();
       hasView.current = false;
+      retired.clear();
       unbind();
     };
   }, [enabled, sync]);
 
   const action = useCallback(
     async (event: string, payload: unknown) => {
-      if (!enabled || submitting) return null;
+      if (!enabled || actionInFlight.current) return null;
+      actionInFlight.current = true;
+      syncGate.current.invalidate();
       setSubmitting(true);
       setError(null);
-      const response = await emitPluginWithAck<ViewResponse>(event, payload);
-      if (response.success) {
-        hasView.current = true;
-        setView(response.data.view);
-      } else {
-        setError(response.error.message);
+      try {
+        const response = await emitPluginWithAck<ViewResponse>(event, payload);
+        if (response.success) {
+          hasView.current = true;
+          syncGate.current.invalidate();
+          applyView(response.data.view);
+        } else {
+          setError(response.error.message);
+        }
+        return response.success ? response.data.view : null;
+      } finally {
+        actionInFlight.current = false;
+        setSubmitting(false);
       }
-      setSubmitting(false);
-      return response.success ? response.data.view : null;
     },
-    [enabled, submitting],
+    [applyView, enabled],
   );
 
   const submitIndividualGuess = useCallback(
     async (position: number) => {
-      if (!enabled || submitting || !view || view.mode !== 'individual') return null;
+      if (!enabled || actionInFlight.current || !view || view.mode !== 'individual') return null;
+      actionInFlight.current = true;
+      syncGate.current.invalidate();
       setSubmitting(true);
       setError(null);
+      try {
+        let latestView = view;
+        if (view.ownProposal !== position) {
+          const proposalResponse = await emitPluginWithAck<ViewResponse>(
+            SAME_WAVELENGTH_PROPOSE_EVENT,
+            {
+              turnId: view.turnId,
+              position,
+              requestId: requestId(),
+            },
+          );
+          if (!proposalResponse.success) {
+            setError(proposalResponse.error.message);
+            return null;
+          }
+          latestView = proposalResponse.data.view;
+          hasView.current = true;
+          syncGate.current.invalidate();
+          applyView(latestView);
+        }
 
-      let latestView = view;
-      if (view.ownProposal !== position || view.ownConfirmed) {
-        const proposalResponse = await emitPluginWithAck<ViewResponse>(
-          SAME_WAVELENGTH_PROPOSE_EVENT,
+        const confirmResponse = await emitPluginWithAck<ViewResponse>(
+          SAME_WAVELENGTH_CONFIRM_EVENT,
           {
-            turnId: view.turnId,
-            position,
+            turnId: latestView.turnId,
             requestId: requestId(),
           },
         );
-        if (!proposalResponse.success) {
-          setError(proposalResponse.error.message);
-          setSubmitting(false);
-          return null;
+        if (confirmResponse.success) {
+          hasView.current = true;
+          syncGate.current.invalidate();
+          applyView(confirmResponse.data.view);
+        } else {
+          setError(confirmResponse.error.message);
         }
-        latestView = proposalResponse.data.view;
-        hasView.current = true;
-        setView(latestView);
+        return confirmResponse.success ? confirmResponse.data.view : null;
+      } finally {
+        actionInFlight.current = false;
+        setSubmitting(false);
       }
-
-      const confirmResponse = await emitPluginWithAck<ViewResponse>(SAME_WAVELENGTH_CONFIRM_EVENT, {
-        turnId: latestView.turnId,
-        requestId: requestId(),
-      });
-      if (confirmResponse.success) {
-        hasView.current = true;
-        setView(confirmResponse.data.view);
-      } else {
-        setError(confirmResponse.error.message);
-      }
-      setSubmitting(false);
-      return confirmResponse.success ? confirmResponse.data.view : null;
     },
-    [enabled, submitting, view],
+    [applyView, enabled, view],
   );
 
   return {

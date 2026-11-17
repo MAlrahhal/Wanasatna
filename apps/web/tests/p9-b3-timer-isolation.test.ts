@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { advanceDeadlineClock } from '../lib/game/deadline-clock';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -45,10 +46,7 @@ const plugins = [
 
 test('reconnect remaining time derives from absolute deadline', () => {
   const clock = read('lib/game/deadline-clock.ts');
-  assert.match(
-    clock,
-    /Math\.max\(0, Math\.ceil\(\(deadlineAtMs - nowMs\) \/ 1000\)\)/,
-  );
+  assert.match(clock, /Math\.max\(0, Math\.ceil\(\(deadlineAtMs - nowMs\) \/ 1000\)\)/);
   const start = 1_700_000_000_000;
   const durationMs = 10_000;
   const deadline = start + durationMs;
@@ -68,10 +66,27 @@ test('deadline change recomputes remaining without decrement counters', () => {
   assert.match(clock, /remainingSecondsFromDeadline\(deadlineAtMs\)/);
 });
 
+test('same deadline never increases but a new phase deadline resets the display', () => {
+  const current = { deadlineAtMs: 10_000, remainingSeconds: 4 };
+  assert.deepEqual(advanceDeadlineClock(current, 10_000, 4_000), current);
+  assert.deepEqual(advanceDeadlineClock(current, 10_000, 8_500), {
+    deadlineAtMs: 10_000,
+    remainingSeconds: 2,
+  });
+  assert.deepEqual(advanceDeadlineClock(current, 20_000, 8_500), {
+    deadlineAtMs: 20_000,
+    remainingSeconds: 12,
+  });
+});
+
 test('use-deadline-clock cleans up interval on unmount/deadline change', () => {
   const clock = read('lib/game/use-deadline-clock.ts');
   assert.match(clock, /window\.setInterval\(update, intervalMs\)/);
-  assert.match(clock, /return \(\) => \{\s*window\.clearInterval\(intervalId\);\s*\}/);
+  assert.match(clock, /document\.addEventListener\('visibilitychange'/);
+  assert.match(clock, /window\.addEventListener\('focus'/);
+  assert.match(clock, /window\.addEventListener\('pageshow'/);
+  assert.match(clock, /window\.clearInterval\(intervalId\)/);
+  assert.match(clock, /document\.removeEventListener\('visibilitychange'/);
   assert.match(clock, /\[deadlineAtMs, intervalMs\]/);
 });
 

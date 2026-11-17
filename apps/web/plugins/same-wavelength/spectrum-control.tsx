@@ -40,6 +40,7 @@ export function SameWavelengthSpectrum(props: {
   rightLabel: string;
   value?: number | null;
   onChange?: (value: number) => void;
+  onCommit?: (value: number) => void;
   disabled?: boolean;
   markers?: readonly SpectrumMarker[];
   showMarkerLegend?: boolean;
@@ -143,6 +144,16 @@ export function SameWavelengthSpectrum(props: {
                 value={value ?? 50}
                 onInput={(event) => props.onChange?.(Number(event.currentTarget.value))}
                 onChange={(event) => props.onChange?.(Number(event.currentTarget.value))}
+                onPointerUp={(event) => props.onCommit?.(Number(event.currentTarget.value))}
+                onKeyUp={(event) => {
+                  if (
+                    ['ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].includes(
+                      event.key,
+                    )
+                  ) {
+                    props.onCommit?.(Number(event.currentTarget.value));
+                  }
+                }}
                 aria-label={props.ariaLabel ?? 'اختر موقعًا على الطيف من صفر إلى مئة'}
                 aria-valuetext={value === null ? 'لم يتم اختيار موقع بعد' : `${value} من 100`}
                 className="absolute inset-0 z-50 h-full w-full cursor-pointer touch-none opacity-0 focus:outline-none"
@@ -186,7 +197,11 @@ export function SameWavelengthSpectrum(props: {
           <div className="mt-3 flex items-center justify-center gap-3" dir="ltr">
             <button
               type="button"
-              onClick={() => props.onChange?.(stepSpectrumPosition(value, -1))}
+              onClick={() => {
+                const next = stepSpectrumPosition(value, -1);
+                props.onChange?.(next);
+                props.onCommit?.(next);
+              }}
               disabled={value === 0}
               aria-label="إنقاص الموقع درجة واحدة"
               className="border-wanas-border bg-wanas-surface-soft text-wanas-text-primary focus-visible:ring-wanas-accent flex size-11 items-center justify-center rounded-xl border text-xl font-black focus-visible:outline-none focus-visible:ring-2 disabled:opacity-40"
@@ -194,13 +209,15 @@ export function SameWavelengthSpectrum(props: {
               −
             </button>
             <p className="text-wanas-text-muted min-w-28 text-center text-xs" dir="rtl">
-              {value === null
-                ? 'اضغط على المقياس لاختيار موقع، ثم اسحب لتعديله'
-                : `الموقع المختار: ${value}`}
+              {value === null ? 'اختر موقعًا على المقياس' : `الموقع المختار: ${value}`}
             </p>
             <button
               type="button"
-              onClick={() => props.onChange?.(stepSpectrumPosition(value, 1))}
+              onClick={() => {
+                const next = stepSpectrumPosition(value, 1);
+                props.onChange?.(next);
+                props.onCommit?.(next);
+              }}
               disabled={value === 100}
               aria-label="زيادة الموقع درجة واحدة"
               className="border-wanas-border bg-wanas-surface-soft text-wanas-text-primary focus-visible:ring-wanas-accent flex size-11 items-center justify-center rounded-xl border text-xl font-black focus-visible:outline-none focus-visible:ring-2 disabled:opacity-40"

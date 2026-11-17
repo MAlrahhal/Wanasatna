@@ -198,7 +198,7 @@ function GuessingPhase(props: {
 }) {
   const [position, setPosition] = useState<number | null>(props.view.ownProposal);
   const individualLocked = props.view.mode === 'individual' && props.view.ownConfirmed;
-  const canInteract = props.view.canPropose && !individualLocked;
+  const canInteract = props.view.canPropose && !individualLocked && !props.busy;
   const proposalChanged = position !== props.view.ownProposal;
 
   return (
@@ -216,11 +216,16 @@ function GuessingPhase(props: {
           rightLabel={props.view.rightLabel}
           value={position}
           onChange={canInteract ? setPosition : undefined}
+          onCommit={
+            canInteract && props.view.mode === 'individual'
+              ? (nextPosition) => void props.propose(nextPosition)
+              : undefined
+          }
           disabled={!canInteract}
           ariaLabel="اختر موقع تخمينك على الطيف من صفر إلى مئة"
         />
 
-        {props.view.canPropose ? (
+        {props.view.canPropose || individualLocked ? (
           props.view.mode === 'individual' ? (
             <IndividualGuessAction
               position={position}
@@ -273,13 +278,11 @@ function IndividualGuessAction(props: {
         <p className="font-black text-emerald-100">
           تم تثبيت تخمينك: <bdi dir="ltr">{props.confirmedPosition}</bdi>
         </p>
-        <p className="text-wanas-text-muted mt-1 text-xs">بانتظار بقية اللاعبين…</p>
       </div>
     );
   }
   return (
-    <div className="space-y-2">
-      <p className="text-wanas-text-muted text-center text-sm">حرّك العلامة، ثم ثبّت تخمينك.</p>
+    <div>
       <button
         type="button"
         disabled={props.busy || props.position === null}
@@ -305,7 +308,7 @@ function TeamGuessAction(props: {
   confirm: () => Promise<unknown>;
 }) {
   if (props.position === null) {
-    return <p className="text-wanas-text-muted text-center text-sm">اختر موقعًا لإرسال اقتراحك.</p>;
+    return null;
   }
   if (props.proposalChanged) {
     return (
@@ -582,7 +585,7 @@ function IndividualRoundResult(props: { entry: SameWavelengthResultEntry; index:
       </div>
       <p className="text-wanas-text-muted mt-2 text-xs leading-5">
         {props.entry.guess === null
-          ? 'لم يؤكد تخمينًا · +0'
+          ? 'لم يرسل تخمينًا · +0'
           : `التخمين ${props.entry.guess} · المسافة ${props.entry.distance} · القرب ${props.entry.closeness} · +${props.entry.points}`}
       </p>
       <p className="text-wanas-text-primary mt-1 text-xs font-black">
